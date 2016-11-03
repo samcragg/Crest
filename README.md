@@ -1,5 +1,7 @@
 # Crest
 
+[![Build status](https://ci.appveyor.com/api/projects/status/spal08yea33stdlw/branch/master?svg=true)](https://ci.appveyor.com/project/samcragg/crest/branch/master) [![Coverage Status](https://coveralls.io/repos/github/samcragg/Crest/badge.svg?branch=master)](https://coveralls.io/github/samcragg/Crest?branch=master)
+
 This library provides a simple way to create versioned RESTful microservices
 built against .NET Core with ease whilst having not sacrificing performance.
 
