@@ -1,0 +1,26 @@
+version: 1.0.0.{build}
+image: Visual Studio 2015
+configuration: Release
+
+assembly_info:
+  patch: true
+  file: '**\AssemblyInfo.*'
+  assembly_version: '{version}'
+  assembly_file_version: '{version}'
+  assembly_informational_version: "{version}-pre"
+
+environment:
+  COVERALLS_REPO_TOKEN:
+    secure: PnKLd6lFGvTbtjGsMEDg9Bu/bsKFDSJyKZIqMyYLlHeq8Yj184Nq7unVFckuHtFy
+
+before_build:
+  - cmd: dotnet restore
+
+build_script:
+  - cmd: dotnet build -c Release src\Crest.Core
+  - cmd: dotnet build test\Core.UnitTests
+
+test_script:
+  - cmd: .\build\run_tests.bat
+  - ps: $wc = New-Object 'System.Net.WebClient'
+  - ps: $wc.UploadFile("https://ci.appveyor.com/api/testresults/nunit3/$($env:APPVEYOR_JOB_ID)", (Resolve-Path .\TestResult.xml))
