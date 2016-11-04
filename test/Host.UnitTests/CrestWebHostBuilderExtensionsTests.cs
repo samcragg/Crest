@@ -7,14 +7,26 @@
     using NUnit.Framework;
 
     [TestFixture]
-    public sealed class WebHostBuilderExtensionsTests
+    public sealed class CrestWebHostBuilderExtensionsTests
     {
         [Test]
         public void UseCrestShouldCheckForNullArguments()
         {
             Assert.That(
-                () => WebHostBuilderExtensions.UseCrest(null),
+                () => CrestWebHostBuilderExtensions.UseCrest(null),
                 Throws.InstanceOf<ArgumentNullException>());
+        }
+
+        [Test]
+        public void UseCrestShouldRegisterTheStartupClass()
+        {
+            IWebHostBuilder builder = Substitute.For<IWebHostBuilder>();
+
+            CrestWebHostBuilderExtensions.UseCrest(builder);
+
+            builder.Received().UseSetting(
+                WebHostDefaults.ApplicationKey,
+                Arg.Any<string>());
         }
 
         [Test]
@@ -22,7 +34,7 @@
         {
             IWebHostBuilder builder = Substitute.For<IWebHostBuilder>();
 
-            IWebHostBuilder result = WebHostBuilderExtensions.UseCrest(builder);
+            IWebHostBuilder result = CrestWebHostBuilderExtensions.UseCrest(builder);
 
             Assert.That(result, Is.SameAs(builder));
         }

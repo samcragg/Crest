@@ -11,7 +11,7 @@ namespace Crest.Host
     /// <summary>
     /// Allows the Crest hosting framework to be added to the application.
     /// </summary>
-    public static class WebHostBuilderExtensions
+    public static class CrestWebHostBuilderExtensions
     {
         /// <summary>
         /// Adds the Crest hosting framework.
@@ -27,6 +27,7 @@ namespace Crest.Host
         {
             Check.IsNotNull(builder, nameof(builder));
 
+            builder.UseStartup<Startup>();
             return builder;
         }
     }
