@@ -18,7 +18,9 @@ before_build:
 
 build_script:
   - cmd: dotnet build -c Release src\Crest.Core
+  - cmd: dotnet build -c Release src\Crest.Host
   - cmd: dotnet build test\Core.UnitTests
+  - cmd: dotnet build test\Host.UnitTests
 
 test_script:
   - ps: .\build\run_tests.ps1
