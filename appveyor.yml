@@ -11,7 +11,7 @@ assembly_info:
 
 environment:
   COVERALLS_REPO_TOKEN:
-    secure: PnKLd6lFGvTbtjGsMEDg9Bu/bsKFDSJyKZIqMyYLlHeq8Yj184Nq7unVFckuHtFy
+    secure: YeKsMYgc+mNFE+yN5S0r5A6cY50tElPf0e8fIDhdDtdbZ8HWDHgOd5eejr/wO+Gy
 
 before_build:
   - cmd: dotnet restore

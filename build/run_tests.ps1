@@ -24,7 +24,7 @@ foreach ($test in $tests)
 .\build\tools\coveralls.net\0.7.0\tools\csmacnz.Coveralls.exe `
 	--opencover `
 	-i .\CoverResult.xml `
-	--repoTokenVariable $env:COVERALLS_REPO_TOKEN `
+	--repoTokenVariable COVERALLS_REPO_TOKEN `
 	--useRelativePaths `
 	--serviceName appveyor `
 	--commitId "$env:APPVEYOR_REPO_COMMIT" `
