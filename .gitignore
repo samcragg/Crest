@@ -86,5 +86,4 @@ Generated_Code/
 
 # Test coverage script output
 CoverResult.xml
-dotnet.path
-tools/*
+build/tools/*
