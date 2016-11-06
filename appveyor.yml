@@ -13,14 +13,8 @@ environment:
   COVERALLS_REPO_TOKEN:
     secure: YeKsMYgc+mNFE+yN5S0r5A6cY50tElPf0e8fIDhdDtdbZ8HWDHgOd5eejr/wO+Gy
 
-before_build:
-  - cmd: dotnet restore
-
 build_script:
-  - cmd: dotnet build -c Release src\Crest.Core
-  - cmd: dotnet build -c Release src\Crest.Host
-  - cmd: dotnet build test\Core.UnitTests
-  - cmd: dotnet build test\Host.UnitTests
+  - ps: .\build\build_all.ps1
 
 test_script:
   - ps: .\build\run_tests.ps1

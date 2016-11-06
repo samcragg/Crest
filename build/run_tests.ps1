@@ -1,10 +1,11 @@
+# "Install" the tools to run/upload the coverage
 dotnet restore .\build\project.json --packages .\build\tools
 
 $dotnetexe = (Get-Command dotnet).Definition
-$tests = "Core.UnitTests", "Host.UnitTests"
 $wc = New-Object 'System.Net.WebClient'
 
-foreach ($test in $tests)
+# Run all the projects in the test directory
+foreach ($test in (dir .\test -Name))
 {
 	.\build\tools\OpenCover\4.6.519\tools\OpenCover.Console.exe `
 	-output:.\CoverResult.xml `
