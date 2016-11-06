@@ -1,4 +1,4 @@
-{
+﻿{
   "version": "1.0.0-*",
 
   "buildOptions": {
@@ -24,6 +24,10 @@
   },
 
   "dependencies": {
+    "Crest.Host": {
+      "target": "project"
+    },
+    "Microsoft.AspNetCore.Hosting": "1.0.0",
     "NETStandard.Library": "1.6.0",
     "StyleCop.Analyzers": {
       "type": "build",

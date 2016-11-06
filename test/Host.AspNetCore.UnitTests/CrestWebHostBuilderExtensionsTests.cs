@@ -1,7 +1,7 @@
-﻿namespace Host.UnitTests
+﻿namespace Host.AspNetCore.UnitTests
 {
     using System;
-    using Crest.Host;
+    using Crest.Host.AspNetCore;
     using Microsoft.AspNetCore.Hosting;
     using NSubstitute;
     using NUnit.Framework;

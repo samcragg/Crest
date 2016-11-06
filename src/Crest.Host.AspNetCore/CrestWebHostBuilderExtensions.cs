@@ -3,7 +3,7 @@
 // Licensed under the MIT license. See LICENSE file in the project root for
 // full license information.
 
-namespace Crest.Host
+namespace Crest.Host.AspNetCore
 {
     using System;
     using Microsoft.AspNetCore.Hosting;
@@ -27,7 +27,7 @@ namespace Crest.Host
         {
             Check.IsNotNull(builder, nameof(builder));
 
-            builder.UseStartup<Startup>();
+            builder.UseStartup<StartupBootstrapper>();
             return builder;
         }
     }

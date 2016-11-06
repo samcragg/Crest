@@ -6,8 +6,8 @@
   </PropertyGroup>
   <Import Project="$(VSToolsPath)\DotNet\Microsoft.DotNet.Props" Condition="'$(VSToolsPath)' != ''" />
   <PropertyGroup Label="Globals">
-    <ProjectGuid>0d008a45-2b1c-4a76-9b20-09dc064fe939</ProjectGuid>
-    <RootNamespace>Host.UnitTests</RootNamespace>
+    <ProjectGuid>cbea696f-f8db-409e-8504-984230f5931e</ProjectGuid>
+    <RootNamespace>Host.AspNetCore.UnitTests</RootNamespace>
     <BaseIntermediateOutputPath Condition="'$(BaseIntermediateOutputPath)'=='' ">.\obj</BaseIntermediateOutputPath>
     <OutputPath Condition="'$(OutputPath)'=='' ">.\bin\</OutputPath>
     <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
