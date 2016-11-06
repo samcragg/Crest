@@ -1,6 +1,6 @@
 ﻿namespace Hill
 {
-    using Crest.Host;
+    using Crest.Host.AspNetCore;
     using Microsoft.AspNetCore.Builder;
     using Microsoft.AspNetCore.Hosting;
 

@@ -5,13 +5,8 @@
   },
 
   "dependencies": {
-    "Crest.Core": {
-      "target": "project",
-      "version": "1.0.0-*"
-    },
-    "Crest.Host": {
-      "target": "project",
-      "version": "1.0.0-*"
+    "Crest.Host.AspNetCore": {
+      "target": "project"
     },
     "Microsoft.NETCore.App": {
       "type": "platform",
