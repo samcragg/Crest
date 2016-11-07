@@ -5,6 +5,7 @@
 
 namespace Crest.Host
 {
+    using System;
     using System.Collections;
     using System.Collections.Generic;
     using System.Linq;
@@ -14,9 +15,9 @@ namespace Crest.Host
     /// </content>
     public sealed partial class QueryLookup
     {
-        private sealed class Grouping : IGrouping<string, string>, IReadOnlyCollection<string>
+        private sealed class Grouping : IGrouping<string, string>, ICollection<string>, IReadOnlyCollection<string>
         {
-            private DataNode last; // We store these in reverse order (makes inserting easier)
+            private DataNode last; // A linked list stored in reverse order (makes inserting easier)
             private string[] values;
 
             internal Grouping(string key)
@@ -38,15 +39,47 @@ namespace Crest.Host
                 get;
             }
 
+            bool ICollection<string>.IsReadOnly
+            {
+                get { return true; }
+            }
+
+            public bool Contains(string item)
+            {
+                this.EnsureValuesAreCreated();
+                return this.values.Contains(item, StringComparer.Ordinal);
+            }
+
+            public void CopyTo(string[] array, int arrayIndex)
+            {
+                this.EnsureValuesAreCreated();
+                this.values.CopyTo(array, arrayIndex);
+            }
+
             public IEnumerator<string> GetEnumerator()
             {
                 this.EnsureValuesAreCreated();
                 return ((IEnumerable<string>)this.values).GetEnumerator();
             }
 
+            void ICollection<string>.Add(string item)
+            {
+                throw new NotSupportedException();
+            }
+
+            void ICollection<string>.Clear()
+            {
+                throw new NotSupportedException();
+            }
+
             IEnumerator IEnumerable.GetEnumerator()
             {
                 return this.GetEnumerator();
+            }
+
+            bool ICollection<string>.Remove(string item)
+            {
+                throw new NotSupportedException();
             }
 
             internal void Add(StringSegment value)
