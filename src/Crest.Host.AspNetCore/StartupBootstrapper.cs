@@ -19,7 +19,7 @@ namespace Crest.Host.AspNetCore
         /// <inheritdoc />
         public void Configure(IApplicationBuilder app)
         {
-            var processor = new HttpContextProcessor();
+            var processor = new HttpContextProcessor(this);
             app.Use(_ => processor.HandleRequest);
         }
 

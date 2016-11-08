@@ -11,5 +11,31 @@ namespace Crest.Host
     /// </summary>
     public abstract class Bootstrapper
     {
+        /// <summary>
+        /// Gets the registered plugins to call after processing a request.
+        /// </summary>
+        /// <returns>A sequence of registered plugins.</returns>
+        public virtual IPostRequestPlugin[] GetAfterRequestPlugins()
+        {
+            return null;
+        }
+
+        /// <summary>
+        /// Gets the registered plugins to call before processing a request.
+        /// </summary>
+        /// <returns>A sequence of registered plugins.</returns>
+        public virtual IPreRequestPlugin[] GetBeforeRequestPlugins()
+        {
+            return null;
+        }
+
+        /// <summary>
+        /// Gets the registered plugins to handle generated exceptions.
+        /// </summary>
+        /// <returns>A sequence of registered plugins.</returns>
+        public virtual IErrorHandlerPlugin[] GetErrorHandlers()
+        {
+            return null;
+        }
     }
 }

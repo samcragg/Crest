@@ -5,6 +5,7 @@
 
 namespace Crest.Host.AspNetCore
 {
+    using System;
     using System.Threading.Tasks;
     using Crest.Host;
     using Microsoft.AspNetCore.Http;
@@ -15,6 +16,15 @@ namespace Crest.Host.AspNetCore
     internal sealed class HttpContextProcessor : RequestProcessor
     {
         /// <summary>
+        /// Initializes a new instance of the <see cref="HttpContextProcessor"/> class.
+        /// </summary>
+        /// <param name="bootstrapper">Contains application settings.</param>
+        public HttpContextProcessor(Bootstrapper bootstrapper)
+            : base(bootstrapper)
+        {
+        }
+
+        /// <summary>
         /// Handles the request, adapting the ASP.NET Core objects to enable
         /// processing by the Crest framework.
         /// </summary>
@@ -23,6 +33,12 @@ namespace Crest.Host.AspNetCore
         public Task HandleRequest(HttpContext context)
         {
             return Task.CompletedTask;
+        }
+
+        /// <inheritdoc />
+        protected override Task WriteResponse(IRequestData request, IResponseData response)
+        {
+            throw new NotImplementedException();
         }
     }
 }
