@@ -37,5 +37,15 @@ namespace Crest.Host
         {
             return null;
         }
+
+        /// <summary>
+        /// Resolves the specified service.
+        /// </summary>
+        /// <typeparam name="T">The type of the service to resolve.</typeparam>
+        /// <returns>An instance of the specified type.</returns>
+        public virtual T GetService<T>()
+        {
+            return default(T);
+        }
     }
 }

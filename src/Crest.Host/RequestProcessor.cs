@@ -6,9 +6,12 @@
 namespace Crest.Host
 {
     using System;
+    using System.Collections.Generic;
     using System.Linq;
+    using System.Net;
     using System.Reflection;
     using System.Threading.Tasks;
+    using Crest.Host.Routing;
 
     /// <summary>
     /// Processes the HTTP request, routing it through applicable plug-ins and
@@ -18,6 +21,7 @@ namespace Crest.Host
     {
         private static readonly Task<IResponseData> EmptyResponse = Task.FromResult<IResponseData>(null);
         private readonly Bootstrapper bootstrapper;
+        private readonly IRouteMapper mapper;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="RequestProcessor"/> class.
@@ -25,7 +29,10 @@ namespace Crest.Host
         /// <param name="bootstrapper">Contains application settings.</param>
         protected RequestProcessor(Bootstrapper bootstrapper)
         {
+            Check.IsNotNull(bootstrapper, nameof(bootstrapper));
+
             this.bootstrapper = bootstrapper;
+            this.mapper = bootstrapper.GetService<IRouteMapper>();
         }
 
         // NOTE: The methods here should just be protected, however, they've
@@ -65,9 +72,25 @@ namespace Crest.Host
         /// A task that represents the asynchronous operation. The value of the
         /// <c>TResult</c> parameter contains the response to send.
         /// </returns>
-        protected internal virtual Task<IResponseData> InvokeHandler(IRequestData request)
+        protected internal virtual async Task<IResponseData> InvokeHandler(IRequestData request)
         {
-            throw new NotImplementedException();
+            RouteMethod method = this.mapper.GetAdapter(request.Handler);
+            if (method == null)
+            {
+                throw new InvalidOperationException("Request data contains an invalid method.");
+            }
+
+            // Check if result is NoContent.Value
+            object result = await method(request.Parameters).ConfigureAwait(false);
+            if (result == NoContent.Value)
+            {
+                return ResponseData.NoContent;
+            }
+            else
+            {
+                // TODO: Plug in the serialization logic here...
+                return new ResponseData(string.Empty, (int)HttpStatusCode.OK);
+            }
         }
 
         /// <summary>
@@ -77,12 +100,20 @@ namespace Crest.Host
         /// <param name="path">The URL path.</param>
         /// <param name="query">Contains the query parameters.</param>
         /// <returns>
-        /// The method to invoke to handle the request, or null if no methods
-        /// are found.
+        /// An object containing the result of the match.
         /// </returns>
-        protected internal MethodInfo Match(string verb, string path, ILookup<string, string> query)
+        protected internal MatchResult Match(string verb, string path, ILookup<string, string> query)
         {
-            throw new NotImplementedException();
+            IReadOnlyDictionary<string, object> parameters;
+            MethodInfo method = this.mapper.Match(verb, path, query, out parameters);
+            if (method == null)
+            {
+                return default(MatchResult);
+            }
+            else
+            {
+                return new MatchResult(method, parameters);
+            }
         }
 
         /// <summary>
@@ -171,5 +202,43 @@ namespace Crest.Host
         /// <param name="response">The response data to send.</param>
         /// <returns>A task that represents the asynchronous operation.</returns>
         protected internal abstract Task WriteResponse(IRequestData request, IResponseData response);
+
+        /// <summary>
+        /// Gets the result of calling <see cref="Match(string, string, ILookup{string, string})"/>
+        /// </summary>
+        protected internal struct MatchResult
+        {
+            /// <summary>
+            /// Initializes a new instance of the <see cref="MatchResult"/> struct.
+            /// </summary>
+            /// <param name="method">The matched method.</param>
+            /// <param name="parameters">The parsed parameters for the method.</param>
+            internal MatchResult(MethodInfo method, IReadOnlyDictionary<string, object> parameters)
+            {
+                this.Method = method;
+                this.Parameters = parameters;
+            }
+
+            /// <summary>
+            /// Gets the matched method, if any.
+            /// </summary>
+            public MethodInfo Method { get; }
+
+            /// <summary>
+            /// Gets the matched parameters for the matched method.
+            /// </summary>
+            /// <remarks>
+            /// This parameter will be <c>null</c> if no method was found.
+            /// </remarks>
+            public IReadOnlyDictionary<string, object> Parameters { get; }
+
+            /// <summary>
+            /// Gets a value indicating whether a match was found.
+            /// </summary>
+            public bool Success
+            {
+                get { return this.Parameters != null; }
+            }
+        }
     }
 }

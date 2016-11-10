@@ -1,8 +1,12 @@
 ﻿namespace Host.UnitTests
 {
     using System;
+    using System.Collections.Generic;
+    using System.Linq;
+    using System.Reflection;
     using System.Threading.Tasks;
     using Crest.Host;
+    using Crest.Host.Routing;
     using NSubstitute;
     using NSubstitute.ExceptionExtensions;
     using NUnit.Framework;
@@ -11,18 +15,31 @@
     public sealed class RequestProcessorTests
     {
         private Bootstrapper bootstrapper;
+        private IRouteMapper mapper;
         private RequestProcessor processor;
         private IRequestData request;
 
         [SetUp]
         public void SetUp()
         {
+            this.bootstrapper = Substitute.For<Bootstrapper>();
+            this.mapper = Substitute.For<IRouteMapper>();
+            this.request = Substitute.For<IRequestData>();
+
+            this.bootstrapper.GetService<IRouteMapper>().Returns(this.mapper);
+
             // NOTE: We're using ForPartsOf - make sure that all setup calls
             //       in tests use an argument matcher to avoid calling the real
             //       code: http://nsubstitute.github.io/help/partial-subs/
-            this.bootstrapper = Substitute.For<Bootstrapper>();
-            this.request = Substitute.For<IRequestData>();
             this.processor = Substitute.ForPartsOf<RequestProcessor>(this.bootstrapper);
+        }
+
+        [Test]
+        public void ConstructorShouldCheckForNullArguments()
+        {
+            Assert.That(
+                () => new FakeRequestProcessor(null),
+                Throws.InstanceOf<ArgumentNullException>());
         }
 
         [Test]
@@ -66,6 +83,82 @@
             await this.processor.HandleRequest(this.request);
 
             await this.processor.Received().WriteResponse(this.request, response);
+        }
+
+        [Test]
+        public async Task InvokeHandlerShouldReturnNoContentStatusCode()
+        {
+            this.request.Handler.Returns(Substitute.For<MethodInfo>());
+            this.mapper.GetAdapter(this.request.Handler)
+                       .Returns(_ => Task.FromResult<object>(NoContent.Value));
+
+            IResponseData result = await this.processor.InvokeHandler(this.request);
+
+            Assert.That(result.StatusCode, Is.EqualTo(204));
+        }
+
+        [Test]
+        public async Task InvokeHandlerShouldReturnOKStatusCode()
+        {
+            this.request.Handler.Returns(Substitute.For<MethodInfo>());
+            this.mapper.GetAdapter(this.request.Handler)
+                       .Returns(_ => Task.FromResult<object>("Response"));
+
+            IResponseData result = await this.processor.InvokeHandler(this.request);
+
+            Assert.That(result.StatusCode, Is.EqualTo(200));
+        }
+
+        [Test]
+        public void InvokeHandlerShouldCheckTheHandlerIsFound()
+        {
+            this.request.Handler.Returns(Substitute.For<MethodInfo>());
+            this.mapper.GetAdapter(this.request.Handler)
+                       .Returns((RouteMethod)null);
+
+            Assert.That(
+                async ()=> await this.processor.InvokeHandler(this.request),
+                Throws.InstanceOf<InvalidOperationException>());
+        }
+
+        [Test]
+        public void MatchShouldReturnFalseIfNotMethodMatches()
+        {
+            IReadOnlyDictionary<string, object> notUsed;
+            this.mapper.Match(null, null, null, out notUsed).ReturnsForAnyArgs((MethodInfo)null);
+
+            RequestProcessor.MatchResult result =
+                this.processor.Match("", "", Substitute.For<ILookup<string, string>>());
+
+            Assert.That(result.Success, Is.False);
+        }
+
+        [Test]
+        public void MatchShouldReturnTheMatchedInformation()
+        {
+            MethodInfo method = Substitute.For<MethodInfo>();
+            IReadOnlyDictionary<string, object> parameters = new Dictionary<string, object>();
+            ILookup<string, string> query = Substitute.For<ILookup<string, string>>();
+
+            // We need to call the Arg.XXX calls in the same order as the method
+            // for NSubstitute to handle them and we need to use the specifier
+            // for both string parameters so it doesn't get confused
+            string verb = Arg.Is("GET");
+            string path = Arg.Is("/route");
+            IReadOnlyDictionary<string, object> any = Arg.Any<IReadOnlyDictionary<string, object>>();
+            this.mapper.Match(verb, path, query, out any)
+                .Returns(args =>
+                {
+                    args[3] = parameters;
+                    return method;
+                });
+
+            RequestProcessor.MatchResult result =
+                this.processor.Match("GET", "/route", query);
+
+            Assert.That(result.Success, Is.True);
+            Assert.That(result.Method, Is.SameAs(method));
+            Assert.That(result.Parameters, Is.SameAs(parameters));
         }
 
         [Test]
@@ -172,6 +265,19 @@
             plugin.Order.Returns(order);
             plugin.Process(null).ReturnsForAnyArgs((IResponseData)null);
             return plugin;
+        }
+
+        // Used to test the constructor
+        private class FakeRequestProcessor : RequestProcessor
+        {
+            public FakeRequestProcessor(Bootstrapper bootstrapper) : base(bootstrapper)
+            {
+            }
+
+            protected internal override Task WriteResponse(IRequestData request, IResponseData response)
+            {
+                throw new NotImplementedException();
+            }
         }
     }
 }
