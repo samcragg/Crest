@@ -29,7 +29,8 @@
     "StyleCop.Analyzers": {
       "type": "build",
       "version": "1.0.0"
-    }
+    },
+    "System.ComponentModel.TypeConverter": "4.1.0"
   },
 
   "frameworks": {
