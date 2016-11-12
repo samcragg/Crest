@@ -15,7 +15,7 @@ foreach ($test in (dir .\test -Name))
 	-register:user `
 	-filter:+[Crest.*]* `
 	-target:"$dotnetexe" `
-	-targetargs:"test test\$test --no-build"
+	-targetargs:"test test\$test --no-build  --labels=Off --noheader"
 
 	# Since the above actually runs the unit tests, upload the results
 	$wc.UploadFile("https://ci.appveyor.com/api/testresults/nunit3/$($env:APPVEYOR_JOB_ID)", (Resolve-Path .\TestResult.xml))
