@@ -3,6 +3,7 @@
 
   "buildOptions": {
     "additionalArguments": [ "/additionalfile:../stylecop.json" ],
+    "compile": "../GlobalSuppressions.cs",
     "warningsAsErrors": true,
     "xmlDoc": true
   },

@@ -8,6 +8,7 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{1998089F-4AB0-4758-99E0-BC12293438CA}"
 	ProjectSection(SolutionItems) = preProject
 		global.json = global.json
+		src\GlobalSuppressions.cs = src\GlobalSuppressions.cs
 		src\stylecop.json = src\stylecop.json
 	EndProjectSection
 EndProject
