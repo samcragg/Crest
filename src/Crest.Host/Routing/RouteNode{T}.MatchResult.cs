@@ -10,7 +10,7 @@ namespace Crest.Host.Routing
     /// <content>
     /// Contains the nested <see cref="MatchResult"/> struct.
     /// </content>
-    internal sealed partial class RouteNode
+    internal sealed partial class RouteNode<T>
     {
         /// <summary>
         /// Represents the result of matching a URL.
@@ -22,7 +22,7 @@ namespace Crest.Host.Routing
             /// </summary>
             /// <param name="captures">The captured parameter values.</param>
             /// <param name="value">The matched value.</param>
-            internal MatchResult(IReadOnlyDictionary<string, object> captures, RouteMethod value)
+            internal MatchResult(IReadOnlyDictionary<string, object> captures, T value)
             {
                 this.Captures = captures;
                 this.Value = value;
@@ -46,7 +46,7 @@ namespace Crest.Host.Routing
             /// <summary>
             /// Gets the value stored against the route.
             /// </summary>
-            public RouteMethod Value { get; }
+            public T Value { get; }
         }
     }
 }

@@ -1,9 +1,6 @@
 ﻿namespace Host.UnitTests.Routing
 {
-    using System;
-    using System.Collections.Generic;
     using System.Linq;
-    using System.Threading.Tasks;
     using Crest.Host;
     using Crest.Host.Routing;
     using NSubstitute;
@@ -12,17 +9,16 @@
     [TestFixture]
     public sealed class RouteNodeTests
     {
-        private RouteMethod matcherValue;
+        private string MatcherValue = "Stored value";
         private IMatchNode matcher;
-        private RouteNode node;
+        private RouteNode<string> node;
 
         [SetUp]
         public void SetUp()
         {
             this.matcher = Substitute.For<IMatchNode>();
-            this.matcherValue = Method;
-            this.node = new RouteNode(null);
-            this.node.Add(new[] { this.matcher }, 0, this.matcherValue);
+            this.node = new RouteNode<string>(null);
+            this.node.Add(new[] { this.matcher }, 0, MatcherValue);
         }
 
         [Test]
@@ -40,7 +36,6 @@
 
             this.matcher.ReceivedWithAnyArgs().Match(default(StringSegment));
             duplicate.DidNotReceiveWithAnyArgs().Match(default(StringSegment));
-
         }
 
         [Test]
@@ -49,10 +44,10 @@
             this.matcher.Match(default(StringSegment))
                 .ReturnsForAnyArgs(new NodeMatchResult(null, null));
 
-            RouteNode.MatchResult result = this.node.Match("/route");
+            RouteNode<string>.MatchResult result = this.node.Match("/route");
 
             Assert.That(result.Success, Is.True);
-            Assert.That(result.Value, Is.EqualTo(this.matcherValue));
+            Assert.That(result.Value, Is.EqualTo(MatcherValue));
         }
 
         [Test]
@@ -61,7 +56,7 @@
             this.matcher.Match(default(StringSegment))
                 .ReturnsForAnyArgs(new NodeMatchResult("parameter", 123));
 
-            RouteNode.MatchResult result = this.node.Match("/route");
+            RouteNode<string>.MatchResult result = this.node.Match("/route");
 
             Assert.That(result.Captures.Keys.Single(), Is.EqualTo("parameter"));
             Assert.That(result.Captures.Values.Single(), Is.EqualTo(123));
@@ -81,11 +76,6 @@
 
             important.ReceivedWithAnyArgs().Match(default(StringSegment));
             this.matcher.DidNotReceiveWithAnyArgs().Match(default(StringSegment));
-        }
-
-        private static Task<object> Method(IReadOnlyDictionary<string, object> parameters)
-        {
-            return null;
         }
     }
 }

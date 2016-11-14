@@ -14,14 +14,15 @@ namespace Crest.Host.Routing
     /// Groups route nodes together, optionally storing a method to invoke if
     /// this is a leaf node.
     /// </summary>
-    internal sealed partial class RouteNode
+    /// <typeparam name="T">The type of th value to store.</typeparam>
+    internal sealed partial class RouteNode<T>
     {
         private readonly IMatchNode matcher;
-        private RouteNode[] children;
-        private RouteMethod value;
+        private RouteNode<T>[] children;
+        private T value;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="RouteNode"/> class.
+        /// Initializes a new instance of the <see cref="RouteNode{T}"/> class.
         /// </summary>
         /// <param name="matcher">Used to match the part of the route.</param>
         public RouteNode(IMatchNode matcher)
@@ -32,7 +33,7 @@ namespace Crest.Host.Routing
         /// <summary>
         /// Gets or sets gets the value associated with this group.
         /// </summary>
-        internal RouteMethod Value
+        internal T Value
         {
             get
             {
@@ -51,10 +52,10 @@ namespace Crest.Host.Routing
         /// <param name="nodes">The nodes to add.</param>
         /// <param name="index">The starting index of the first node to add.</param>
         /// <param name="value">The value to associate with the route.</param>
-        public void Add(IReadOnlyList<IMatchNode> nodes, int index, RouteMethod value)
+        public void Add(IReadOnlyList<IMatchNode> nodes, int index, T value)
         {
             IMatchNode matcher = nodes[index];
-            RouteNode node = null;
+            RouteNode<T> node = null;
             if (this.children != null)
             {
                 node = this.children.FirstOrDefault(n => n.matcher.Equals(matcher));
@@ -62,7 +63,7 @@ namespace Crest.Host.Routing
 
             if (node == null)
             {
-                node = new RouteNode(matcher);
+                node = new RouteNode<T>(matcher);
                 this.AddChild(node);
             }
 
@@ -89,7 +90,7 @@ namespace Crest.Host.Routing
         {
             var segments = new List<StringSegment>(UrlParser.GetSegments(url));
             var captures = new Dictionary<string, object>();
-            RouteNode node = this.Match(segments, -1, captures);
+            RouteNode<T> node = this.Match(segments, -1, captures);
             if (node == null)
             {
                 return default(MatchResult);
@@ -100,7 +101,7 @@ namespace Crest.Host.Routing
             }
         }
 
-        private void AddChild(RouteNode node)
+        private void AddChild(RouteNode<T> node)
         {
             if (this.children == null)
             {
@@ -117,7 +118,7 @@ namespace Crest.Host.Routing
             }
         }
 
-        private RouteNode Match(IReadOnlyList<StringSegment> segments, int index, Dictionary<string, object> captures)
+        private RouteNode<T> Match(IReadOnlyList<StringSegment> segments, int index, Dictionary<string, object> captures)
         {
             NodeMatchResult match = NodeMatchResult.None;
             if (index >= 0)
@@ -130,7 +131,7 @@ namespace Crest.Host.Routing
             }
 
             index++;
-            RouteNode result = null;
+            RouteNode<T> result = null;
             if (index == segments.Count)
             {
                 result = this;
@@ -150,7 +151,7 @@ namespace Crest.Host.Routing
             return result;
         }
 
-        private RouteNode MatchChildren(IReadOnlyList<StringSegment> segments, int index, Dictionary<string, object> captures)
+        private RouteNode<T> MatchChildren(IReadOnlyList<StringSegment> segments, int index, Dictionary<string, object> captures)
         {
             if (this.children != null)
             {
@@ -159,7 +160,7 @@ namespace Crest.Host.Routing
                     // Clear any previously captured parameters as we're searching
                     // down a new branch
                     captures.Clear();
-                    RouteNode result = this.children[i].Match(segments, index, captures);
+                    RouteNode<T> result = this.children[i].Match(segments, index, captures);
                     if (result != null)
                     {
                         return result;

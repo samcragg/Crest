@@ -5,6 +5,8 @@
 
 namespace Crest.Host
 {
+    using System.Collections.Generic;
+
     /// <summary>
     /// Allows the configuration of the Crest framework during application
     /// startup.
@@ -34,6 +36,15 @@ namespace Crest.Host
         /// </summary>
         /// <returns>A sequence of registered plugins.</returns>
         public virtual IErrorHandlerPlugin[] GetErrorHandlers()
+        {
+            return null;
+        }
+
+        /// <summary>
+        /// Gets the metadata for the routes to match.
+        /// </summary>
+        /// <returns>A sequence of route metadata.</returns>
+        public virtual IEnumerable<RouteMetadata> GetRoutes()
         {
             return null;
         }
