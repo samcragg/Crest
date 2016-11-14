@@ -1,13 +1,13 @@
 # Crest
 
-[![Build status](https://ci.appveyor.com/api/projects/status/spal08yea33stdlw/branch/master?svg=true)](https://ci.appveyor.com/project/samcragg/crest/branch/master) [![Coverage Status](https://coveralls.io/repos/github/samcragg/Crest/badge.svg?branch=master)](https://coveralls.io/github/samcragg/Crest?branch=master)
+[![Build status](https://ci.appveyor.com/api/projects/status/spal08yea33stdlw/branch/master?svg=true)](https://ci.appveyor.com/project/samcragg/crest/branch/master) [![Coverage Status](https://coveralls.io/repos/github/samcragg/Crest/badge.svg?branch=master)](https://coveralls.io/github/samcragg/Crest?branch=master) ![License](https://img.shields.io/github/license/samcragg/crest.svg)
 
 This library provides a simple way to create versioned RESTful microservices
-built against .NET Core with ease whilst having not sacrificing performance.
+built against .NET Core with ease that are performant.
 
 The HTTP side of the requests/responses is abstracted away as much as possible,
 so writing the logic code looks just like a traditional server application and
-enables multiple microservices implemented with Forest to have a consistent
+enables multiple microservices implemented with Crest to have a consistent
 feel to them from the users perspective. It also provides a simple mechanism to
 version the API, to allow for new functionality to be added without effecting
 older clients.
