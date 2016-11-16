@@ -2,6 +2,8 @@
 {
     using System;
     using System.Linq;
+    using System.Reflection;
+    using System.Threading.Tasks;
     using Crest.Host;
     using Crest.Host.Engine;
     using NSubstitute;
@@ -179,6 +181,24 @@
         }
 
         [Test]
+        public void InitializeShouldSetTheRouteMetadataFactory()
+        {
+            var metadata = new RouteMetadata
+            {
+                Method = typeof(IFakeRoute).GetMethod(nameof(IFakeRoute.Route)),
+                RouteUrl = "route",
+                Verb = "GET"
+            };
+
+            this.bootstrapper.DiscoveryService.GetDiscoveredTypes().Returns(new[] { typeof(IFakeRoute) });
+            this.bootstrapper.DiscoveryService.GetRoutes(typeof(IFakeRoute)).Returns(new[] { metadata });
+
+            this.bootstrapper.Initialize();
+
+            Assert.That(metadata.Factory, Is.Not.Null);
+        }
+
+        [Test]
         public void ThrowIfDisposedShouldIncludeTheDeriverClassName()
         {
             this.bootstrapper.Dispose();
@@ -191,6 +211,11 @@
 
         internal interface IFakeInterface
         {
+        }
+
+        private interface IFakeRoute
+        {
+            Task Route();
         }
 
         internal class FakeClass : IFakeInterface
