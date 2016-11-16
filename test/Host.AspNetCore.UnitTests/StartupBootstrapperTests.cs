@@ -2,6 +2,7 @@
 {
     using System;
     using Crest.Host.AspNetCore;
+    using Crest.Host.Engine;
     using Microsoft.AspNetCore.Builder;
     using Microsoft.Extensions.DependencyInjection;
     using NSubstitute;
@@ -16,6 +17,11 @@
         public void SetUp()
         {
             this.startup = new StartupBootstrapper();
+
+            // Stop the bootstrapper from scanning everything
+            this.startup.ServiceProviderOverride = Substitute.For<IServiceProvider>();
+            this.startup.ServiceProviderOverride.GetService(typeof(IDiscoveryService))
+                .Returns(Substitute.For<IDiscoveryService>());
         }
         [Test]
         public void ConfigureShouldRegisterARequestHandler()

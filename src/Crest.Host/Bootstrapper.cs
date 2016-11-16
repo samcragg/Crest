@@ -5,21 +5,65 @@
 
 namespace Crest.Host
 {
+    using System;
     using System.Collections.Generic;
+    using System.Linq;
+    using System.Reflection;
+    using Crest.Host.Engine;
+    using Crest.Host.Routing;
+    using DryIoc;
 
     /// <summary>
     /// Allows the configuration of the Crest framework during application
     /// startup.
     /// </summary>
-    public abstract class Bootstrapper
+    public abstract partial class Bootstrapper : IDisposable
     {
+        private readonly ContainerAdapter adapter = new ContainerAdapter();
+
+        /// <summary>
+        /// Finalizes an instance of the <see cref="Bootstrapper"/> class.
+        /// </summary>
+        ~Bootstrapper()
+        {
+            this.Dispose(false);
+        }
+
+        /// <summary>
+        /// Gets a value indicating whether the object has been disposed or not.
+        /// </summary>
+        protected bool IsDisposed
+        {
+            get;
+            private set;
+        }
+
+        /// <summary>
+        /// Gets an object that can be used to create other objects.
+        /// </summary>
+        protected virtual IServiceProvider ServiceProvider
+        {
+            get { return this.adapter; }
+        }
+
+        /// <summary>
+        /// Releases all resources used by this instance.
+        /// </summary>
+        public void Dispose()
+        {
+            this.Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
         /// <summary>
         /// Gets the registered plugins to call after processing a request.
         /// </summary>
         /// <returns>A sequence of registered plugins.</returns>
         public virtual IPostRequestPlugin[] GetAfterRequestPlugins()
         {
-            return null;
+            this.ThrowIfDisposed();
+
+            return (IPostRequestPlugin[])this.ServiceProvider.GetService(typeof(IPostRequestPlugin[]));
         }
 
         /// <summary>
@@ -28,7 +72,9 @@ namespace Crest.Host
         /// <returns>A sequence of registered plugins.</returns>
         public virtual IPreRequestPlugin[] GetBeforeRequestPlugins()
         {
-            return null;
+            this.ThrowIfDisposed();
+
+            return (IPreRequestPlugin[])this.ServiceProvider.GetService(typeof(IPreRequestPlugin[]));
         }
 
         /// <summary>
@@ -37,16 +83,9 @@ namespace Crest.Host
         /// <returns>A sequence of registered plugins.</returns>
         public virtual IErrorHandlerPlugin[] GetErrorHandlers()
         {
-            return null;
-        }
+            this.ThrowIfDisposed();
 
-        /// <summary>
-        /// Gets the metadata for the routes to match.
-        /// </summary>
-        /// <returns>A sequence of route metadata.</returns>
-        public virtual IEnumerable<RouteMetadata> GetRoutes()
-        {
-            return null;
+            return (IErrorHandlerPlugin[])this.ServiceProvider.GetService(typeof(IErrorHandlerPlugin[]));
         }
 
         /// <summary>
@@ -56,7 +95,143 @@ namespace Crest.Host
         /// <returns>An instance of the specified type.</returns>
         public virtual T GetService<T>()
         {
-            return default(T);
+            this.ThrowIfDisposed();
+
+            return (T)this.ServiceProvider.GetService(typeof(T));
+        }
+
+        /// <summary>
+        /// Releases the unmanaged resources used by this instance and
+        /// optionally releases the managed resources.
+        /// </summary>
+        /// <param name="disposing">
+        /// <c>true</c> to release both managed and unmanaged resources;
+        /// <c>false</c> to release only unmanaged resources.
+        /// </param>
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!this.IsDisposed)
+            {
+                if (disposing)
+                {
+                    this.adapter.Container.Dispose();
+                }
+
+                this.IsDisposed = true;
+            }
+        }
+
+        /// <summary>
+        /// Gets the service to use for discovering assemblies and types.
+        /// </summary>
+        /// <returns>An object implementing <see cref="IDiscoveryService"/>.</returns>
+        protected virtual IDiscoveryService GetDiscoveryService()
+        {
+            return (IDiscoveryService)this.ServiceProvider.GetService(typeof(IDiscoveryService));
+        }
+
+        /// <summary>
+        /// Initializes the container and routes.
+        /// </summary>
+        protected void Initialize()
+        {
+            IDiscoveryService discovery = this.GetDiscoveryService();
+            IReadOnlyCollection<Type> types = this.RegisterTypes(discovery);
+
+            List<RouteMetadata> routes =
+                types.SelectMany(discovery.GetRoutes).ToList();
+
+            this.RegisterInstance(typeof(IRouteMapper), new RouteMapper(routes));
+        }
+
+        /// <summary>
+        /// Registers a specific instance against a service type.
+        /// </summary>
+        /// <param name="service">The type of the service.</param>
+        /// <param name="instance">
+        /// The object instance to return when asked for the specified service.
+        /// </param>
+        protected virtual void RegisterInstance(Type service, object instance)
+        {
+            this.adapter.Container.UseInstance(service, instance);
+        }
+
+        /// <summary>
+        /// Raises the <see cref="ObjectDisposedException"/> if <see cref="Dispose()"/>
+        /// has been called on this instance.
+        /// </summary>
+        protected void ThrowIfDisposed()
+        {
+            if (this.IsDisposed)
+            {
+                throw new ObjectDisposedException(this.GetType().Name);
+            }
+        }
+
+        private static bool IsImplementationType(Type type)
+        {
+            TypeInfo typeInfo = type.GetTypeInfo();
+            return typeInfo.IsClass && !typeInfo.IsAbstract;
+        }
+
+        private Func<IResolver, object> GetFactory(ITypeFactory[] factories, Type type)
+        {
+            for (int i = 0; i < factories.Length; i++)
+            {
+                // Assign to local so that the lambda doesn't capture the whole array
+                ITypeFactory factory = factories[i];
+                if (factory.CanCreate(type))
+                {
+                    return _ => factory.Create(type, this.adapter);
+                }
+            }
+
+            return null;
+        }
+
+        private IReadOnlyCollection<Type> RegisterTypes(IDiscoveryService discovery)
+        {
+            ITypeFactory[] factories = discovery.GetCustomFactories().ToArray();
+            var normal = new List<Type>();
+            var custom = new List<Type>(); // We need to store these to return them at the end
+
+            foreach (Type type in discovery.GetDiscoveredTypes())
+            {
+                Func<IResolver, object> factory = this.GetFactory(factories, type);
+                if (factory == null)
+                {
+                    normal.Add(type);
+                }
+                else
+                {
+                    this.adapter.Container.RegisterDelegate(
+                        type,
+                        factory,
+                        ifAlreadyRegistered: IfAlreadyRegistered.Replace);
+
+                    custom.Add(type);
+                }
+            }
+
+            this.adapter.Container.RegisterMany(
+                normal.Where(IsImplementationType),
+                (IRegistrator registrator, Type[] serviceTypes, Type implementingType) =>
+                {
+                    IReuse reuse =
+                        serviceTypes.Any(discovery.IsSingleInstance) ?
+                            Reuse.Singleton : Reuse.Transient;
+
+                    registrator.RegisterMany(
+                        serviceTypes,
+                        implementingType,
+                        reuse,
+                        ifAlreadyRegistered: IfAlreadyRegistered.Keep);
+                },
+                nonPublicServiceTypes: true);
+
+            // Normal probably has the most types in it, so fold the others into it
+            normal.AddRange(custom);
+            return normal;
         }
     }
 }
