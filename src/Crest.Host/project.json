@@ -25,6 +25,10 @@
   },
 
   "dependencies": {
+    "DryIoc.Internal": {
+      "type": "build",
+      "version": "2.8.5"
+    },
     "NETStandard.Library": "1.6.0",
     "StyleCop.Analyzers": {
       "type": "build",
@@ -37,5 +41,9 @@
     "netstandard1.6": {
       "imports": "dnxcore50"
     }
+  },
+
+  "scripts": {
+    "precompile": "powershell ../../build/exclude_dry_ioc_from_stylecop.ps1"
   }
 }

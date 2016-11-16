@@ -13,7 +13,7 @@ foreach ($test in (dir .\test -Name))
 	-hideskipped `
 	-oldstyle `
 	-register:user `
-	-filter:+[Crest.*]* `
+	-filter:"+[Crest.*]* -[*]DryIoc.*" `
 	-target:"$dotnetexe" `
 	-targetargs:"test test\$test --no-build  --labels=Off --noheader"
 
