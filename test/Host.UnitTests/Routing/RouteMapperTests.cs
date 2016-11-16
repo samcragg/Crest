@@ -5,7 +5,7 @@
     using System.Linq;
     using System.Reflection;
     using System.Threading.Tasks;
-    using Crest.Host;
+    using Crest.Host.Engine;
     using Crest.Host.Routing;
     using NSubstitute;
     using NUnit.Framework;
