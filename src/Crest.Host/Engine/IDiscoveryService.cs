@@ -34,6 +34,11 @@ namespace Crest.Host.Engine
         /// </summary>
         /// <param name="type">The type to scan for routes.</param>
         /// <returns>A sequence of route metadata.</returns>
+        /// <remarks>
+        /// The <see cref="RouteMetadata.Factory"/> property can be <c>null</c>
+        /// to indicate that the default service provider of the bootstrapper
+        /// should be used.
+        /// </remarks>
         IEnumerable<RouteMetadata> GetRoutes(Type type);
 
         /// <summary>
