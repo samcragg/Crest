@@ -2,7 +2,7 @@ $files = "Container.cs", "ImTools.cs"
 
 foreach ($file in $files)
 {
-    $path = Join-Path $env:userprofile ".nuget/packages/DryIoc.Internal/2.8.5/contentFiles/cs/any"
+    $path = Join-Path $env:userprofile ".nuget/packages/DryIoc.Internal/2.9.0/contentFiles/cs/any"
     $path = Join-Path $path $file
     if (!(Test-Path ($path + ".original")))
     {
