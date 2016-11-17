@@ -24,6 +24,7 @@ namespace Crest.Host.AspNetCore
         /// <param name="context">The current request context.</param>
         public HttpContextRequestData(MethodInfo handler, IReadOnlyDictionary<string, object> parameters, HttpContext context)
         {
+            this.Context = context;
             this.Handler = handler;
             this.Parameters = parameters;
             this.Url = ConvertToUri(context.Request);
@@ -37,6 +38,11 @@ namespace Crest.Host.AspNetCore
 
         /// <inheritdoc />
         public Uri Url { get; }
+
+        /// <summary>
+        /// Gets the current request context.
+        /// </summary>
+        internal HttpContext Context { get; }
 
         private static Uri ConvertToUri(HttpRequest request)
         {

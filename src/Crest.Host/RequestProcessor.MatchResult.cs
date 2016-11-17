@@ -48,7 +48,7 @@ namespace Crest.Host
             /// </summary>
             public bool Success
             {
-                get { return this.Parameters != null; }
+                get { return this.Method != null; }
             }
         }
     }

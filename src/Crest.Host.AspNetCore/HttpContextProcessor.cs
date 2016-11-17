@@ -5,7 +5,7 @@
 
 namespace Crest.Host.AspNetCore
 {
-    using System;
+    using System.Net;
     using System.Threading.Tasks;
     using Crest.Host;
     using Microsoft.AspNetCore.Http;
@@ -32,13 +32,30 @@ namespace Crest.Host.AspNetCore
         /// <returns>A task that represents the asynchronous operation.</returns>
         public Task HandleRequest(HttpContext context)
         {
-            return Task.CompletedTask;
+            MatchResult result = this.Match(
+                context.Request.Method,
+                context.Request.Path.Value,
+                new QueryLookup(context.Request.QueryString.Value));
+
+            if (result.Success)
+            {
+                var data = new HttpContextRequestData(result.Method, result.Parameters, context);
+                return this.HandleRequest(data);
+            }
+            else
+            {
+                context.Response.StatusCode = (int)HttpStatusCode.NotFound;
+                return Task.CompletedTask;
+            }
         }
 
         /// <inheritdoc />
         protected override Task WriteResponse(IRequestData request, IResponseData response)
         {
-            throw new NotImplementedException();
+            HttpContext context = ((HttpContextRequestData)request).Context;
+            context.Response.ContentType = response.ContentType;
+            context.Response.StatusCode = response.StatusCode;
+            return Task.CompletedTask;
         }
     }
 }
