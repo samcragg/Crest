@@ -3,7 +3,7 @@
 // Licensed under the MIT license. See LICENSE file in the project root for
 // full license information.
 
-namespace Crest.Host.Routing
+namespace Crest.Host.Engine
 {
     using System.Collections.Generic;
     using System.Linq;
@@ -12,7 +12,7 @@ namespace Crest.Host.Routing
     /// <summary>
     /// Maps the routes to their methods.
     /// </summary>
-    internal interface IRouteMapper
+    public interface IRouteMapper
     {
         /// <summary>
         /// Gets the adapter for the method returned by <see cref="Match"/>.

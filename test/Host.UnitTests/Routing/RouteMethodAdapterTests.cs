@@ -6,10 +6,11 @@
     using System.Runtime.InteropServices;
     using System.Threading;
     using System.Threading.Tasks;
+    using Crest.Host;
+    using Crest.Host.Engine;
+    using Crest.Host.Routing;
     using NSubstitute;
     using NUnit.Framework;
-    using Crest.Host.Routing;
-    using Crest.Host;
 
     [TestFixture]
     public sealed class RouteMethodAdapterTests

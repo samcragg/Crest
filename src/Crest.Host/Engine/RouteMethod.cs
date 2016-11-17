@@ -3,7 +3,7 @@
 // Licensed under the MIT license. See LICENSE file in the project root for
 // full license information.
 
-namespace Crest.Host.Routing
+namespace Crest.Host.Engine
 {
     using System.Collections.Generic;
     using System.Threading.Tasks;
@@ -17,5 +17,5 @@ namespace Crest.Host.Routing
     /// <c>TResult</c> parameter contains the object to reply with, or
     /// <see cref="NoContent.Value"/> if the handler does not return a value.
     /// </returns>
-    internal delegate Task<object> RouteMethod(IReadOnlyDictionary<string, object> parameters);
+    public delegate Task<object> RouteMethod(IReadOnlyDictionary<string, object> parameters);
 }
