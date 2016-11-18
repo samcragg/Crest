@@ -19,6 +19,15 @@ namespace Crest.Host.Engine
     /// </summary>
     internal sealed class DiscoveryService : IDiscoveryService
     {
+        private static readonly ISet<string> ExcludedNamespaces = new HashSet<string>(
+            new[]
+            {
+                "DryIoc",
+                "Microsoft",
+                "Newtonsoft",
+                "System"
+            }, StringComparer.Ordinal);
+
         private readonly DependencyContext context;
         private readonly Lazy<IReadOnlyList<Type>> loadedTypes;
 
@@ -45,6 +54,8 @@ namespace Crest.Host.Engine
         {
             return from type in this.loadedTypes.Value
                    where typeof(ITypeFactory).IsAssignableFrom(type)
+                   let typeInfo = type.GetTypeInfo()
+                   where !typeInfo.IsAbstract && !typeInfo.IsInterface
                    select (ITypeFactory)Activator.CreateInstance(type);
         }
 
@@ -87,12 +98,31 @@ namespace Crest.Host.Engine
             return false;
         }
 
+        private static string GetRootNamespace(string ns)
+        {
+            if (string.IsNullOrEmpty(ns))
+            {
+                return string.Empty;
+            }
+            else
+            {
+                int separator = ns.IndexOf('.');
+                if (separator < 0)
+                {
+                    return ns;
+                }
+                else
+                {
+                    return ns.Substring(0, separator);
+                }
+            }
+        }
+
         private static bool IncludeType(TypeInfo typeInfo)
         {
             // Quick check against the namespace of the type
-            string ns = typeInfo.Namespace ?? string.Empty; // Namespace can be null
-            if (!ns.StartsWith("Microsoft.", StringComparison.Ordinal) &&
-                !ns.StartsWith("System.", StringComparison.Ordinal))
+            string root = GetRootNamespace(typeInfo.Namespace);
+            if (!ExcludedNamespaces.Contains(root))
             {
                 // More expensive check to exclude generated types
                 return !typeInfo.IsDefined(typeof(CompilerGeneratedAttribute), inherit: false);

@@ -22,7 +22,7 @@
                 .Returns(new[] { typeof(IFakeInterface), typeof(FakeClass) });
         }
 
-        // [Test, Ignore("No DiscoveryService yet")]
+        [Test]
         public void ServiceProviderCanResolveInternalTypes()
         {
             IServiceProvider provider = this.bootstrapper.OriginalProvider;
@@ -46,6 +46,18 @@
             this.bootstrapper.Dispose();
 
             Assert.That(() => this.bootstrapper.Dispose(), Throws.Nothing);
+        }
+
+        [Test]
+        public void DisposeShouldDisposeOfResolvedServices()
+        {
+            this.bootstrapper.DiscoveryService.GetDiscoveredTypes().Returns(new[] { typeof(FakeDisposabe) });
+            this.bootstrapper.Initialize();
+            var disposable = (FakeDisposabe)this.bootstrapper.OriginalProvider.GetService(typeof(FakeDisposabe));
+
+            this.bootstrapper.Dispose();
+
+            Assert.That(disposable.DisposeCalled, Is.True);
         }
 
         [Test]
@@ -199,7 +211,27 @@
         }
 
         [Test]
-        public void ThrowIfDisposedShouldIncludeTheDeriverClassName()
+        public void InitializeShouldHandleTypesThatCannotBeConstructed()
+        {
+            this.bootstrapper.DiscoveryService.GetDiscoveredTypes().Returns(new[] { typeof(CannotInject) });
+
+            Assert.That(
+                () => this.bootstrapper.Initialize(),
+                Throws.Nothing);
+        }
+
+        [Test]
+        public void InitializeShouldHandleDisposableTypes()
+        {
+            this.bootstrapper.DiscoveryService.GetDiscoveredTypes().Returns(new[] { typeof(FakeDisposabe) });
+
+            Assert.That(
+                () => this.bootstrapper.Initialize(),
+                Throws.Nothing);
+        }
+
+        [Test]
+        public void ThrowIfDisposedShouldIncludeTheDerivedClassName()
         {
             this.bootstrapper.Dispose();
 
@@ -218,8 +250,25 @@
             Task Route();
         }
 
+        internal class CannotInject : IFakeInterface
+        {
+            private CannotInject(int arg)
+            {
+            }
+        }
+
         internal class FakeClass : IFakeInterface
         {
+        }
+
+        internal class FakeDisposabe : IDisposable
+        {
+            internal bool DisposeCalled { get; private set; }
+
+            public void Dispose()
+            {
+                this.DisposeCalled = true;
+            }
         }
 
         private class FakeBootstrapper : Bootstrapper

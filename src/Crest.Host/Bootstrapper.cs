@@ -153,6 +153,7 @@ namespace Crest.Host
         /// </param>
         protected virtual void RegisterInstance(Type service, object instance)
         {
+            this.adapter.Container.Unregister<IRouteMapper>();
             this.adapter.Container.UseInstance(service, instance);
         }
 
@@ -166,12 +167,6 @@ namespace Crest.Host
             {
                 throw new ObjectDisposedException(this.GetType().Name);
             }
-        }
-
-        private static bool IsImplementationType(Type type)
-        {
-            TypeInfo typeInfo = type.GetTypeInfo();
-            return typeInfo.IsClass && !typeInfo.IsAbstract;
         }
 
         private Func<IResolver, object> GetFactory(ITypeFactory[] factories, Type type)
@@ -222,21 +217,8 @@ namespace Crest.Host
                 }
             }
 
-            this.adapter.Container.RegisterMany(
-                normal.Where(IsImplementationType),
-                (IRegistrator registrator, Type[] serviceTypes, Type implementingType) =>
-                {
-                    IReuse reuse =
-                        serviceTypes.Any(discovery.IsSingleInstance) ?
-                            Reuse.Singleton : Reuse.Transient;
-
-                    registrator.RegisterMany(
-                        serviceTypes,
-                        implementingType,
-                        reuse,
-                        ifAlreadyRegistered: IfAlreadyRegistered.Keep);
-                },
-                nonPublicServiceTypes: true);
+            var helper = new RegisterHelper(discovery);
+            helper.RegisterMany(this.adapter.Container, normal);
 
             // Normal probably has the most types in it, so fold the others into it
             normal.AddRange(custom);

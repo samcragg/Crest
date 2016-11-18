@@ -6,7 +6,7 @@
 namespace Crest.Host
 {
     using System;
-    using Crest.Host.Routing;
+    using Crest.Host.Engine;
     using DryIoc;
 
     /// <content>
@@ -19,6 +19,7 @@ namespace Crest.Host
             internal ContainerAdapter()
             {
                 this.Container = new Container();
+                this.Container.Register<IDiscoveryService, DiscoveryService>();
             }
 
             internal Container Container { get; }
