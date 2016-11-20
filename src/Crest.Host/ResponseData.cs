@@ -5,7 +5,10 @@
 
 namespace Crest.Host
 {
+    using System;
+    using System.IO;
     using System.Net;
+    using System.Threading.Tasks;
 
     /// <summary>
     /// Contains the response to a request.
@@ -23,10 +26,12 @@ namespace Crest.Host
         /// </summary>
         /// <param name="content">The content type.</param>
         /// <param name="code">The HTTP status code.</param>
-        public ResponseData(string content, int code)
+        /// <param name="body">Used to write the response body.</param>
+        public ResponseData(string content, int code, Func<Stream, Task> body = null)
         {
             this.ContentType = content;
             this.StatusCode = code;
+            this.WriteBody = body ?? EmptyWriteBody;
         }
 
         /// <inheritdoc />
@@ -39,6 +44,17 @@ namespace Crest.Host
         public int StatusCode
         {
             get;
+        }
+
+        /// <inheritdoc />
+        public Func<Stream, Task> WriteBody
+        {
+            get;
+        }
+
+        private static Task EmptyWriteBody(Stream stream)
+        {
+            return Task.CompletedTask;
         }
     }
 }

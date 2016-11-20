@@ -5,6 +5,10 @@
 
 namespace Crest.Host
 {
+    using System;
+    using System.IO;
+    using System.Threading.Tasks;
+
     /// <summary>
     /// Contains information about the response to a request.
     /// </summary>
@@ -19,5 +23,11 @@ namespace Crest.Host
         /// Gets the HTTP status code.
         /// </summary>
         int StatusCode { get; }
+
+        /// <summary>
+        /// Gets a method to call that, when passed a <see cref="Stream"/>,
+        /// writes the response body to it asynchronously.
+        /// </summary>
+        Func<Stream, Task> WriteBody { get; }
     }
 }
