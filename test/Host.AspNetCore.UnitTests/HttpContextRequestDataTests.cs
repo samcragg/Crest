@@ -22,6 +22,14 @@
         }
 
         [Test]
+        public void ShouldAssignTheHeadersProperty()
+        {
+            var data = new HttpContextRequestData(null, null, CreateContext());
+
+            Assert.That(data.Headers, Is.Not.Null);
+        }
+
+        [Test]
         public void ShouldAssignTheParametersProperty()
         {
             var parameters = new Dictionary<string, object>();

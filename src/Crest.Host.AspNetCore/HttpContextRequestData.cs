@@ -26,12 +26,16 @@ namespace Crest.Host.AspNetCore
         {
             this.Context = context;
             this.Handler = handler;
+            this.Headers = new HeadersAdapter(context.Request.Headers);
             this.Parameters = parameters;
             this.Url = ConvertToUri(context.Request);
         }
 
         /// <inheritdoc />
         public MethodInfo Handler { get; }
+
+        /// <inheritdoc />
+        public IReadOnlyDictionary<string, string> Headers { get; }
 
         /// <inheritdoc />
         public IReadOnlyDictionary<string, object> Parameters { get; }
