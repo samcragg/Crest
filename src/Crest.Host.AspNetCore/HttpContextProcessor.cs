@@ -55,7 +55,7 @@ namespace Crest.Host.AspNetCore
             HttpContext context = ((HttpContextRequestData)request).Context;
             context.Response.ContentType = response.ContentType;
             context.Response.StatusCode = response.StatusCode;
-            return Task.CompletedTask;
+            return response.WriteBody(context.Response.Body);
         }
     }
 }
