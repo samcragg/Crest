@@ -11,6 +11,7 @@ namespace Crest.Host
     using System.Net;
     using System.Reflection;
     using System.Threading.Tasks;
+    using Crest.Host.Conversion;
     using Crest.Host.Engine;
 
     /// <summary>
@@ -21,6 +22,7 @@ namespace Crest.Host
     {
         private static readonly Task<IResponseData> EmptyResponse = Task.FromResult<IResponseData>(null);
         private readonly Bootstrapper bootstrapper;
+        private readonly IContentConverterFactory converterFactory;
         private readonly IRouteMapper mapper;
 
         /// <summary>
@@ -32,6 +34,7 @@ namespace Crest.Host
             Check.IsNotNull(bootstrapper, nameof(bootstrapper));
 
             this.bootstrapper = bootstrapper;
+            this.converterFactory = bootstrapper.GetService<IContentConverterFactory>();
             this.mapper = bootstrapper.GetService<IRouteMapper>();
         }
 
@@ -80,7 +83,6 @@ namespace Crest.Host
                 throw new InvalidOperationException("Request data contains an invalid method.");
             }
 
-            // Check if result is NoContent.Value
             object result = await method(request.Parameters).ConfigureAwait(false);
             if (result == NoContent.Value)
             {
@@ -88,8 +90,11 @@ namespace Crest.Host
             }
             else
             {
-                // TODO: Plug in the serialization logic here...
-                return new ResponseData(string.Empty, (int)HttpStatusCode.OK);
+                // TODO: Check for null - if so 404 Not Found
+                // TODO: If we can't serialize it then 406 Not Acceptable
+                string accept;
+                request.Headers.TryGetValue("Accept", out accept);
+                return this.SerializeResponse(accept, result);
             }
         }
 
@@ -202,5 +207,14 @@ namespace Crest.Host
         /// <param name="response">The response data to send.</param>
         /// <returns>A task that represents the asynchronous operation.</returns>
         protected internal abstract Task WriteResponse(IRequestData request, IResponseData response);
+
+        private ResponseData SerializeResponse(string accept, object value)
+        {
+            IContentConverter converter = this.converterFactory.GetConverter(accept);
+            return new ResponseData(
+                converter.ContentType,
+                (int)HttpStatusCode.OK,
+                s => converter.WriteToAsync(s, value));
+        }
     }
 }

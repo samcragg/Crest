@@ -17,7 +17,14 @@ namespace Crest.Host.Conversion
     /// </summary>
     internal sealed class JsonConverter : IContentConverter
     {
-        private static readonly string[] SupportedFormats = new[] { @"application/json" };
+        private const string JsonMimeType = @"application/json";
+        private static readonly string[] SupportedFormats = new[] { JsonMimeType };
+
+        /// <inheritdoc />
+        public string ContentType
+        {
+            get { return JsonMimeType; }
+        }
 
         /// <inheritdoc />
         public IReadOnlyList<string> Formats

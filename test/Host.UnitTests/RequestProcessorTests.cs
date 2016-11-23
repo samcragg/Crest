@@ -6,6 +6,7 @@
     using System.Reflection;
     using System.Threading.Tasks;
     using Crest.Host;
+    using Crest.Host.Conversion;
     using Crest.Host.Engine;
     using NSubstitute;
     using NSubstitute.ExceptionExtensions;
@@ -15,6 +16,7 @@
     public sealed class RequestProcessorTests
     {
         private Bootstrapper bootstrapper;
+        private IContentConverterFactory converterFactory;
         private IRouteMapper mapper;
         private RequestProcessor processor;
         private IRequestData request;
@@ -23,9 +25,11 @@
         public void SetUp()
         {
             this.bootstrapper = Substitute.For<Bootstrapper>();
+            this.converterFactory = Substitute.For<IContentConverterFactory>();
             this.mapper = Substitute.For<IRouteMapper>();
             this.request = Substitute.For<IRequestData>();
 
+            this.bootstrapper.GetService<IContentConverterFactory>().Returns(this.converterFactory);
             this.bootstrapper.GetService<IRouteMapper>().Returns(this.mapper);
 
             // NOTE: We're using ForPartsOf - make sure that all setup calls
@@ -119,6 +123,17 @@
             Assert.That(
                 async ()=> await this.processor.InvokeHandler(this.request),
                 Throws.InstanceOf<InvalidOperationException>());
+        }
+
+        [Test]
+        public async Task InvokeHandlerShouldSerializeTheResult()
+        {
+            this.request.Handler.Returns(Substitute.For<MethodInfo>());
+            this.mapper.GetAdapter(this.request.Handler)
+                       .Returns(_ => Task.FromResult<object>("Response"));
+
+            IResponseData result = await this.processor.InvokeHandler(this.request);
+
         }
 
         [Test]

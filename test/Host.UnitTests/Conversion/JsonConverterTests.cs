@@ -1,9 +1,7 @@
 ﻿namespace Host.UnitTests.Conversion
 {
     using System;
-    using System.Collections.Generic;
     using System.IO;
-    using System.Linq;
     using System.Text;
     using System.Threading.Tasks;
     using Crest.Host.Conversion;
@@ -18,6 +16,13 @@
         public void SetUp()
         {
             this.converter = new JsonConverter();
+        }
+
+        [Test]
+        public void ContentTypeShouldBeTheIanaJsonMimeType()
+        {
+            // http://www.iana.org/assignments/media-types/application/json
+            Assert.That(this.converter.ContentType, Is.EqualTo("application/json"));
         }
 
         [Test]

@@ -15,6 +15,11 @@ namespace Crest.Host.Conversion
     public interface IContentConverter
     {
         /// <summary>
+        /// Gets the MIME type of the serialized content.
+        /// </summary>
+        string ContentType { get; }
+
+        /// <summary>
         /// Gets the MIME types supported.
         /// </summary>
         IReadOnlyList<string> Formats { get; }
