@@ -153,7 +153,7 @@ namespace Crest.Host
         /// </param>
         protected virtual void RegisterInstance(Type service, object instance)
         {
-            this.adapter.Container.Unregister<IRouteMapper>();
+            this.adapter.Container.Unregister(service);
             this.adapter.Container.UseInstance(service, instance);
         }
 

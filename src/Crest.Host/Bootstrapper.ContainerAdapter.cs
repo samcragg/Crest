@@ -6,6 +6,7 @@
 namespace Crest.Host
 {
     using System;
+    using Crest.Host.Conversion;
     using Crest.Host.Engine;
     using DryIoc;
 
@@ -20,9 +21,10 @@ namespace Crest.Host
             {
                 this.Container = new Container();
                 this.Container.Register<IDiscoveryService, DiscoveryService>();
+                this.Container.Register<IContentConverterFactory, ContentConverterFactory>();
             }
 
-            internal Container Container { get; }
+            internal IContainer Container { get; }
 
             public object GetService(Type serviceType)
             {

@@ -24,6 +24,7 @@ namespace Crest.Host.Engine
             {
                 "DryIoc",
                 "Microsoft",
+                "MS",
                 "Newtonsoft",
                 "System"
             }, StringComparer.Ordinal);
