@@ -20,9 +20,25 @@ namespace Crest.Host.Conversion
         string ContentType { get; }
 
         /// <summary>
-        /// Gets the MIME types supported.
+        /// Gets the supported MIME types, optionally with their quality.
         /// </summary>
-        IReadOnlyList<string> Formats { get; }
+        /// <remarks>
+        /// Although parameters are ignored, the quality parameter will be
+        /// considered when matching (i.e. "text/plain;q=0.8" would be
+        /// considered after another converter that has a higher (or none
+        /// specified) quality.
+        /// </remarks>
+        IEnumerable<string> Formats { get; }
+
+        /// <summary>
+        /// Gets the priority of this converter when multiple converters can
+        /// match the same media type with the same quality.
+        /// </summary>
+        /// <remarks>
+        /// Higher priority (bigger values) should take precedence over
+        /// converters that match with a lower priority (smaller value).
+        /// </remarks>
+        int Priority { get; }
 
         /// <summary>
         /// Writes the specified object to the stream.

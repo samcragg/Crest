@@ -33,6 +33,12 @@
         }
 
         [Test]
+        public void ProirityShouldReturnAPositiveNumber()
+        {
+            Assert.That(this.converter.Priority, Is.Positive);
+        }
+
+        [Test]
         public async Task WriteToAsyncShouldEncodeWithUtf8()
         {
             using (var stream = new MemoryStream())
