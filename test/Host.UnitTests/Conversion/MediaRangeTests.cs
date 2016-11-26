@@ -19,6 +19,8 @@
         [TestCase("missing_separator")]
         [TestCase("missing_sub_type/")]
         [TestCase("not_allowed / spaces_here")]
+        [TestCase("")]
+        [TestCase(" ")]
         public void ShouldThrowIfNotAValidMediaType(string input)
         {
             Assert.That(

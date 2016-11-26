@@ -13,7 +13,9 @@ namespace Crest.Host.Conversion
     /// </summary>
     internal sealed class ContentConverterFactory : IContentConverterFactory
     {
-        private readonly IContentConverter converter;
+        private const string DefaultAcceptType = @"application/json";
+        private readonly IContentConverter[] converters;
+        private readonly MediaRange[] ranges;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ContentConverterFactory"/> class.
@@ -21,13 +23,78 @@ namespace Crest.Host.Conversion
         /// <param name="converters">The available converters.</param>
         public ContentConverterFactory(IEnumerable<IContentConverter> converters)
         {
-            this.converter = converters.FirstOrDefault();
+            var ordered =
+                (from converter in converters
+                 from format in converter.Formats
+                 orderby converter.Priority descending
+                 select new { converter, format })
+                .ToList();
+
+            this.converters = new IContentConverter[ordered.Count];
+            this.ranges = new MediaRange[ordered.Count];
+            for (int i = 0; i < ordered.Count; i++)
+            {
+                this.converters[i] = ordered[i].converter;
+                string format = ordered[i].format;
+                this.ranges[i] = new MediaRange(new StringSegment(format, 0, format.Length));
+            }
         }
 
         /// <inheritdoc />
         public IContentConverter GetConverter(string accept)
         {
-            return this.converter;
+            if (string.IsNullOrWhiteSpace(accept))
+            {
+                accept = DefaultAcceptType;
+            }
+
+            List<MediaRange> ranges = ParseRanges(accept);
+            ranges.Sort((a, b) => b.Quality.CompareTo(a.Quality)); // Reverse sort
+
+            foreach (MediaRange range in ranges)
+            {
+                IContentConverter converter = this.FindConverter(range);
+                if (converter != null)
+                {
+                    return converter;
+                }
+            }
+
+            return null;
+        }
+
+        private static List<MediaRange> ParseRanges(string accept)
+        {
+            var ranges = new List<MediaRange>();
+
+            int start = 0;
+            int end = accept.IndexOf(',') + 1;
+            while (end > 0)
+            {
+                ranges.Add(new MediaRange(new StringSegment(accept, start, end)));
+                start = end;
+                end = accept.IndexOf(',', start) + 1;
+            }
+
+            ranges.Add(new MediaRange(new StringSegment(accept, start, accept.Length)));
+            return ranges;
+        }
+
+        private IContentConverter FindConverter(MediaRange accept)
+        {
+            IContentConverter bestConverter = null;
+            int bestQuality = 0;
+            for (int i = 0; i < this.ranges.Length; i++)
+            {
+                MediaRange range = this.ranges[i];
+                if (range.MediaTypesMatch(accept) && (range.Quality > bestQuality))
+                {
+                    bestQuality = range.Quality;
+                    bestConverter = this.converters[i];
+                }
+            }
+
+            return bestConverter;
         }
     }
 }
