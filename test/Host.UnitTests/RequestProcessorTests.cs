@@ -20,6 +20,7 @@
         private IRouteMapper mapper;
         private RequestProcessor processor;
         private IRequestData request;
+        private ResponseGenerator responseGenerator;
 
         [SetUp]
         public void SetUp()
@@ -28,9 +29,11 @@
             this.converterFactory = Substitute.For<IContentConverterFactory>();
             this.mapper = Substitute.For<IRouteMapper>();
             this.request = Substitute.For<IRequestData>();
+            this.responseGenerator = Substitute.For<ResponseGenerator>(Enumerable.Empty<StatusCodeHandler>());
 
             this.bootstrapper.GetService<IContentConverterFactory>().Returns(this.converterFactory);
             this.bootstrapper.GetService<IRouteMapper>().Returns(this.mapper);
+            this.bootstrapper.GetService<ResponseGenerator>().Returns(this.responseGenerator);
 
             // NOTE: We're using ForPartsOf - make sure that all setup calls
             //       in tests use an argument matcher to avoid calling the real
@@ -90,15 +93,15 @@
         }
 
         [Test]
-        public async Task InvokeHandlerAsyncShouldReturnNoContentStatusCode()
+        public async Task InvokeHandlerAsyncShouldInvokeNoContentStatusCodeHandler()
         {
             this.request.Handler.Returns(Substitute.For<MethodInfo>());
             this.mapper.GetAdapter(this.request.Handler)
                        .Returns(_ => Task.FromResult<object>(NoContent.Value));
 
-            IResponseData result = await this.processor.InvokeHandlerAsync(this.request);
+            await this.processor.InvokeHandlerAsync(this.request);
 
-            Assert.That(result.StatusCode, Is.EqualTo(204));
+            await this.responseGenerator.ReceivedWithAnyArgs().NoContentAsync(null, null);
         }
 
         [Test]

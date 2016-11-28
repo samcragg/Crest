@@ -24,6 +24,7 @@ namespace Crest.Host
         private readonly Bootstrapper bootstrapper;
         private readonly IContentConverterFactory converterFactory;
         private readonly IRouteMapper mapper;
+        private readonly ResponseGenerator responseGenerator;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="RequestProcessor"/> class.
@@ -36,6 +37,7 @@ namespace Crest.Host
             this.bootstrapper = bootstrapper;
             this.converterFactory = bootstrapper.GetService<IContentConverterFactory>();
             this.mapper = bootstrapper.GetService<IRouteMapper>();
+            this.responseGenerator = bootstrapper.GetService<ResponseGenerator>();
         }
 
         // NOTE: The methods here should just be protected, however, they've
@@ -84,17 +86,16 @@ namespace Crest.Host
             }
 
             object result = await method(request.Parameters).ConfigureAwait(false);
+            IContentConverter converter = this.GetConverter(request);
             if (result == NoContent.Value)
             {
-                return ResponseData.NoContent;
+                return await this.responseGenerator.NoContentAsync(request, converter).ConfigureAwait(false);
             }
             else
             {
                 // TODO: Check for null - if so 404 Not Found
                 // TODO: If we can't serialize it then 406 Not Acceptable
-                string accept;
-                request.Headers.TryGetValue("Accept", out accept);
-                return this.SerializeResponse(accept, result);
+                return this.SerializeResponse(converter, result);
             }
         }
 
@@ -208,9 +209,15 @@ namespace Crest.Host
         /// <returns>A task that represents the asynchronous operation.</returns>
         protected internal abstract Task WriteResponseAsync(IRequestData request, IResponseData response);
 
-        private ResponseData SerializeResponse(string accept, object value)
+        private IContentConverter GetConverter(IRequestData request)
         {
-            IContentConverter converter = this.converterFactory.GetConverter(accept);
+            string accept;
+            request.Headers.TryGetValue("Accept", out accept);
+            return this.converterFactory.GetConverter(accept);
+        }
+
+        private ResponseData SerializeResponse(IContentConverter converter, object value)
+        {
             return new ResponseData(
                 converter.ContentType,
                 (int)HttpStatusCode.OK,

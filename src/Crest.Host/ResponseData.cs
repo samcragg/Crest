@@ -7,7 +7,6 @@ namespace Crest.Host
 {
     using System;
     using System.IO;
-    using System.Net;
     using System.Threading.Tasks;
 
     /// <summary>
@@ -15,12 +14,6 @@ namespace Crest.Host
     /// </summary>
     internal sealed class ResponseData : IResponseData
     {
-        /// <summary>
-        /// Represents an empty No Content (204) response.
-        /// </summary>
-        internal static readonly ResponseData NoContent =
-            new ResponseData(string.Empty, (int)HttpStatusCode.NoContent);
-
         /// <summary>
         /// Initializes a new instance of the <see cref="ResponseData"/> class.
         /// </summary>
