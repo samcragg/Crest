@@ -27,7 +27,7 @@ namespace Crest.Host
         /// </summary>
         /// <param name="exception">The exception that has been raised.</param>
         /// <returns>
-        /// <c>true</c> if <see cref="Process(IRequestData, Exception)"/> should be invoked
+        /// <c>true</c> if <see cref="ProcessAsync(IRequestData, Exception)"/> should be invoked
         /// on this instance; otherwise, <c>false</c>.
         /// </returns>
         bool CanHandle(Exception exception);
@@ -41,6 +41,6 @@ namespace Crest.Host
         /// A task that represents the asynchronous operation. The value of the
         /// <c>TResult</c> parameter contains the response to send.
         /// </returns>
-        Task<IResponseData> Process(IRequestData request, Exception exception);
+        Task<IResponseData> ProcessAsync(IRequestData request, Exception exception);
     }
 }

@@ -47,92 +47,92 @@
         }
 
         [Test]
-        public async Task HandleRequestShouldCallTheMethodsInTheCorrectOrder()
+        public async Task HandleRequestAsyncShouldCallTheMethodsInTheCorrectOrder()
         {
-            this.processor.WhenForAnyArgs(p => p.OnAfterRequest(null, null)).DoNotCallBase();
-            this.processor.WhenForAnyArgs(p => p.OnBeforeRequest(null)).DoNotCallBase();
-            this.processor.WhenForAnyArgs(p => p.InvokeHandler(null)).DoNotCallBase();
-            this.processor.OnBeforeRequest(null).ReturnsForAnyArgs((IResponseData)null);
+            this.processor.WhenForAnyArgs(p => p.OnAfterRequestAsync(null, null)).DoNotCallBase();
+            this.processor.WhenForAnyArgs(p => p.OnBeforeRequestAsync(null)).DoNotCallBase();
+            this.processor.WhenForAnyArgs(p => p.InvokeHandlerAsync(null)).DoNotCallBase();
+            this.processor.OnBeforeRequestAsync(null).ReturnsForAnyArgs((IResponseData)null);
 
-            await this.processor.HandleRequest(this.request);
+            await this.processor.HandleRequestAsync(this.request);
 
             Received.InOrder(() =>
             {
-                this.processor.OnBeforeRequest(this.request);
-                this.processor.InvokeHandler(this.request);
-                this.processor.OnAfterRequest(this.request, Arg.Any<IResponseData>());
+                this.processor.OnBeforeRequestAsync(this.request);
+                this.processor.InvokeHandlerAsync(this.request);
+                this.processor.OnAfterRequestAsync(this.request, Arg.Any<IResponseData>());
             });
         }
 
         [Test]
-        public async Task HandleRequestShouldReturnNonNullValuesFromOnBeforeRequest()
+        public async Task HandleRequestAsyncShouldReturnNonNullValuesFromOnBeforeRequest()
         {
             IResponseData response = Substitute.For<IResponseData>();
-            this.processor.OnBeforeRequest(Arg.Is(this.request)).Returns(response);
+            this.processor.OnBeforeRequestAsync(Arg.Is(this.request)).Returns(response);
 
-            await this.processor.HandleRequest(this.request);
+            await this.processor.HandleRequestAsync(this.request);
 
-            await this.processor.Received().WriteResponse(this.request, response);
-            await this.processor.DidNotReceive().InvokeHandler(Arg.Any<IRequestData>());
+            await this.processor.Received().WriteResponseAsync(this.request, response);
+            await this.processor.DidNotReceive().InvokeHandlerAsync(Arg.Any<IRequestData>());
         }
 
         [Test]
-        public async Task HandleRequestShouldCatchExceptionsFromInvokeHandler()
+        public async Task HandleRequestAsyncShouldCatchExceptionsFromInvokeHandler()
         {
             IResponseData response = Substitute.For<IResponseData>();
             Exception exception = new DivideByZeroException();
-            this.processor.InvokeHandler(Arg.Is(this.request)).Throws(exception);
-            this.processor.OnError(Arg.Is(this.request), exception).Returns(response);
+            this.processor.InvokeHandlerAsync(Arg.Is(this.request)).Throws(exception);
+            this.processor.OnErrorAsync(Arg.Is(this.request), exception).Returns(response);
 
-            await this.processor.HandleRequest(this.request);
+            await this.processor.HandleRequestAsync(this.request);
 
-            await this.processor.Received().WriteResponse(this.request, response);
+            await this.processor.Received().WriteResponseAsync(this.request, response);
         }
 
         [Test]
-        public async Task InvokeHandlerShouldReturnNoContentStatusCode()
+        public async Task InvokeHandlerAsyncShouldReturnNoContentStatusCode()
         {
             this.request.Handler.Returns(Substitute.For<MethodInfo>());
             this.mapper.GetAdapter(this.request.Handler)
                        .Returns(_ => Task.FromResult<object>(NoContent.Value));
 
-            IResponseData result = await this.processor.InvokeHandler(this.request);
+            IResponseData result = await this.processor.InvokeHandlerAsync(this.request);
 
             Assert.That(result.StatusCode, Is.EqualTo(204));
         }
 
         [Test]
-        public async Task InvokeHandlerShouldReturnOKStatusCode()
+        public async Task InvokeHandlerAsyncShouldReturnOKStatusCode()
         {
             this.request.Handler.Returns(Substitute.For<MethodInfo>());
             this.mapper.GetAdapter(this.request.Handler)
                        .Returns(_ => Task.FromResult<object>("Response"));
 
-            IResponseData result = await this.processor.InvokeHandler(this.request);
+            IResponseData result = await this.processor.InvokeHandlerAsync(this.request);
 
             Assert.That(result.StatusCode, Is.EqualTo(200));
         }
 
         [Test]
-        public void InvokeHandlerShouldCheckTheHandlerIsFound()
+        public void InvokeHandlerAsyncShouldCheckTheHandlerIsFound()
         {
             this.request.Handler.Returns(Substitute.For<MethodInfo>());
             this.mapper.GetAdapter(this.request.Handler)
                        .Returns((RouteMethod)null);
 
             Assert.That(
-                async ()=> await this.processor.InvokeHandler(this.request),
+                async ()=> await this.processor.InvokeHandlerAsync(this.request),
                 Throws.InstanceOf<InvalidOperationException>());
         }
 
         [Test]
-        public async Task InvokeHandlerShouldSerializeTheResult()
+        public async Task InvokeHandlerAsyncShouldSerializeTheResult()
         {
             this.request.Handler.Returns(Substitute.For<MethodInfo>());
             this.mapper.GetAdapter(this.request.Handler)
                        .Returns(_ => Task.FromResult<object>("Response"));
 
-            IResponseData result = await this.processor.InvokeHandler(this.request);
+            IResponseData result = await this.processor.InvokeHandlerAsync(this.request);
 
         }
 
@@ -177,56 +177,56 @@
         }
 
         [Test]
-        public async Task OnAfterRequestShouldInvokeThePluginsInTheCorrectOrder()
+        public async Task OnAfterRequestAsyncShouldInvokeThePluginsInTheCorrectOrder()
         {
             IPostRequestPlugin one = CreatePostRequestPlugin(1);
             IPostRequestPlugin two = CreatePostRequestPlugin(2);
             IPostRequestPlugin three = CreatePostRequestPlugin(3);
             this.bootstrapper.GetAfterRequestPlugins().Returns(new[] { three, one, two });
 
-            await this.processor.OnAfterRequest(this.request, Substitute.For<IResponseData>());
+            await this.processor.OnAfterRequestAsync(this.request, Substitute.For<IResponseData>());
 
             Received.InOrder(() =>
             {
-                one.Process(this.request, Arg.Any<IResponseData>());
-                two.Process(this.request, Arg.Any<IResponseData>());
-                three.Process(this.request, Arg.Any<IResponseData>());
+                one.ProcessAsync(this.request, Arg.Any<IResponseData>());
+                two.ProcessAsync(this.request, Arg.Any<IResponseData>());
+                three.ProcessAsync(this.request, Arg.Any<IResponseData>());
             });
         }
 
         [Test]
-        public async Task OnBeforeRequestShouldInvokeThePluginsInTheCorrectOrder()
+        public async Task OnBeforeRequestAsyncShouldInvokeThePluginsInTheCorrectOrder()
         {
             IPreRequestPlugin one = CreatePreRequestPlugin(1);
             IPreRequestPlugin two = CreatePreRequestPlugin(2);
             IPreRequestPlugin three = CreatePreRequestPlugin(3);
             this.bootstrapper.GetBeforeRequestPlugins().Returns(new[] { three, one, two });
 
-            await this.processor.OnBeforeRequest(this.request);
+            await this.processor.OnBeforeRequestAsync(this.request);
 
             Received.InOrder(() =>
             {
-                one.Process(this.request);
-                two.Process(this.request);
-                three.Process(this.request);
+                one.ProcessAsync(this.request);
+                two.ProcessAsync(this.request);
+                three.ProcessAsync(this.request);
             });
         }
 
         [Test]
-        public async Task OnBeforeRequestShouldReturnTheReturnedRepsonse()
+        public async Task OnBeforeRequestAsyncShouldReturnTheReturnedRepsonse()
         {
             IResponseData response = Substitute.For<IResponseData>();
             IPreRequestPlugin plugin = CreatePreRequestPlugin(1);
-            plugin.Process(this.request).Returns(response);
+            plugin.ProcessAsync(this.request).Returns(response);
             this.bootstrapper.GetBeforeRequestPlugins().Returns(new[] { plugin });
 
-            IResponseData result = await this.processor.OnBeforeRequest(this.request);
+            IResponseData result = await this.processor.OnBeforeRequestAsync(this.request);
 
             Assert.That(result, Is.SameAs(response));
         }
 
         [Test]
-        public async Task OnErrorShouldInvokeThePluginsInTheCorrectOrder()
+        public async Task OnErrorAsyncShouldInvokeThePluginsInTheCorrectOrder()
         {
             Exception exception = new DivideByZeroException();
             IErrorHandlerPlugin one = CreateErrorHandlerPlugin(1);
@@ -234,7 +234,7 @@
             IErrorHandlerPlugin three = CreateErrorHandlerPlugin(3);
             this.bootstrapper.GetErrorHandlers().Returns(new[] { three, one, two });
 
-            await this.processor.OnError(this.request, exception);
+            await this.processor.OnErrorAsync(this.request, exception);
 
             Received.InOrder(() =>
             {
@@ -245,16 +245,16 @@
         }
 
         [Test]
-        public async Task OnErrorShouldInvokeProcessIfCanHandleReturnsTrue()
+        public async Task OnErrorAsyncShouldInvokeProcessIfCanHandleReturnsTrue()
         {
             Exception exception = new DivideByZeroException();
             IErrorHandlerPlugin plugin = CreateErrorHandlerPlugin(1);
             plugin.CanHandle(exception).Returns(true);
             this.bootstrapper.GetErrorHandlers().Returns(new[] { plugin });
 
-            await this.processor.OnError(this.request, exception);
+            await this.processor.OnErrorAsync(this.request, exception);
 
-            await plugin.Received().Process(this.request, exception);
+            await plugin.Received().ProcessAsync(this.request, exception);
         }
 
         private static IErrorHandlerPlugin CreateErrorHandlerPlugin(int order)
@@ -262,7 +262,7 @@
             IErrorHandlerPlugin plugin = Substitute.For<IErrorHandlerPlugin>();
             plugin.Order.Returns(order);
             plugin.CanHandle(null).ReturnsForAnyArgs(false);
-            plugin.Process(null, null).ReturnsForAnyArgs((IResponseData)null);
+            plugin.ProcessAsync(null, null).ReturnsForAnyArgs((IResponseData)null);
             return plugin;
         }
 
@@ -270,7 +270,7 @@
         {
             IPostRequestPlugin plugin = Substitute.For<IPostRequestPlugin>();
             plugin.Order.Returns(order);
-            plugin.Process(null, null).ReturnsForAnyArgs((IResponseData)null);
+            plugin.ProcessAsync(null, null).ReturnsForAnyArgs((IResponseData)null);
             return plugin;
         }
 
@@ -278,7 +278,7 @@
         {
             IPreRequestPlugin plugin = Substitute.For<IPreRequestPlugin>();
             plugin.Order.Returns(order);
-            plugin.Process(null).ReturnsForAnyArgs((IResponseData)null);
+            plugin.ProcessAsync(null).ReturnsForAnyArgs((IResponseData)null);
             return plugin;
         }
 
@@ -289,7 +289,7 @@
             {
             }
 
-            protected internal override Task WriteResponse(IRequestData request, IResponseData response)
+            protected internal override Task WriteResponseAsync(IRequestData request, IResponseData response)
             {
                 throw new NotImplementedException();
             }

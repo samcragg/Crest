@@ -40,7 +40,7 @@ namespace Crest.Host.AspNetCore
             if (result.Success)
             {
                 var data = new HttpContextRequestData(result.Method, result.Parameters, context);
-                return this.HandleRequest(data);
+                return this.HandleRequestAsync(data);
             }
             else
             {
@@ -50,7 +50,7 @@ namespace Crest.Host.AspNetCore
         }
 
         /// <inheritdoc />
-        protected override Task WriteResponse(IRequestData request, IResponseData response)
+        protected override Task WriteResponseAsync(IRequestData request, IResponseData response)
         {
             HttpContext context = ((HttpContextRequestData)request).Context;
             context.Response.ContentType = response.ContentType;

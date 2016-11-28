@@ -46,25 +46,25 @@ namespace Crest.Host
         /// </summary>
         /// <param name="request">The request data to process.</param>
         /// <returns>A task that represents the asynchronous operation.</returns>
-        protected internal async Task HandleRequest(IRequestData request)
+        protected internal async Task HandleRequestAsync(IRequestData request)
         {
             IResponseData response = null;
             try
             {
-                response = await this.OnBeforeRequest(request).ConfigureAwait(false);
+                response = await this.OnBeforeRequestAsync(request).ConfigureAwait(false);
                 if (response == null)
                 {
-                    response = await this.InvokeHandler(request).ConfigureAwait(false);
-                    response = await this.OnAfterRequest(request, response).ConfigureAwait(false);
+                    response = await this.InvokeHandlerAsync(request).ConfigureAwait(false);
+                    response = await this.OnAfterRequestAsync(request, response).ConfigureAwait(false);
                 }
             }
             catch (Exception ex)
             {
                 // TODO: If the response is null use an internal error one...
-                response = await this.OnError(request, ex).ConfigureAwait(false);
+                response = await this.OnErrorAsync(request, ex).ConfigureAwait(false);
             }
 
-            await this.WriteResponse(request, response).ConfigureAwait(false);
+            await this.WriteResponseAsync(request, response).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -75,7 +75,7 @@ namespace Crest.Host
         /// A task that represents the asynchronous operation. The value of the
         /// <c>TResult</c> parameter contains the response to send.
         /// </returns>
-        protected internal virtual async Task<IResponseData> InvokeHandler(IRequestData request)
+        protected internal virtual async Task<IResponseData> InvokeHandlerAsync(IRequestData request)
         {
             RouteMethod method = this.mapper.GetAdapter(request.Handler);
             if (method == null)
@@ -131,14 +131,14 @@ namespace Crest.Host
         /// A task that represents the asynchronous operation. The value of the
         /// <c>TResult</c> parameter contains the response to send.
         /// </returns>
-        protected internal virtual async Task<IResponseData> OnAfterRequest(IRequestData request, IResponseData response)
+        protected internal virtual async Task<IResponseData> OnAfterRequestAsync(IRequestData request, IResponseData response)
         {
             IPostRequestPlugin[] plugins = this.bootstrapper.GetAfterRequestPlugins();
             Array.Sort(plugins, (a, b) => a.Order.CompareTo(b.Order));
 
             for (int i = 0; i < plugins.Length; i++)
             {
-                response = await plugins[i].Process(request, response).ConfigureAwait(false);
+                response = await plugins[i].ProcessAsync(request, response).ConfigureAwait(false);
             }
 
             return response;
@@ -158,14 +158,14 @@ namespace Crest.Host
         /// Return a task with a null result to allow the request to be
         /// processed in the normal way.
         /// </remarks>
-        protected internal virtual async Task<IResponseData> OnBeforeRequest(IRequestData request)
+        protected internal virtual async Task<IResponseData> OnBeforeRequestAsync(IRequestData request)
         {
             IPreRequestPlugin[] plugins = this.bootstrapper.GetBeforeRequestPlugins();
             Array.Sort(plugins, (a, b) => a.Order.CompareTo(b.Order));
 
             for (int i = 0; i < plugins.Length; i++)
             {
-                IResponseData response = await plugins[i].Process(request).ConfigureAwait(false);
+                IResponseData response = await plugins[i].ProcessAsync(request).ConfigureAwait(false);
                 if (response != null)
                 {
                     return response;
@@ -184,7 +184,7 @@ namespace Crest.Host
         /// A task that represents the asynchronous operation. The value of the
         /// <c>TResult</c> parameter contains the response to send.
         /// </returns>
-        protected internal virtual Task<IResponseData> OnError(IRequestData request, Exception exception)
+        protected internal virtual Task<IResponseData> OnErrorAsync(IRequestData request, Exception exception)
         {
             IErrorHandlerPlugin[] plugins = this.bootstrapper.GetErrorHandlers();
             Array.Sort(plugins, (a, b) => a.Order.CompareTo(b.Order));
@@ -193,7 +193,7 @@ namespace Crest.Host
             {
                 if (plugins[i].CanHandle(exception))
                 {
-                    return plugins[i].Process(request, exception);
+                    return plugins[i].ProcessAsync(request, exception);
                 }
             }
 
@@ -206,7 +206,7 @@ namespace Crest.Host
         /// <param name="request">The request data.</param>
         /// <param name="response">The response data to send.</param>
         /// <returns>A task that represents the asynchronous operation.</returns>
-        protected internal abstract Task WriteResponse(IRequestData request, IResponseData response);
+        protected internal abstract Task WriteResponseAsync(IRequestData request, IResponseData response);
 
         private ResponseData SerializeResponse(string accept, object value)
         {

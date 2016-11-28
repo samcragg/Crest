@@ -36,6 +36,6 @@ namespace Crest.Host
         /// Return a task with a null result to allow the request to be
         /// processed in the normal way.
         /// </remarks>
-        Task<IResponseData> Process(IRequestData request);
+        Task<IResponseData> ProcessAsync(IRequestData request);
     }
 }

@@ -31,6 +31,6 @@ namespace Crest.Host
         /// A task that represents the asynchronous operation. The value of the
         /// <c>TResult</c> parameter contains the response to send.
         /// </returns>
-        Task<IResponseData> Process(IRequestData request, IResponseData response);
+        Task<IResponseData> ProcessAsync(IRequestData request, IResponseData response);
     }
 }
