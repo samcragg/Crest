@@ -86,5 +86,28 @@
 
             Assert.That(response.StatusCode, Is.EqualTo(406));
         }
+
+        [Test]
+        public async Task NotFoundAsyncShouldReturnTheHandlerResult()
+        {
+            IRequestData request = Substitute.For<IRequestData>();
+            IContentConverter converter = Substitute.For<IContentConverter>();
+            IResponseData response = Substitute.For<IResponseData>();
+            this.handler.NotFoundAsync(request, converter).Returns(response);
+
+            IResponseData result = await this.generator.NotFoundAsync(request, converter);
+
+            Assert.That(result, Is.SameAs(response));
+        }
+
+        [Test]
+        public async Task NotFoundAsyncShouldReturn404()
+        {
+            this.handler.NotFoundAsync(null, null).ReturnsForAnyArgs(NullResponse);
+
+            IResponseData response = await this.generator.NotFoundAsync(null, null);
+
+            Assert.That(response.StatusCode, Is.EqualTo(404));
+        }
     }
 }

@@ -54,5 +54,21 @@ namespace Crest.Host.Engine
         {
             return NoResponse;
         }
+
+        /// <summary>
+        /// Generates a response for 404 Not Found.
+        /// </summary>
+        /// <param name="request">The request to reply to.</param>
+        /// <param name="converter">
+        /// Allows the conversion to the requested content type.
+        /// </param>
+        /// <returns>
+        /// A task that represents the asynchronous operation. The value of the
+        /// <c>TResult</c> parameter contains the response to send.
+        /// </returns>
+        public virtual Task<IResponseData> NotFoundAsync(IRequestData request, IContentConverter converter)
+        {
+            return NoResponse;
+        }
     }
 }

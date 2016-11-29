@@ -27,6 +27,9 @@ namespace Crest.Host.Engine
         private static readonly ResponseData NotAcceptable =
             new ResponseData(string.Empty, (int)HttpStatusCode.NotAcceptable);
 
+        private static readonly ResponseData NotFound =
+            new ResponseData(string.Empty, (int)HttpStatusCode.NotFound);
+
         private readonly StatusCodeHandler[] handlers;
 
         /// <summary>
@@ -70,6 +73,24 @@ namespace Crest.Host.Engine
             return this.FindResponse(
                 h => h.NotAcceptableAsync(request),
                 NotAcceptable);
+        }
+
+        /// <summary>
+        /// Generates a response for 404 Not Found.
+        /// </summary>
+        /// <param name="request">The request to reply to.</param>
+        /// <param name="converter">
+        /// Allows the conversion to the requested content type.
+        /// </param>
+        /// <returns>
+        /// A task that represents the asynchronous operation. The value of the
+        /// <c>TResult</c> parameter contains the response to send.
+        /// </returns>
+        public virtual Task<IResponseData> NotFoundAsync(IRequestData request, IContentConverter converter)
+        {
+            return this.FindResponse(
+                h => h.NotFoundAsync(request, converter),
+                NotFound);
         }
 
         private async Task<IResponseData> FindResponse(

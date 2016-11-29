@@ -34,6 +34,15 @@
             Assert.That(response.Result, Is.Null);
         }
 
+        [Test]
+        public void NotFoundAsyncShouldReturnACompletedTaskWithNull()
+        {
+            Task<IResponseData> response = this.handler.NotFoundAsync(null, null);
+
+            Assert.That(response.IsCompleted, Is.True);
+            Assert.That(response.Result, Is.Null);
+        }
+
         private class FakeStatusCodeHandler : StatusCodeHandler
         {
             public override int Order

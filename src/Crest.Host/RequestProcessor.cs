@@ -85,19 +85,23 @@ namespace Crest.Host
                 throw new InvalidOperationException("Request data contains an invalid method.");
             }
 
-            object result = await method(request.Parameters).ConfigureAwait(false);
             IContentConverter converter = this.GetConverter(request);
+            if (converter == null)
+            {
+                return await this.responseGenerator.NotAcceptableAsync(request).ConfigureAwait(false);
+            }
+
+            object result = await method(request.Parameters).ConfigureAwait(false);
             if (result == NoContent.Value)
             {
                 return await this.responseGenerator.NoContentAsync(request, converter).ConfigureAwait(false);
             }
-            else if (converter == null)
+            else if (result == null)
             {
-                return await this.responseGenerator.NotAcceptableAsync(request).ConfigureAwait(false);
+                return await this.responseGenerator.NotFoundAsync(request, converter).ConfigureAwait(false);
             }
             else
             {
-                // TODO: Check for null (before the converter check) - if so 404 Not Found
                 return this.SerializeResponse(converter, result);
             }
         }

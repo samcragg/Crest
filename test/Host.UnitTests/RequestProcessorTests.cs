@@ -30,6 +30,7 @@
             this.converterFactory = Substitute.For<IContentConverterFactory>();
             this.mapper = Substitute.For<IRouteMapper>();
             this.request = Substitute.For<IRequestData>();
+            this.request.Handler.Returns(Substitute.For<MethodInfo>());
             this.responseGenerator = Substitute.For<ResponseGenerator>(Enumerable.Empty<StatusCodeHandler>());
 
             this.bootstrapper.GetService<IContentConverterFactory>().Returns(this.converterFactory);
@@ -94,21 +95,8 @@
         }
 
         [Test]
-        public async Task InvokeHandlerAsyncShouldInvokeNoContentStatusCodeHandler()
-        {
-            this.request.Handler.Returns(Substitute.For<MethodInfo>());
-            this.mapper.GetAdapter(this.request.Handler)
-                       .Returns(_ => Task.FromResult<object>(NoContent.Value));
-
-            await this.processor.InvokeHandlerAsync(this.request);
-
-            await this.responseGenerator.ReceivedWithAnyArgs().NoContentAsync(null, null);
-        }
-
-        [Test]
         public async Task InvokeHandlerAsyncShouldReturnOKStatusCode()
         {
-            this.request.Handler.Returns(Substitute.For<MethodInfo>());
             this.mapper.GetAdapter(this.request.Handler)
                        .Returns(_ => Task.FromResult<object>("Response"));
 
@@ -120,12 +108,11 @@
         [Test]
         public void InvokeHandlerAsyncShouldCheckTheHandlerIsFound()
         {
-            this.request.Handler.Returns(Substitute.For<MethodInfo>());
             this.mapper.GetAdapter(this.request.Handler)
                        .Returns((RouteMethod)null);
 
             Assert.That(
-                async ()=> await this.processor.InvokeHandlerAsync(this.request),
+                async () => await this.processor.InvokeHandlerAsync(this.request),
                 Throws.InstanceOf<InvalidOperationException>());
         }
 
@@ -135,9 +122,7 @@
             IContentConverter converter = Substitute.For<IContentConverter>();
             this.converterFactory.GetConverter("accept/value").Returns(converter);
 
-            this.request.Handler.Returns(Substitute.For<MethodInfo>());
             this.request.Headers.Returns(new Dictionary<string, string> { { "Accept", "accept/value" } });
-
             this.mapper.GetAdapter(this.request.Handler)
                        .Returns(_ => Task.FromResult<object>("Response"));
 
@@ -149,18 +134,36 @@
         }
 
         [Test]
+        public async Task InvokeHandlerAsyncShouldInvokeNoContentStatusCodeHandler()
+        {
+            this.mapper.GetAdapter(this.request.Handler)
+                       .Returns(_ => Task.FromResult<object>(NoContent.Value));
+
+            await this.processor.InvokeHandlerAsync(this.request);
+
+            await this.responseGenerator.ReceivedWithAnyArgs().NoContentAsync(null, null);
+        }
+
+        [Test]
         public async Task InvokeHandlerAsyncShouldInvokeNotAcceptableStatusCodeHandler()
         {
             this.converterFactory.GetConverter(null)
                 .ReturnsForAnyArgs((IContentConverter)null);
 
-            this.request.Handler.Returns(Substitute.For<MethodInfo>());
-            this.mapper.GetAdapter(this.request.Handler)
-                       .Returns(_ => Task.FromResult<object>("Response"));
-
             await this.processor.InvokeHandlerAsync(this.request);
 
             await this.responseGenerator.ReceivedWithAnyArgs().NotAcceptableAsync(null);
+        }
+
+        [Test]
+        public async Task InvokeHandlerAsyncShouldInvokeNotFoundStatusCodeHandler()
+        {
+            this.mapper.GetAdapter(this.request.Handler)
+                       .Returns(_ => Task.FromResult<object>(null));
+
+            await this.processor.InvokeHandlerAsync(this.request);
+
+            await this.responseGenerator.ReceivedWithAnyArgs().NotFoundAsync(null, null);
         }
 
         [Test]
