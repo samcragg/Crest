@@ -91,10 +91,13 @@ namespace Crest.Host
             {
                 return await this.responseGenerator.NoContentAsync(request, converter).ConfigureAwait(false);
             }
+            else if (converter == null)
+            {
+                return await this.responseGenerator.NotAcceptableAsync(request).ConfigureAwait(false);
+            }
             else
             {
-                // TODO: Check for null - if so 404 Not Found
-                // TODO: If we can't serialize it then 406 Not Acceptable
+                // TODO: Check for null (before the converter check) - if so 404 Not Found
                 return this.SerializeResponse(converter, result);
             }
         }

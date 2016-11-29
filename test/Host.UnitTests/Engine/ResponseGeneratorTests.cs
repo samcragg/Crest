@@ -64,5 +64,27 @@
 
             Assert.That(response.StatusCode, Is.EqualTo(204));
         }
+
+        [Test]
+        public async Task NotAcceptableAsyncShouldReturnTheHandlerResult()
+        {
+            IRequestData request = Substitute.For<IRequestData>();
+            IResponseData response = Substitute.For<IResponseData>();
+            this.handler.NotAcceptableAsync(request).Returns(response);
+
+            IResponseData result = await this.generator.NotAcceptableAsync(request);
+
+            Assert.That(result, Is.SameAs(response));
+        }
+
+        [Test]
+        public async Task NotAcceptableAsyncShouldReturn406()
+        {
+            this.handler.NotAcceptableAsync(null).ReturnsForAnyArgs(NullResponse);
+
+            IResponseData response = await this.generator.NotAcceptableAsync(null);
+
+            Assert.That(response.StatusCode, Is.EqualTo(406));
+        }
     }
 }

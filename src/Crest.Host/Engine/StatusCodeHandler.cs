@@ -41,5 +41,18 @@ namespace Crest.Host.Engine
         {
             return NoResponse;
         }
+
+        /// <summary>
+        /// Generates a response for 406 Not Acceptable.
+        /// </summary>
+        /// <param name="request">The request to reply to.</param>
+        /// <returns>
+        /// A task that represents the asynchronous operation. The value of the
+        /// <c>TResult</c> parameter contains the response to send.
+        /// </returns>
+        public virtual Task<IResponseData> NotAcceptableAsync(IRequestData request)
+        {
+            return NoResponse;
+        }
     }
 }

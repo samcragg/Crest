@@ -17,9 +17,18 @@
         }
 
         [Test]
-        public void NoContentAsyncShouldReturnAnCompletedTaskWithNull()
+        public void NoContentAsyncShouldReturnACompletedTaskWithNull()
         {
             Task<IResponseData> response = this.handler.NoContentAsync(null, null);
+
+            Assert.That(response.IsCompleted, Is.True);
+            Assert.That(response.Result, Is.Null);
+        }
+
+        [Test]
+        public void NotAcceptableAsyncShouldReturnACompletedTaskWithNull()
+        {
+            Task<IResponseData> response = this.handler.NotAcceptableAsync(null);
 
             Assert.That(response.IsCompleted, Is.True);
             Assert.That(response.Result, Is.Null);

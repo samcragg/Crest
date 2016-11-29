@@ -2,6 +2,7 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.IO;
     using System.Linq;
     using System.Reflection;
     using System.Threading.Tasks;
@@ -131,12 +132,35 @@
         [Test]
         public async Task InvokeHandlerAsyncShouldSerializeTheResult()
         {
+            IContentConverter converter = Substitute.For<IContentConverter>();
+            this.converterFactory.GetConverter("accept/value").Returns(converter);
+
+            this.request.Handler.Returns(Substitute.For<MethodInfo>());
+            this.request.Headers.Returns(new Dictionary<string, string> { { "Accept", "accept/value" } });
+
+            this.mapper.GetAdapter(this.request.Handler)
+                       .Returns(_ => Task.FromResult<object>("Response"));
+
+            IResponseData response = await this.processor.InvokeHandlerAsync(this.request);
+
+            Stream stream = Substitute.For<Stream>();
+            await response.WriteBody(stream);
+            await converter.Received().WriteToAsync(stream, "Response");
+        }
+
+        [Test]
+        public async Task InvokeHandlerAsyncShouldInvokeNotAcceptableStatusCodeHandler()
+        {
+            this.converterFactory.GetConverter(null)
+                .ReturnsForAnyArgs((IContentConverter)null);
+
             this.request.Handler.Returns(Substitute.For<MethodInfo>());
             this.mapper.GetAdapter(this.request.Handler)
                        .Returns(_ => Task.FromResult<object>("Response"));
 
-            IResponseData result = await this.processor.InvokeHandlerAsync(this.request);
+            await this.processor.InvokeHandlerAsync(this.request);
 
+            await this.responseGenerator.ReceivedWithAnyArgs().NotAcceptableAsync(null);
         }
 
         [Test]

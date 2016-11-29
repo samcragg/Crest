@@ -24,6 +24,9 @@ namespace Crest.Host.Engine
         private static readonly ResponseData NoContent =
             new ResponseData(string.Empty, (int)HttpStatusCode.NoContent);
 
+        private static readonly ResponseData NotAcceptable =
+            new ResponseData(string.Empty, (int)HttpStatusCode.NotAcceptable);
+
         private readonly StatusCodeHandler[] handlers;
 
         /// <summary>
@@ -47,20 +50,42 @@ namespace Crest.Host.Engine
         /// A task that represents the asynchronous operation. The value of the
         /// <c>TResult</c> parameter contains the response to send.
         /// </returns>
-        public virtual async Task<IResponseData> NoContentAsync(IRequestData request, IContentConverter converter)
+        public virtual Task<IResponseData> NoContentAsync(IRequestData request, IContentConverter converter)
+        {
+            return this.FindResponse(
+                h => h.NoContentAsync(request, converter),
+                NoContent);
+        }
+
+        /// <summary>
+        /// Generates a response for 406 Not Acceptable.
+        /// </summary>
+        /// <param name="request">The request to reply to.</param>
+        /// <returns>
+        /// A task that represents the asynchronous operation. The value of the
+        /// <c>TResult</c> parameter contains the response to send.
+        /// </returns>
+        public virtual Task<IResponseData> NotAcceptableAsync(IRequestData request)
+        {
+            return this.FindResponse(
+                h => h.NotAcceptableAsync(request),
+                NotAcceptable);
+        }
+
+        private async Task<IResponseData> FindResponse(
+            Func<StatusCodeHandler, Task<IResponseData>> method,
+            IResponseData defaultResponse)
         {
             for (int i = 0; i < this.handlers.Length; i++)
             {
-                IResponseData response =
-                    await this.handlers[i].NoContentAsync(request, converter).ConfigureAwait(false);
-
+                IResponseData response = await method(this.handlers[i]).ConfigureAwait(false);
                 if (response != null)
                 {
                     return response;
                 }
             }
 
-            return NoContent;
+            return defaultResponse;
         }
     }
 }
