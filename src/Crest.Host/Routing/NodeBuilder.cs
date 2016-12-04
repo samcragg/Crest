@@ -29,10 +29,11 @@ namespace Crest.Host.Routing
         /// <summary>
         /// Parses the specified route into a sequence of nodes.
         /// </summary>
+        /// <param name="version">The version information.</param>
         /// <param name="routeUrl">The route URL to add.</param>
         /// <param name="parameters">The parameters to capture.</param>
         /// <returns>The parsed nodes.</returns>
-        public IMatchNode[] Parse(string routeUrl, IEnumerable<ParameterInfo> parameters)
+        public IMatchNode[] Parse(string version, string routeUrl, IEnumerable<ParameterInfo> parameters)
         {
             IReadOnlyDictionary<string, Type> parameterPairs =
                 parameters.ToDictionary(p => p.Name, p => p.ParameterType, StringComparer.Ordinal);
@@ -40,7 +41,7 @@ namespace Crest.Host.Routing
             var parser = new NodeParser(this.specializedCaptureNodes);
             parser.ParseUrl(routeUrl, parameterPairs);
 
-            string normalizedUrl = GetNormalizedRoute(routeUrl, parser.Nodes);
+            string normalizedUrl = GetNormalizedRoute(version, routeUrl, parser.Nodes);
             if (!this.normalizedUrls.Add(normalizedUrl))
             {
                 throw new InvalidOperationException("The route produces an ambiguous match.");
@@ -54,7 +55,7 @@ namespace Crest.Host.Routing
             var literal = node as LiteralNode;
             if (literal != null)
             {
-                buffer.Append(literal.Literal);
+                buffer.Append(literal.Literal.ToLowerInvariant());
             }
             else
             {
@@ -67,9 +68,11 @@ namespace Crest.Host.Routing
             }
         }
 
-        private static string GetNormalizedRoute(string routeUrl, IEnumerable<IMatchNode> nodes)
+        private static string GetNormalizedRoute(string versionInfo, string routeUrl, IEnumerable<IMatchNode> nodes)
         {
-            var builder = new StringBuilder(routeUrl.Length);
+            var builder = new StringBuilder(routeUrl.Length * 2);
+            builder.Append(versionInfo);
+
             foreach (IMatchNode node in nodes)
             {
                 builder.Append('/');

@@ -17,25 +17,38 @@
         public void SetUp()
         {
             this.matcher = Substitute.For<IMatchNode>();
-            this.node = new RouteNode<string>(null);
-            this.node.Add(new[] { this.matcher }, 0, MatcherValue);
+            this.matcher.Match(Arg.Any<StringSegment>())
+                .Returns(new NodeMatchResult(null, null));
+
+            this.node = new RouteNode<string>(this.matcher) { Value = MatcherValue };
         }
 
         [Test]
         public void AddShouldCombineMatchers()
         {
-            // We need the child node so we can insert the value somewhere,
-            // otherwise it will try to overwrite the value in this.matcher,
-            // which isn't allowed
-            IMatchNode duplicate = Substitute.For<IMatchNode>();
             IMatchNode child = Substitute.For<IMatchNode>();
-            this.matcher.Equals(duplicate).Returns(true);
+            IMatchNode duplicate = Substitute.For<IMatchNode>();
+            child.Equals(duplicate).Returns(true);
 
-            this.node.Add(new[] { duplicate, child }, 0, null);
-            this.node.Match("/route");
+            this.node.Add(new[] { child }, 0);
+            this.node.Add(new[] { duplicate }, 0);
+            this.node.Match("/matcher_part/child_part");
 
-            this.matcher.ReceivedWithAnyArgs().Match(default(StringSegment));
+            child.ReceivedWithAnyArgs().Match(default(StringSegment));
             duplicate.DidNotReceiveWithAnyArgs().Match(default(StringSegment));
+        }
+
+        [Test]
+        public void AddShouldReturnTheLeafNode()
+        {
+            IMatchNode first = Substitute.For<IMatchNode>();
+            IMatchNode second = Substitute.For<IMatchNode>();
+
+            RouteNode<string> node1 = this.node.Add(new[] { first }, 0);
+            RouteNode<string> node2 = this.node.Add(new[] { first, second }, 0);
+
+            Assert.That(node1, Is.Not.EqualTo(this.node));
+            Assert.That(node2, Is.Not.EqualTo(node1));
         }
 
         [Test]
@@ -65,17 +78,20 @@
         [Test]
         public void MatchShouldInvokeHigherPriorityNodesFirst()
         {
-            this.matcher.Priority.Returns(100);
+            IMatchNode normal = Substitute.For<IMatchNode>();
+            normal.Priority.Returns(100);
+            this.node.Add(new[] { normal }, 0);
+
             IMatchNode important = Substitute.For<IMatchNode>();
             important.Priority.Returns(200);
             important.Match(default(StringSegment))
                      .ReturnsForAnyArgs(new NodeMatchResult(null, null));
-            this.node.Add(new[] { important }, 0, null);
+            this.node.Add(new[] { important }, 0);
 
-            this.node.Match("/route");
+            this.node.Match("/matcher/part");
 
             important.ReceivedWithAnyArgs().Match(default(StringSegment));
-            this.matcher.DidNotReceiveWithAnyArgs().Match(default(StringSegment));
+            normal.DidNotReceiveWithAnyArgs().Match(default(StringSegment));
         }
     }
 }

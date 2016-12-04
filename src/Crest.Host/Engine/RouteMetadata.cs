@@ -20,9 +20,21 @@ namespace Crest.Host.Engine
         public Func<object> Factory { get; set; }
 
         /// <summary>
+        /// Gets or sets the latest version (inclusive) the route is
+        /// available until.
+        /// </summary>
+        public int MaximumVersion { get; set; }
+
+        /// <summary>
         /// Gets or sets the method to invoke when the route is matched.
         /// </summary>
         public MethodInfo Method { get; set; }
+
+        /// <summary>
+        /// Gets or sets the earliest version (inclusive) the route is
+        /// available from.
+        /// </summary>
+        public int MinimumVersion { get; set; }
 
         /// <summary>
         /// Gets or sets the URL to match.

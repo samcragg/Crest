@@ -47,34 +47,37 @@ namespace Crest.Host.Routing
         }
 
         /// <summary>
-        /// Adds the specified node to this instance.
+        /// Adds the specified nodes to this instance.
         /// </summary>
         /// <param name="nodes">The nodes to add.</param>
         /// <param name="index">The starting index of the first node to add.</param>
-        /// <param name="value">The value to associate with the route.</param>
-        public void Add(IReadOnlyList<IMatchNode> nodes, int index, T value)
+        /// <returns>
+        /// The leaf node that can store the value for the route (i.e. the
+        /// <c>RouteNode</c> that represents the last item in <c>nodes</c>.)
+        /// </returns>
+        public RouteNode<T> Add(IReadOnlyList<IMatchNode> nodes, int index)
         {
-            IMatchNode matcher = nodes[index];
+            IMatchNode currentMatchNode = nodes[index];
             RouteNode<T> node = null;
             if (this.children != null)
             {
-                node = this.children.FirstOrDefault(n => n.matcher.Equals(matcher));
+                node = this.children.FirstOrDefault(n => n.matcher.Equals(currentMatchNode));
             }
 
             if (node == null)
             {
-                node = new RouteNode<T>(matcher);
+                node = new RouteNode<T>(currentMatchNode);
                 this.AddChild(node);
             }
 
             index++;
             if (index == nodes.Count)
             {
-                node.Value = value;
+                return node;
             }
             else
             {
-                node.Add(nodes, index, value);
+                return node.Add(nodes, index);
             }
         }
 
@@ -89,16 +92,17 @@ namespace Crest.Host.Routing
         public MatchResult Match(string url)
         {
             var segments = new List<StringSegment>(UrlParser.GetSegments(url));
-            var captures = new Dictionary<string, object>();
-            RouteNode<T> node = this.Match(segments, -1, captures);
-            if (node == null)
+            if (segments.Count > 0)
             {
-                return default(MatchResult);
+                var captures = new Dictionary<string, object>();
+                RouteNode<T> node = this.Match(segments, 0, captures);
+                if (node != null)
+                {
+                    return new MatchResult(captures, node.Value);
+                }
             }
-            else
-            {
-                return new MatchResult(captures, node.Value);
-            }
+
+            return default(MatchResult);
         }
 
         private void AddChild(RouteNode<T> node)
@@ -120,14 +124,10 @@ namespace Crest.Host.Routing
 
         private RouteNode<T> Match(IReadOnlyList<StringSegment> segments, int index, Dictionary<string, object> captures)
         {
-            NodeMatchResult match = NodeMatchResult.None;
-            if (index >= 0)
+            NodeMatchResult match = this.matcher.Match(segments[index]);
+            if (!match.Success)
             {
-                match = this.matcher.Match(segments[index]);
-                if (!match.Success)
-                {
-                    return null;
-                }
+                return null;
             }
 
             index++;

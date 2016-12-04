@@ -27,13 +27,27 @@
             ParameterInfo param1 = CreateParameter<string>("param1");
             ParameterInfo param2 = CreateParameter<string>("param2");
 
-            this.builder.Parse("/{param1}/", new[] { param1 });
+            this.builder.Parse("", "/{param1}/", new[] { param1 });
 
             // Although the parameter has a different name, it's the same type
             // so ambiguous
             Assert.That(
-                () => this.builder.Parse("/{param2}/", new[] { param2 }),
+                () => this.builder.Parse("", "/{param2}/", new[] { param2 }),
                 Throws.InstanceOf<InvalidOperationException>());
+        }
+
+        [Test]
+        public void ShouldAllowDifferentVersionsOfTheSameRoute()
+        {
+            ParameterInfo param1 = CreateParameter<string>("param1");
+            ParameterInfo param2 = CreateParameter<string>("param2");
+
+            this.builder.Parse("1:1", "/{param1}/", new[] { param1 });
+
+            // No longer ambiguous (see previous test) as it's a different version
+            Assert.That(
+                () => this.builder.Parse("2:2", "/{param2}/", new[] { param2 }),
+                Throws.Nothing);
         }
 
         [Test]
@@ -42,7 +56,7 @@
             // No need to test the parsing, as that's handled by UrlParse, just
             // test that we don't silently ignore them
             Assert.That(
-                () => this.builder.Parse("{missing brace", new ParameterInfo[0]),
+                () => this.builder.Parse("", "{missing brace", new ParameterInfo[0]),
                 Throws.InstanceOf<FormatException>());
         }
 
@@ -52,10 +66,10 @@
             ParameterInfo intParam = CreateParameter<int>("intParam");
             ParameterInfo stringParam = CreateParameter<string>("stringParam");
 
-            this.builder.Parse("/{intParam}/", new[] { intParam });
+            this.builder.Parse("", "/{intParam}/", new[] { intParam });
 
             Assert.That(
-                () => this.builder.Parse("/{stringParam}/", new[] { stringParam }),
+                () => this.builder.Parse("", "/{stringParam}/", new[] { stringParam }),
                 Throws.Nothing);
         }
 
@@ -64,7 +78,7 @@
         {
             ParameterInfo captureParameter = CreateParameter<string>("capture");
 
-            IMatchNode[] nodes = this.builder.Parse("/literal/{capture}/", new[] { captureParameter });
+            IMatchNode[] nodes = this.builder.Parse("", "/literal/{capture}/", new[] { captureParameter });
             StringSegment[] segments = UrlParser.GetSegments("/literal/string_value").ToArray();
 
             NodeMatchResult literal = nodes[0].Match(segments[0]);
@@ -81,7 +95,7 @@
         {
             ParameterInfo capture = CreateParameter<CustomData>("capture");
 
-            IMatchNode[] nodes = builder.Parse("/{capture}/", new[] { capture });
+            IMatchNode[] nodes = builder.Parse("", "/{capture}/", new[] { capture });
             StringSegment segment = new StringSegment("custom_data", 0, 11);
             NodeMatchResult match = nodes.Single().Match(segment);
 
