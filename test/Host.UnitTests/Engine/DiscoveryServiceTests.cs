@@ -58,11 +58,41 @@
         }
 
         [Test]
+        public void GetRoutesShouldReturnTheVersionInformation()
+        {
+            RouteMetadata metadata =
+                this.service.GetRoutes(typeof(IHasRoutes))
+                    .Where(rm => rm.Method.Name == nameof(IHasRoutes.VersionedRoute))
+                    .Single();
+
+            Assert.That(metadata.MinimumVersion, Is.EqualTo(2));
+            Assert.That(metadata.MaximumVersion, Is.EqualTo(3));
+        }
+
+        [Test]
+        public void GetRoutesShouldNotAllowAMethodWithAMinimumVersionAfterItsMaximumVersion()
+        {
+            // Use ToList to force evaluation
+            Assert.That(
+                () => this.service.GetRoutes(typeof(IInvalidVersionRange)).ToList(),
+                Throws.InstanceOf<InvalidOperationException>());
+        }
+
+        [Test]
         public void GetRoutesShouldNotAllowAMethodWithDifferentVerbs()
         {
             // Use ToList to force evaluation
             Assert.That(
                 () => this.service.GetRoutes(typeof(IInvalidMixedAttributes)).ToList(),
+                Throws.InstanceOf<InvalidOperationException>());
+        }
+
+        [Test]
+        public void GetRoutesShouldNotAllowAMethodWithoutAVersion()
+        {
+            // Use ToList to force evaluation
+            Assert.That(
+                () => this.service.GetRoutes(typeof(IInvalidMissingVersion)).ToList(),
                 Throws.InstanceOf<InvalidOperationException>());
         }
 
@@ -88,18 +118,38 @@
         internal interface IHasRoutes
         {
             [Delete("Route")]
+            [Version(1)]
             Task DeleteMethod();
 
             [Get("Route1")]
             [Get("Route2")]
+            [Version(1)]
             Task MultipleRoutes();
+
+            [Get("Version")]
+            [Version(2, 3)]
+            Task VersionedRoute();
+        }
+
+        private interface IInvalidMissingVersion
+        {
+            [Get("Route")]
+            Task NoVersion();
         }
 
         private interface IInvalidMixedAttributes
         {
             [Delete("Route1")]
             [Get("Route2")]
+            [Version(1)]
             Task DifferentVerbs();
+        }
+
+        private interface IInvalidVersionRange
+        {
+            [Get("Route")]
+            [Version(5, 3)]
+            Task InvalidVersionRange();
         }
 
         internal class ExampleInternalClass

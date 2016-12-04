@@ -71,6 +71,8 @@ namespace Crest.Host.Engine
         {
             foreach (MethodInfo method in type.GetTypeInfo().DeclaredMethods)
             {
+                VersionAttribute version = GetVersionInformation(method);
+
                 string verb = null;
                 foreach (RouteAttribute route in method.GetCustomAttributes<RouteAttribute>())
                 {
@@ -80,12 +82,14 @@ namespace Crest.Host.Engine
                     }
                     else if (!verb.Equals(route.Verb, StringComparison.OrdinalIgnoreCase))
                     {
-                        throw new InvalidOperationException("Multiple HTTP verbs are not allowed.");
+                        throw CreateException(method, "Multiple HTTP verbs are not allowed.");
                     }
 
                     yield return new RouteMetadata
                     {
+                        MaximumVersion = version.To,
                         Method = method,
+                        MinimumVersion = version.From,
                         RouteUrl = route.Route,
                         Verb = verb
                     };
@@ -97,6 +101,12 @@ namespace Crest.Host.Engine
         public bool IsSingleInstance(Type type)
         {
             return false;
+        }
+
+        private static InvalidOperationException CreateException(MethodInfo method, string message)
+        {
+            return new InvalidOperationException(
+                "Error getting routes for method " + method.Name + ": " + message);
         }
 
         private static string GetRootNamespace(string ns)
@@ -117,6 +127,22 @@ namespace Crest.Host.Engine
                     return ns.Substring(0, separator);
                 }
             }
+        }
+
+        private static VersionAttribute GetVersionInformation(MethodInfo method)
+        {
+            VersionAttribute attribute = method.GetCustomAttribute<VersionAttribute>();
+            if (attribute == null)
+            {
+                throw CreateException(method, "No Version attribute found on method.");
+            }
+
+            if (attribute.From > attribute.To)
+            {
+                throw CreateException(method, "From must be less than or equal to To");
+            }
+
+            return attribute;
         }
 
         private static bool IncludeType(TypeInfo typeInfo)
