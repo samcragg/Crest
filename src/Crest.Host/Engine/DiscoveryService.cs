@@ -71,14 +71,14 @@ namespace Crest.Host.Engine
         {
             foreach (MethodInfo method in type.GetTypeInfo().DeclaredMethods)
             {
-                VersionAttribute version = GetVersionInformation(method);
-
                 string verb = null;
+                VersionAttribute version = null; // Lazy load this in case there are no routes on the method
                 foreach (RouteAttribute route in method.GetCustomAttributes<RouteAttribute>())
                 {
                     if (verb == null)
                     {
                         verb = route.Verb;
+                        version = GetVersionInformation(method);
                     }
                     else if (!verb.Equals(route.Verb, StringComparison.OrdinalIgnoreCase))
                     {
