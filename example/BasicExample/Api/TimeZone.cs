@@ -1,4 +1,4 @@
-﻿namespace Hill.Api
+﻿namespace BasicExample.Api
 {
     /// <summary>
     /// Contains information about a time zone.

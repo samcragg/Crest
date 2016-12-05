@@ -1,4 +1,4 @@
-﻿namespace Hill
+﻿namespace BasicExample
 {
     using Crest.Host.AspNetCore;
     using Microsoft.AspNetCore.Builder;

@@ -1,9 +1,9 @@
-﻿namespace Hill.Logic
+﻿namespace BasicExample.Logic
 {
     using System;
     using System.Linq;
     using System.Threading.Tasks;
-    using Hill.Api;
+    using BasicExample.Api;
 
     internal sealed class Example : IExample
     {

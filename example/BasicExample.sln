@@ -8,7 +8,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		global.json = global.json
 	EndProjectSection
 EndProject
-Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "Hill", "Hill\Hill.xproj", "{D80DCC58-CBAD-498F-8C0D-8AE890F4D133}"
+Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "BasicExample", "BasicExample\BasicExample.xproj", "{D80DCC58-CBAD-498F-8C0D-8AE890F4D133}"
 EndProject
 Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "Crest.Host", "..\src\Crest.Host\Crest.Host.xproj", "{CCEFAD9C-1F5F-45FF-87DE-39A6CF68830F}"
 EndProject

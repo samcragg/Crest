@@ -1,4 +1,4 @@
-﻿namespace Hill.Api
+﻿namespace BasicExample.Api
 {
     using System;
     using System.Threading.Tasks;
