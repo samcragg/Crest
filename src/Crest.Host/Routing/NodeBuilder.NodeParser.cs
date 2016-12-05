@@ -37,6 +37,11 @@ namespace Crest.Host.Routing
                 }
             }
 
+            protected override void OnError(string error, string parameter)
+            {
+                throw new FormatException(error);
+            }
+
             protected override void OnError(string error, int start, int length)
             {
                 throw new FormatException(error);

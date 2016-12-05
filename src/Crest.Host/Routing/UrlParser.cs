@@ -60,6 +60,7 @@ namespace Crest.Host.Routing
         /// <param name="parameters">The parameter names and types.</param>
         internal virtual void ParseUrl(string routeUrl, IReadOnlyDictionary<string, Type> parameters)
         {
+            var usedParameters = new HashSet<string>(StringComparer.Ordinal);
             foreach (StringSegment segment in GetSegments(routeUrl))
             {
                 string segmentValue;
@@ -67,10 +68,14 @@ namespace Crest.Host.Routing
 
                 if (type == SegmentType.Capture)
                 {
-                    Type parameterType;
-                    if (!parameters.TryGetValue(segmentValue, out parameterType))
+                    Type parameterType = this.GetValidParameter(
+                        parameters,
+                        usedParameters,
+                        segment,
+                        segmentValue);
+
+                    if (parameterType == null)
                     {
-                        this.OnError("Unable to find parameter called: " + segment, segment.Start + 1, segment.Count - 2);
                         return;
                     }
 
@@ -81,6 +86,8 @@ namespace Crest.Host.Routing
                     this.OnLiteralSegment(segmentValue);
                 }
             }
+
+            this.CheckAllParametersAreCaptured(parameters, usedParameters);
         }
 
         /// <summary>
@@ -89,6 +96,13 @@ namespace Crest.Host.Routing
         /// <param name="parameterType">The type of the parameter being captured.</param>
         /// <param name="name">The name of the captured parameter.</param>
         protected abstract void OnCaptureSegment(Type parameterType, string name);
+
+        /// <summary>
+        /// Called when there is an error parsing the URL.
+        /// </summary>
+        /// <param name="error">The error message.</param>
+        /// <param name="parameter">The name of the parameter causing the error.</param>
+        protected abstract void OnError(string error, string parameter);
 
         /// <summary>
         /// Called when there is an error parsing the URL.
@@ -103,6 +117,47 @@ namespace Crest.Host.Routing
         /// </summary>
         /// <param name="value">The literal text.</param>
         protected abstract void OnLiteralSegment(string value);
+
+        private void CheckAllParametersAreCaptured(IReadOnlyDictionary<string, Type> parameters, ISet<string> usedParameters)
+        {
+            foreach (string name in parameters.Keys)
+            {
+                if (!usedParameters.Contains(name))
+                {
+                    this.OnError("Parameter is missing from the URL.", name);
+                    break;
+                }
+            }
+        }
+
+        private Type GetValidParameter(
+            IReadOnlyDictionary<string, Type> parameters,
+            ISet<string> usedParameters,
+            StringSegment segment,
+            string segmentValue)
+        {
+            Type parameterType;
+            if (!parameters.TryGetValue(segmentValue, out parameterType))
+            {
+                this.OnError(
+                    "Unable to find parameter called: " + segmentValue,
+                    segment.Start + 1,
+                    segment.Count - 2);
+
+                return null;
+            }
+
+            if (!usedParameters.Add(segmentValue))
+            {
+                this.OnError(
+                    "Parameter is captured multiple times",
+                    segmentValue);
+
+                return null;
+            }
+
+            return parameterType;
+        }
 
         private SegmentType UnescapeSegment(StringSegment segment, out string segmentValue)
         {

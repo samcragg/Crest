@@ -51,12 +51,24 @@
         }
 
         [Test]
-        public void ShouldThoughFormatExceptionForParsingErrors()
+        public void ShouldThrowFormatExceptionForParsingErrors()
         {
             // No need to test the parsing, as that's handled by UrlParse, just
             // test that we don't silently ignore them
             Assert.That(
                 () => this.builder.Parse("", "{missing brace", new ParameterInfo[0]),
+                Throws.InstanceOf<FormatException>());
+        }
+
+        [Test]
+        public void ShouldThrowFormatExceptionForParsingParemeterErrors()
+        {
+            ParameterInfo param = CreateParameter<string>("param");
+
+            // As above, we just need to test that when the UrlParser calls the
+            // protected method that the builder throws that exception
+            Assert.That(
+                () => this.builder.Parse("", "/unused_parameter/", new[] { param }),
                 Throws.InstanceOf<FormatException>());
         }
 

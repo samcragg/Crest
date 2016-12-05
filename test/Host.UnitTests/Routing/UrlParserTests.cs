@@ -62,11 +62,35 @@
         }
 
         [Test]
+        public void ShouldCheckForDuplicateParameters()
+        {
+            var parameters = new Dictionary<string, Type>
+            {
+                { "parameter", typeof(int) }
+            };
+
+            this.parser.ParseUrl("/{parameter}/{parameter}", parameters);
+
+            Assert.That(this.parser.ErrorParameters.Single(), Is.EqualTo("parameter"));
+        }
+
+        [Test]
+        public void ShouldCheckForUnmatchedParameters()
+        {
+            var parameters = new Dictionary<string, Type>
+            {
+                { "parameter", typeof(int) }
+            };
+
+            this.parser.ParseUrl("/literal", parameters);
+
+            Assert.That(this.parser.ErrorParameters.Single(), Is.EqualTo("parameter"));
+        }
+
+        [Test]
         public void ShouldCaptureLiterals()
         {
-            var parser = new FakeUrlParser();
-
-            parser.ParseUrl("/literal/", new Dictionary<string, Type>());
+            this.parser.ParseUrl("/literal/", new Dictionary<string, Type>());
 
             Assert.That(parser.Literals.Single(), Is.EqualTo("literal"));
         }
@@ -74,20 +98,16 @@
         [Test]
         public void ShouldCaptureParameters()
         {
-            var parser = new FakeUrlParser();
             var parameters = new Dictionary<string, Type>
             {
                 { "capture", typeof(int) }
             };
 
-            parser.ParseUrl("/{capture}/", parameters);
+            this.parser.ParseUrl("/{capture}/", parameters);
 
             Assert.That(parser.Captures.Single().Item1, Is.EqualTo(typeof(int)));
             Assert.That(parser.Captures.Single().Item2, Is.EqualTo("capture"));
         }
-
-        // TODO: Duplicate parameters?
-        // TODO: Unmatched parameters?
 
         private class FakeUrlParser : UrlParser
         {
@@ -96,6 +116,8 @@
             internal List<Tuple<Type, string>> Captures { get; } = new List<Tuple<Type, string>>();
 
             internal List<string> ErrorParts { get; } = new List<string>();
+
+            internal List<string> ErrorParameters { get; } = new List<string>();
 
             internal List<string> Literals { get; } = new List<string>();
 
@@ -108,6 +130,11 @@
             protected override void OnCaptureSegment(Type parameterType, string name)
             {
                 this.Captures.Add(Tuple.Create(parameterType, name));
+            }
+
+            protected override void OnError(string error, string parameter)
+            {
+                this.ErrorParameters.Add(parameter);
             }
 
             protected override void OnError(string error, int start, int length)
