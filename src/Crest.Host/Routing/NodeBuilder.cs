@@ -23,7 +23,17 @@ namespace Crest.Host.Routing
         private readonly Dictionary<Type, Func<string, IMatchNode>> specializedCaptureNodes =
             new Dictionary<Type, Func<string, IMatchNode>>
             {
-                { typeof(string), n => new StringCaptureNode(n) }
+                { typeof(bool), n => new BoolCaptureNode(n) },
+                { typeof(byte), n => new IntegerCaptureNode(n, typeof(byte)) },
+                { typeof(Guid), n => new GuidCaptureNode(n) },
+                { typeof(int), n => new IntegerCaptureNode(n, typeof(int)) },
+                { typeof(long), n => new IntegerCaptureNode(n, typeof(long)) },
+                { typeof(sbyte), n => new IntegerCaptureNode(n, typeof(sbyte)) },
+                { typeof(short), n => new IntegerCaptureNode(n, typeof(short)) },
+                { typeof(string), n => new StringCaptureNode(n) },
+                { typeof(uint), n => new IntegerCaptureNode(n, typeof(uint)) },
+                { typeof(ulong), n => new IntegerCaptureNode(n, typeof(ulong)) },
+                { typeof(ushort), n => new IntegerCaptureNode(n, typeof(ushort)) },
             };
 
         /// <summary>

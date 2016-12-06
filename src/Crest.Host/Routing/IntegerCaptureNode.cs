@@ -116,10 +116,9 @@ namespace Crest.Host.Routing
                     return (uint)value;
 
                 case IntegerType.UInt64:
-                    return (ulong)value;
-
                 default:
-                    return null;
+                    System.Diagnostics.Debug.Assert(this.type == IntegerType.UInt64, "Unexpected value");
+                    return (ulong)value;
             }
         }
     }

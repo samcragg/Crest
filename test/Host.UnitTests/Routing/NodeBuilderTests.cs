@@ -102,12 +102,47 @@
             Assert.That(capture.Value, Is.EqualTo("string_value"));
         }
 
+        [TestCase(typeof(byte), "1", ExpectedResult = (byte)1)]
+        [TestCase(typeof(int), "1", ExpectedResult = (int)1)]
+        [TestCase(typeof(long), "1", ExpectedResult = (long)1)]
+        [TestCase(typeof(sbyte), "1", ExpectedResult = (sbyte)1)]
+        [TestCase(typeof(short), "1", ExpectedResult = (short)1)]
+        [TestCase(typeof(uint), "1", ExpectedResult = (uint)1)]
+        [TestCase(typeof(ulong), "1", ExpectedResult = (ulong)1)]
+        [TestCase(typeof(ushort), "1", ExpectedResult = (ushort)1)]
+        public object ShouldCaptureIntegerTypes(Type type, string value)
+        {
+            ParameterInfo capture = CreateParameter(type, "capture");
+
+            IMatchNode[] nodes = this.builder.Parse("", "/{capture}/", new[] { capture });
+            StringSegment segment = new StringSegment(value, 0, value.Length);
+            NodeMatchResult match = nodes.Single().Match(segment);
+
+            Assert.That(match.Success, Is.True);
+            Assert.That(match.Value, Is.TypeOf(type));
+            return match.Value;
+        }
+
+        [Test]
+        public void ShouldCaptureGuids()
+        {
+            Guid guid = Guid.NewGuid();
+            ParameterInfo capture = CreateParameter<Guid>("capture");
+
+            IMatchNode[] nodes = this.builder.Parse("", "/{capture}/", new[] { capture });
+            StringSegment segment = new StringSegment(guid.ToString(), 0, 36);
+            NodeMatchResult match = nodes.Single().Match(segment);
+
+            Assert.That(match.Success, Is.True);
+            Assert.That(match.Value, Is.EqualTo(guid));
+        }
+
         [Test]
         public void ShouldCaptureTypesWithTypeConverters()
         {
             ParameterInfo capture = CreateParameter<CustomData>("capture");
 
-            IMatchNode[] nodes = builder.Parse("", "/{capture}/", new[] { capture });
+            IMatchNode[] nodes = this.builder.Parse("", "/{capture}/", new[] { capture });
             StringSegment segment = new StringSegment("custom_data", 0, 11);
             NodeMatchResult match = nodes.Single().Match(segment);
 
