@@ -102,6 +102,19 @@
             Assert.That(capture.Value, Is.EqualTo("string_value"));
         }
 
+        [Test]
+        public void ShouldCaptureBooleans()
+        {
+            ParameterInfo capture = CreateParameter<bool>("capture");
+
+            IMatchNode[] nodes = this.builder.Parse("", "/{capture}/", new[] { capture });
+            StringSegment segment = new StringSegment("true", 0, 4);
+            NodeMatchResult match = nodes.Single().Match(segment);
+
+            Assert.That(match.Success, Is.True);
+            Assert.That(match.Value, Is.True);
+        }
+
         [TestCase(typeof(byte), "1", ExpectedResult = (byte)1)]
         [TestCase(typeof(int), "1", ExpectedResult = (int)1)]
         [TestCase(typeof(long), "1", ExpectedResult = (long)1)]
