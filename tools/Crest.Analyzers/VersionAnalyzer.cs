@@ -1,0 +1,67 @@
+namespace Crest.Analyzers
+{
+    using System.Collections.Immutable;
+    using System.Linq;
+    using Microsoft.CodeAnalysis;
+    using Microsoft.CodeAnalysis.CSharp;
+    using Microsoft.CodeAnalysis.CSharp.Syntax;
+    using Microsoft.CodeAnalysis.Diagnostics;
+
+    [DiagnosticAnalyzer(LanguageNames.CSharp)]
+    public sealed class VersionAnalyzer : DiagnosticAnalyzer
+    {
+        public const string MissingVersionAttributeId = "MissingVersionAttribute";
+        public const string VersionOutOfRangeId = "VersionOutOfRange";
+
+        private static readonly DiagnosticDescriptor MissingVersionAttributeRule =
+            new DiagnosticDescriptor(
+                MissingVersionAttributeId,
+                "Missing version attribute",
+                "The version attribute is required.",
+                "Syntax",
+                DiagnosticSeverity.Error,
+                isEnabledByDefault: true,
+                description: "All routes must have a version specified.");
+
+        private static readonly DiagnosticDescriptor VersionOutOfRangeRule =
+            new DiagnosticDescriptor(
+                VersionOutOfRangeId,
+                "Invalid version range",
+                "The version range is not valid.",
+                "Syntax",
+                DiagnosticSeverity.Error,
+                isEnabledByDefault: true,
+                description: "The From must be greater than zero and less than To.");
+
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
+        {
+            get
+            {
+                return ImmutableArray.Create(
+                    MissingVersionAttributeRule,
+                    VersionOutOfRangeRule);
+            }
+        }
+
+        public override void Initialize(AnalysisContext context)
+        {
+            context.RegisterSyntaxNodeAction(AnalyzeNode, SyntaxKind.MethodDeclaration);
+        }
+
+        private void AnalyzeNode(SyntaxNodeAnalysisContext context)
+        {
+            var method = (MethodDeclarationSyntax)context.Node;
+            if (RouteAttributeInfo.GetRouteAttributes(method).Any())
+            {
+                AttributeSyntax version = method.AttributeLists.SelectMany(a => a.Attributes)
+                                                .FirstOrDefault(a => a.Name.ToString() == "Version");
+
+                if (version == null)
+                {
+                    context.ReportDiagnostic(
+                        Diagnostic.Create(MissingVersionAttributeRule, method.Identifier.GetLocation()));
+                }
+            }
+        }
+    }
+}

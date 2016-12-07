@@ -1,0 +1,23 @@
+﻿<?xml version="1.0"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
+  <metadata>
+    <id>Crest.Analyzers</id>
+    <version>1.0.0</version>
+    <title>Crest Analyzers</title>
+    <authors>Samuel Cragg</authors>
+    <owners>Samuel Cragg</owners>
+    <licenseUrl>https://github.com/samcragg/Crest/blob/master/LICENSE</licenseUrl>
+    <projectUrl>https://github.com/samcragg/Crest</projectUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>Allows the analyzing of routes inside a project using the Crest framework.</description>
+    <copyright>Copyright 2016</copyright>
+    <tags>Crest, analyzers</tags>
+    <frameworkAssemblies>
+      <frameworkAssembly assemblyName="System" targetFramework="" />
+    </frameworkAssemblies>
+  </metadata>
+  <files>
+    <file src="*.dll" target="analyzers\dotnet\cs" exclude="**\Microsoft.CodeAnalysis.*;**\System.Collections.Immutable.*;**\System.Reflection.Metadata.*;**\System.Composition.*" />
+    <file src="tools\*.ps1" target="tools\" />
+  </files>
+</package>
