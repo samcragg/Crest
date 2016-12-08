@@ -28,5 +28,27 @@ interface IRoute
 
             VerifyDiagnostic(Source, expected);
         }
+
+        [Test]
+        public void ShouldCheckTheVersionRange()
+        {
+            const string Source = Code.Usings + Code.GetAttribute + Code.VersionAttribute + @"
+interface IRoute
+{
+    [Get(""/route"")]
+    [Version(3,1)]
+    Task Method();
+}";
+
+            // We expect the parameters (including parentheses) of the attribute to be highlighted
+            var expected = new DiagnosticResult
+            {
+                Id = VersionAnalyzer.VersionOutOfRangeId,
+                Severity = DiagnosticSeverity.Error,
+                Locations = new[] { new DiagnosticResultLocation(line: 5, column: 13) }
+            };
+
+            VerifyDiagnostic(Source, expected);
+        }
     }
 }
