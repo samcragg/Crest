@@ -3,6 +3,15 @@
 These are some general notes on how some of the internal classes are structured
 to get an understanding of how the inner workings of the code is organised.
 
+# General
+
+The library should be extendable, hence there are a lot of interfaces with a
+single class implementing them. If multiple providers can be used then they
+should have a way of ordering them so that they can be invoked in a configurable
+order. The convention is to use an `Order` property when all the providers will
+be invoked and a `Priority` property when they will be invoked until some kind
+of match is found (i.e. they may not all be invoked).
+
 # Conversion
 
 The classes in this namespace allow the conversion from .NET objects to bytes
