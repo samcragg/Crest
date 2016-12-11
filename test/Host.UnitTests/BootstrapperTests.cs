@@ -1,6 +1,7 @@
 ﻿namespace Host.UnitTests
 {
     using System;
+    using System.Collections.Generic;
     using System.Linq;
     using System.Reflection;
     using System.Threading.Tasks;
@@ -148,6 +149,20 @@
         }
 
         [Test]
+        public async Task GetConfigurationServiceShouldGetTheProvidersFromTheServiceProvider()
+        {
+            var configurationProvider = Substitute.For<IConfigurationProvider>();
+            this.bootstrapper.Provider.GetService(typeof(IEnumerable<IConfigurationProvider>))
+                .Returns(new[] { configurationProvider });
+
+            ConfigurationService result = this.bootstrapper.OriginalGetConfigurationService();
+            await result.InitializeProviders();
+
+            await configurationProvider.Received().Initialize();
+        }
+
+
+        [Test]
         public void GetDiscoveryServiceShouldGetTheServiceFromTheServiceProvider()
         {
             IDiscoveryService discoveryService = Substitute.For<IDiscoveryService>();
@@ -231,6 +246,28 @@
         }
 
         [Test]
+        public void InitializeShouldInitializeTheConfigurationService()
+        {
+            this.bootstrapper.Initialize();
+
+            this.bootstrapper.ConfigurationsService.Received().InitializeProviders();
+        }
+
+        [Test]
+        public void ShouldInitializeClassesWithTheConfigurationService()
+        {
+            this.bootstrapper.DiscoveryService.GetDiscoveredTypes().Returns(new[] { typeof(FakeClass) });
+            this.bootstrapper.ConfigurationsService.CanConfigure(typeof(FakeClass))
+                .Returns(true);
+
+            this.bootstrapper.Initialize();
+            object result = this.bootstrapper.OriginalProvider.GetService(typeof(FakeClass));
+
+            this.bootstrapper.ConfigurationsService.Received()
+                .InitializeInstance(result, Arg.Any<IServiceProvider>());
+        }
+
+        [Test]
         public void ThrowIfDisposedShouldIncludeTheDerivedClassName()
         {
             this.bootstrapper.Dispose();
@@ -273,6 +310,8 @@
 
         private class FakeBootstrapper : Bootstrapper
         {
+            internal ConfigurationService ConfigurationsService { get; } = Substitute.For<ConfigurationService>();
+
             internal IDiscoveryService DiscoveryService { get; } = Substitute.For<IDiscoveryService>();
 
             internal IServiceProvider Provider { get; } = Substitute.For<IServiceProvider>();
@@ -292,6 +331,11 @@
                 get { return this.Provider; }
             }
 
+            internal ConfigurationService OriginalGetConfigurationService()
+            {
+                return base.GetConfigurationService();
+            }
+
             internal IDiscoveryService OriginalGetDiscoveryService()
             {
                 return base.GetDiscoveryService();
@@ -305,6 +349,11 @@
             internal new void ThrowIfDisposed()
             {
                 base.ThrowIfDisposed();
+            }
+
+            protected override ConfigurationService GetConfigurationService()
+            {
+                return this.ConfigurationsService;
             }
 
             protected override IDiscoveryService GetDiscoveryService()

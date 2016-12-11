@@ -125,6 +125,18 @@ namespace Crest.Host
         /// Gets the service to use for discovering assemblies and types.
         /// </summary>
         /// <returns>An object implementing <see cref="IDiscoveryService"/>.</returns>
+        protected virtual ConfigurationService GetConfigurationService()
+        {
+            var providers = (IEnumerable<IConfigurationProvider>)this.ServiceProvider.GetService(
+                typeof(IEnumerable<IConfigurationProvider>));
+
+            return new ConfigurationService(providers);
+        }
+
+        /// <summary>
+        /// Gets the service to use for discovering assemblies and types.
+        /// </summary>
+        /// <returns>An object implementing <see cref="IDiscoveryService"/>.</returns>
         protected virtual IDiscoveryService GetDiscoveryService()
         {
             return (IDiscoveryService)this.ServiceProvider.GetService(typeof(IDiscoveryService));
@@ -140,8 +152,13 @@ namespace Crest.Host
 
             List<RouteMetadata> routes =
                 types.SelectMany(t => this.GetRoutes(discovery, t)).ToList();
-
             this.RegisterInstance(typeof(IRouteMapper), new RouteMapper(routes));
+
+            ConfigurationService configuration = this.GetConfigurationService();
+            configuration.InitializeProviders().Wait();
+            this.adapter.Container.RegisterInitializer<object>(
+                (instance, _) => configuration.InitializeInstance(instance, this.ServiceProvider),
+                r => configuration.CanConfigure(r.ServiceType));
         }
 
         /// <summary>

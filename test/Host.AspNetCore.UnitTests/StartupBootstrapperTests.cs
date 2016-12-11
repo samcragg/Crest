@@ -1,6 +1,7 @@
 ﻿namespace Host.AspNetCore.UnitTests
 {
     using System;
+    using System.Collections.Generic;
     using Crest.Host.AspNetCore;
     using Crest.Host.Engine;
     using Microsoft.AspNetCore.Builder;
@@ -20,6 +21,8 @@
 
             // Stop the bootstrapper from scanning everything
             this.startup.ServiceProviderOverride = Substitute.For<IServiceProvider>();
+            this.startup.ServiceProviderOverride.GetService(typeof(IEnumerable<IConfigurationProvider>))
+                .Returns(new IConfigurationProvider[0]);
             this.startup.ServiceProviderOverride.GetService(typeof(IDiscoveryService))
                 .Returns(Substitute.For<IDiscoveryService>());
         }
