@@ -48,7 +48,6 @@ namespace Crest.Host.Engine
         /// </returns>
         public virtual bool CanConfigure(Type type)
         {
-            // TODO: Should we prime the provides with the type?
             return type.GetTypeInfo().IsDefined(typeof(ConfigurationAttribute), inherit: false);
         }
 
@@ -69,14 +68,19 @@ namespace Crest.Host.Engine
         /// <summary>
         /// Allows the providers to be initialized.
         /// </summary>
+        /// <param name="discoveredTypes">
+        /// All the types that have been discovered at runtime.
+        /// </param>
         /// <returns>The result of the asynchronous operation.</returns>
-        public virtual Task InitializeProviders()
+        public virtual Task InitializeProviders(IEnumerable<Type> discoveredTypes)
         {
-            // No Array.ConvertAll :(
+            List<Type> knownTypes =
+                discoveredTypes.Where(this.CanConfigure).ToList();
+
             Task[] tasks = new Task[this.providers.Length];
             for (int i = 0; i < tasks.Length; i++)
             {
-                tasks[i] = this.providers[i].Initialize();
+                tasks[i] = this.providers[i].Initialize(knownTypes);
             }
 
             return Task.WhenAll(tasks);

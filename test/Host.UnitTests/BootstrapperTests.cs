@@ -156,9 +156,9 @@
                 .Returns(new[] { configurationProvider });
 
             ConfigurationService result = this.bootstrapper.OriginalGetConfigurationService();
-            await result.InitializeProviders();
+            await result.InitializeProviders(new Type[0]);
 
-            await configurationProvider.Received().Initialize();
+            await configurationProvider.ReceivedWithAnyArgs().Initialize(null);
         }
 
 
@@ -250,7 +250,7 @@
         {
             this.bootstrapper.Initialize();
 
-            this.bootstrapper.ConfigurationsService.Received().InitializeProviders();
+            this.bootstrapper.ConfigurationsService.ReceivedWithAnyArgs().InitializeProviders(null);
         }
 
         [Test]

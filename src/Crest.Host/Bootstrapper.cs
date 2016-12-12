@@ -155,7 +155,7 @@ namespace Crest.Host
             this.RegisterInstance(typeof(IRouteMapper), new RouteMapper(routes));
 
             ConfigurationService configuration = this.GetConfigurationService();
-            configuration.InitializeProviders().Wait();
+            configuration.InitializeProviders(types).Wait();
             this.adapter.Container.RegisterInitializer<object>(
                 (instance, _) => configuration.InitializeInstance(instance, this.ServiceProvider),
                 r => configuration.CanConfigure(r.ServiceType));

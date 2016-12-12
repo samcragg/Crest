@@ -1,6 +1,7 @@
 ﻿namespace Host.UnitTests.Engine
 {
     using System;
+    using System.Collections.Generic;
     using System.Threading.Tasks;
     using Crest.Core;
     using Crest.Host.Engine;
@@ -61,11 +62,23 @@
         }
 
         [Test]
-        public async Task InitializeProvidersShouldInitializeThePRoviders()
+        public async Task InitializeProvidersShouldInitializeTheProviders()
         {
-            await this.service.InitializeProviders();
+            await this.service.InitializeProviders(new Type[0]);
 
-            await this.provider.Received().Initialize();
+            await this.provider.ReceivedWithAnyArgs().Initialize(null);
+        }
+
+        [Test]
+        public async Task InitializeProvidersShouldPassTheConfigurableClassesToTheProviders()
+        {
+            Type[] types = new[] { typeof(ConfigurationServiceTests), typeof(FakeConfiguration) };
+            await this.provider.Initialize(Arg.Do<IEnumerable<Type>>(t =>
+            {
+                Assert.That(t, Is.EquivalentTo(new[] { typeof(FakeConfiguration) }));
+            }));
+
+            await this.service.InitializeProviders(types);
         }
 
         [Configuration]

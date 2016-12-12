@@ -5,6 +5,8 @@
 
 namespace Crest.Host.Engine
 {
+    using System;
+    using System.Collections.Generic;
     using System.Threading.Tasks;
 
     /// <summary>
@@ -28,8 +30,12 @@ namespace Crest.Host.Engine
         /// <summary>
         /// Allows the initialization of the provider.
         /// </summary>
+        /// <param name="knownTypes">
+        /// A sequence of discovered configuration classes that could be passed
+        /// to <see cref="Inject(object)"/>.
+        /// </param>
         /// <returns>The result of the asynchronous operation.</returns>
-        Task Initialize();
+        Task Initialize(IEnumerable<Type> knownTypes);
 
         /// <summary>
         /// Injects the configuration properties into an existing object.
