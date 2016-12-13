@@ -97,6 +97,16 @@
         }
 
         [Test]
+        public void ReadShouldReturnZeroForEmptyStreams()
+        {
+            byte[] buffer = new byte[1];
+
+            int result = this.stream.Read(buffer, 0, 1);
+
+            Assert.That(result, Is.EqualTo(0));
+        }
+
+        [Test]
         public void ReadShouldReadAllTheBytes()
         {
             byte[] data = new byte[BlockStreamPool.DefaultBlockSize + 1];

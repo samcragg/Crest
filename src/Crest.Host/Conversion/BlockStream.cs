@@ -87,6 +87,11 @@ namespace Crest.Host.Conversion
         {
             this.ThrowIfDisposed();
 
+            if (this.blocks.Count == 0)
+            {
+                return 0;
+            }
+
             int read = 0;
             int blockOffset;
             int blockIndex = DivRem(this.position, BlockStreamPool.DefaultBlockSize, out blockOffset);
@@ -106,6 +111,7 @@ namespace Crest.Host.Conversion
                 read += amount;
             }
 
+            this.position += read;
             return read;
         }
 
