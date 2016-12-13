@@ -39,13 +39,13 @@
         }
 
         [Test]
-        public async Task WriteToAsyncShouldEncodeWithUtf8()
+        public void WriteToShouldEncodeWithUtf8()
         {
             using (var stream = new MemoryStream())
             {
                 // ¶ (U+00B6) is a single UTF16 character but is encoded in
-                // UTF -8 as 0xC2 0xB6
-                await this.converter.WriteToAsync(stream, new SimpleObject { StringProperty = "¶" });
+                // UTF-8 as 0xC2 0xB6
+                this.converter.WriteTo(stream, new SimpleObject { StringProperty = "¶" });
 
                 byte[] bytes = stream.ToArray();
 
@@ -55,11 +55,11 @@
         }
 
         [Test]
-        public async Task WriteToAsyncShouldUseCamelCaseForProperties()
+        public void WriteToShouldUseCamelCaseForProperties()
         {
             using (var stream = new MemoryStream())
             {
-                await this.converter.WriteToAsync(stream, new SimpleObject { IntegerProperty = 123 });
+                this.converter.WriteTo(stream, new SimpleObject { IntegerProperty = 123 });
 
                 string data = Encoding.UTF8.GetString(stream.ToArray());
 

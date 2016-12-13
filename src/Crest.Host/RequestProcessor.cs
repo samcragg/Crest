@@ -7,6 +7,7 @@ namespace Crest.Host
 {
     using System;
     using System.Collections.Generic;
+    using System.IO;
     using System.Linq;
     using System.Net;
     using System.Reflection;
@@ -25,6 +26,7 @@ namespace Crest.Host
         private readonly IContentConverterFactory converterFactory;
         private readonly IRouteMapper mapper;
         private readonly ResponseGenerator responseGenerator;
+        private readonly BlockStreamPool streamPool = new BlockStreamPool();
 
         /// <summary>
         /// Initializes a new instance of the <see cref="RequestProcessor"/> class.
@@ -225,10 +227,20 @@ namespace Crest.Host
 
         private ResponseData SerializeResponse(IContentConverter converter, object value)
         {
+            Func<Stream, Task> convert = async dest =>
+            {
+                using (Stream memory = this.streamPool.GetStream())
+                {
+                    converter.WriteTo(memory, value);
+                    memory.Position = 0;
+                    await memory.CopyToAsync(dest);
+                }
+            };
+
             return new ResponseData(
                 converter.ContentType,
                 (int)HttpStatusCode.OK,
-                s => converter.WriteToAsync(s, value));
+                convert);
         }
     }
 }

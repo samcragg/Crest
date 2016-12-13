@@ -95,7 +95,7 @@ namespace Crest.Host.Conversion
             int read = 0;
             int blockOffset;
             int blockIndex = DivRem(this.position, BlockStreamPool.DefaultBlockSize, out blockOffset);
-            int remaining = count;
+            int remaining = Math.Min(count, this.length - this.position);
             while (remaining > 0)
             {
                 byte[] block = this.blocks[blockIndex];

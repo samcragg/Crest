@@ -45,7 +45,6 @@ namespace Crest.Host.Conversion
         /// </summary>
         /// <param name="stream">Where to write the object to.</param>
         /// <param name="obj">The object to write.</param>
-        /// <returns>The result of the asynchronous operation.</returns>
-        Task WriteToAsync(Stream stream, object obj);
+        void WriteTo(Stream stream, object obj);
     }
 }

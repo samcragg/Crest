@@ -8,7 +8,6 @@ namespace Crest.Host
     using System;
     using System.Collections.Generic;
     using System.Linq;
-    using System.Reflection;
     using Crest.Host.Engine;
     using Crest.Host.Routing;
     using DryIoc;

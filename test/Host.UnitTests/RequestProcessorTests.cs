@@ -126,11 +126,13 @@
             this.mapper.GetAdapter(this.request.Handler)
                        .Returns(_ => Task.FromResult<object>("Response"));
 
-            IResponseData response = await this.processor.InvokeHandlerAsync(this.request);
+            using (var stream = new MemoryStream())
+            {
+                IResponseData response = await this.processor.InvokeHandlerAsync(this.request);
+                await response.WriteBody(stream);
+            }
 
-            Stream stream = Substitute.For<Stream>();
-            await response.WriteBody(stream);
-            await converter.Received().WriteToAsync(stream, "Response");
+            converter.Received().WriteTo(Arg.Any<Stream>(), "Response");
         }
 
         [Test]

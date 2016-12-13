@@ -41,21 +41,13 @@ namespace Crest.Host.Conversion
         }
 
         /// <inheritdoc />
-        public async Task WriteToAsync(Stream stream, object obj)
+        public void WriteTo(Stream stream, object obj)
         {
-            // Write to a memory stream first as JsonSerializer doesn't do async
-            using (var memory = new MemoryStream())
-            using (var writer = new StreamWriter(memory, Encoding.UTF8))
+            using (var writer = new StreamWriter(stream, Encoding.UTF8, 4096, leaveOpen: true))
             {
                 JsonSerializer serializer = JsonSerializer.CreateDefault();
                 serializer.ContractResolver = new CamelCasePropertyNamesContractResolver();
                 serializer.Serialize(writer, obj);
-                writer.Flush();
-
-                // Can't return the CopyToAsync Task as the memory stream will
-                // get disposed so task it up...
-                memory.Position = 0;
-                await memory.CopyToAsync(stream).ConfigureAwait(false);
             }
         }
     }

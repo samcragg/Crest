@@ -2,6 +2,7 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.IO;
     using System.Linq;
     using System.Reflection;
     using System.Threading.Tasks;
@@ -74,13 +75,16 @@
             MethodInfo method = Substitute.For<MethodInfo>();
             this.mapper.GetAdapter(method).Returns(_ => Task.FromResult(methodReturn));
 
+            // Write to the passed in stream so it will get copied to the out response
+            this.converter.WriteTo(Arg.Do<Stream>(s => s.WriteByte(1)), methodReturn);
+
             IReadOnlyDictionary<string, object> notUsed;
             this.mapper.Match(null, null, null, out notUsed)
                 .ReturnsForAnyArgs(method);
 
             await this.processor.HandleRequest(context);
 
-            await this.converter.Received().WriteToAsync(context.Response.Body, methodReturn);
+            Assert.That(context.Response.Body.Length, Is.EqualTo(1));
         }
 
         private static HttpContext CreateContext(string urlString)
@@ -93,6 +97,7 @@
             context.Request.Path = new PathString(url.AbsolutePath);
             context.Request.QueryString = new QueryString(url.Query);
             context.Request.Scheme = url.Scheme;
+            context.Response.Body = new MemoryStream();
             return context;
         }
     }
