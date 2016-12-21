@@ -1,0 +1,43 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>OpenApi.UnitTests</name>
+    </assembly>
+    <members>
+        <member name="T:OpenApi.UnitTests.ExampleClass">
+            <summary>
+            Summary for the class.
+            </summary>
+            <remarks>
+            Remarks for the class.
+            </remarks>
+        </member>
+        <member name="P:OpenApi.UnitTests.ExampleClass.GetSetProperty">
+            <summary>
+            Gets or sets the summary for the property.
+            </summary>
+        </member>
+        <member name="P:OpenApi.UnitTests.ExampleClass.GetProperty">
+            <summary>
+            Gets the summary for the property.
+            </summary>
+        </member>
+        <member name="P:OpenApi.UnitTests.ExampleClass.Property">
+            <summary>
+            The summary for the property.
+            </summary>
+        </member>
+        <member name="M:OpenApi.UnitTests.ExampleClass.Method(System.Int32)">
+            <summary>
+            Summary for the method.
+            </summary>
+            <param name="parameter">Parameter description.</param>
+            <returns>
+            Return description for the method.
+            </returns>
+            <remarks>
+            Remarks for the method.
+            </remarks>
+        </member>
+    </members>
+</doc>
