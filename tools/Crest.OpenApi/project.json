@@ -26,7 +26,7 @@
   },
 
   "dependencies": {
-    "Microsoft.Extensions.CommandLineUtils": "1.1.0",
+    "Microsoft.Extensions.CommandLineUtils": "1.0.1",
     "Microsoft.NETCore.App": {
       "type": "platform",
       "version": "1.0.1"

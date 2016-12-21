@@ -2,6 +2,9 @@
   "version": "1.0.0-*",
 
   "buildOptions": {
+    "embed": {
+      "include": "ExampleClass.xml"
+    },
     "xmlDoc": false
   },
 
