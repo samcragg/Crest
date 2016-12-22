@@ -19,11 +19,13 @@
         }
 
         [Test]
-        public void GetClassDescriptionShouldReturnNullForUnknownTypes()
+        public void GetClassDescriptionShouldReturnEmptyForUnknownTypes()
         {
             ClassDescription result = this.parser.GetClassDescription(typeof(XmlDocParserTests));
 
-            Assert.That(result, Is.Null);
+            Assert.That(result, Is.Not.Null);
+            Assert.That(result.Remarks, Is.Null);
+            Assert.That(result.Summary, Is.Null);
         }
 
         [Test]

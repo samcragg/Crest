@@ -70,7 +70,7 @@ namespace Crest.OpenApi
             string className = FormatTypeName(type);
             ClassDescription summary;
             this.types.TryGetValue(className, out summary);
-            return summary;
+            return summary ?? new ClassDescription();
         }
 
         /// <summary>
