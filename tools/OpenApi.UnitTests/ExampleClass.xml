@@ -12,14 +12,14 @@
             Remarks for the class.
             </remarks>
         </member>
-        <member name="P:OpenApi.UnitTests.ExampleClass.GetSetProperty">
-            <summary>
-            Gets or sets the summary for the property.
-            </summary>
-        </member>
         <member name="P:OpenApi.UnitTests.ExampleClass.GetProperty">
             <summary>
             Gets the summary for the property.
+            </summary>
+        </member>
+        <member name="P:OpenApi.UnitTests.ExampleClass.GetSetProperty">
+            <summary>
+            Gets or sets the summary for the property.
             </summary>
         </member>
         <member name="P:OpenApi.UnitTests.ExampleClass.Property">
@@ -38,6 +38,11 @@
             <remarks>
             Remarks for the method.
             </remarks>
+        </member>
+        <member name="M:OpenApi.UnitTests.ExampleClass.MethodWithoutParameter">
+            <summary>
+            Summary for the method.
+            </summary>
         </member>
     </members>
 </doc>

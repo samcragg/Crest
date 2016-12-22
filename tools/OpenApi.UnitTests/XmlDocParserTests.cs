@@ -83,5 +83,67 @@
 
             Assert.That(description, Is.EqualTo("The summary for the property."));
         }
+
+        [Test]
+        public void GetMethodDescriptionShouldReturnEmptyForUnknownTypes()
+        {
+            ClassDescription result = this.parser.GetClassDescription(typeof(XmlDocParserTests));
+
+            Assert.That(result, Is.Not.Null);
+            Assert.That(result.Remarks, Is.Null);
+            Assert.That(result.Summary, Is.Null);
+        }
+
+        [Test]
+        public void GetMethodDescriptionShouldReturnTheParameters()
+        {
+            MethodInfo method = typeof(ExampleClass).GetMethod(nameof(ExampleClass.Method));
+
+            MethodDescription result = this.parser.GetMethodDescription(method);
+
+            Assert.That(result.Parameters, Has.Count.EqualTo(1));
+            Assert.That(result.Parameters["parameter"], Is.EqualTo("Parameter description."));
+        }
+
+        [Test]
+        public void GetMethodDescriptionShouldReturnTheRemarks()
+        {
+            MethodInfo method = typeof(ExampleClass).GetMethod(nameof(ExampleClass.Method));
+
+            MethodDescription result = this.parser.GetMethodDescription(method);
+
+            Assert.That(result.Remarks, Is.EqualTo("Remarks for the method."));
+        }
+
+        [Test]
+        public void GetMethodDescriptionShouldReturnTheReturns()
+        {
+            MethodInfo method = typeof(ExampleClass).GetMethod(nameof(ExampleClass.Method));
+
+            MethodDescription result = this.parser.GetMethodDescription(method);
+
+            Assert.That(result.Returns, Is.EqualTo("Return description for the method."));
+        }
+
+        [Test]
+        public void GetMethodDescriptionShouldReturnTheSummmary()
+        {
+            MethodInfo method = typeof(ExampleClass).GetMethod(nameof(ExampleClass.Method));
+
+            MethodDescription result = this.parser.GetMethodDescription(method);
+
+            Assert.That(result.Summary, Is.EqualTo("Summary for the method."));
+        }
+
+        [Test]
+        public void GetMethodDescriptionShouldHandleParameterlessMethods()
+        {
+            MethodInfo method = typeof(ExampleClass).GetMethod(nameof(ExampleClass.MethodWithoutParameter));
+
+            MethodDescription result = this.parser.GetMethodDescription(method);
+
+            Assert.That(result.Summary, Is.EqualTo("Summary for the method."));
+            Assert.That(result.Parameters, Is.Empty);
+        }
     }
 }
