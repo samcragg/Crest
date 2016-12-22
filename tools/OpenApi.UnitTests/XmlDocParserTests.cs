@@ -19,6 +19,30 @@
         }
 
         [Test]
+        public void GetClassDescriptionShouldReturnNullForUnknownTypes()
+        {
+            ClassDescription result = this.parser.GetClassDescription(typeof(XmlDocParserTests));
+
+            Assert.That(result, Is.Null);
+        }
+
+        [Test]
+        public void GetClassDescriptionShouldReturnTheRemarks()
+        {
+            ClassDescription result = this.parser.GetClassDescription(typeof(ExampleClass));
+
+            Assert.That(result.Remarks, Is.EqualTo("Remarks for the class."));
+        }
+
+        [Test]
+        public void GetClassDescriptionShouldReturnTheSummmary()
+        {
+            ClassDescription result = this.parser.GetClassDescription(typeof(ExampleClass));
+
+            Assert.That(result.Summary, Is.EqualTo("Summary for the class."));
+        }
+
+        [Test]
         public void GetDescriptionShouldReturnNullForUnknownProperties()
         {
             PropertyInfo property = typeof(XmlDocParserTests).GetProperty(nameof(XmlDocParserTests.Property));

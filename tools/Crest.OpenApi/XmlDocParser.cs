@@ -21,6 +21,9 @@ namespace Crest.OpenApi
         private readonly Dictionary<string, string> properties =
             new Dictionary<string, string>(StringComparer.Ordinal);
 
+        private readonly Dictionary<string, ClassDescription> types =
+            new Dictionary<string, ClassDescription>(StringComparer.Ordinal);
+
         /// <summary>
         /// Initializes a new instance of the <see cref="XmlDocParser"/> class.
         /// </summary>
@@ -53,6 +56,21 @@ namespace Crest.OpenApi
         /// </remarks>
         protected XmlDocParser()
         {
+        }
+
+        /// <summary>
+        /// Gets the summary for the specified type.
+        /// </summary>
+        /// <param name="type">The type to get the documentation for.</param>
+        /// <returns>
+        /// The description information for the type, or null if none was found.
+        /// </returns>
+        public virtual ClassDescription GetClassDescription(Type type)
+        {
+            string className = FormatTypeName(type);
+            ClassDescription summary;
+            this.types.TryGetValue(className, out summary);
+            return summary;
         }
 
         /// <summary>
@@ -104,9 +122,14 @@ namespace Crest.OpenApi
             var builder = new StringBuilder("P:");
             AppendTypeFullName(builder, property.DeclaringType);
 
-            builder.Append('.')
-                   .Append(property.Name);
+            builder.Append('.').Append(property.Name);
+            return builder.ToString();
+        }
 
+        private static string FormatTypeName(Type type)
+        {
+            var builder = new StringBuilder("T:");
+            AppendTypeFullName(builder, type);
             return builder.ToString();
         }
 
@@ -117,6 +140,29 @@ namespace Crest.OpenApi
             // Replace all whitespace with a single space (allows for spaces
             // before and after a newline to be turned into a single space).
             return Regex.Replace(innerXml, "\\s+", " ").Trim();
+        }
+
+        private static ClassDescription ParseClassDocumentation(XmlReader reader)
+        {
+            var description = new ClassDescription();
+            while (reader.Read())
+            {
+                if (reader.NodeType == XmlNodeType.Element)
+                {
+                    switch (reader.Name)
+                    {
+                        case "remarks":
+                            description.Remarks = GetReaderContent(reader);
+                            break;
+
+                        case "summary":
+                            description.Summary = GetReaderContent(reader);
+                            break;
+                    }
+                }
+            }
+
+            return description;
         }
 
         private static string ParseSummary(XmlReader reader)
@@ -138,6 +184,11 @@ namespace Crest.OpenApi
                 case 'P':
                     string summary = FormatPropertyDescription(ParseSummary(reader.ReadSubtree()));
                     this.properties.Add(member, summary);
+                    break;
+
+                case 'T':
+                    ClassDescription description = ParseClassDocumentation(reader.ReadSubtree());
+                    this.types.Add(member, description);
                     break;
             }
         }
