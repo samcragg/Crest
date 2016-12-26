@@ -5,6 +5,8 @@
 
 namespace Crest.OpenApi
 {
+    using System;
+    using System.Globalization;
     using System.IO;
 
     /// <summary>
@@ -63,6 +65,53 @@ namespace Crest.OpenApi
         protected void WriteRaw(string value)
         {
             this.writer.Write(value);
+        }
+
+        /// <summary>
+        /// Writes a value to the output, using native JSON types where possible.
+        /// </summary>
+        /// <param name="value">The value to write.</param>
+        protected void WriteValue(object value)
+        {
+            if (value == null)
+            {
+                this.writer.Write("null");
+            }
+            else if (value is bool)
+            {
+                this.writer.Write((bool)value ? "true" : "false");
+            }
+            else if (IsNumber(value.GetType()))
+            {
+                this.writer.Write(Convert.ToString(value, CultureInfo.InvariantCulture));
+            }
+            else
+            {
+                this.writer.Write('"');
+                this.Write(value.ToString());
+                this.writer.Write('"');
+            }
+        }
+
+        private static bool IsNumber(Type type)
+        {
+            switch (type.FullName)
+            {
+                case "System.Int8":
+                case "System.Int16":
+                case "System.Int32":
+                case "System.Int64":
+                case "System.UInt8":
+                case "System.UInt16":
+                case "System.UInt32":
+                case "System.UInt64":
+                case "System.Single":
+                case "System.Double":
+                    return true;
+
+                default:
+                    return false;
+            }
         }
 
         private void WriteEscapedChar(char c)

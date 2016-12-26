@@ -42,7 +42,7 @@
         }
 
         [Test]
-        public void WritePathParameterSetRequiredToTrue()
+        public void WritePathParameterShouldSetRequiredToTrue()
         {
             ParameterInfo parameter = CreateParameter("", typeof(string));
 
@@ -86,6 +86,59 @@
             Assert.That((string)result.type, Is.EqualTo("array"));
             Assert.That((string)result.items.type, Is.EqualTo("integer"));
             Assert.That((string)result.items.format, Is.EqualTo("int32"));
+        }
+
+        [Test]
+        public void WriteQueryParameterShouldWriteTheName()
+        {
+            ParameterInfo parameter = CreateParameter("parameterName", typeof(string));
+
+            dynamic result = this.GetOutput(w => w.WriteQueryParameter(parameter, ""));
+
+            Assert.That((string)result.name, Is.EqualTo("parameterName"));
+        }
+
+        [Test]
+        public void WriteQueryParameterShouldSetInToQuery()
+        {
+            ParameterInfo parameter = CreateParameter("", typeof(string));
+
+            dynamic result = this.GetOutput(w => w.WriteQueryParameter(parameter, ""));
+
+            Assert.That((string)result.@in, Is.EqualTo("query"));
+        }
+
+        [Test]
+        public void WriteQueryParameterShouldWriteTheDescription()
+        {
+            ParameterInfo parameter = CreateParameter("", typeof(string));
+
+            dynamic result = this.GetOutput(w => w.WriteQueryParameter(parameter, "Description text"));
+
+            Assert.That((string)result.description, Is.EqualTo("Description text"));
+        }
+
+        [Test]
+        public void WriteQueryParameterShouldSetAllowEmptyValueForBoolParameters()
+        {
+            ParameterInfo parameter = CreateParameter("", typeof(bool));
+
+            dynamic result = this.GetOutput(w => w.WriteQueryParameter(parameter, ""));
+
+            Assert.That((string)result.type, Is.EqualTo("boolean"));
+            Assert.That((bool)result.allowEmptyValue, Is.True);
+        }
+
+        [Test]
+        public void WriteQueryParameterShouldSetTheDefaultValue()
+        {
+            ParameterInfo parameter = CreateParameter("", typeof(int));
+            parameter.HasDefaultValue.Returns(true);
+            parameter.RawDefaultValue.Returns(123);
+
+            dynamic result = this.GetOutput(w => w.WriteQueryParameter(parameter, ""));
+
+            Assert.That((int)result.@default, Is.EqualTo(123));
         }
 
         private ParameterInfo CreateParameter(string name, Type type)

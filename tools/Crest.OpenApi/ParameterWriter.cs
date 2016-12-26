@@ -51,18 +51,69 @@ namespace Crest.OpenApi
         /// <summary>
         /// Writes a parameter that is specified in the path of the URL.
         /// </summary>
-        /// <param name="paramater">The parameter information.</param>
+        /// <param name="parameter">The parameter information.</param>
         /// <param name="description">The description of the parameter.</param>
-        public void WritePathParameter(ParameterInfo paramater, string description)
+        public void WritePathParameter(ParameterInfo parameter, string description)
+        {
+            this.WriteParameterStart(parameter.Name, description, "path");
+            this.WriteRaw("\",\"required\":true,");
+            this.WritePrimitiveType(parameter.ParameterType);
+            this.Write('}');
+        }
+
+        /// <summary>
+        /// Writes a parameter that is specified in the query of the URL.
+        /// </summary>
+        /// <param name="parameter">The parameter information.</param>
+        /// <param name="description">The description of the parameter.</param>
+        public void WriteQueryParameter(ParameterInfo parameter, string description)
+        {
+            this.WriteParameterStart(parameter.Name, description, "query");
+            this.WriteRaw("\",");
+
+            if (parameter.ParameterType == typeof(bool))
+            {
+                this.WriteRaw("\"type\":\"boolean\",\"allowEmptyValue\":true");
+            }
+            else
+            {
+                this.WritePrimitiveType(parameter.ParameterType);
+            }
+
+            this.WriteRaw(",\"default\":");
+            this.WriteValue(GetDefaultValue(parameter));
+            this.Write('}');
+        }
+
+        private static object GetDefaultValue(ParameterInfo parameter)
+        {
+            if (parameter.HasDefaultValue)
+            {
+                // Use RawDefaultValue, as it can be used in reflection only context
+                return parameter.RawDefaultValue;
+            }
+            else
+            {
+                Type type = parameter.ParameterType;
+                if (type.GetTypeInfo().IsValueType)
+                {
+                    return Activator.CreateInstance(type);
+                }
+                else
+                {
+                    return null;
+                }
+            }
+        }
+
+        private void WriteParameterStart(string name, string description, string type)
         {
             this.WriteRaw("{\"name\":\"");
-            this.Write(paramater.Name);
-            this.WriteRaw("\",\"in\":\"path\",");
-            this.WriteRaw("\"description\":\"");
+            this.Write(name);
+            this.WriteRaw("\",\"in\":\"");
+            this.WriteRaw(type);
+            this.WriteRaw("\",\"description\":\"");
             this.Write(description);
-            this.WriteRaw("\",\"required\":true,");
-            this.WritePrimitiveType(paramater.ParameterType);
-            this.Write('}');
         }
 
         private void WritePrimitiveType(Type type)

@@ -39,6 +39,40 @@
             Assert.That(this.writer.Output, Is.EqualTo(@"\"));
         }
 
+        [Test]
+        public void WriteValueShouldWriteNullValues()
+        {
+            this.writer.WriteValue(null);
+
+            Assert.That(this.writer.Output, Is.EqualTo("null"));
+        }
+
+        [Test]
+        public void WriteValueShouldWriteBooleanValues()
+        {
+            this.writer.WriteValue(false);
+            this.writer.Write(' ');
+            this.writer.WriteValue(true);
+
+            Assert.That(this.writer.Output, Is.EqualTo("false true"));
+        }
+
+        [Test]
+        public void WriteValueShouldWriteNumbers()
+        {
+            this.writer.WriteValue(123);
+
+            Assert.That(this.writer.Output, Is.EqualTo("123"));
+        }
+
+        [Test]
+        public void WriteValueShouldWriteStrings()
+        {
+            this.writer.WriteValue(@"test\");
+
+            Assert.That(this.writer.Output, Is.EqualTo(@"""test\\"""));
+        }
+
         private class FakeJsonWriter : JsonWriter
         {
             private readonly StringWriter writer;
@@ -72,6 +106,11 @@
             internal new void WriteRaw(string value)
             {
                 base.WriteRaw(value);
+            }
+
+            internal new void WriteValue(object value)
+            {
+                base.WriteValue(value);
             }
         }
     }
