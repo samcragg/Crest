@@ -51,31 +51,6 @@
             Assert.That((bool)result.required, Is.True);
         }
 
-        [TestCase(typeof(sbyte), "integer", "int8")]
-        [TestCase(typeof(short), "integer", "int16")]
-        [TestCase(typeof(int), "integer", "int32")]
-        [TestCase(typeof(long), "integer", "int64")]
-        [TestCase(typeof(byte), "integer", "uint8")]
-        [TestCase(typeof(ushort), "integer", "uint16")]
-        [TestCase(typeof(uint), "integer", "uint32")]
-        [TestCase(typeof(ulong), "integer", "uint64")]
-        [TestCase(typeof(float), "number", "float")]
-        [TestCase(typeof(double), "number", "double")]
-        [TestCase(typeof(bool), "boolean", null)]
-        [TestCase(typeof(string), "string", null)]
-        [TestCase(typeof(DateTime), "string", "date-time")]
-        [TestCase(typeof(byte[]), "string", "byte")]
-        [TestCase(typeof(Guid), "string", "uuid")]
-        public void WriteParameterShouldWriteTheTypeAndFormat(Type parameterType, string type, string format)
-        {
-            ParameterInfo parameter = CreateParameter("", parameterType);
-
-            dynamic result = this.GetOutput(w => w.WritePathParameter(parameter, ""));
-
-            Assert.That((string)result.type, Is.EqualTo(type));
-            Assert.That((string)result.format, Is.EqualTo(format));
-        }
-
         [Test]
         public void WriteParameterShouldWriteArrays()
         {
@@ -153,7 +128,7 @@
         {
             using (var stringWriter = new StringWriter())
             {
-                var parameterWriter = new ParameterWriter(stringWriter);
+                var parameterWriter = new ParameterWriter(new DefinitionWriter(null), stringWriter);
                 action(parameterWriter);
                 return JsonConvert.DeserializeObject(stringWriter.ToString());
             }
