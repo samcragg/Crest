@@ -40,6 +40,14 @@
         }
 
         [Test]
+        public void WriteStringShouldEscapeTheData()
+        {
+            this.writer.WriteString(@"\");
+
+            Assert.That(this.writer.Output, Is.EqualTo(@"""\\"""));
+        }
+
+        [Test]
         public void WriteValueShouldWriteNullValues()
         {
             this.writer.WriteValue(null);
@@ -106,6 +114,11 @@
             internal new void WriteRaw(string value)
             {
                 base.WriteRaw(value);
+            }
+
+            internal new void WriteString(string value)
+            {
+                base.WriteString(value);
             }
 
             internal new void WriteValue(object value)

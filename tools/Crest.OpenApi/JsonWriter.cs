@@ -68,6 +68,17 @@ namespace Crest.OpenApi
         }
 
         /// <summary>
+        /// Writes a string to the output surrounded by quotation marks.
+        /// </summary>
+        /// <param name="value">The value to write.</param>
+        protected void WriteString(string value)
+        {
+            this.writer.Write('"');
+            this.Write(value);
+            this.writer.Write('"');
+        }
+
+        /// <summary>
         /// Writes a value to the output, using native JSON types where possible.
         /// </summary>
         /// <param name="value">The value to write.</param>
@@ -87,9 +98,7 @@ namespace Crest.OpenApi
             }
             else
             {
-                this.writer.Write('"');
-                this.Write(value.ToString());
-                this.writer.Write('"');
+                this.WriteString(value.ToString());
             }
         }
 
