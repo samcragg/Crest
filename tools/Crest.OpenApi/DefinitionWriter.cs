@@ -10,6 +10,7 @@ namespace Crest.OpenApi
     using System.ComponentModel.DataAnnotations;
     using System.IO;
     using System.Reflection;
+    using System.Text;
 
     /// <summary>
     /// Allows the writing of object definition.
@@ -170,6 +171,31 @@ namespace Crest.OpenApi
             }
         }
 
+        private void WriteMinMax(int min, int max, string suffix)
+        {
+            var buffer = new StringBuilder();
+            buffer.Append(",");
+            if (min > 0)
+            {
+                buffer.Append("\"min").Append(suffix).Append("\":").Append(min);
+            }
+
+            if (max > 0)
+            {
+                if (buffer.Length > 1)
+                {
+                    buffer.Append(',');
+                }
+
+                buffer.Append("\"max").Append(suffix).Append("\":").Append(max);
+            }
+
+            if (buffer.Length > 1)
+            {
+                this.WriteRaw(buffer.ToString());
+            }
+        }
+
         private void WriteProperty(string name, PropertyInfo property)
         {
             this.WriteString(name);
@@ -181,7 +207,65 @@ namespace Crest.OpenApi
                 this.WriteRaw(primitive);
             }
 
+            if (property.PropertyType.IsArray)
+            {
+                this.WritePropertyArrayAttributes(property);
+            }
+            else if (property.PropertyType == typeof(string))
+            {
+                this.WritePropertyStringAttributes(property);
+            }
+
             this.Write('}');
+        }
+
+        private void WritePropertyArrayAttributes(PropertyInfo property)
+        {
+            int min = -1;
+            int max = -1;
+
+            MinLengthAttribute minLength = property.GetCustomAttribute<MinLengthAttribute>();
+            if (minLength != null)
+            {
+                min = minLength.Length;
+            }
+
+            MaxLengthAttribute maxLength = property.GetCustomAttribute<MaxLengthAttribute>();
+            if (maxLength != null)
+            {
+                max = maxLength.Length;
+            }
+
+            this.WriteMinMax(min, max, "Items");
+        }
+
+        private void WritePropertyStringAttributes(PropertyInfo property)
+        {
+            int min = -1;
+            int max = -1;
+
+            StringLengthAttribute stringLength = property.GetCustomAttribute<StringLengthAttribute>();
+            if (stringLength != null)
+            {
+                min = stringLength.MinimumLength;
+                max = stringLength.MaximumLength;
+            }
+            else
+            {
+                MaxLengthAttribute maxLength = property.GetCustomAttribute<MaxLengthAttribute>();
+                if (maxLength != null)
+                {
+                    max = maxLength.Length;
+                }
+
+                MinLengthAttribute minLength = property.GetCustomAttribute<MinLengthAttribute>();
+                if (minLength != null)
+                {
+                    min = minLength.Length;
+                }
+            }
+
+            this.WriteMinMax(min, max, "Length");
         }
 
         private void WriteType(Type type)

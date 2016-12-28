@@ -3,7 +3,6 @@
     using System;
     using System.ComponentModel.DataAnnotations;
     using System.IO;
-    using System.Linq;
     using Crest.OpenApi;
     using Newtonsoft.Json;
     using NUnit.Framework;
@@ -76,6 +75,52 @@
             Assert.That((string)result.required[0], Is.EqualTo("isRequired"));
         }
 
+        [Test]
+        public void WriteDefinitionsShouldIncludeMaxLengthAttributesForArrays()
+        {
+            dynamic result = this.GetDefinitionFor<LengthProperties>();
+            dynamic property = result.properties.maxLength;
+
+            Assert.That((int)property.maxItems, Is.EqualTo(10));
+        }
+
+        [Test]
+        public void WriteDefinitionsShouldIncludeMaxLengthAttributesForStrings()
+        {
+            dynamic result = this.GetDefinitionFor<LengthProperties>();
+            dynamic property = result.properties.minMaxString;
+
+            Assert.That((int)property.maxLength, Is.EqualTo(10));
+        }
+
+        [Test]
+        public void WriteDefinitionsShouldIncludeMinLengthAttributesForArrays()
+        {
+            dynamic result = this.GetDefinitionFor<LengthProperties>();
+            dynamic property = result.properties.minLength;
+
+            Assert.That((int)property.minItems, Is.EqualTo(5));
+        }
+
+        [Test]
+        public void WriteDefinitionsShouldIncludeMinLengthAttributesForStrings()
+        {
+            dynamic result = this.GetDefinitionFor<LengthProperties>();
+            dynamic property = result.properties.minMaxString;
+
+            Assert.That((int)property.minLength, Is.EqualTo(5));
+        }
+
+        [Test]
+        public void WriteDefinitionsShouldIncludeStringLengthAttributes()
+        {
+            dynamic result = this.GetDefinitionFor<LengthProperties>();
+            dynamic stringLength = result.properties.stringLength;
+
+            Assert.That((int)stringLength.minLength, Is.EqualTo(5));
+            Assert.That((int)stringLength.maxLength, Is.EqualTo(10));
+        }
+
         private dynamic GetDefinitionFor<T>()
         {
             using (var stringWriter = new StringWriter())
@@ -99,6 +144,22 @@
 
             [Required]
             public string IsRequired { get; set; }
+        }
+
+        private class LengthProperties
+        {
+            [MaxLength(10)]
+            public int[] MaxLength { get; set; }
+
+            [MinLength(5)]
+            public int[] MinLength { get; set; }
+
+            [StringLength(10, MinimumLength = 5)]
+            public string StringLength { get; set; }
+
+            [MinLength(5)]
+            [MaxLength(10)]
+            public string MinMaxString { get; set; }
         }
     }
 }
