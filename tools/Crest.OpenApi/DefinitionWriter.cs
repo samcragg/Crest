@@ -20,6 +20,9 @@ namespace Crest.OpenApi
     /// </remarks>
     internal sealed class DefinitionWriter : JsonWriter
     {
+        private const string ArrayDeclarationStart = "\"type\":\"array\",\"items\":{";
+        private const string ArrayDeclarationEnd = "}";
+
         private readonly Dictionary<Type, string> primitives = new Dictionary<Type, string>
         {
             { typeof(sbyte), "\"type\":\"integer\",\"format\":\"int8\"" },
@@ -54,11 +57,26 @@ namespace Crest.OpenApi
         /// Creates a definition entry for the specified type.
         /// </summary>
         /// <param name="type">The object type.</param>
-        /// <returns>A reference to the definition entry.</returns>
+        /// <returns>
+        /// A schema definition with a reference to the definition entry.
+        /// </returns>
         public string CreateDefinitionFor(Type type)
         {
-            this.types.Add(type);
-            return GetDefinitionReference(type);
+            string prefix = string.Empty;
+            string suffix = string.Empty;
+            if (type.IsArray)
+            {
+                type = type.GetElementType();
+                prefix = ArrayDeclarationStart;
+                suffix = ArrayDeclarationEnd;
+            }
+
+            if (this.types.Add(type))
+            {
+                this.AddPropertyTypes(type);
+            }
+
+            return prefix + GetDefinitionReference(type) + suffix;
         }
 
         /// <summary>
@@ -101,7 +119,7 @@ namespace Crest.OpenApi
                 string elementType;
                 if (this.TryGetPrimitive(type.GetElementType(), out elementType))
                 {
-                    value = "\"type\":\"array\",\"items\":{" + elementType + "}";
+                    value = ArrayDeclarationStart + elementType + ArrayDeclarationEnd;
                     return true;
                 }
                 else
@@ -124,33 +142,36 @@ namespace Crest.OpenApi
 
         private static string GetDefinitionReference(Type type)
         {
-            return "#/definitions/" + type.Name;
+            return "\"$ref\":\"#/definitions/" + type.Name + "\"";
+        }
+
+        private void AddPropertyTypes(Type type)
+        {
+            foreach (PropertyInfo property in type.GetProperties())
+            {
+                Type propertyType = property.PropertyType;
+                if (propertyType.IsArray)
+                {
+                    propertyType = propertyType.GetElementType();
+                }
+
+                if (this.primitives.ContainsKey(propertyType))
+                {
+                    continue;
+                }
+
+                if (this.types.Add(propertyType))
+                {
+                    this.AddPropertyTypes(propertyType);
+                }
+            }
         }
 
         private void WriteArray(Type elementType)
         {
-            if (!this.types.Contains(elementType))
-            {
-                this.WriteType(elementType);
-                this.Write(',');
-            }
-
-            this.WriteString(elementType.Name + "[]");
-            this.WriteRaw(":{\"type\":\"array\",\"items\":{");
-
-            string primitive;
-            if (this.TryGetPrimitive(elementType, out primitive))
-            {
-                this.WriteRaw(primitive);
-            }
-            else
-            {
-                this.WriteRaw("\"$ref\":\"");
-                this.WriteRaw(GetDefinitionReference(elementType));
-                this.Write('"');
-            }
-
-            this.Write("}}");
+            this.WriteRaw(ArrayDeclarationStart);
+            this.WriteReferenceToTypeDefinition(elementType);
+            this.WriteRaw(ArrayDeclarationEnd);
         }
 
         private void WriteList<T>(IEnumerable<T> items, Action<T> writeItem)
@@ -200,12 +221,7 @@ namespace Crest.OpenApi
         {
             this.WriteString(name);
             this.WriteRaw(":{");
-
-            string primitive;
-            if (this.TryGetPrimitive(property.PropertyType, out primitive))
-            {
-                this.WriteRaw(primitive);
-            }
+            this.WriteReferenceToTypeDefinition(property.PropertyType);
 
             if (property.PropertyType.IsArray)
             {
@@ -266,6 +282,26 @@ namespace Crest.OpenApi
             }
 
             this.WriteMinMax(min, max, "Length");
+        }
+
+        private void WriteReferenceToTypeDefinition(Type type)
+        {
+            if (type.IsArray)
+            {
+                this.WriteArray(type.GetElementType());
+            }
+            else
+            {
+                string primitive;
+                if (this.TryGetPrimitive(type, out primitive))
+                {
+                    this.WriteRaw(primitive);
+                }
+                else
+                {
+                    this.WriteRaw(GetDefinitionReference(type));
+                }
+            }
         }
 
         private void WriteType(Type type)

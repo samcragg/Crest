@@ -15,9 +15,22 @@
         {
             var writer = new DefinitionWriter(null);
 
-            string result = writer.CreateDefinitionFor(typeof(DefinitionWriterTests));
+            string schema = writer.CreateDefinitionFor(typeof(SimpleClass));
+            dynamic result = ConvertJson(schema);
 
-            Assert.That(result, Is.EqualTo("#/definitions/DefinitionWriterTests"));
+            Assert.That((string)result["$ref"], Is.EqualTo("#/definitions/SimpleClass"));
+        }
+
+        [Test]
+        public void CreateDefinitionForShouldReturnArrayDeclarations()
+        {
+            var writer = new DefinitionWriter(null);
+
+            string schema = writer.CreateDefinitionFor(typeof(SimpleClass[]));
+            dynamic result = ConvertJson(schema);
+
+            Assert.That((string)result.type, Is.EqualTo("array"));
+            Assert.That((string)result.items["$ref"], Is.EqualTo(@"#/definitions/SimpleClass"));
         }
 
         [TestCase(typeof(sbyte), "integer", "int8")]
@@ -55,15 +68,6 @@
 
             Assert.That((string)result.type, Is.EqualTo("object"));
             Assert.That((string)result.properties.myProperty.type, Is.EqualTo("string"));
-        }
-
-        [Test]
-        public void WriteDefinitionsShouldWriteArrays()
-        {
-            dynamic result = this.GetDefinitionFor<SimpleClass[]>();
-
-            Assert.That((string)result.type, Is.EqualTo("array"));
-            Assert.That((string)result.items["$ref"], Is.EqualTo(@"#/definitions/SimpleClass"));
         }
 
         [Test]
@@ -121,6 +125,31 @@
             Assert.That((int)stringLength.maxLength, Is.EqualTo(10));
         }
 
+        [Test]
+        public void WriteDefinitionsShouldIncludeArrayProperties()
+        {
+            dynamic result = this.GetDefinitionFor<ComplexClass>();
+            dynamic arrayProperty = result.properties.arrayProperty;
+
+            Assert.That((string)arrayProperty.type, Is.EqualTo("array"));
+            Assert.That((string)arrayProperty.items.type, Is.EqualTo("string"));
+        }
+
+        [Test]
+        public void WriteDefinitionsShouldIncludeNonPrimitiveProperties()
+        {
+            dynamic result = this.GetDefinitionFor<ComplexClass>();
+
+            Assert.That((string)result.properties.simpleProperty["$ref"], Is.EqualTo("#/definitions/SimpleClass"));
+        }
+
+        private static dynamic ConvertJson(string value)
+        {
+            var settings = new JsonSerializerSettings();
+            settings.MetadataPropertyHandling = MetadataPropertyHandling.Ignore;
+            return JsonConvert.DeserializeObject("{" + value + "}", settings);
+        }
+
         private dynamic GetDefinitionFor<T>()
         {
             using (var stringWriter = new StringWriter())
@@ -128,7 +157,7 @@
                 var writer = new DefinitionWriter(stringWriter);
                 writer.CreateDefinitionFor(typeof(T));
                 writer.WriteDefinitions();
-                dynamic result = JsonConvert.DeserializeObject("{" + stringWriter.ToString() + "}");
+                dynamic result = ConvertJson(stringWriter.ToString());
                 return result.definitions[typeof(T).Name];
             }
         }
@@ -136,6 +165,13 @@
         private class SimpleClass
         {
             public string MyProperty { get; set; }
+        }
+
+        private class ComplexClass
+        {
+            public string[] ArrayProperty { get; set; }
+
+            public SimpleClass SimpleProperty { get; set; }
         }
 
         private class RequiredProperties
