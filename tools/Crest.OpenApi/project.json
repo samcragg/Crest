@@ -34,7 +34,8 @@
     "StyleCop.Analyzers": {
       "type": "build",
       "version": "1.0.0"
-    }
+    },
+    "System.ComponentModel.Primitives": "4.3.0"
   },
 
   "frameworks": {
