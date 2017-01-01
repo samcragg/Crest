@@ -21,3 +21,30 @@ Although none of the attributes are required, if the assembly title attribute is
 not specified, the name of the assembly will be used. Also, if the license URL
 is specified then the license must also be there but you can just specify the
 license without the URL.
+
+# Tags
+
+When using the framework all routes are defined inside interfaces, allowing
+routes to be naturally grouped together by functionality. To group the paths
+together in the documentation, all methods defined in an interface are tagged
+with the same tag, allowing them to appear grouped together in the generated
+documentation. The name and description of the tag comes from the interface name
+(minus the `I` prefix) and summary XML documentation.
+
+Alternatively, the `Description` attribute can be applied to the interface to
+customise the name of the generated tag (note the
+[`DisplayName`](https://msdn.microsoft.com/en-us/library/system.componentmodel.displaynameattribute.aspx)
+attribute isn't allowed on interfaces, hence the slightly obscure use of this one):
+
+    /// <summary>
+    /// Description of the interface.
+    /// </summary>
+    [Description("Products")]
+    public interface IUserProducts
+    {
+    }
+
+This would generate something looking like this (note if the `Description`
+attribute was not specified, the tag would be named `UserProducts`):
+
+![Example tag output](images/TagExampleOutput.png)
