@@ -13,4 +13,5 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyTrademark("")]
 
 [assembly: ComVisible(false)]
+[assembly: InternalsVisibleTo("DynamicProxyGenAssembly2")] // NSubstitute
 [assembly: InternalsVisibleTo("OpenApi.UnitTests")]
