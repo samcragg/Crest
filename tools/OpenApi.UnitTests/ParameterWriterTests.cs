@@ -64,13 +64,13 @@
         }
 
         [Test]
-        public void WriteQueryParameterShouldWriteTheName()
+        public void WriteQueryParameterShouldWriteTheQueryKey()
         {
             ParameterInfo parameter = CreateParameter("parameterName", typeof(string));
 
-            dynamic result = this.GetOutput(w => w.WriteQueryParameter(parameter, ""));
+            dynamic result = this.GetOutput(w => w.WriteQueryParameter(parameter, "queryKey", ""));
 
-            Assert.That((string)result.name, Is.EqualTo("parameterName"));
+            Assert.That((string)result.name, Is.EqualTo("queryKey"));
         }
 
         [Test]
@@ -78,7 +78,7 @@
         {
             ParameterInfo parameter = CreateParameter("", typeof(string));
 
-            dynamic result = this.GetOutput(w => w.WriteQueryParameter(parameter, ""));
+            dynamic result = this.GetOutput(w => w.WriteQueryParameter(parameter, "", ""));
 
             Assert.That((string)result.@in, Is.EqualTo("query"));
         }
@@ -88,7 +88,7 @@
         {
             ParameterInfo parameter = CreateParameter("", typeof(string));
 
-            dynamic result = this.GetOutput(w => w.WriteQueryParameter(parameter, "Description text"));
+            dynamic result = this.GetOutput(w => w.WriteQueryParameter(parameter, "", "Description text"));
 
             Assert.That((string)result.description, Is.EqualTo("Description text"));
         }
@@ -98,7 +98,7 @@
         {
             ParameterInfo parameter = CreateParameter("", typeof(bool));
 
-            dynamic result = this.GetOutput(w => w.WriteQueryParameter(parameter, ""));
+            dynamic result = this.GetOutput(w => w.WriteQueryParameter(parameter, "", ""));
 
             Assert.That((string)result.type, Is.EqualTo("boolean"));
             Assert.That((bool)result.allowEmptyValue, Is.True);
@@ -111,7 +111,7 @@
             parameter.HasDefaultValue.Returns(true);
             parameter.RawDefaultValue.Returns(123);
 
-            dynamic result = this.GetOutput(w => w.WriteQueryParameter(parameter, ""));
+            dynamic result = this.GetOutput(w => w.WriteQueryParameter(parameter, "", ""));
 
             Assert.That((int)result.@default, Is.EqualTo(123));
         }

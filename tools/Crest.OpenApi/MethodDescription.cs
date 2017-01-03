@@ -16,7 +16,7 @@ namespace Crest.OpenApi
         /// <summary>
         /// Gets the documentation for the parameters of the method.
         /// </summary>
-        public IDictionary<string, string> Parameters { get; }
+        public Dictionary<string, string> Parameters { get; }
             = new Dictionary<string, string>(StringComparer.Ordinal);
 
         /// <summary>

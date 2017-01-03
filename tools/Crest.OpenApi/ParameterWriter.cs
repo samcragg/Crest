@@ -48,10 +48,11 @@ namespace Crest.OpenApi
         /// Writes a parameter that is specified in the query of the URL.
         /// </summary>
         /// <param name="parameter">The parameter information.</param>
+        /// <param name="name">The key for the parameter in the query string.</param>
         /// <param name="description">The description of the parameter.</param>
-        public void WriteQueryParameter(ParameterInfo parameter, string description)
+        public void WriteQueryParameter(ParameterInfo parameter, string name, string description)
         {
-            this.WriteParameterStart(parameter.Name, description, "query");
+            this.WriteParameterStart(name, description, "query");
             this.WriteRaw("\",");
 
             if (parameter.ParameterType == typeof(bool))
