@@ -9,6 +9,9 @@
   },
 
   "dependencies": {
+    "Crest.Core": {
+      "target": "project"
+    },
     "Crest.OpenApi": {
       "target": "project"
     },

@@ -7,6 +7,8 @@ Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "Crest.OpenApi", "Crest.Open
 EndProject
 Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "OpenApi.UnitTests", "OpenApi.UnitTests\OpenApi.UnitTests.xproj", "{DAE3195B-09F7-4E93-A8CB-F211435CFBBE}"
 EndProject
+Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "Crest.Core", "..\src\Crest.Core\Crest.Core.xproj", "{45198037-12DE-4A75-B1C6-106BE2769115}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,10 @@ Global
 		{DAE3195B-09F7-4E93-A8CB-F211435CFBBE}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DAE3195B-09F7-4E93-A8CB-F211435CFBBE}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{DAE3195B-09F7-4E93-A8CB-F211435CFBBE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{45198037-12DE-4A75-B1C6-106BE2769115}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{45198037-12DE-4A75-B1C6-106BE2769115}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{45198037-12DE-4A75-B1C6-106BE2769115}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{45198037-12DE-4A75-B1C6-106BE2769115}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
