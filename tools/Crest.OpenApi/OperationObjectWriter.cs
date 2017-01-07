@@ -21,6 +21,7 @@ namespace Crest.OpenApi
     internal sealed class OperationObjectWriter : JsonWriter
     {
         private readonly DefinitionWriter definitions;
+        private readonly Dictionary<string, int> ids = new Dictionary<string, int>(StringComparer.Ordinal);
         private readonly ParameterWriter parameters;
 
         private readonly Regex queryParameters = new Regex(
@@ -79,6 +80,24 @@ namespace Crest.OpenApi
             this.Write('}');
         }
 
+        private string GenerationOperationId(MethodInfo method)
+        {
+            string id = method.DeclaringType.Name + "." + method.Name;
+
+            int count;
+            if (this.ids.TryGetValue(id, out count))
+            {
+                this.ids[id] = count + 1;
+                id += count;
+            }
+            else
+            {
+                this.ids.Add(id, 1);
+            }
+
+            return id;
+        }
+
         private IReadOnlyDictionary<string, string> GetQueryParameters(string route)
         {
             var parameters = new Dictionary<string, string>(StringComparer.Ordinal);
@@ -108,9 +127,8 @@ namespace Crest.OpenApi
             this.WriteRaw(",\"description\":");
             this.WriteString(documentation?.Remarks);
 
-            string id = method.DeclaringType.Name + "." + method.Name;
             this.WriteRaw(",\"operationId\":");
-            this.WriteString(id);
+            this.WriteString(this.GenerationOperationId(method));
         }
 
         private void WriteParameters(

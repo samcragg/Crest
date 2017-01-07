@@ -63,6 +63,29 @@
         }
 
         [Test]
+        public void ShouldWriteUniqueOperationIds()
+        {
+            using (var stringWriter = new StringWriter())
+            {
+                var pathItemWriter = new OperationObjectWriter(
+                    this.xmlDoc,
+                    new DefinitionWriter(null),
+                    new TagWriter(this.xmlDoc, null),
+                    stringWriter);
+
+                stringWriter.Write('[');
+                pathItemWriter.WriteOperation("/route1", NoParameterMethod);
+                stringWriter.Write(',');
+                pathItemWriter.WriteOperation("/route2", NoParameterMethod);
+                stringWriter.Write(']');
+
+                dynamic result = JsonConvert.DeserializeObject(stringWriter.ToString());
+
+                Assert.That((string)result[0].operationId, Is.Not.EqualTo((string)result[1].operationId));
+            }
+        }
+
+        [Test]
         public void ShouldWritePathParameters()
         {
             var description = new MethodDescription();
