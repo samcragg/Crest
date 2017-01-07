@@ -84,7 +84,7 @@ namespace Crest.OpenApi
         /// </summary>
         public void WriteDefinitions()
         {
-            this.WriteRaw("\"definitions\":{");
+            this.Write('{');
 
             this.WriteList(this.types, type =>
             {
@@ -172,24 +172,6 @@ namespace Crest.OpenApi
             this.WriteRaw(ArrayDeclarationStart);
             this.WriteReferenceToTypeDefinition(elementType);
             this.WriteRaw(ArrayDeclarationEnd);
-        }
-
-        private void WriteList<T>(IEnumerable<T> items, Action<T> writeItem)
-        {
-            bool first = true;
-            foreach (T item in items)
-            {
-                if (first)
-                {
-                    first = false;
-                }
-                else
-                {
-                    this.Write(',');
-                }
-
-                writeItem(item);
-            }
         }
 
         private void WriteMinMax(int min, int max, string suffix)

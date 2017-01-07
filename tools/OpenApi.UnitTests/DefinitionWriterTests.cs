@@ -16,7 +16,7 @@
             var writer = new DefinitionWriter(null);
 
             string schema = writer.CreateDefinitionFor(typeof(SimpleClass));
-            dynamic result = ConvertJson(schema);
+            dynamic result = ConvertJson("{" + schema + "}");
 
             Assert.That((string)result["$ref"], Is.EqualTo("#/definitions/SimpleClass"));
         }
@@ -27,7 +27,7 @@
             var writer = new DefinitionWriter(null);
 
             string schema = writer.CreateDefinitionFor(typeof(SimpleClass[]));
-            dynamic result = ConvertJson(schema);
+            dynamic result = ConvertJson("{" + schema + "}");
 
             Assert.That((string)result.type, Is.EqualTo("array"));
             Assert.That((string)result.items["$ref"], Is.EqualTo(@"#/definitions/SimpleClass"));
@@ -147,7 +147,7 @@
         {
             var settings = new JsonSerializerSettings();
             settings.MetadataPropertyHandling = MetadataPropertyHandling.Ignore;
-            return JsonConvert.DeserializeObject("{" + value + "}", settings);
+            return JsonConvert.DeserializeObject(value, settings);
         }
 
         private dynamic GetDefinitionFor<T>()
@@ -158,7 +158,7 @@
                 writer.CreateDefinitionFor(typeof(T));
                 writer.WriteDefinitions();
                 dynamic result = ConvertJson(stringWriter.ToString());
-                return result.definitions[typeof(T).Name];
+                return result[typeof(T).Name];
             }
         }
 

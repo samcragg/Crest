@@ -6,6 +6,7 @@
 namespace Crest.OpenApi
 {
     using System;
+    using System.Collections.Generic;
     using System.Globalization;
     using System.IO;
 
@@ -55,6 +56,30 @@ namespace Crest.OpenApi
                 {
                     this.writer.Write(c);
                 }
+            }
+        }
+
+        /// <summary>
+        /// Writes a list of values.
+        /// </summary>
+        /// <typeparam name="T">The sequence element type.</typeparam>
+        /// <param name="items">The sequence of items to write.</param>
+        /// <param name="writeItem">The method used to write the item.</param>
+        protected void WriteList<T>(IEnumerable<T> items, Action<T> writeItem)
+        {
+            bool first = true;
+            foreach (T item in items)
+            {
+                if (first)
+                {
+                    first = false;
+                }
+                else
+                {
+                    this.Write(',');
+                }
+
+                writeItem(item);
             }
         }
 
