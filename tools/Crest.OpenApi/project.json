@@ -27,6 +27,7 @@
 
   "dependencies": {
     "Microsoft.Extensions.CommandLineUtils": "1.0.1",
+    "Microsoft.Extensions.DependencyModel": "1.1.0",
     "Microsoft.NETCore.App": {
       "type": "platform",
       "version": "1.0.1"
@@ -35,7 +36,8 @@
       "type": "build",
       "version": "1.0.0"
     },
-    "System.ComponentModel.Primitives": "4.3.0"
+    "System.ComponentModel.Primitives": "4.3.0",
+    "System.Runtime.Loader": "4.3.0"
   },
 
   "frameworks": {

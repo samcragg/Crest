@@ -6,7 +6,11 @@
 namespace Crest.OpenApi
 {
     using System;
+    using System.IO;
+    using System.Reflection;
+    using System.Runtime.Loader;
     using Microsoft.Extensions.CommandLineUtils;
+    using Microsoft.Extensions.DependencyModel;
 
     /// <summary>
     /// Contains the main entry point for the program.
@@ -24,8 +28,8 @@ namespace Crest.OpenApi
                 "The assembly to scan for routes.");
 
             this.outputName = application.Option(
-                "-o|--output <openApi.json>",
-                "The filename to write the output to.",
+                "-o|--output <doc>",
+                "The folder to write the output to.",
                 CommandOptionType.SingleValue);
 
             this.xmlDocName = application.Option(
@@ -42,7 +46,7 @@ namespace Crest.OpenApi
         public static int Main(string[] args)
         {
             // HACK: Easier to debug...
-            args = new[] { "--help" };
+            args = new[] { @"C:\Code\Crest\example\BasicExample\bin\Debug\netcoreapp1.0\BasicExample.dll", "-o", @"C:\output\doc" };
 
             var application = new CommandLineApplication(throwOnUnexpectedArg: false);
             application.Name = "crest_open_api";
@@ -58,7 +62,53 @@ namespace Crest.OpenApi
 
         private int OnExecute()
         {
-            return 0;
+            try
+            {
+                XmlDocParser xmlDoc = this.LoadDocumentation();
+                using (var loader = new AssemblyLoader(this.assemblyName.Value))
+                {
+                    var generator = new DocGenerator(loader.Assembly, xmlDoc);
+                    generator.CreateFiles(this.GetOutputDirectory());
+                }
+
+                return 0;
+            }
+            catch (Exception ex)
+            {
+                Console.Error.WriteLine("An unexpected error has occurred:");
+                Console.Error.WriteLine("    " + ex.Message);
+                return -1;
+            }
+        }
+
+        private string GetOutputDirectory()
+        {
+            string path = this.outputName.Value();
+            if (string.IsNullOrWhiteSpace(path))
+            {
+                return "doc";
+            }
+            else
+            {
+                return path;
+            }
+        }
+
+        private XmlDocParser LoadDocumentation()
+        {
+            string path = this.xmlDocName.Value();
+            if (string.IsNullOrWhiteSpace(path))
+            {
+                string assemblyPath = this.assemblyName.Value;
+                path = Path.Combine(
+                    Path.GetDirectoryName(assemblyPath),
+                    Path.GetFileNameWithoutExtension(assemblyPath) + ".xml");
+            }
+
+            using (Stream file = File.OpenRead(path))
+            {
+                return new XmlDocParser(file);
+            }
         }
     }
 }
