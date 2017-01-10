@@ -58,7 +58,7 @@ namespace Crest.OpenApi
         /// </summary>
         public IReadOnlyCollection<RouteInformation> Routes { get; }
 
-        private static bool TryGetRoute(CustomAttributeData attribute, out string verb, out string route)
+        private static bool TryGetRoute(CustomAttributeData attribute, ref string verb, out string route)
         {
             switch (attribute.AttributeType.Name)
             {
@@ -79,7 +79,6 @@ namespace Crest.OpenApi
                     break;
 
                 default:
-                    verb = null;
                     route = null;
                     return false;
             }
@@ -118,7 +117,7 @@ namespace Crest.OpenApi
                     foreach (CustomAttributeData attribute in method.CustomAttributes)
                     {
                         string route;
-                        if (TryGetRoute(attribute, out verb, out route))
+                        if (TryGetRoute(attribute, ref verb, out route))
                         {
                             routes.Add(route);
                         }

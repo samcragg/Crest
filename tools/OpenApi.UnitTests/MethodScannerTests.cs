@@ -90,6 +90,17 @@
             Assert.That(routes, Is.EquivalentTo(new[] { "route1", "route2" }));
         }
 
+        [Test]
+        public void RouteShouldIncludeTheVerbIfTheVerbIsNotTheLastAttribute()
+        {
+            Assembly assembly = this.CreateAssembly(typeof(VersionTests));
+            var scanner = new MethodScanner(assembly);
+
+            RouteInformation route = scanner.Routes.First();
+
+            Assert.That(route.Verb, Is.EqualTo("get"));
+        }
+
         private Assembly CreateAssembly(params Type[] types)
         {
             var assembly = Substitute.For<Assembly>();
