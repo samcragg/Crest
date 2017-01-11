@@ -43,14 +43,17 @@ namespace Crest.OpenApi
         };
 
         private readonly ISet<Type> types = new SortedSet<Type>(new TypeNameComparer());
+        private readonly XmlDocParser xmlDoc;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="DefinitionWriter"/> class.
         /// </summary>
+        /// <param name="xmlDoc">Contains the parsed XML documentation.</param>
         /// <param name="writer">Where to write the output to.</param>
-        public DefinitionWriter(TextWriter writer)
+        public DefinitionWriter(XmlDocParser xmlDoc, TextWriter writer)
             : base(writer)
         {
+            this.xmlDoc = xmlDoc;
         }
 
         /// <summary>
@@ -202,7 +205,9 @@ namespace Crest.OpenApi
         private void WriteProperty(string name, PropertyInfo property)
         {
             this.WriteString(name);
-            this.WriteRaw(":{");
+            this.WriteRaw(":{\"description\":");
+            this.WriteString(this.xmlDoc.GetDescription(property));
+            this.Write(',');
             this.WriteReferenceToTypeDefinition(property.PropertyType);
 
             if (property.PropertyType.IsArray)
@@ -290,8 +295,10 @@ namespace Crest.OpenApi
         {
             var required = new SortedSet<string>();
             this.WriteString(type.Name);
-            this.WriteRaw(":{\"type\":\"object\",\"properties\":{");
+            this.WriteRaw(":{\"type\":\"object\",\"description\":");
+            this.WriteString(this.xmlDoc.GetClassDescription(type)?.Summary);
 
+            this.WriteRaw(",\"properties\":{");
             this.WriteList(type.GetProperties(), property =>
             {
                 string name = FormatPropertyName(property.Name);
@@ -303,9 +310,16 @@ namespace Crest.OpenApi
                 this.WriteProperty(name, property);
             });
 
-            this.WriteRaw("},\"required\":[");
-            this.WriteList(required, this.WriteString);
-            this.WriteRaw("]}");
+            if (required.Count > 0)
+            {
+                this.WriteRaw("},\"required\":[");
+                this.WriteList(required, this.WriteString);
+                this.WriteRaw("]}");
+            }
+            else
+            {
+                this.WriteRaw("}}");
+            }
         }
 
         private sealed class TypeNameComparer : IComparer<Type>

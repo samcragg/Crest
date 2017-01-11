@@ -3,17 +3,27 @@
     using System;
     using System.ComponentModel.DataAnnotations;
     using System.IO;
+    using System.Reflection;
     using Crest.OpenApi;
     using Newtonsoft.Json;
+    using NSubstitute;
     using NUnit.Framework;
 
     [TestFixture]
     public sealed class DefinitionWriterTests
     {
+        private XmlDocParser xmlDoc;
+
+        [SetUp]
+        public void SetUp()
+        {
+            this.xmlDoc = Substitute.For<XmlDocParser>();
+        }
+
         [Test]
         public void CreateDefinitionForShouldReturnAReferenceToTheType()
         {
-            var writer = new DefinitionWriter(null);
+            var writer = new DefinitionWriter(null, null);
 
             string schema = writer.CreateDefinitionFor(typeof(SimpleClass));
             dynamic result = ConvertJson("{" + schema + "}");
@@ -24,7 +34,7 @@
         [Test]
         public void CreateDefinitionForShouldReturnArrayDeclarations()
         {
-            var writer = new DefinitionWriter(null);
+            var writer = new DefinitionWriter(null, null);
 
             string schema = writer.CreateDefinitionFor(typeof(SimpleClass[]));
             dynamic result = ConvertJson("{" + schema + "}");
@@ -50,7 +60,7 @@
         [TestCase(typeof(Guid), "string", "uuid")]
         public void TryGetPrimitiveShouldHandleKnownPrimitives(Type netType, string type, string format)
         {
-            var writer = new DefinitionWriter(null);
+            var writer = new DefinitionWriter(null, null);
 
             string primitive;
             bool result = writer.TryGetPrimitive(netType, out primitive);
@@ -71,12 +81,44 @@
         }
 
         [Test]
+        public void WriteDefinitionShouldWriteTheClassSummary()
+        {
+            this.xmlDoc.GetClassDescription(typeof(SimpleClass))
+                .Returns(new ClassDescription { Summary = "Class summary" });
+
+            dynamic result = this.GetDefinitionFor<SimpleClass>();
+
+            Assert.That((string)result.description, Is.EqualTo("Class summary"));
+        }
+
+        [Test]
+        public void WriteDefinitionsShouldWriteThePropertySummary()
+        {
+            PropertyInfo property = typeof(SimpleClass).GetProperty(nameof(SimpleClass.MyProperty));
+            this.xmlDoc.GetDescription(property).Returns("Property summary");
+
+            dynamic result = this.GetDefinitionFor<SimpleClass>();
+
+            Assert.That((string)result.properties.myProperty.description, Is.EqualTo("Property summary"));
+        }
+
+        [Test]
         public void WriteDefinitionsShouldWriteRequiredProperties()
         {
             dynamic result = this.GetDefinitionFor<RequiredProperties>();
 
             Assert.That(result.required, Has.Count.EqualTo(1));
             Assert.That((string)result.required[0], Is.EqualTo("isRequired"));
+        }
+
+        [Test]
+        public void WriteDefinitionsShouldNotWriteEmptyRequiredArrays()
+        {
+            // The minimum size for the required array is 1, so can't have
+            // empty arrays...
+            dynamic result = this.GetDefinitionFor<SimpleClass>();
+
+            Assert.That(result.required, Is.Null);
         }
 
         [Test]
@@ -154,7 +196,7 @@
         {
             using (var stringWriter = new StringWriter())
             {
-                var writer = new DefinitionWriter(stringWriter);
+                var writer = new DefinitionWriter(this.xmlDoc, stringWriter);
                 writer.CreateDefinitionFor(typeof(T));
                 writer.WriteDefinitions();
                 dynamic result = ConvertJson(stringWriter.ToString());

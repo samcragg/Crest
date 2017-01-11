@@ -69,7 +69,7 @@
             {
                 var pathItemWriter = new OperationObjectWriter(
                     this.xmlDoc,
-                    new DefinitionWriter(null),
+                    new DefinitionWriter(null, null),
                     new TagWriter(this.xmlDoc, null),
                     stringWriter);
 
@@ -155,7 +155,7 @@
             {
                 var pathItemWriter = new OperationObjectWriter(
                     this.xmlDoc,
-                    new DefinitionWriter(null),
+                    new DefinitionWriter(null, null),
                     new TagWriter(this.xmlDoc, null),
                     stringWriter);
 

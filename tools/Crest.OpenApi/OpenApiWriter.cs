@@ -34,10 +34,10 @@ namespace Crest.OpenApi
         {
             this.version = version;
             this.xmlDoc = xmlDoc;
-            this.definitions = new DefinitionWriter(writer);
+            this.definitions = new DefinitionWriter(this.xmlDoc, writer);
             this.info = new InfoObjectWriter(writer);
-            this.tags = new TagWriter(xmlDoc, writer);
-            this.operations = new OperationObjectWriter(xmlDoc, this.definitions, this.tags, writer);
+            this.tags = new TagWriter(this.xmlDoc, writer);
+            this.operations = new OperationObjectWriter(this.xmlDoc, this.definitions, this.tags, writer);
         }
 
         /// <summary>

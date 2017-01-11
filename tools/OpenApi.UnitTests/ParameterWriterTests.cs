@@ -128,7 +128,7 @@
         {
             using (var stringWriter = new StringWriter())
             {
-                var parameterWriter = new ParameterWriter(new DefinitionWriter(null), stringWriter);
+                var parameterWriter = new ParameterWriter(new DefinitionWriter(null, null), stringWriter);
                 action(parameterWriter);
                 return JsonConvert.DeserializeObject(stringWriter.ToString());
             }
