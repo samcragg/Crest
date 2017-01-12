@@ -7,10 +7,7 @@ namespace Crest.OpenApi
 {
     using System;
     using System.IO;
-    using System.Reflection;
-    using System.Runtime.Loader;
     using Microsoft.Extensions.CommandLineUtils;
-    using Microsoft.Extensions.DependencyModel;
 
     /// <summary>
     /// Contains the main entry point for the program.
@@ -45,9 +42,6 @@ namespace Crest.OpenApi
         /// <returns>The code to return to the console.</returns>
         public static int Main(string[] args)
         {
-            // HACK: Easier to debug...
-            args = new[] { @"C:\Code\Crest\example\BasicExample\bin\Debug\netcoreapp1.0\BasicExample.dll", "-o", @"C:\output\doc" };
-
             var application = new CommandLineApplication(throwOnUnexpectedArg: false);
             application.Name = "crest_open_api";
             application.FullName = "Crest OpenAPI documentation generator.";
@@ -58,27 +52,6 @@ namespace Crest.OpenApi
             application.OnExecute(new Func<int>(program.OnExecute));
 
             return application.Execute(args);
-        }
-
-        private int OnExecute()
-        {
-            try
-            {
-                XmlDocParser xmlDoc = this.LoadDocumentation();
-                using (var loader = new AssemblyLoader(this.assemblyName.Value))
-                {
-                    var generator = new DocGenerator(loader.Assembly, xmlDoc);
-                    generator.CreateFiles(this.GetOutputDirectory());
-                }
-
-                return 0;
-            }
-            catch (Exception ex)
-            {
-                Console.Error.WriteLine("An unexpected error has occurred:");
-                Console.Error.WriteLine("    " + ex.Message);
-                return -1;
-            }
         }
 
         private string GetOutputDirectory()
@@ -108,6 +81,27 @@ namespace Crest.OpenApi
             using (Stream file = File.OpenRead(path))
             {
                 return new XmlDocParser(file);
+            }
+        }
+
+        private int OnExecute()
+        {
+            try
+            {
+                XmlDocParser xmlDoc = this.LoadDocumentation();
+                using (var loader = new AssemblyLoader(this.assemblyName.Value))
+                {
+                    var generator = new DocGenerator(loader.Assembly, xmlDoc);
+                    generator.CreateFiles(this.GetOutputDirectory());
+                }
+
+                return 0;
+            }
+            catch (Exception ex)
+            {
+                Console.Error.WriteLine("An unexpected error has occurred:");
+                Console.Error.WriteLine("    " + ex.Message);
+                return -1;
             }
         }
     }
