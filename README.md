@@ -1,6 +1,6 @@
 # Crest
 
-![Icon](https://raw.github.com/samcragg/Crest/master/docs/images/Icon.svg)
+![Icon](https://cdn.rawgit.com/samcragg/Crest/52010cbfabb5892d923d591a419122591a8085a1/docs/images/Icon.svg)
 
 [![Build status](https://ci.appveyor.com/api/projects/status/spal08yea33stdlw/branch/master?svg=true)](https://ci.appveyor.com/project/samcragg/crest/branch/master) [![Coverage Status](https://coveralls.io/repos/github/samcragg/Crest/badge.svg?branch=master)](https://coveralls.io/github/samcragg/Crest?branch=master) ![License](https://img.shields.io/github/license/samcragg/crest.svg)
 
