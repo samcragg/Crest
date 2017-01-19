@@ -19,6 +19,25 @@ namespace Crest.Host
     public abstract partial class Bootstrapper : IDisposable
     {
         private readonly ContainerAdapter adapter = new ContainerAdapter();
+        private readonly ServiceLocator serviceLocator;
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="Bootstrapper"/> class.
+        /// </summary>
+        protected Bootstrapper()
+            : this(new ServiceLocator())
+        {
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="Bootstrapper"/> class.
+        /// </summary>
+        /// <param name="serviceLocator">Used to locate the services.</param>
+        protected Bootstrapper(ServiceLocator serviceLocator)
+        {
+            Check.IsNotNull(serviceLocator, nameof(serviceLocator));
+            this.serviceLocator = serviceLocator;
+        }
 
         /// <summary>
         /// Finalizes an instance of the <see cref="Bootstrapper"/> class.
@@ -26,6 +45,18 @@ namespace Crest.Host
         ~Bootstrapper()
         {
             this.Dispose(false);
+        }
+
+        /// <summary>
+        /// Gets the instance to use to resolve services.
+        /// </summary>
+        public ServiceLocator ServiceLocator
+        {
+            get
+            {
+                this.ThrowIfDisposed();
+                return this.serviceLocator;
+            }
         }
 
         /// <summary>
@@ -55,39 +86,6 @@ namespace Crest.Host
         }
 
         /// <summary>
-        /// Gets the registered plugins to call after processing a request.
-        /// </summary>
-        /// <returns>A sequence of registered plugins.</returns>
-        public virtual IPostRequestPlugin[] GetAfterRequestPlugins()
-        {
-            this.ThrowIfDisposed();
-
-            return (IPostRequestPlugin[])this.ServiceProvider.GetService(typeof(IPostRequestPlugin[]));
-        }
-
-        /// <summary>
-        /// Gets the registered plugins to call before processing a request.
-        /// </summary>
-        /// <returns>A sequence of registered plugins.</returns>
-        public virtual IPreRequestPlugin[] GetBeforeRequestPlugins()
-        {
-            this.ThrowIfDisposed();
-
-            return (IPreRequestPlugin[])this.ServiceProvider.GetService(typeof(IPreRequestPlugin[]));
-        }
-
-        /// <summary>
-        /// Gets the registered plugins to handle generated exceptions.
-        /// </summary>
-        /// <returns>A sequence of registered plugins.</returns>
-        public virtual IErrorHandlerPlugin[] GetErrorHandlers()
-        {
-            this.ThrowIfDisposed();
-
-            return (IErrorHandlerPlugin[])this.ServiceProvider.GetService(typeof(IErrorHandlerPlugin[]));
-        }
-
-        /// <summary>
         /// Resolves the specified service.
         /// </summary>
         /// <typeparam name="T">The type of the service to resolve.</typeparam>
@@ -114,6 +112,7 @@ namespace Crest.Host
                 if (disposing)
                 {
                     this.adapter.Container.Dispose();
+                    this.serviceLocator.Dispose();
                 }
 
                 this.IsDisposed = true;
@@ -121,39 +120,18 @@ namespace Crest.Host
         }
 
         /// <summary>
-        /// Gets the service to use for discovering assemblies and types.
-        /// </summary>
-        /// <returns>An object implementing <see cref="IDiscoveryService"/>.</returns>
-        protected virtual ConfigurationService GetConfigurationService()
-        {
-            var providers = (IEnumerable<IConfigurationProvider>)this.ServiceProvider.GetService(
-                typeof(IEnumerable<IConfigurationProvider>));
-
-            return new ConfigurationService(providers);
-        }
-
-        /// <summary>
-        /// Gets the service to use for discovering assemblies and types.
-        /// </summary>
-        /// <returns>An object implementing <see cref="IDiscoveryService"/>.</returns>
-        protected virtual IDiscoveryService GetDiscoveryService()
-        {
-            return (IDiscoveryService)this.ServiceProvider.GetService(typeof(IDiscoveryService));
-        }
-
-        /// <summary>
         /// Initializes the container and routes.
         /// </summary>
         protected void Initialize()
         {
-            IDiscoveryService discovery = this.GetDiscoveryService();
+            IDiscoveryService discovery = this.serviceLocator.GetDiscoveryService();
             IReadOnlyCollection<Type> types = this.RegisterTypes(discovery);
 
             List<RouteMetadata> routes =
                 types.SelectMany(t => this.GetRoutes(discovery, t)).ToList();
             this.RegisterInstance(typeof(IRouteMapper), new RouteMapper(routes));
 
-            ConfigurationService configuration = this.GetConfigurationService();
+            ConfigurationService configuration = this.serviceLocator.GetConfigurationService();
             configuration.InitializeProviders(types).Wait();
             this.adapter.Container.RegisterInitializer<object>(
                 (instance, _) => configuration.InitializeInstance(instance, this.ServiceProvider),

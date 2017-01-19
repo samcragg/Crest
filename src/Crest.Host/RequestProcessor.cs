@@ -26,6 +26,7 @@ namespace Crest.Host
         private readonly IContentConverterFactory converterFactory;
         private readonly IRouteMapper mapper;
         private readonly ResponseGenerator responseGenerator;
+        private readonly ServiceLocator serviceLocator;
         private readonly BlockStreamPool streamPool = new BlockStreamPool();
 
         /// <summary>
@@ -40,6 +41,7 @@ namespace Crest.Host
             this.converterFactory = bootstrapper.GetService<IContentConverterFactory>();
             this.mapper = bootstrapper.GetService<IRouteMapper>();
             this.responseGenerator = bootstrapper.GetService<ResponseGenerator>();
+            this.serviceLocator = bootstrapper.ServiceLocator;
         }
 
         // NOTE: The methods here should just be protected, however, they've
@@ -143,7 +145,7 @@ namespace Crest.Host
         /// </returns>
         protected internal virtual async Task<IResponseData> OnAfterRequestAsync(IRequestData request, IResponseData response)
         {
-            IPostRequestPlugin[] plugins = this.bootstrapper.GetAfterRequestPlugins();
+            IPostRequestPlugin[] plugins = this.serviceLocator.GetAfterRequestPlugins();
             Array.Sort(plugins, (a, b) => a.Order.CompareTo(b.Order));
 
             for (int i = 0; i < plugins.Length; i++)
@@ -170,7 +172,7 @@ namespace Crest.Host
         /// </remarks>
         protected internal virtual async Task<IResponseData> OnBeforeRequestAsync(IRequestData request)
         {
-            IPreRequestPlugin[] plugins = this.bootstrapper.GetBeforeRequestPlugins();
+            IPreRequestPlugin[] plugins = this.serviceLocator.GetBeforeRequestPlugins();
             Array.Sort(plugins, (a, b) => a.Order.CompareTo(b.Order));
 
             for (int i = 0; i < plugins.Length; i++)
@@ -196,7 +198,7 @@ namespace Crest.Host
         /// </returns>
         protected internal virtual Task<IResponseData> OnErrorAsync(IRequestData request, Exception exception)
         {
-            IErrorHandlerPlugin[] plugins = this.bootstrapper.GetErrorHandlers();
+            IErrorHandlerPlugin[] plugins = this.serviceLocator.GetErrorHandlers();
             Array.Sort(plugins, (a, b) => a.Order.CompareTo(b.Order));
 
             for (int i = 0; i < plugins.Length; i++)

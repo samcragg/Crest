@@ -22,11 +22,13 @@
         private RequestProcessor processor;
         private IRequestData request;
         private ResponseGenerator responseGenerator;
+        private ServiceLocator serviceLocator;
 
         [SetUp]
         public void SetUp()
         {
-            this.bootstrapper = Substitute.For<Bootstrapper>();
+            this.serviceLocator = Substitute.For<ServiceLocator>();
+            this.bootstrapper = Substitute.For<Bootstrapper>(this.serviceLocator);
             this.converterFactory = Substitute.For<IContentConverterFactory>();
             this.mapper = Substitute.For<IRouteMapper>();
             this.request = Substitute.For<IRequestData>();
@@ -214,7 +216,7 @@
             IPostRequestPlugin one = CreatePostRequestPlugin(1);
             IPostRequestPlugin two = CreatePostRequestPlugin(2);
             IPostRequestPlugin three = CreatePostRequestPlugin(3);
-            this.bootstrapper.GetAfterRequestPlugins().Returns(new[] { three, one, two });
+            this.serviceLocator.GetAfterRequestPlugins().Returns(new[] { three, one, two });
 
             await this.processor.OnAfterRequestAsync(this.request, Substitute.For<IResponseData>());
 
@@ -232,7 +234,7 @@
             IPreRequestPlugin one = CreatePreRequestPlugin(1);
             IPreRequestPlugin two = CreatePreRequestPlugin(2);
             IPreRequestPlugin three = CreatePreRequestPlugin(3);
-            this.bootstrapper.GetBeforeRequestPlugins().Returns(new[] { three, one, two });
+            this.serviceLocator.GetBeforeRequestPlugins().Returns(new[] { three, one, two });
 
             await this.processor.OnBeforeRequestAsync(this.request);
 
@@ -250,7 +252,7 @@
             IResponseData response = Substitute.For<IResponseData>();
             IPreRequestPlugin plugin = CreatePreRequestPlugin(1);
             plugin.ProcessAsync(this.request).Returns(response);
-            this.bootstrapper.GetBeforeRequestPlugins().Returns(new[] { plugin });
+            this.serviceLocator.GetBeforeRequestPlugins().Returns(new[] { plugin });
 
             IResponseData result = await this.processor.OnBeforeRequestAsync(this.request);
 
@@ -264,7 +266,7 @@
             IErrorHandlerPlugin one = CreateErrorHandlerPlugin(1);
             IErrorHandlerPlugin two = CreateErrorHandlerPlugin(2);
             IErrorHandlerPlugin three = CreateErrorHandlerPlugin(3);
-            this.bootstrapper.GetErrorHandlers().Returns(new[] { three, one, two });
+            this.serviceLocator.GetErrorHandlers().Returns(new[] { three, one, two });
 
             await this.processor.OnErrorAsync(this.request, exception);
 
@@ -282,7 +284,7 @@
             Exception exception = new DivideByZeroException();
             IErrorHandlerPlugin plugin = CreateErrorHandlerPlugin(1);
             plugin.CanHandle(exception).Returns(true);
-            this.bootstrapper.GetErrorHandlers().Returns(new[] { plugin });
+            this.serviceLocator.GetErrorHandlers().Returns(new[] { plugin });
 
             await this.processor.OnErrorAsync(this.request, exception);
 
