@@ -48,6 +48,15 @@ namespace Crest.Host
         }
 
         /// <summary>
+        /// Gets the discovered routes mapped with their methods.
+        /// </summary>
+        public virtual IRouteMapper RouteMapper
+        {
+            get;
+            private set;
+        }
+
+        /// <summary>
         /// Gets the instance to use to resolve services.
         /// </summary>
         public ServiceLocator ServiceLocator
@@ -129,7 +138,7 @@ namespace Crest.Host
 
             List<RouteMetadata> routes =
                 types.SelectMany(t => this.GetRoutes(discovery, t)).ToList();
-            this.RegisterInstance(typeof(IRouteMapper), new RouteMapper(routes));
+            this.RouteMapper = new RouteMapper(routes);
 
             ConfigurationService configuration = this.serviceLocator.GetConfigurationService();
             configuration.InitializeProviders(types).Wait();

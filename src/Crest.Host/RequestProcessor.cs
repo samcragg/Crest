@@ -37,9 +37,9 @@ namespace Crest.Host
             Check.IsNotNull(bootstrapper, nameof(bootstrapper));
 
             this.serviceLocator = bootstrapper.ServiceLocator;
+            this.mapper = bootstrapper.RouteMapper;
 
             this.converterFactory = this.serviceLocator.GetContentConverterFactory();
-            this.mapper = bootstrapper.GetService<IRouteMapper>();
             this.responseGenerator = bootstrapper.GetService<ResponseGenerator>();
         }
 

@@ -138,6 +138,16 @@
         }
 
         [Test]
+        public void InitializeShouldSetTheRouteMapper()
+        {
+            Assert.That(this.bootstrapper.RouteMapper, Is.Null);
+
+            this.bootstrapper.Initialize();
+
+            Assert.That(this.bootstrapper.RouteMapper, Is.Not.Null);
+        }
+
+        [Test]
         public void InitializeShouldSetTheRouteMetadataFactory()
         {
             var metadata = new RouteMetadata

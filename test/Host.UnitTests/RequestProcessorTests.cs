@@ -38,7 +38,7 @@
 
             this.serviceLocator.GetContentConverterFactory().Returns(this.converterFactory);
 
-            this.bootstrapper.GetService<IRouteMapper>().Returns(this.mapper);
+            this.bootstrapper.RouteMapper.Returns(this.mapper);
             this.bootstrapper.GetService<ResponseGenerator>().Returns(this.responseGenerator);
 
             // NOTE: We're using ForPartsOf - make sure that all setup calls
