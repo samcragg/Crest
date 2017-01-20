@@ -32,10 +32,12 @@
             this.converterFactory = Substitute.For<IContentConverterFactory>();
             this.mapper = Substitute.For<IRouteMapper>();
             this.request = Substitute.For<IRequestData>();
-            this.request.Handler.Returns(Substitute.For<MethodInfo>());
             this.responseGenerator = Substitute.For<ResponseGenerator>(Enumerable.Empty<StatusCodeHandler>());
 
-            this.bootstrapper.GetService<IContentConverterFactory>().Returns(this.converterFactory);
+            this.request.Handler.Returns(Substitute.For<MethodInfo>());
+
+            this.serviceLocator.GetContentConverterFactory().Returns(this.converterFactory);
+
             this.bootstrapper.GetService<IRouteMapper>().Returns(this.mapper);
             this.bootstrapper.GetService<ResponseGenerator>().Returns(this.responseGenerator);
 

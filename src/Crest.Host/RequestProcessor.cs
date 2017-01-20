@@ -22,7 +22,6 @@ namespace Crest.Host
     public abstract partial class RequestProcessor
     {
         private static readonly Task<IResponseData> EmptyResponse = Task.FromResult<IResponseData>(null);
-        private readonly Bootstrapper bootstrapper;
         private readonly IContentConverterFactory converterFactory;
         private readonly IRouteMapper mapper;
         private readonly ResponseGenerator responseGenerator;
@@ -37,11 +36,11 @@ namespace Crest.Host
         {
             Check.IsNotNull(bootstrapper, nameof(bootstrapper));
 
-            this.bootstrapper = bootstrapper;
-            this.converterFactory = bootstrapper.GetService<IContentConverterFactory>();
+            this.serviceLocator = bootstrapper.ServiceLocator;
+
+            this.converterFactory = this.serviceLocator.GetContentConverterFactory();
             this.mapper = bootstrapper.GetService<IRouteMapper>();
             this.responseGenerator = bootstrapper.GetService<ResponseGenerator>();
-            this.serviceLocator = bootstrapper.ServiceLocator;
         }
 
         // NOTE: The methods here should just be protected, however, they've

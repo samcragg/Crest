@@ -2,6 +2,7 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Reflection;
     using System.Threading.Tasks;
     using Crest.Host;
     using Crest.Host.Engine;
@@ -128,39 +129,6 @@
         }
 
         [Test]
-        public void GetDiscoveryServiceShouldCheckForDisposed()
-        {
-            this.locator.Dispose();
-
-            Assert.That(
-                () => this.locator.GetDiscoveryService(),
-                Throws.InstanceOf<ObjectDisposedException>());
-        }
-
-        [Test]
-        public void GetDiscoveryServiceShouldGetTheServiceFromTheContainer()
-        {
-            IDiscoveryService discoveryService = Substitute.For<IDiscoveryService>();
-            this.container.Resolve(typeof(IDiscoveryService[]))
-                .Returns(new[] { discoveryService });
-
-            IDiscoveryService result = this.locator.GetDiscoveryService();
-
-            Assert.That(result, Is.SameAs(discoveryService));
-        }
-
-        [Test]
-        public void GetDiscoveryServiceShouldReturnADefaultRegisteredInstance()
-        {
-            using (var serviceLocator = new ServiceLocator())
-            {
-                IDiscoveryService result = serviceLocator.GetDiscoveryService();
-
-                Assert.That(result, Is.Not.Null);
-            }
-        }
-
-        [Test]
         public void GetErrorHandlersShouldCheckForDisposed()
         {
             this.locator.Dispose();
@@ -182,34 +150,48 @@
             Assert.That(result, Is.SameAs(plugins));
         }
 
-        [Test]
-        public void GetHtmlTemplateProviderShouldCheckForDisposed()
+        [TestCase(nameof(ServiceLocator.GetContentConverterFactory))]
+        [TestCase(nameof(ServiceLocator.GetDiscoveryService))]
+        [TestCase(nameof(ServiceLocator.GetHtmlTemplateProvider))]
+        public void GetServiceShouldCheckForDisposed(string methodName)
         {
+            MethodInfo method = typeof(ServiceLocator).GetMethod(methodName);
+
             this.locator.Dispose();
 
+            // Throws TargetInvocationException, so check the inner exception
             Assert.That(
-                () => this.locator.GetHtmlTemplateProvider(),
-                Throws.InstanceOf<ObjectDisposedException>());
+                () => method.Invoke(this.locator, null),
+                Throws.InnerException.InstanceOf<ObjectDisposedException>());
         }
 
-        [Test]
-        public void GetHtmlTemplateProviderShouldReturnTheValueFromTheContainer()
+        [TestCase(nameof(ServiceLocator.GetContentConverterFactory))]
+        [TestCase(nameof(ServiceLocator.GetDiscoveryService))]
+        [TestCase(nameof(ServiceLocator.GetHtmlTemplateProvider))]
+        public void GetServiceShouldGetTheServiceFromTheContainer(string methodName)
         {
-            IHtmlTemplateProvider provider = Substitute.For<IHtmlTemplateProvider>();
-            this.container.Resolve(typeof(IHtmlTemplateProvider[]))
-                .Returns(new[] { provider });
+            MethodInfo method = typeof(ServiceLocator).GetMethod(methodName);
 
-            IHtmlTemplateProvider result = this.locator.GetHtmlTemplateProvider();
+            // The expected type is an array as that's how the TryResolve method
+            // determines whether there is a registered instance or not
+            Type expectedType = method.ReturnType.MakeArrayType();
+            this.container.Resolve(null).ReturnsForAnyArgs(Array.CreateInstance(method.ReturnType, 1));
 
-            Assert.That(result, Is.SameAs(provider));
+            method.Invoke(this.locator, null);
+
+            this.container.Received().Resolve(expectedType);
         }
 
-        [Test]
-        public void GetHtmlTemplateProviderShouldReturnADefaultRegisteredInstance()
+        [TestCase(nameof(ServiceLocator.GetContentConverterFactory))]
+        [TestCase(nameof(ServiceLocator.GetDiscoveryService))]
+        [TestCase(nameof(ServiceLocator.GetHtmlTemplateProvider))]
+        public void GetServiceShouldReturnADefaultRegisteredInstance(string methodName)
         {
+            MethodInfo method = typeof(ServiceLocator).GetMethod(methodName);
+
             using (var serviceLocator = new ServiceLocator())
             {
-                IHtmlTemplateProvider result = serviceLocator.GetHtmlTemplateProvider();
+                object result = method.Invoke(serviceLocator, null);
 
                 Assert.That(result, Is.Not.Null);
             }

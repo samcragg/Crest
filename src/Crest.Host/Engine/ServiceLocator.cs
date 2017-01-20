@@ -86,13 +86,24 @@ namespace Crest.Host.Engine
         /// <summary>
         /// Gets the service to use for providing configuration data.
         /// </summary>
-        /// <returns>An object implementing <see cref="IDiscoveryService"/>.</returns>
+        /// <returns>An object based on <see cref="ConfigurationService"/>.</returns>
         public virtual ConfigurationService GetConfigurationService()
         {
             this.ThrowIfDisposed();
 
             var providers = this.Resolve<IEnumerable<IConfigurationProvider>>();
             return new ConfigurationService(providers);
+        }
+
+        /// <summary>
+        /// Gets the service to use for providing content converters for requests.
+        /// </summary>
+        /// <returns>An object implementing <see cref="IContentConverterFactory"/>.</returns>
+        public virtual IContentConverterFactory GetContentConverterFactory()
+        {
+            this.ThrowIfDisposed();
+
+            return this.TryResolve<IContentConverterFactory, ContentConverterFactory>();
         }
 
         /// <summary>
