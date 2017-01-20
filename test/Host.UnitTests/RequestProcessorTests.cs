@@ -22,17 +22,19 @@
         private RequestProcessor processor;
         private IRequestData request;
         private ResponseGenerator responseGenerator;
-        private ServiceLocator serviceLocator;
+        private IServiceLocator serviceLocator;
 
         [SetUp]
         public void SetUp()
         {
-            this.serviceLocator = Substitute.For<ServiceLocator>();
-            this.bootstrapper = Substitute.For<Bootstrapper>(this.serviceLocator);
+            IServiceRegister register = Substitute.For<IServiceRegister>();
+            this.bootstrapper = Substitute.For<Bootstrapper>(register);
+
             this.converterFactory = Substitute.For<IContentConverterFactory>();
             this.mapper = Substitute.For<IRouteMapper>();
             this.request = Substitute.For<IRequestData>();
             this.responseGenerator = Substitute.For<ResponseGenerator>(Enumerable.Empty<StatusCodeHandler>());
+            this.serviceLocator = register;
 
             this.request.Handler.Returns(Substitute.For<MethodInfo>());
 

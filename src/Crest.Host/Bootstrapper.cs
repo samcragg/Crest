@@ -19,7 +19,7 @@ namespace Crest.Host
     public abstract partial class Bootstrapper : IDisposable
     {
         private readonly ContainerAdapter adapter = new ContainerAdapter();
-        private readonly ServiceLocator serviceLocator;
+        private readonly IServiceRegister serviceRegister;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="Bootstrapper"/> class.
@@ -32,11 +32,11 @@ namespace Crest.Host
         /// <summary>
         /// Initializes a new instance of the <see cref="Bootstrapper"/> class.
         /// </summary>
-        /// <param name="serviceLocator">Used to locate the services.</param>
-        protected Bootstrapper(ServiceLocator serviceLocator)
+        /// <param name="serviceRegister">Used to locate the services.</param>
+        protected Bootstrapper(IServiceRegister serviceRegister)
         {
-            Check.IsNotNull(serviceLocator, nameof(serviceLocator));
-            this.serviceLocator = serviceLocator;
+            Check.IsNotNull(serviceRegister, nameof(serviceRegister));
+            this.serviceRegister = serviceRegister;
         }
 
         /// <summary>
@@ -59,12 +59,12 @@ namespace Crest.Host
         /// <summary>
         /// Gets the instance to use to resolve services.
         /// </summary>
-        public ServiceLocator ServiceLocator
+        public IServiceLocator ServiceLocator
         {
             get
             {
                 this.ThrowIfDisposed();
-                return this.serviceLocator;
+                return this.serviceRegister;
             }
         }
 
@@ -121,7 +121,7 @@ namespace Crest.Host
                 if (disposing)
                 {
                     this.adapter.Container.Dispose();
-                    this.serviceLocator.Dispose();
+                    this.serviceRegister.Dispose();
                 }
 
                 this.IsDisposed = true;
@@ -133,31 +133,18 @@ namespace Crest.Host
         /// </summary>
         protected void Initialize()
         {
-            IDiscoveryService discovery = this.serviceLocator.GetDiscoveryService();
+            IDiscoveryService discovery = this.ServiceLocator.GetDiscoveryService();
             IReadOnlyCollection<Type> types = this.RegisterTypes(discovery);
 
             List<RouteMetadata> routes =
                 types.SelectMany(t => this.GetRoutes(discovery, t)).ToList();
             this.RouteMapper = new RouteMapper(routes);
 
-            ConfigurationService configuration = this.serviceLocator.GetConfigurationService();
+            ConfigurationService configuration = this.ServiceLocator.GetConfigurationService();
             configuration.InitializeProviders(types).Wait();
             this.adapter.Container.RegisterInitializer<object>(
                 (instance, _) => configuration.InitializeInstance(instance, this.ServiceProvider),
                 r => configuration.CanConfigure(r.ServiceType));
-        }
-
-        /// <summary>
-        /// Registers a specific instance against a service type.
-        /// </summary>
-        /// <param name="service">The type of the service.</param>
-        /// <param name="instance">
-        /// The object instance to return when asked for the specified service.
-        /// </param>
-        protected virtual void RegisterInstance(Type service, object instance)
-        {
-            this.adapter.Container.Unregister(service);
-            this.adapter.Container.UseInstance(service, instance);
         }
 
         /// <summary>

@@ -13,7 +13,7 @@ namespace Crest.Host.Engine
     /// <summary>
     /// Creates the instances of interfaces required during initialization.
     /// </summary>
-    public class ServiceLocator : IDisposable
+    public class ServiceLocator : IServiceRegister
     {
         private readonly IContainer container;
 
@@ -61,33 +61,24 @@ namespace Crest.Host.Engine
             GC.SuppressFinalize(this);
         }
 
-        /// <summary>
-        /// Gets the registered plugins to call after processing a request.
-        /// </summary>
-        /// <returns>A sequence of registered plugins.</returns>
-        public virtual IPostRequestPlugin[] GetAfterRequestPlugins()
+        /// <inheritdoc />
+        public IPostRequestPlugin[] GetAfterRequestPlugins()
         {
             this.ThrowIfDisposed();
 
             return this.Resolve<IPostRequestPlugin[]>();
         }
 
-        /// <summary>
-        /// Gets the registered plugins to call before processing a request.
-        /// </summary>
-        /// <returns>A sequence of registered plugins.</returns>
-        public virtual IPreRequestPlugin[] GetBeforeRequestPlugins()
+        /// <inheritdoc />
+        public IPreRequestPlugin[] GetBeforeRequestPlugins()
         {
             this.ThrowIfDisposed();
 
             return this.Resolve<IPreRequestPlugin[]>();
         }
 
-        /// <summary>
-        /// Gets the service to use for providing configuration data.
-        /// </summary>
-        /// <returns>An object based on <see cref="ConfigurationService"/>.</returns>
-        public virtual ConfigurationService GetConfigurationService()
+        /// <inheritdoc />
+        public ConfigurationService GetConfigurationService()
         {
             this.ThrowIfDisposed();
 
@@ -95,48 +86,54 @@ namespace Crest.Host.Engine
             return new ConfigurationService(providers);
         }
 
-        /// <summary>
-        /// Gets the service to use for providing content converters for requests.
-        /// </summary>
-        /// <returns>An object implementing <see cref="IContentConverterFactory"/>.</returns>
-        public virtual IContentConverterFactory GetContentConverterFactory()
+        /// <inheritdoc />
+        public IContentConverterFactory GetContentConverterFactory()
         {
             this.ThrowIfDisposed();
 
             return this.TryResolve<IContentConverterFactory, ContentConverterFactory>();
         }
 
-        /// <summary>
-        /// Gets the service to use for discovering assemblies and types.
-        /// </summary>
-        /// <returns>An object implementing <see cref="IDiscoveryService"/>.</returns>
-        public virtual IDiscoveryService GetDiscoveryService()
+        /// <inheritdoc />
+        public IDiscoveryService GetDiscoveryService()
         {
             this.ThrowIfDisposed();
 
             return this.TryResolve<IDiscoveryService, DiscoveryService>();
         }
 
-        /// <summary>
-        /// Gets the registered plugins to handle generated exceptions.
-        /// </summary>
-        /// <returns>A sequence of registered plugins.</returns>
-        public virtual IErrorHandlerPlugin[] GetErrorHandlers()
+        /// <inheritdoc />
+        public IErrorHandlerPlugin[] GetErrorHandlers()
         {
             this.ThrowIfDisposed();
 
             return this.Resolve<IErrorHandlerPlugin[]>();
         }
 
-        /// <summary>
-        /// Gets the service to use for providing the template for generated HTML.
-        /// </summary>
-        /// <returns>An object implementing <see cref="IHtmlTemplateProvider"/>.</returns>
-        public virtual IHtmlTemplateProvider GetHtmlTemplateProvider()
+        /// <inheritdoc />
+        public IHtmlTemplateProvider GetHtmlTemplateProvider()
         {
             this.ThrowIfDisposed();
 
             return this.TryResolve<IHtmlTemplateProvider, HtmlTemplateProvider>();
+        }
+
+        /// <inheritdoc />
+        public void RegisterFactory(Type serviceType, Func<object> factory)
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <inheritdoc />
+        public void RegisterInitializer(Action<object> initialize, Func<Type, bool> condition)
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <inheritdoc />
+        public void RegisterMany(IEnumerable<Type> types)
+        {
+            throw new NotImplementedException();
         }
 
         /// <summary>

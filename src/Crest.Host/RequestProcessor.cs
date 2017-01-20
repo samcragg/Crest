@@ -25,7 +25,7 @@ namespace Crest.Host
         private readonly IContentConverterFactory converterFactory;
         private readonly IRouteMapper mapper;
         private readonly ResponseGenerator responseGenerator;
-        private readonly ServiceLocator serviceLocator;
+        private readonly IServiceLocator serviceLocator;
         private readonly BlockStreamPool streamPool = new BlockStreamPool();
 
         /// <summary>

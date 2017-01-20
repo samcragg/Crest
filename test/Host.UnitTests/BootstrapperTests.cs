@@ -15,7 +15,7 @@
     {
         private FakeBootstrapper bootstrapper;
         private IDiscoveryService discoveryService;
-        private ServiceLocator servicerLocator;
+        private IServiceRegister serviceRegister;
 
         [SetUp]
         public void SetUp()
@@ -24,10 +24,10 @@
             this.discoveryService.GetDiscoveredTypes()
                 .Returns(new[] { typeof(IFakeInterface), typeof(FakeClass) });
 
-            this.servicerLocator = Substitute.For<ServiceLocator>();
-            this.servicerLocator.GetDiscoveryService().Returns(this.discoveryService);
+            this.serviceRegister = Substitute.For<IServiceRegister>();
+            this.serviceRegister.GetDiscoveryService().Returns(this.discoveryService);
 
-            this.bootstrapper = new FakeBootstrapper(this.servicerLocator);
+            this.bootstrapper = new FakeBootstrapper(this.serviceRegister);
         }
 
         [Test]
@@ -43,7 +43,7 @@
         [Test]
         public void ServiceLocatorShouldReturnTheValuePassedToTheConstructor()
         {
-            Assert.That(this.bootstrapper.ServiceLocator, Is.SameAs(this.servicerLocator));
+            Assert.That(this.bootstrapper.ServiceLocator, Is.SameAs(this.serviceRegister));
         }
 
         [Test]
@@ -77,10 +77,7 @@
         {
             this.bootstrapper.Dispose();
 
-            IEnumerable<string> calls =
-                this.servicerLocator.ReceivedCalls().Select(c => c.GetMethodInfo().Name);
-
-            Assert.That(calls.Single(), Is.EqualTo("Dispose"));
+            this.serviceRegister.Received().Dispose();
         }
 
         [Test]
@@ -189,7 +186,7 @@
         public void InitializeShouldInitializeTheConfigurationService()
         {
             ConfigurationService configurationService = Substitute.For<ConfigurationService>();
-            this.servicerLocator.GetConfigurationService()
+            this.serviceRegister.GetConfigurationService()
                 .Returns(configurationService);
 
             this.bootstrapper.Initialize();
@@ -260,8 +257,8 @@
 
         private class FakeBootstrapper : Bootstrapper
         {
-            internal FakeBootstrapper(ServiceLocator locator)
-                : base(locator)
+            internal FakeBootstrapper(IServiceRegister register)
+                : base(register)
             {
             }
 
