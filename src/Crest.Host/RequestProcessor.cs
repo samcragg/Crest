@@ -24,7 +24,7 @@ namespace Crest.Host
         private static readonly Task<IResponseData> EmptyResponse = Task.FromResult<IResponseData>(null);
         private readonly IContentConverterFactory converterFactory;
         private readonly IRouteMapper mapper;
-        private readonly ResponseGenerator responseGenerator;
+        private readonly IResponseStatusGenerator responseGenerator;
         private readonly IServiceLocator serviceLocator;
         private readonly BlockStreamPool streamPool = new BlockStreamPool();
 
@@ -40,7 +40,7 @@ namespace Crest.Host
             this.mapper = bootstrapper.RouteMapper;
 
             this.converterFactory = this.serviceLocator.GetContentConverterFactory();
-            this.responseGenerator = bootstrapper.GetService<ResponseGenerator>();
+            this.responseGenerator = this.serviceLocator.GetResponseStatusGenerator();
         }
 
         // NOTE: The methods here should just be protected, however, they've

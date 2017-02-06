@@ -53,5 +53,12 @@ namespace Crest.Host.Engine
         /// </summary>
         /// <returns>An object implementing <see cref="IHtmlTemplateProvider"/>.</returns>
         IHtmlTemplateProvider GetHtmlTemplateProvider();
+
+        /// <summary>
+        /// Gets the service to use to generate responses for various status
+        /// codes.
+        /// </summary>
+        /// <returns>An object implementing <see cref="IResponseStatusGenerator"/>.</returns>
+        IResponseStatusGenerator GetResponseStatusGenerator();
     }
 }

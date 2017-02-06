@@ -153,6 +153,7 @@
         [TestCase(nameof(ServiceLocator.GetContentConverterFactory))]
         [TestCase(nameof(ServiceLocator.GetDiscoveryService))]
         [TestCase(nameof(ServiceLocator.GetHtmlTemplateProvider))]
+        [TestCase(nameof(ServiceLocator.GetResponseStatusGenerator))]
         public void GetServiceShouldCheckForDisposed(string methodName)
         {
             MethodInfo method = typeof(ServiceLocator).GetMethod(methodName);
@@ -168,6 +169,7 @@
         [TestCase(nameof(ServiceLocator.GetContentConverterFactory))]
         [TestCase(nameof(ServiceLocator.GetDiscoveryService))]
         [TestCase(nameof(ServiceLocator.GetHtmlTemplateProvider))]
+        [TestCase(nameof(ServiceLocator.GetResponseStatusGenerator))]
         public void GetServiceShouldGetTheServiceFromTheContainer(string methodName)
         {
             MethodInfo method = typeof(ServiceLocator).GetMethod(methodName);
@@ -185,6 +187,7 @@
         [TestCase(nameof(ServiceLocator.GetContentConverterFactory))]
         [TestCase(nameof(ServiceLocator.GetDiscoveryService))]
         [TestCase(nameof(ServiceLocator.GetHtmlTemplateProvider))]
+        [TestCase(nameof(ServiceLocator.GetResponseStatusGenerator))]
         public void GetServiceShouldReturnADefaultRegisteredInstance(string methodName)
         {
             MethodInfo method = typeof(ServiceLocator).GetMethod(methodName);

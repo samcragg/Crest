@@ -15,11 +15,7 @@ namespace Crest.Host.Engine
     /// <summary>
     /// Generates responses for various status codes.
     /// </summary>
-    /// <remarks>
-    /// The class is unsealed and the methods are virtual to allow faking in
-    /// unit tests.
-    /// </remarks>
-    internal class ResponseGenerator
+    internal sealed class ResponseGenerator : IResponseStatusGenerator
     {
         private static readonly ResponseData NoContent =
             new ResponseData(string.Empty, (int)HttpStatusCode.NoContent);
@@ -42,51 +38,24 @@ namespace Crest.Host.Engine
             Array.Sort(this.handlers, (a, b) => a.Order.CompareTo(b.Order));
         }
 
-        /// <summary>
-        /// Generates a response for 204 No Content.
-        /// </summary>
-        /// <param name="request">The request to reply to.</param>
-        /// <param name="converter">
-        /// Allows the conversion to the requested content type.
-        /// </param>
-        /// <returns>
-        /// A task that represents the asynchronous operation. The value of the
-        /// <c>TResult</c> parameter contains the response to send.
-        /// </returns>
-        public virtual Task<IResponseData> NoContentAsync(IRequestData request, IContentConverter converter)
+        /// <inheritdoc />
+        public Task<IResponseData> NoContentAsync(IRequestData request, IContentConverter converter)
         {
             return this.FindResponse(
                 h => h.NoContentAsync(request, converter),
                 NoContent);
         }
 
-        /// <summary>
-        /// Generates a response for 406 Not Acceptable.
-        /// </summary>
-        /// <param name="request">The request to reply to.</param>
-        /// <returns>
-        /// A task that represents the asynchronous operation. The value of the
-        /// <c>TResult</c> parameter contains the response to send.
-        /// </returns>
-        public virtual Task<IResponseData> NotAcceptableAsync(IRequestData request)
+        /// <inheritdoc />
+        public Task<IResponseData> NotAcceptableAsync(IRequestData request)
         {
             return this.FindResponse(
                 h => h.NotAcceptableAsync(request),
                 NotAcceptable);
         }
 
-        /// <summary>
-        /// Generates a response for 404 Not Found.
-        /// </summary>
-        /// <param name="request">The request to reply to.</param>
-        /// <param name="converter">
-        /// Allows the conversion to the requested content type.
-        /// </param>
-        /// <returns>
-        /// A task that represents the asynchronous operation. The value of the
-        /// <c>TResult</c> parameter contains the response to send.
-        /// </returns>
-        public virtual Task<IResponseData> NotFoundAsync(IRequestData request, IContentConverter converter)
+        /// <inheritdoc />
+        public Task<IResponseData> NotFoundAsync(IRequestData request, IContentConverter converter)
         {
             return this.FindResponse(
                 h => h.NotFoundAsync(request, converter),

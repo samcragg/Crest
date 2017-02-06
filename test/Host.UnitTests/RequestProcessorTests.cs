@@ -21,7 +21,7 @@
         private IRouteMapper mapper;
         private RequestProcessor processor;
         private IRequestData request;
-        private ResponseGenerator responseGenerator;
+        private IResponseStatusGenerator responseGenerator;
         private IServiceLocator serviceLocator;
 
         [SetUp]
@@ -33,15 +33,15 @@
             this.converterFactory = Substitute.For<IContentConverterFactory>();
             this.mapper = Substitute.For<IRouteMapper>();
             this.request = Substitute.For<IRequestData>();
-            this.responseGenerator = Substitute.For<ResponseGenerator>(Enumerable.Empty<StatusCodeHandler>());
+            this.responseGenerator = Substitute.For<IResponseStatusGenerator>();
             this.serviceLocator = register;
 
             this.request.Handler.Returns(Substitute.For<MethodInfo>());
 
             this.serviceLocator.GetContentConverterFactory().Returns(this.converterFactory);
+            this.serviceLocator.GetResponseStatusGenerator().Returns(this.responseGenerator);
 
             this.bootstrapper.RouteMapper.Returns(this.mapper);
-            this.bootstrapper.GetService<ResponseGenerator>().Returns(this.responseGenerator);
 
             // NOTE: We're using ForPartsOf - make sure that all setup calls
             //       in tests use an argument matcher to avoid calling the real

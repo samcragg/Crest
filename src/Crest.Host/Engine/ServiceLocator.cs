@@ -119,6 +119,14 @@ namespace Crest.Host.Engine
         }
 
         /// <inheritdoc />
+        public IResponseStatusGenerator GetResponseStatusGenerator()
+        {
+            this.ThrowIfDisposed();
+
+            return this.TryResolve<IResponseStatusGenerator, ResponseGenerator>();
+        }
+
+        /// <inheritdoc />
         public void RegisterFactory(Type serviceType, Func<object> factory)
         {
             throw new NotImplementedException();
