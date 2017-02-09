@@ -121,8 +121,8 @@ namespace Crest.Host
             ConfigurationService configuration = this.ServiceLocator.GetConfigurationService();
             configuration.InitializeProviders(types).Wait();
             this.serviceRegister.RegisterInitializer(
-                instance => configuration.InitializeInstance(instance, this.serviceRegister),
-                configuration.CanConfigure);
+                configuration.CanConfigure,
+                instance => configuration.InitializeInstance(instance, this.serviceRegister));
         }
 
         /// <summary>

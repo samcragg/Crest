@@ -265,6 +265,48 @@
             }
         }
 
+        [Test]
+        public void RegisterInitializerShouldCheckForNulls()
+        {
+            Assert.That(
+                () => this.locator.RegisterInitializer(null, _ => { }),
+                Throws.InstanceOf<ArgumentNullException>());
+
+            Assert.That(
+                () => this.locator.RegisterInitializer(_ => false, null),
+                Throws.InstanceOf<ArgumentNullException>());
+        }
+
+        [Test]
+        public void RegisterInitializerShouldCheckForDisposed()
+        {
+            this.locator.Dispose();
+
+            Assert.That(
+                () => this.locator.RegisterInitializer(_ => false, _ => { }),
+                Throws.InstanceOf<ObjectDisposedException>());
+        }
+
+        [Test]
+        public void RegisterInitializerShouldCallTheFunctionsOnCreatedInstances()
+        {
+            using (var serviceLocator = new ServiceLocator())
+            {
+                object instance = null;
+                serviceLocator.RegisterInitializer(t => t == typeof(ExampleClass), i => instance = i);
+
+                // Need to register the type before you can resolve it...
+                serviceLocator.RegisterFactory(typeof(ExampleClass), () => new ExampleClass());
+                object result = serviceLocator.GetService(typeof(ExampleClass));
+
+                Assert.That(instance, Is.SameAs(result));
+            }
+        }
+
+        private class ExampleClass
+        {
+        }
+
         private class FakeServiceLocator : ServiceLocator
         {
             public FakeServiceLocator(IContainer container)

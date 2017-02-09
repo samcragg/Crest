@@ -25,11 +25,11 @@ namespace Crest.Host.Engine
         /// Registers an action that will be called after service is resolved
         /// just before returning it to caller.
         /// </summary>
-        /// <param name="initialize">Invoked to initialize an object.</param>
         /// <param name="condition">
         /// Determines whether a type should be initialized.
         /// </param>
-        void RegisterInitializer(Action<object> initialize, Func<Type, bool> condition);
+        /// <param name="initialize">Invoked to initialize an object.</param>
+        void RegisterInitializer(Func<Type, bool> condition, Action<object> initialize);
 
         /// <summary>
         /// Registers multiple known types, determining the services they

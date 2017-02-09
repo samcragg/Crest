@@ -149,9 +149,17 @@ namespace Crest.Host.Engine
         }
 
         /// <inheritdoc />
-        public void RegisterInitializer(Action<object> initialize, Func<Type, bool> condition)
+        public void RegisterInitializer(Func<Type, bool> condition, Action<object> initialize)
         {
-            throw new NotImplementedException();
+            Check.IsNotNull(initialize, nameof(initialize));
+            Check.IsNotNull(condition, nameof(condition));
+            this.ThrowIfDisposed();
+
+            // The ImplementationType will be null if we're using a factory
+            // to create the type, hence the fall-back to service type.
+            this.container.RegisterInitializer<object>(
+                (instance, _) => initialize(instance),
+                ri => condition(ri.ImplementationType ?? ri.ServiceType));
         }
 
         /// <inheritdoc />
