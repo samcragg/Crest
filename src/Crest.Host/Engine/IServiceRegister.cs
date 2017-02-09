@@ -36,6 +36,10 @@ namespace Crest.Host.Engine
         /// implement automatically.
         /// </summary>
         /// <param name="types">The types to add.</param>
-        void RegisterMany(IEnumerable<Type> types);
+        /// <param name="isSingleInstance">
+        /// Determines whether a single instance of the type should be created
+        /// or if multiple instances can be created.
+        /// </param>
+        void RegisterMany(IEnumerable<Type> types, Func<Type, bool> isSingleInstance);
     }
 }

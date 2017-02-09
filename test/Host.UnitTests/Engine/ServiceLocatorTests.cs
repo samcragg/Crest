@@ -150,11 +150,40 @@
             Assert.That(result, Is.SameAs(plugins));
         }
 
+        [Test]
+        public void GetServiceShouldCheckForNulls()
+        {
+            Assert.That(
+                () => this.locator.GetService(null),
+                Throws.InstanceOf<ArgumentNullException>());
+        }
+
+        [Test]
+        public void GetServiceShouldCheckForDisposed()
+        {
+            this.locator.Dispose();
+
+            Assert.That(
+                () => this.locator.GetService(typeof(string)),
+                Throws.InstanceOf<ObjectDisposedException>());
+        }
+
+        [Test]
+        public void GetServiceShouldReturnAnInstanceOfTheSpecifiedType()
+        {
+            this.container.Resolve(typeof(string))
+                .Returns("Instance");
+
+            object result = this.locator.GetService(typeof(string));
+
+            Assert.That(result, Is.EqualTo("Instance"));
+        }
+
         [TestCase(nameof(ServiceLocator.GetContentConverterFactory))]
         [TestCase(nameof(ServiceLocator.GetDiscoveryService))]
         [TestCase(nameof(ServiceLocator.GetHtmlTemplateProvider))]
         [TestCase(nameof(ServiceLocator.GetResponseStatusGenerator))]
-        public void GetServiceShouldCheckForDisposed(string methodName)
+        public void GetSpecificItemShouldCheckForDisposed(string methodName)
         {
             MethodInfo method = typeof(ServiceLocator).GetMethod(methodName);
 
@@ -170,7 +199,7 @@
         [TestCase(nameof(ServiceLocator.GetDiscoveryService))]
         [TestCase(nameof(ServiceLocator.GetHtmlTemplateProvider))]
         [TestCase(nameof(ServiceLocator.GetResponseStatusGenerator))]
-        public void GetServiceShouldGetTheServiceFromTheContainer(string methodName)
+        public void GetSpecificItemShouldGetTheServiceFromTheContainer(string methodName)
         {
             MethodInfo method = typeof(ServiceLocator).GetMethod(methodName);
 
@@ -188,7 +217,7 @@
         [TestCase(nameof(ServiceLocator.GetDiscoveryService))]
         [TestCase(nameof(ServiceLocator.GetHtmlTemplateProvider))]
         [TestCase(nameof(ServiceLocator.GetResponseStatusGenerator))]
-        public void GetServiceShouldReturnADefaultRegisteredInstance(string methodName)
+        public void GetSpecificItemShouldReturnADefaultRegisteredInstance(string methodName)
         {
             MethodInfo method = typeof(ServiceLocator).GetMethod(methodName);
 
@@ -197,6 +226,42 @@
                 object result = method.Invoke(serviceLocator, null);
 
                 Assert.That(result, Is.Not.Null);
+            }
+        }
+
+        [Test]
+        public void RegisterFactoryShouldCheckForNulls()
+        {
+            Assert.That(
+                () => this.locator.RegisterFactory(null, () => string.Empty),
+                Throws.InstanceOf<ArgumentNullException>());
+
+            Assert.That(
+                () => this.locator.RegisterFactory(typeof(string), null),
+                Throws.InstanceOf<ArgumentNullException>());
+        }
+
+        [Test]
+        public void RegisterFactoryShouldCheckForDisposed()
+        {
+            this.locator.Dispose();
+
+            Assert.That(
+                () => this.locator.RegisterFactory(typeof(string), () => string.Empty),
+                Throws.InstanceOf<ObjectDisposedException>());
+        }
+
+        [Test]
+        public void RegisterFactoryShouldUseTheSpecifiedFunctionToCreateTheService()
+        {
+            string instance = "Returned by factory";
+
+            using (var serviceLocator = new ServiceLocator())
+            {
+                serviceLocator.RegisterFactory(typeof(string), () => instance);
+                object result = serviceLocator.GetService(typeof(string));
+
+                Assert.That(result, Is.SameAs(instance));
             }
         }
 

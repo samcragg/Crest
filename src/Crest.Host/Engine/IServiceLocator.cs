@@ -5,12 +5,13 @@
 
 namespace Crest.Host.Engine
 {
+    using System;
     using Crest.Host.Conversion;
 
     /// <summary>
     /// Creates the instances of interfaces required during initialization.
     /// </summary>
-    public interface IServiceLocator
+    public interface IServiceLocator : IServiceProvider
     {
         /// <summary>
         /// Gets the registered plugins to call after processing a request.

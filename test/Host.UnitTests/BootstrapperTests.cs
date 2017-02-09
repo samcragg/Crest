@@ -47,14 +47,6 @@
         }
 
         [Test]
-        public void ServiceProviderCanResolveInternalTypes()
-        {
-            IServiceProvider provider = this.bootstrapper.OriginalProvider;
-
-            Assert.That(provider.GetService(typeof(IDiscoveryService)), Is.Not.Null);
-        }
-
-        [Test]
         public void DiposeShouldSetIsDisposedToTrue()
         {
             Assert.That(this.bootstrapper.IsDisposed, Is.False);
@@ -80,59 +72,38 @@
             this.serviceRegister.Received().Dispose();
         }
 
-        [Test]
-        public void GetServiceShouldCheckForDisposed()
-        {
-            this.bootstrapper.Dispose();
-
-            Assert.That(
-                () => this.bootstrapper.GetService<string>(),
-                Throws.InstanceOf<ObjectDisposedException>());
-        }
-
-        [Test]
-        public void GetServiceShouldReturnTheValueFromTheServiceContainer()
-        {
-            this.bootstrapper.Provider.GetService(typeof(string))
-                .Returns("String instance");
-
-            string result = this.bootstrapper.GetService<string>();
-
-            Assert.That(result, Is.SameAs("String instance"));
-        }
-
-        [Test]
-        public void InitializeShouldRegisterSingletons()
-        {
-            this.discoveryService.IsSingleInstance(typeof(IFakeInterface))
-                .Returns(true);
-
-            this.bootstrapper.Initialize();
-            object instance1 = this.bootstrapper.OriginalProvider.GetService(typeof(IFakeInterface));
-            object instance2 = this.bootstrapper.OriginalProvider.GetService(typeof(IFakeInterface));
-
-            Assert.That(instance1, Is.SameAs(instance2));
-        }
-
-        [Test]
-        public void InitializeShouldRegisterCustomFactories()
-        {
-            FakeClass fakeInstance = new FakeClass();
-
-            ITypeFactory factory = Substitute.For<ITypeFactory>();
-            factory.CanCreate(typeof(IFakeInterface))
-                   .Returns(true);
-            factory.Create(typeof(IFakeInterface), Arg.Any<IServiceProvider>())
-                   .Returns(fakeInstance);
-
-            this.discoveryService.GetCustomFactories()
-                .Returns(new[] { factory });
-
-            this.bootstrapper.Initialize();
-            object instance = this.bootstrapper.OriginalProvider.GetService(typeof(IFakeInterface));
-
-            Assert.That(instance, Is.SameAs(fakeInstance));
-        }
+        // [Test]
+        // public void InitializeShouldRegisterSingletons()
+        // {
+        //     this.discoveryService.IsSingleInstance(typeof(IFakeInterface))
+        //         .Returns(true);
+        // 
+        //     this.bootstrapper.Initialize();
+        //     object instance1 = this.bootstrapper.OriginalProvider.GetService(typeof(IFakeInterface));
+        //     object instance2 = this.bootstrapper.OriginalProvider.GetService(typeof(IFakeInterface));
+        // 
+        //     Assert.That(instance1, Is.SameAs(instance2));
+        // }
+        // 
+        // [Test]
+        // public void InitializeShouldRegisterCustomFactories()
+        // {
+        //     FakeClass fakeInstance = new FakeClass();
+        // 
+        //     ITypeFactory factory = Substitute.For<ITypeFactory>();
+        //     factory.CanCreate(typeof(IFakeInterface))
+        //            .Returns(true);
+        //     factory.Create(typeof(IFakeInterface), Arg.Any<IServiceProvider>())
+        //            .Returns(fakeInstance);
+        // 
+        //     this.discoveryService.GetCustomFactories()
+        //         .Returns(new[] { factory });
+        // 
+        //     this.bootstrapper.Initialize();
+        //     object instance = this.bootstrapper.OriginalProvider.GetService(typeof(IFakeInterface));
+        // 
+        //     Assert.That(instance, Is.SameAs(fakeInstance));
+        // }
 
         [Test]
         public void InitializeShouldSetTheRouteMapper()
@@ -262,21 +233,9 @@
             {
             }
 
-            internal IServiceProvider Provider { get; } = Substitute.For<IServiceProvider>();
-
-            internal IServiceProvider OriginalProvider
-            {
-                get { return base.ServiceProvider; }
-            }
-
             internal new bool IsDisposed
             {
                 get { return base.IsDisposed; }
-            }
-
-            protected override IServiceProvider ServiceProvider
-            {
-                get { return this.Provider; }
             }
 
             internal new void Initialize()

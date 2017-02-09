@@ -127,9 +127,25 @@ namespace Crest.Host.Engine
         }
 
         /// <inheritdoc />
+        public object GetService(Type serviceType)
+        {
+            Check.IsNotNull(serviceType, nameof(serviceType));
+            this.ThrowIfDisposed();
+
+            return this.Resolve(serviceType);
+        }
+
+        /// <inheritdoc />
         public void RegisterFactory(Type serviceType, Func<object> factory)
         {
-            throw new NotImplementedException();
+            Check.IsNotNull(serviceType, nameof(serviceType));
+            Check.IsNotNull(factory, nameof(factory));
+            this.ThrowIfDisposed();
+
+            this.container.RegisterDelegate(
+                serviceType,
+                _ => factory(),
+                ifAlreadyRegistered: IfAlreadyRegistered.Replace);
         }
 
         /// <inheritdoc />
@@ -139,7 +155,7 @@ namespace Crest.Host.Engine
         }
 
         /// <inheritdoc />
-        public void RegisterMany(IEnumerable<Type> types)
+        public void RegisterMany(IEnumerable<Type> types, Func<Type, bool> isSingleInstance)
         {
             throw new NotImplementedException();
         }
@@ -195,9 +211,19 @@ namespace Crest.Host.Engine
         /// </summary>
         /// <typeparam name="TService">The service type.</typeparam>
         /// <returns>An instance of the specified service.</returns>
-        protected virtual TService Resolve<TService>()
+        protected TService Resolve<TService>()
         {
-            return this.container.Resolve<TService>();
+            return (TService)this.Resolve(typeof(TService));
+        }
+
+        /// <summary>
+        /// Returns an instance of the specified service.
+        /// </summary>
+        /// <param name="serviceType">The service type.</param>
+        /// <returns>An instance of the specified service.</returns>
+        protected virtual object Resolve(Type serviceType)
+        {
+            return this.container.Resolve(serviceType);
         }
 
         /// <summary>

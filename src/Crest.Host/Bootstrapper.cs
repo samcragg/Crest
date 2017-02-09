@@ -18,7 +18,6 @@ namespace Crest.Host
     /// </summary>
     public abstract partial class Bootstrapper : IDisposable
     {
-        private readonly ContainerAdapter adapter = new ContainerAdapter();
         private readonly IServiceRegister serviceRegister;
 
         /// <summary>
@@ -78,32 +77,12 @@ namespace Crest.Host
         }
 
         /// <summary>
-        /// Gets an object that can be used to create other objects.
-        /// </summary>
-        protected virtual IServiceProvider ServiceProvider
-        {
-            get { return this.adapter; }
-        }
-
-        /// <summary>
         /// Releases all resources used by this instance.
         /// </summary>
         public void Dispose()
         {
             this.Dispose(true);
             GC.SuppressFinalize(this);
-        }
-
-        /// <summary>
-        /// Resolves the specified service.
-        /// </summary>
-        /// <typeparam name="T">The type of the service to resolve.</typeparam>
-        /// <returns>An instance of the specified type.</returns>
-        public virtual T GetService<T>()
-        {
-            this.ThrowIfDisposed();
-
-            return (T)this.ServiceProvider.GetService(typeof(T));
         }
 
         /// <summary>
@@ -120,7 +99,6 @@ namespace Crest.Host
             {
                 if (disposing)
                 {
-                    this.adapter.Container.Dispose();
                     this.serviceRegister.Dispose();
                 }
 
@@ -142,9 +120,9 @@ namespace Crest.Host
 
             ConfigurationService configuration = this.ServiceLocator.GetConfigurationService();
             configuration.InitializeProviders(types).Wait();
-            this.adapter.Container.RegisterInitializer<object>(
-                (instance, _) => configuration.InitializeInstance(instance, this.ServiceProvider),
-                r => configuration.CanConfigure(r.ServiceType));
+            this.serviceRegister.RegisterInitializer(
+                instance => configuration.InitializeInstance(instance, this.serviceRegister),
+                configuration.CanConfigure);
         }
 
         /// <summary>
@@ -159,7 +137,7 @@ namespace Crest.Host
             }
         }
 
-        private Func<IResolver, object> GetFactory(ITypeFactory[] factories, Type type)
+        private Func<object> GetFactory(ITypeFactory[] factories, Type type)
         {
             for (int i = 0; i < factories.Length; i++)
             {
@@ -167,7 +145,7 @@ namespace Crest.Host
                 ITypeFactory factory = factories[i];
                 if (factory.CanCreate(type))
                 {
-                    return _ => factory.Create(type, this.adapter);
+                    return () => factory.Create(type, this.serviceRegister);
                 }
             }
 
@@ -178,7 +156,7 @@ namespace Crest.Host
         {
             foreach (RouteMetadata route in discovery.GetRoutes(type))
             {
-                route.Factory = route.Factory ?? (() => this.ServiceProvider.GetService(type));
+                route.Factory = route.Factory ?? (() => this.serviceRegister.GetService(type));
                 yield return route;
             }
         }
@@ -191,24 +169,19 @@ namespace Crest.Host
 
             foreach (Type type in discovery.GetDiscoveredTypes())
             {
-                Func<IResolver, object> factory = this.GetFactory(factories, type);
+                Func<object> factory = this.GetFactory(factories, type);
                 if (factory == null)
                 {
                     normal.Add(type);
                 }
                 else
                 {
-                    this.adapter.Container.RegisterDelegate(
-                        type,
-                        factory,
-                        ifAlreadyRegistered: IfAlreadyRegistered.Replace);
-
+                    this.serviceRegister.RegisterFactory(type, factory);
                     custom.Add(type);
                 }
             }
 
-            var helper = new RegisterHelper(discovery);
-            helper.RegisterMany(this.adapter.Container, normal);
+            this.serviceRegister.RegisterMany(normal, discovery.IsSingleInstance);
 
             // Normal probably has the most types in it, so fold the others into it
             normal.AddRange(custom);
