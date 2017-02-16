@@ -7,6 +7,7 @@ namespace Crest.Host.AspNetCore
 {
     using System;
     using Crest.Host;
+    using Crest.Host.Engine;
     using Microsoft.AspNetCore.Builder;
     using Microsoft.AspNetCore.Hosting;
     using Microsoft.Extensions.DependencyInjection;
@@ -17,20 +18,22 @@ namespace Crest.Host.AspNetCore
     internal sealed class StartupBootstrapper : Bootstrapper, IStartup
     {
         /// <summary>
-        /// Gets or sets the optional service provider to use instead of the
-        /// inherited one.
+        /// Initializes a new instance of the <see cref="StartupBootstrapper"/> class.
         /// </summary>
-        /// <remarks>This is used for unit testing only.</remarks>
-        internal IServiceProvider ServiceProviderOverride
+        public StartupBootstrapper()
         {
-            get;
-            set;
         }
 
-        /// <inheritdoc />
-        protected override IServiceProvider ServiceProvider
+        /// <summary>
+        /// Initializes a new instance of the <see cref="StartupBootstrapper"/> class.
+        /// </summary>
+        /// <param name="register">Used to locate the services.</param>
+        /// <remarks>
+        /// This constructor is required for unit testing only.
+        /// </remarks>
+        internal StartupBootstrapper(IServiceRegister register)
+            : base(register)
         {
-            get { return this.ServiceProviderOverride ?? base.ServiceProvider; }
         }
 
         /// <inheritdoc />

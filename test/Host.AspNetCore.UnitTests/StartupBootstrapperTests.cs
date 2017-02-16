@@ -1,7 +1,6 @@
 ﻿namespace Host.AspNetCore.UnitTests
 {
     using System;
-    using System.Collections.Generic;
     using Crest.Host.AspNetCore;
     using Crest.Host.Engine;
     using Microsoft.AspNetCore.Builder;
@@ -17,15 +16,18 @@
         [SetUp]
         public void SetUp()
         {
-            this.startup = new StartupBootstrapper();
-
-            // Stop the bootstrapper from scanning everything
-            this.startup.ServiceProviderOverride = Substitute.For<IServiceProvider>();
-            this.startup.ServiceProviderOverride.GetService(typeof(IEnumerable<IConfigurationProvider>))
-                .Returns(new IConfigurationProvider[0]);
-            this.startup.ServiceProviderOverride.GetService(typeof(IDiscoveryService))
-                .Returns(Substitute.For<IDiscoveryService>());
+            this.startup = new StartupBootstrapper(Substitute.For<IServiceRegister>());
         }
+
+        [Test]
+        public void DefaultConstructorShouldSetTheServiceLocator()
+        {
+            using (var bootstrapper = new StartupBootstrapper())
+            {
+                Assert.That(bootstrapper.ServiceLocator, Is.Not.Null);
+            }
+        }
+
         [Test]
         public void ConfigureShouldRegisterARequestHandler()
         {

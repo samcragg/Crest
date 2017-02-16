@@ -31,9 +31,11 @@
             IContentConverterFactory factory = Substitute.For<IContentConverterFactory>();
             factory.GetConverter(null).ReturnsForAnyArgs(this.converter);
 
-            this.bootstrapper = Substitute.For<Bootstrapper>();
-            this.bootstrapper.GetService<IRouteMapper>().Returns(this.mapper);
-            this.bootstrapper.GetService<IContentConverterFactory>().Returns(factory);
+            IServiceRegister serviceRegister = Substitute.For<IServiceRegister>();
+            serviceRegister.GetContentConverterFactory().Returns(factory);
+
+            this.bootstrapper = Substitute.For<Bootstrapper>(serviceRegister);
+            this.bootstrapper.RouteMapper.Returns(this.mapper);
 
             this.processor = new HttpContextProcessor(this.bootstrapper);
         }
