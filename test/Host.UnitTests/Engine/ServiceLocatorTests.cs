@@ -2,6 +2,7 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Linq;
     using System.Reflection;
     using System.Threading.Tasks;
     using Crest.Host;
@@ -303,7 +304,80 @@
             }
         }
 
-        private class ExampleClass
+        [Test]
+        public void RegisterManyShouldCheckForNulls()
+        {
+            Assert.That(
+                () => this.locator.RegisterMany(null, _ => false),
+                Throws.InstanceOf<ArgumentNullException>());
+
+            Assert.That(
+                () => this.locator.RegisterMany(Enumerable.Empty<Type>(), null),
+                Throws.InstanceOf<ArgumentNullException>());
+        }
+
+        [Test]
+        public void RegisterManyShouldCheckForDisposed()
+        {
+            this.locator.Dispose();
+
+            Assert.That(
+                () => this.locator.RegisterMany(Enumerable.Empty<Type>(), _ => false),
+                Throws.InstanceOf<ObjectDisposedException>());
+        }
+
+        [Test]
+        public void RegisterManyShouldRegisterTypesAsTransient()
+        {
+            using (var serviceLocator = new ServiceLocator())
+            {
+                serviceLocator.RegisterMany(new[] { typeof(ExampleClass) }, _ => false);
+
+                object result1 = serviceLocator.GetService(typeof(IInterface1));
+                object result2 = serviceLocator.GetService(typeof(IInterface1));
+
+                Assert.That(result1, Is.Not.SameAs(result2));
+            }
+        }
+
+        [Test]
+        public void RegisterManyShouldRegisterAllTheImplementingInterfaces()
+        {
+            using (var serviceLocator = new ServiceLocator())
+            {
+                serviceLocator.RegisterMany(new[] { typeof(ExampleClass) }, _ => false);
+
+                object result1 = serviceLocator.GetService(typeof(IInterface1));
+                object result2 = serviceLocator.GetService(typeof(IInterface2));
+
+                Assert.That(result1, Is.InstanceOf<ExampleClass>());
+                Assert.That(result2, Is.InstanceOf<ExampleClass>());
+            }
+        }
+
+        [Test]
+        public void RegisterManyShouldRegisterSingleInstanceTypes()
+        {
+            using (var serviceLocator = new ServiceLocator())
+            {
+                serviceLocator.RegisterMany(new[] { typeof(ExampleClass) }, _ => true);
+
+                object result1 = serviceLocator.GetService(typeof(IInterface1));
+                object result2 = serviceLocator.GetService(typeof(IInterface1));
+
+                Assert.That(result1, Is.SameAs(result2));
+            }
+        }
+
+        private interface IInterface1
+        {
+        }
+
+        private interface IInterface2
+        {
+        }
+
+        private class ExampleClass : IInterface1, IInterface2
         {
         }
 

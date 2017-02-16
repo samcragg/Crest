@@ -7,6 +7,8 @@ namespace Crest.Host.Engine
 {
     using System;
     using System.Collections.Generic;
+    using System.Linq;
+    using System.Reflection;
     using Crest.Host.Conversion;
     using DryIoc;
 
@@ -165,7 +167,15 @@ namespace Crest.Host.Engine
         /// <inheritdoc />
         public void RegisterMany(IEnumerable<Type> types, Func<Type, bool> isSingleInstance)
         {
-            throw new NotImplementedException();
+            Check.IsNotNull(types, nameof(types));
+            Check.IsNotNull(isSingleInstance, nameof(isSingleInstance));
+            this.ThrowIfDisposed();
+
+            foreach (Type type in types.Where(IsImplementationType))
+            {
+                Type[] serviceTypes = type.GetImplementedServiceTypes(nonPublicServiceTypes: true);
+                this.RegisterMany(serviceTypes, type, isSingleInstance(type));
+            }
         }
 
         /// <summary>
@@ -201,18 +211,38 @@ namespace Crest.Host.Engine
             }
         }
 
-        //// /// <summary>
-        //// /// Registers a service as being implemented by the specified type.
-        //// /// </summary>
-        //// /// <typeparam name="TService">The service type.</typeparam>
-        //// /// <typeparam name="TImplementation">
-        //// /// The type that implements the service.
-        //// /// </typeparam>
-        //// protected virtual void RegisterTransient<TService, TImplementation>()
-        ////     where TImplementation : TService
-        //// {
-        ////     this.container.Register<TService, TImplementation>();
-        //// }
+        /// <summary>
+        /// Registers a service as being implemented by the specified type,
+        /// ensuring that only a single instance of the implementing type will
+        /// be created.
+        /// </summary>
+        /// <param name="service">The service type.</param>
+        /// <param name="implementation">The type that implements the service.</param>
+        protected virtual void RegisterSingleInstance(Type service, Type implementation)
+        {
+            this.container.Register(
+                service,
+                implementation,
+                Reuse.Singleton,
+                ifAlreadyRegistered: IfAlreadyRegistered.Keep,
+                made: FactoryMethod.ConstructorWithResolvableArguments);
+        }
+
+        /// <summary>
+        /// Registers a service as being implemented by the specified type.
+        /// </summary>
+        /// <param name="service">The service type.</param>
+        /// <param name="implementation">The type that implements the service.</param>
+        protected virtual void RegisterTransient(Type service, Type implementation)
+        {
+            this.container.Register(
+                service,
+                implementation,
+                Reuse.Transient,
+                ifAlreadyRegistered: IfAlreadyRegistered.Keep,
+                made: FactoryMethod.ConstructorWithResolvableArguments,
+                setup: Setup.With(trackDisposableTransient: true));
+        }
 
         /// <summary>
         /// Returns an instance of the specified service.
@@ -243,6 +273,23 @@ namespace Crest.Host.Engine
             if (this.IsDisposed)
             {
                 throw new ObjectDisposedException(this.GetType().Name);
+            }
+        }
+
+        private static bool IsImplementationType(Type type)
+        {
+            TypeInfo typeInfo = type.GetTypeInfo();
+            return typeInfo.IsClass && !typeInfo.IsAbstract;
+        }
+
+        private void RegisterMany(Type[] services, Type implementation, bool isSingleInstance)
+        {
+            var register = isSingleInstance ?
+                new Action<Type, Type>(this.RegisterSingleInstance) : this.RegisterTransient;
+
+            for (int i = 0; i < services.Length; i++)
+            {
+                register(services[i], implementation);
             }
         }
 
