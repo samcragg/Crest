@@ -72,38 +72,41 @@
             this.serviceRegister.Received().Dispose();
         }
 
-        // [Test]
-        // public void InitializeShouldRegisterSingletons()
-        // {
-        //     this.discoveryService.IsSingleInstance(typeof(IFakeInterface))
-        //         .Returns(true);
-        // 
-        //     this.bootstrapper.Initialize();
-        //     object instance1 = this.bootstrapper.OriginalProvider.GetService(typeof(IFakeInterface));
-        //     object instance2 = this.bootstrapper.OriginalProvider.GetService(typeof(IFakeInterface));
-        // 
-        //     Assert.That(instance1, Is.SameAs(instance2));
-        // }
-        // 
-        // [Test]
-        // public void InitializeShouldRegisterCustomFactories()
-        // {
-        //     FakeClass fakeInstance = new FakeClass();
-        // 
-        //     ITypeFactory factory = Substitute.For<ITypeFactory>();
-        //     factory.CanCreate(typeof(IFakeInterface))
-        //            .Returns(true);
-        //     factory.Create(typeof(IFakeInterface), Arg.Any<IServiceProvider>())
-        //            .Returns(fakeInstance);
-        // 
-        //     this.discoveryService.GetCustomFactories()
-        //         .Returns(new[] { factory });
-        // 
-        //     this.bootstrapper.Initialize();
-        //     object instance = this.bootstrapper.OriginalProvider.GetService(typeof(IFakeInterface));
-        // 
-        //     Assert.That(instance, Is.SameAs(fakeInstance));
-        // }
+        [Test]
+        public void InitializeShouldRegisterSingletons()
+        {
+            using (var bootstrapper = new FakeBootstrapper(new ServiceLocator()))
+            {
+                this.discoveryService.IsSingleInstance(typeof(IFakeInterface))
+                    .Returns(true);
+
+                this.bootstrapper.Initialize();
+                object instance1 = this.bootstrapper.ServiceLocator.GetService(typeof(IFakeInterface));
+                object instance2 = this.bootstrapper.ServiceLocator.GetService(typeof(IFakeInterface));
+
+                Assert.That(instance1, Is.SameAs(instance2));
+            }
+        }
+
+        [Test]
+        public void InitializeShouldRegisterCustomFactories()
+        {
+            ITypeFactory factory = Substitute.For<ITypeFactory>();
+            factory.CanCreate(typeof(IFakeInterface))
+                   .Returns(true);
+
+            this.discoveryService.GetCustomFactories()
+                .Returns(new[] { factory });
+
+            // Force the lambdas to get called
+            this.serviceRegister.RegisterFactory(
+                typeof(IFakeInterface),
+                Arg.Do<Func<object>>(x => x()));
+
+            this.bootstrapper.Initialize();
+
+            factory.Received().Create(typeof(IFakeInterface), this.serviceRegister);
+        }
 
         [Test]
         public void InitializeShouldSetTheRouteMapper()
@@ -165,25 +168,24 @@
             configurationService.ReceivedWithAnyArgs().InitializeProviders(null);
         }
 
-        //// [Test]
-        //// public void ShouldInitializeClassesWithTheConfigurationService()
-        //// {
-        ////     ConfigurationService configurationService = Substitute.For<ConfigurationService>();
-        ////     configurationService.CanConfigure(typeof(FakeClass))
-        ////         .Returns(true);
-        //// 
-        ////     this.discoveryService.GetDiscoveredTypes()
-        ////         .Returns(new[] { typeof(FakeClass) });
-        //// 
-        ////     this.servicerLocator.GetConfigurationService()
-        ////         .Returns(configurationService);
-        //// 
-        ////     this.bootstrapper.Initialize();
-        ////     object result = this.bootstrapper.OriginalProvider.GetService(typeof(FakeClass));
-        //// 
-        ////     this.bootstrapper.ConfigurationsService.Received()
-        ////         .InitializeInstance(result, Arg.Any<IServiceProvider>());
-        //// }
+        [Test]
+        public void ShouldInitializeClassesWithTheConfigurationService()
+        {
+            ConfigurationService configurationService = Substitute.For<ConfigurationService>();
+            this.serviceRegister.GetConfigurationService()
+                .Returns(configurationService);
+
+            // Force the passed in lambdas to be invoked
+            object toInitialize = new FakeClass();
+            this.serviceRegister.RegisterInitializer(
+                Arg.Do<Func<Type, bool>>(x => x(typeof(FakeClass))),
+                Arg.Do<Action<object>>(x => x(toInitialize)));
+
+            this.bootstrapper.Initialize();
+
+            configurationService.Received().CanConfigure(typeof(FakeClass));
+            configurationService.Received().InitializeInstance(toInitialize, this.serviceRegister);
+        }
 
         [Test]
         public void ThrowIfDisposedShouldIncludeTheDerivedClassName()

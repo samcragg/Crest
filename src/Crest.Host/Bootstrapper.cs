@@ -10,13 +10,12 @@ namespace Crest.Host
     using System.Linq;
     using Crest.Host.Engine;
     using Crest.Host.Routing;
-    using DryIoc;
 
     /// <summary>
     /// Allows the configuration of the Crest framework during application
     /// startup.
     /// </summary>
-    public abstract partial class Bootstrapper : IDisposable
+    public abstract class Bootstrapper : IDisposable
     {
         private readonly IServiceRegister serviceRegister;
 
