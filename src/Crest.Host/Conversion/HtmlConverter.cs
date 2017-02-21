@@ -53,7 +53,7 @@ namespace Crest.Host.Conversion
         /// <inheritdoc />
         public void WriteTo(Stream stream, object obj)
         {
-            using (var writer = new StreamWriter(stream, DefaultEncoding))
+            using (var writer = new StreamWriter(stream, DefaultEncoding, 4096, leaveOpen: true))
             {
                 string htmlTemplate = this.template.Template;
                 int location = this.template.ContentLocation;

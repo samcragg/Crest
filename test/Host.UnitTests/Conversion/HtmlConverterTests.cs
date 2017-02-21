@@ -45,6 +45,17 @@
         }
 
         [Test]
+        public void WriteToMustNotDisposeTheStream()
+        {
+            Stream stream = Substitute.For<Stream>();
+            stream.CanWrite.Returns(true);
+
+            this.converter.WriteTo(stream, "value");
+
+            stream.DidNotReceive().Dispose();
+        }
+
+        [Test]
         public void WriteToShouldIncludeTheTemplateParts()
         {
             this.templateProvider.Template.Returns("BeforeAfter");

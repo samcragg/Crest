@@ -4,6 +4,7 @@
     using System.IO;
     using System.Text;
     using Crest.Host.Conversion;
+    using NSubstitute;
     using NUnit.Framework;
 
     [TestFixture]
@@ -35,6 +36,17 @@
         public void ProirityShouldReturnAPositiveNumber()
         {
             Assert.That(this.converter.Priority, Is.Positive);
+        }
+
+        [Test]
+        public void WriteToMustNotDisposeTheStream()
+        {
+            Stream stream = Substitute.For<Stream>();
+            stream.CanWrite.Returns(true);
+
+            this.converter.WriteTo(stream, "value");
+
+            stream.DidNotReceive().Dispose();
         }
 
         [Test]
