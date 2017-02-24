@@ -7,6 +7,7 @@ $wc = New-Object 'System.Net.WebClient'
 # Run all the projects in the test directory
 foreach ($test in (dir .\test -Name))
 {
+	# This runs the unit tests and gets the coverage
 	.\build\tools\OpenCover\4.6.519\tools\OpenCover.Console.exe `
 	-output:.\CoverResult.xml `
 	-mergeoutput `
@@ -15,10 +16,17 @@ foreach ($test in (dir .\test -Name))
 	-register:user `
 	-filter:"+[Crest.*]* -[*]DryIoc.*" `
 	-target:"$dotnetexe" `
-	-targetargs:"test test\$test --no-build  --labels=Off --noheader"
+	-targetargs:"test test\$test --no-build  --labels=Off --noheader" `
+	-returntargetcode
+	
+	# We still want to upload the failed tests so we know what went wrong
+	$tests_exit_code = $?
 
-	# Since the above actually runs the unit tests, upload the results
+	# Upload the results
 	$wc.UploadFile("https://ci.appveyor.com/api/testresults/nunit3/$($env:APPVEYOR_JOB_ID)", (Resolve-Path .\TestResult.xml))
+	
+	# Fail the build if a test failed
+	if (-not $tests_exit_code) { throw "Unit tests failed" }
 }
 
 # Upload the coverage in one go, as CoverResult.xml gets merged with all the results

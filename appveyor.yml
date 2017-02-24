@@ -2,6 +2,10 @@ version: 1.0.0.{build}
 image: Visual Studio 2015
 configuration: Release
 
+branches:
+  only:
+    - master
+
 assembly_info:
   patch: true
   file: '**\AssemblyInfo.*'
