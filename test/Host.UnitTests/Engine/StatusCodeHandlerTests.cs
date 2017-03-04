@@ -3,6 +3,7 @@
     using System.Threading.Tasks;
     using Crest.Host;
     using Crest.Host.Engine;
+    using FluentAssertions;
     using NUnit.Framework;
 
     [TestFixture]
@@ -24,36 +25,48 @@
             {
                 Task<IResponseData> response = this.handler.InternalErrorAsync(null);
 
-                Assert.That(response.IsCompleted, Is.True);
-                Assert.That(response.Result, Is.Null);
+                response.IsCompleted.Should().BeTrue();
+                response.Result.Should().BeNull();
             }
         }
 
-        [Test]
-        public void NoContentAsyncShouldReturnACompletedTaskWithNull()
+        [TestFixture]
+        public sealed class NoContentAsync : StatusCodeHandlerTests
         {
-            Task<IResponseData> response = this.handler.NoContentAsync(null, null);
+            [Test]
+            public void ShouldReturnACompletedTaskWithNull()
+            {
+                Task<IResponseData> response = this.handler.NoContentAsync(null, null);
 
-            Assert.That(response.IsCompleted, Is.True);
-            Assert.That(response.Result, Is.Null);
+                response.IsCompleted.Should().BeTrue();
+                response.Result.Should().BeNull();
+            }
         }
 
-        [Test]
-        public void NotAcceptableAsyncShouldReturnACompletedTaskWithNull()
+        [TestFixture]
+        public sealed class NotAcceptableAsync : StatusCodeHandlerTests
         {
-            Task<IResponseData> response = this.handler.NotAcceptableAsync(null);
+            [Test]
+            public void ShouldReturnACompletedTaskWithNull()
+            {
+                Task<IResponseData> response = this.handler.NotAcceptableAsync(null);
 
-            Assert.That(response.IsCompleted, Is.True);
-            Assert.That(response.Result, Is.Null);
+                response.IsCompleted.Should().BeTrue();
+                response.Result.Should().BeNull();
+            }
         }
 
-        [Test]
-        public void NotFoundAsyncShouldReturnACompletedTaskWithNull()
+        [TestFixture]
+        public sealed class NotFoundAsync : StatusCodeHandlerTests
         {
-            Task<IResponseData> response = this.handler.NotFoundAsync(null, null);
+            [Test]
+            public void ShouldReturnACompletedTaskWithNull()
+            {
+                Task<IResponseData> response = this.handler.NotFoundAsync(null, null);
 
-            Assert.That(response.IsCompleted, Is.True);
-            Assert.That(response.Result, Is.Null);
+                response.IsCompleted.Should().BeTrue();
+                response.Result.Should().BeNull();
+            }
         }
 
         private class FakeStatusCodeHandler : StatusCodeHandler

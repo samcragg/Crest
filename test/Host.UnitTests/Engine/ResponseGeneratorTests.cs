@@ -5,6 +5,7 @@
     using Crest.Host;
     using Crest.Host.Conversion;
     using Crest.Host.Engine;
+    using FluentAssertions;
     using NSubstitute;
     using NUnit.Framework;
 
@@ -55,7 +56,7 @@
 
                 IResponseData result = await this.generator.InternalErrorAsync(exception);
 
-                Assert.That(result, Is.SameAs(response));
+                result.Should().BeSameAs(response);
             }
 
             [Test]
@@ -65,76 +66,88 @@
 
                 IResponseData response = await this.generator.InternalErrorAsync(null);
 
-                Assert.That(response.StatusCode, Is.EqualTo(500));
+                response.StatusCode.Should().Be(500);
             }
         }
 
-        [Test]
-        public async Task NoContentAsyncShouldReturnTheHandlerResult()
+        [TestFixture]
+        public sealed class NoContentAsync : ResponseGeneratorTests
         {
-            IRequestData request = Substitute.For<IRequestData>();
-            IContentConverter converter = Substitute.For<IContentConverter>();
-            IResponseData response = Substitute.For<IResponseData>();
-            this.handler.NoContentAsync(request, converter).Returns(response);
+            [Test]
+            public async Task ShouldReturnTheHandlerResult()
+            {
+                IRequestData request = Substitute.For<IRequestData>();
+                IContentConverter converter = Substitute.For<IContentConverter>();
+                IResponseData response = Substitute.For<IResponseData>();
+                this.handler.NoContentAsync(request, converter).Returns(response);
 
-            IResponseData result = await this.generator.NoContentAsync(request, converter);
+                IResponseData result = await this.generator.NoContentAsync(request, converter);
 
-            Assert.That(result, Is.SameAs(response));
+                result.Should().BeSameAs(response);
+            }
+
+            [Test]
+            public async Task ShouldReturn204()
+            {
+                this.handler.NoContentAsync(null, null).ReturnsForAnyArgs(NullResponse);
+
+                IResponseData response = await this.generator.NoContentAsync(null, null);
+
+                response.StatusCode.Should().Be(204);
+            }
         }
 
-        [Test]
-        public async Task NoContentAsyncShouldReturn204()
+        [TestFixture]
+        public sealed class NotAcceptableAsync : ResponseGeneratorTests
         {
-            this.handler.NoContentAsync(null, null).ReturnsForAnyArgs(NullResponse);
+            [Test]
+            public async Task ShouldReturnTheHandlerResult()
+            {
+                IRequestData request = Substitute.For<IRequestData>();
+                IResponseData response = Substitute.For<IResponseData>();
+                this.handler.NotAcceptableAsync(request).Returns(response);
 
-            IResponseData response = await this.generator.NoContentAsync(null, null);
+                IResponseData result = await this.generator.NotAcceptableAsync(request);
 
-            Assert.That(response.StatusCode, Is.EqualTo(204));
+                result.Should().BeSameAs(response);
+            }
+
+            [Test]
+            public async Task ShouldReturn406()
+            {
+                this.handler.NotAcceptableAsync(null).ReturnsForAnyArgs(NullResponse);
+
+                IResponseData response = await this.generator.NotAcceptableAsync(null);
+
+                response.StatusCode.Should().Be(406);
+            }
         }
 
-        [Test]
-        public async Task NotAcceptableAsyncShouldReturnTheHandlerResult()
+        [TestFixture]
+        public sealed class NotFoundAsync : ResponseGeneratorTests
         {
-            IRequestData request = Substitute.For<IRequestData>();
-            IResponseData response = Substitute.For<IResponseData>();
-            this.handler.NotAcceptableAsync(request).Returns(response);
+            [Test]
+            public async Task ShouldReturnTheHandlerResult()
+            {
+                IRequestData request = Substitute.For<IRequestData>();
+                IContentConverter converter = Substitute.For<IContentConverter>();
+                IResponseData response = Substitute.For<IResponseData>();
+                this.handler.NotFoundAsync(request, converter).Returns(response);
 
-            IResponseData result = await this.generator.NotAcceptableAsync(request);
+                IResponseData result = await this.generator.NotFoundAsync(request, converter);
 
-            Assert.That(result, Is.SameAs(response));
-        }
+                result.Should().BeSameAs(response);
+            }
 
-        [Test]
-        public async Task NotAcceptableAsyncShouldReturn406()
-        {
-            this.handler.NotAcceptableAsync(null).ReturnsForAnyArgs(NullResponse);
+            [Test]
+            public async Task ShouldReturn404()
+            {
+                this.handler.NotFoundAsync(null, null).ReturnsForAnyArgs(NullResponse);
 
-            IResponseData response = await this.generator.NotAcceptableAsync(null);
+                IResponseData response = await this.generator.NotFoundAsync(null, null);
 
-            Assert.That(response.StatusCode, Is.EqualTo(406));
-        }
-
-        [Test]
-        public async Task NotFoundAsyncShouldReturnTheHandlerResult()
-        {
-            IRequestData request = Substitute.For<IRequestData>();
-            IContentConverter converter = Substitute.For<IContentConverter>();
-            IResponseData response = Substitute.For<IResponseData>();
-            this.handler.NotFoundAsync(request, converter).Returns(response);
-
-            IResponseData result = await this.generator.NotFoundAsync(request, converter);
-
-            Assert.That(result, Is.SameAs(response));
-        }
-
-        [Test]
-        public async Task NotFoundAsyncShouldReturn404()
-        {
-            this.handler.NotFoundAsync(null, null).ReturnsForAnyArgs(NullResponse);
-
-            IResponseData response = await this.generator.NotFoundAsync(null, null);
-
-            Assert.That(response.StatusCode, Is.EqualTo(404));
+                response.StatusCode.Should().Be(404);
+            }
         }
     }
 }
