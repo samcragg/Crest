@@ -5,6 +5,7 @@
 
 namespace Crest.Host.Engine
 {
+    using System;
     using System.Threading.Tasks;
     using Crest.Host.Conversion;
 
@@ -25,6 +26,19 @@ namespace Crest.Host.Engine
         /// be executed before 200).
         /// </remarks>
         public abstract int Order { get; }
+
+        /// <summary>
+        /// Generates a response for 500 Internal Server Error.
+        /// </summary>
+        /// <param name="exception">The exception that caused the internal error.</param>
+        /// <returns>
+        /// A task that represents the asynchronous operation. The value of the
+        /// <c>TResult</c> parameter contains the response to send.
+        /// </returns>
+        public virtual Task<IResponseData> InternalErrorAsync(Exception exception)
+        {
+            return NoResponse;
+        }
 
         /// <summary>
         /// Generates a response for 204 No Content.

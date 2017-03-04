@@ -1,5 +1,6 @@
 ﻿namespace Host.UnitTests.Engine
 {
+    using System;
     using System.Threading.Tasks;
     using Crest.Host;
     using Crest.Host.Conversion;
@@ -8,7 +9,7 @@
     using NUnit.Framework;
 
     [TestFixture]
-    public sealed class ResponseGeneratorTests
+    public class ResponseGeneratorTests
     {
         private readonly Task<IResponseData> NullResponse = Task.FromResult<IResponseData>(null);
         private ResponseGenerator generator;
@@ -40,6 +41,32 @@
                 handler1.NoContentAsync(null, null);
                 handler2.NoContentAsync(null, null);
             });
+        }
+
+        [TestFixture]
+        public sealed class InternalErrorAsync : ResponseGeneratorTests
+        {
+            [Test]
+            public async Task ShouldReturnTheHandlerResult()
+            {
+                Exception exception = new Exception();
+                IResponseData response = Substitute.For<IResponseData>();
+                this.handler.InternalErrorAsync(exception).Returns(response);
+
+                IResponseData result = await this.generator.InternalErrorAsync(exception);
+
+                Assert.That(result, Is.SameAs(response));
+            }
+
+            [Test]
+            public async Task ShouldReturn500()
+            {
+                this.handler.InternalErrorAsync(null).ReturnsForAnyArgs(NullResponse);
+
+                IResponseData response = await this.generator.InternalErrorAsync(null);
+
+                Assert.That(response.StatusCode, Is.EqualTo(500));
+            }
         }
 
         [Test]

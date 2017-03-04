@@ -17,6 +17,13 @@ namespace Crest.Host.Engine
     /// </summary>
     internal sealed class ResponseGenerator : IResponseStatusGenerator
     {
+        /// <summary>
+        /// Represents a response that indicates there was an internal server
+        /// error whilst dealing with the request.
+        /// </summary>
+        internal static readonly ResponseData InternalError =
+            new ResponseData(string.Empty, (int)HttpStatusCode.InternalServerError);
+
         private static readonly ResponseData NoContent =
             new ResponseData(string.Empty, (int)HttpStatusCode.NoContent);
 
@@ -36,6 +43,14 @@ namespace Crest.Host.Engine
         {
             this.handlers = handlers.ToArray();
             Array.Sort(this.handlers, (a, b) => a.Order.CompareTo(b.Order));
+        }
+
+        /// <inheritdoc />
+        public Task<IResponseData> InternalErrorAsync(Exception exception)
+        {
+            return this.FindResponse(
+                h => h.InternalErrorAsync(exception),
+                InternalError);
         }
 
         /// <inheritdoc />

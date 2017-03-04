@@ -6,7 +6,7 @@
     using NUnit.Framework;
 
     [TestFixture]
-    public sealed class StatusCodeHandlerTests
+    public class StatusCodeHandlerTests
     {
         private StatusCodeHandler handler;
 
@@ -14,6 +14,19 @@
         public void SetUp()
         {
             this.handler = new FakeStatusCodeHandler();
+        }
+
+        [TestFixture]
+        public sealed class InternalErrorAsync : StatusCodeHandlerTests
+        {
+            [Test]
+            public void ShouldReturnACompletedTaskWithNull()
+            {
+                Task<IResponseData> response = this.handler.InternalErrorAsync(null);
+
+                Assert.That(response.IsCompleted, Is.True);
+                Assert.That(response.Result, Is.Null);
+            }
         }
 
         [Test]
