@@ -50,12 +50,27 @@
             this.processor = Substitute.ForPartsOf<RequestProcessor>(this.bootstrapper);
         }
 
-        [Test]
-        public void ConstructorShouldCheckForNullArguments()
+        [TestFixture]
+        public sealed class Constructor : RequestProcessorTests
         {
-            Assert.That(
-                () => new FakeRequestProcessor(null),
-                Throws.InstanceOf<ArgumentNullException>());
+            [Test]
+            public void ShouldCheckForNullArguments()
+            {
+                new Action(() => new FakeRequestProcessor(null))
+                    .ShouldThrow<ArgumentNullException>();
+            }
+
+            private class FakeRequestProcessor : RequestProcessor
+            {
+                public FakeRequestProcessor(Bootstrapper bootstrapper) : base(bootstrapper)
+                {
+                }
+
+                protected internal override Task WriteResponseAsync(IRequestData request, IResponseData response)
+                {
+                    throw new NotImplementedException();
+                }
+            }
         }
 
         [TestFixture]
@@ -184,7 +199,7 @@
 
                 IResponseData result = await this.processor.InvokeHandlerAsync(this.request, this.converter);
 
-                Assert.That(result.StatusCode, Is.EqualTo(200));
+                result.StatusCode.Should().Be(200);
             }
 
             [Test]
@@ -193,9 +208,8 @@
                 this.mapper.GetAdapter(this.request.Handler)
                            .Returns((RouteMethod)null);
 
-                Assert.That(
-                    async () => await this.processor.InvokeHandlerAsync(this.request, this.converter),
-                    Throws.InstanceOf<InvalidOperationException>());
+                new Func<Task>(async () => await this.processor.InvokeHandlerAsync(this.request, this.converter))
+                    .ShouldThrow<InvalidOperationException>();
             }
 
             [Test]
@@ -284,122 +298,121 @@
             }
         }
 
-        [Test]
-        public async Task OnAfterRequestAsyncShouldInvokeThePluginsInTheCorrectOrder()
+        [TestFixture]
+        public sealed class OnAfterRequestAsync : RequestProcessorTests
         {
-            IPostRequestPlugin one = CreatePostRequestPlugin(1);
-            IPostRequestPlugin two = CreatePostRequestPlugin(2);
-            IPostRequestPlugin three = CreatePostRequestPlugin(3);
-            this.serviceLocator.GetAfterRequestPlugins().Returns(new[] { three, one, two });
-
-            await this.processor.OnAfterRequestAsync(this.request, Substitute.For<IResponseData>());
-
-            Received.InOrder(() =>
+            [Test]
+            public async Task ShouldInvokeThePluginsInTheCorrectOrder()
             {
-                one.ProcessAsync(this.request, Arg.Any<IResponseData>());
-                two.ProcessAsync(this.request, Arg.Any<IResponseData>());
-                three.ProcessAsync(this.request, Arg.Any<IResponseData>());
-            });
-        }
+                IPostRequestPlugin one = CreatePostRequestPlugin(1);
+                IPostRequestPlugin two = CreatePostRequestPlugin(2);
+                IPostRequestPlugin three = CreatePostRequestPlugin(3);
+                this.serviceLocator.GetAfterRequestPlugins().Returns(new[] { three, one, two });
 
-        [Test]
-        public async Task OnBeforeRequestAsyncShouldInvokeThePluginsInTheCorrectOrder()
-        {
-            IPreRequestPlugin one = CreatePreRequestPlugin(1);
-            IPreRequestPlugin two = CreatePreRequestPlugin(2);
-            IPreRequestPlugin three = CreatePreRequestPlugin(3);
-            this.serviceLocator.GetBeforeRequestPlugins().Returns(new[] { three, one, two });
+                await this.processor.OnAfterRequestAsync(this.request, Substitute.For<IResponseData>());
 
-            await this.processor.OnBeforeRequestAsync(this.request);
-
-            Received.InOrder(() =>
-            {
-                one.ProcessAsync(this.request);
-                two.ProcessAsync(this.request);
-                three.ProcessAsync(this.request);
-            });
-        }
-
-        [Test]
-        public async Task OnBeforeRequestAsyncShouldReturnTheReturnedRepsonse()
-        {
-            IResponseData response = Substitute.For<IResponseData>();
-            IPreRequestPlugin plugin = CreatePreRequestPlugin(1);
-            plugin.ProcessAsync(this.request).Returns(response);
-            this.serviceLocator.GetBeforeRequestPlugins().Returns(new[] { plugin });
-
-            IResponseData result = await this.processor.OnBeforeRequestAsync(this.request);
-
-            Assert.That(result, Is.SameAs(response));
-        }
-
-        [Test]
-        public async Task OnErrorAsyncShouldInvokeThePluginsInTheCorrectOrder()
-        {
-            Exception exception = new DivideByZeroException();
-            IErrorHandlerPlugin one = CreateErrorHandlerPlugin(1);
-            IErrorHandlerPlugin two = CreateErrorHandlerPlugin(2);
-            IErrorHandlerPlugin three = CreateErrorHandlerPlugin(3);
-            this.serviceLocator.GetErrorHandlers().Returns(new[] { three, one, two });
-
-            await this.processor.OnErrorAsync(this.request, exception);
-
-            Received.InOrder(() =>
-            {
-                one.CanHandle(exception);
-                two.CanHandle(exception);
-                three.CanHandle(exception);
-            });
-        }
-
-        [Test]
-        public async Task OnErrorAsyncShouldInvokeProcessIfCanHandleReturnsTrue()
-        {
-            Exception exception = new DivideByZeroException();
-            IErrorHandlerPlugin plugin = CreateErrorHandlerPlugin(1);
-            plugin.CanHandle(exception).Returns(true);
-            this.serviceLocator.GetErrorHandlers().Returns(new[] { plugin });
-
-            await this.processor.OnErrorAsync(this.request, exception);
-
-            await plugin.Received().ProcessAsync(this.request, exception);
-        }
-
-        private static IErrorHandlerPlugin CreateErrorHandlerPlugin(int order)
-        {
-            IErrorHandlerPlugin plugin = Substitute.For<IErrorHandlerPlugin>();
-            plugin.Order.Returns(order);
-            plugin.CanHandle(null).ReturnsForAnyArgs(false);
-            plugin.ProcessAsync(null, null).ReturnsForAnyArgs((IResponseData)null);
-            return plugin;
-        }
-
-        private static IPostRequestPlugin CreatePostRequestPlugin(int order)
-        {
-            IPostRequestPlugin plugin = Substitute.For<IPostRequestPlugin>();
-            plugin.Order.Returns(order);
-            plugin.ProcessAsync(null, null).ReturnsForAnyArgs((IResponseData)null);
-            return plugin;
-        }
-
-        private static IPreRequestPlugin CreatePreRequestPlugin(int order)
-        {
-            IPreRequestPlugin plugin = Substitute.For<IPreRequestPlugin>();
-            plugin.Order.Returns(order);
-            plugin.ProcessAsync(null).ReturnsForAnyArgs((IResponseData)null);
-            return plugin;
-        }
-
-        // Used to test the constructor
-        private class FakeRequestProcessor : RequestProcessor
-        {
-            public FakeRequestProcessor(Bootstrapper bootstrapper) : base(bootstrapper)
-            {
+                Received.InOrder(() =>
+                {
+                    one.ProcessAsync(this.request, Arg.Any<IResponseData>());
+                    two.ProcessAsync(this.request, Arg.Any<IResponseData>());
+                    three.ProcessAsync(this.request, Arg.Any<IResponseData>());
+                });
             }
 
-            protected internal override Task WriteResponseAsync(IRequestData request, IResponseData response)
+            private static IPostRequestPlugin CreatePostRequestPlugin(int order)
             {
-                throw new NotImplementedException();
+                IPostRequestPlugin plugin = Substitute.For<IPostRequestPlugin>();
+                plugin.Order.Returns(order);
+                plugin.ProcessAsync(null, null).ReturnsForAnyArgs((IResponseData)null);
+                return plugin;
+            }
+        }
+
+        [TestFixture]
+        public sealed class OnBeforeRequestAsync : RequestProcessorTests
+        {
+            [Test]
+            public async Task ShouldInvokeThePluginsInTheCorrectOrder()
+            {
+                IPreRequestPlugin one = CreatePreRequestPlugin(1);
+                IPreRequestPlugin two = CreatePreRequestPlugin(2);
+                IPreRequestPlugin three = CreatePreRequestPlugin(3);
+                this.serviceLocator.GetBeforeRequestPlugins().Returns(new[] { three, one, two });
+
+                await this.processor.OnBeforeRequestAsync(this.request);
+
+                Received.InOrder(() =>
+                {
+                    one.ProcessAsync(this.request);
+                    two.ProcessAsync(this.request);
+                    three.ProcessAsync(this.request);
+                });
+            }
+
+            [Test]
+            public async Task ShouldReturnTheReturnedRepsonse()
+            {
+                IResponseData response = Substitute.For<IResponseData>();
+                IPreRequestPlugin plugin = CreatePreRequestPlugin(1);
+                plugin.ProcessAsync(this.request).Returns(response);
+                this.serviceLocator.GetBeforeRequestPlugins().Returns(new[] { plugin });
+
+                IResponseData result = await this.processor.OnBeforeRequestAsync(this.request);
+
+                result.Should().BeSameAs(response);
+            }
+
+            private static IPreRequestPlugin CreatePreRequestPlugin(int order)
+            {
+                IPreRequestPlugin plugin = Substitute.For<IPreRequestPlugin>();
+                plugin.Order.Returns(order);
+                plugin.ProcessAsync(null).ReturnsForAnyArgs((IResponseData)null);
+                return plugin;
+            }
+        }
+
+        [TestFixture]
+        public sealed class OnErrorAsync : RequestProcessorTests
+        {
+            [Test]
+            public async Task ShouldInvokeThePluginsInTheCorrectOrder()
+            {
+                Exception exception = new DivideByZeroException();
+                IErrorHandlerPlugin one = CreateErrorHandlerPlugin(1);
+                IErrorHandlerPlugin two = CreateErrorHandlerPlugin(2);
+                IErrorHandlerPlugin three = CreateErrorHandlerPlugin(3);
+                this.serviceLocator.GetErrorHandlers().Returns(new[] { three, one, two });
+
+                await this.processor.OnErrorAsync(this.request, exception);
+
+                Received.InOrder(() =>
+                {
+                    one.CanHandle(exception);
+                    two.CanHandle(exception);
+                    three.CanHandle(exception);
+                });
+            }
+
+            [Test]
+            public async Task ShouldInvokeProcessIfCanHandleReturnsTrue()
+            {
+                Exception exception = new DivideByZeroException();
+                IErrorHandlerPlugin plugin = CreateErrorHandlerPlugin(1);
+                plugin.CanHandle(exception).Returns(true);
+                this.serviceLocator.GetErrorHandlers().Returns(new[] { plugin });
+
+                await this.processor.OnErrorAsync(this.request, exception);
+
+                await plugin.Received().ProcessAsync(this.request, exception);
+            }
+
+            private static IErrorHandlerPlugin CreateErrorHandlerPlugin(int order)
+            {
+                IErrorHandlerPlugin plugin = Substitute.For<IErrorHandlerPlugin>();
+                plugin.Order.Returns(order);
+                plugin.CanHandle(null).ReturnsForAnyArgs(false);
+                plugin.ProcessAsync(null, null).ReturnsForAnyArgs((IResponseData)null);
+                return plugin;
             }
         }
     }
