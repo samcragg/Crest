@@ -22,18 +22,47 @@ namespace Crest.Host
             /// <summary>
             /// Initializes a new instance of the <see cref="MatchResult"/> struct.
             /// </summary>
+            /// <param name="overrideFunc">
+            /// The function to invoke to get the response.
+            /// </param>
+            public MatchResult(OverrideMethod overrideFunc)
+            {
+                this.Method = null;
+                this.Override = overrideFunc;
+                this.Parameters = null;
+            }
+
+            /// <summary>
+            /// Initializes a new instance of the <see cref="MatchResult"/> struct.
+            /// </summary>
             /// <param name="method">The matched method.</param>
             /// <param name="parameters">The parsed parameters for the method.</param>
-            internal MatchResult(MethodInfo method, IReadOnlyDictionary<string, object> parameters)
+            public MatchResult(MethodInfo method, IReadOnlyDictionary<string, object> parameters)
             {
+                Check.IsNotNull(method, nameof(method));
+                Check.IsNotNull(parameters, nameof(parameters));
+
                 this.Method = method;
+                this.Override = null;
                 this.Parameters = parameters;
             }
+
+            /// <summary>
+            /// Gets a value indicating whether to invoke the <see cref="Override"/>
+            /// or, if false, process the <see cref="Method"/>.
+            /// </summary>
+            public bool IsOverride => this.Override != null;
 
             /// <summary>
             /// Gets the matched method, if any.
             /// </summary>
             public MethodInfo Method { get; }
+
+            /// <summary>
+            /// Gets the delegate to invoke to get the response directly without
+            /// normal processing, if any.
+            /// </summary>
+            public OverrideMethod Override { get; }
 
             /// <summary>
             /// Gets the matched parameters for the matched method.
@@ -44,12 +73,10 @@ namespace Crest.Host
             public IReadOnlyDictionary<string, object> Parameters { get; }
 
             /// <summary>
-            /// Gets a value indicating whether a match was found.
+            /// Gets a value indicating whether this instance has been
+            /// constructed with one of the constructors or not.
             /// </summary>
-            public bool Success
-            {
-                get { return this.Method != null; }
-            }
+            internal bool IsValid => (this.Method != null) || (this.Override != null);
         }
     }
 }

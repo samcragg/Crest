@@ -22,8 +22,13 @@ namespace Crest.Host
     public abstract partial class RequestProcessor
     {
         private static readonly Task<IResponseData> EmptyResponse = Task.FromResult<IResponseData>(null);
+        private static readonly MatchResult NoMatch = new MatchResult(
+            typeof(RequestProcessor).GetMethod(nameof(OverrideMethodAdapter), BindingFlags.NonPublic | BindingFlags.Static),
+            new Dictionary<string, object>());
+
         private readonly IContentConverterFactory converterFactory;
         private readonly IRouteMapper mapper;
+        private readonly MatchResult notFound;
         private readonly IResponseStatusGenerator responseGenerator;
         private readonly IServiceLocator serviceLocator;
         private readonly BlockStreamPool streamPool = new BlockStreamPool();
@@ -41,57 +46,84 @@ namespace Crest.Host
 
             this.converterFactory = this.serviceLocator.GetContentConverterFactory();
             this.responseGenerator = this.serviceLocator.GetResponseStatusGenerator();
+            this.notFound = new MatchResult(this.responseGenerator.NotFoundAsync);
         }
 
         // NOTE: The methods here should just be protected, however, they've
         //       been made internal as well to allow unit testing.
 
         /// <summary>
+        /// Allows direct processing of a request without going through the
+        /// normal routing pipeline.
+        /// </summary>
+        /// <param name="request">Contains the request data.</param>
+        /// <param name="converter">
+        /// Can be used to convert an object into the requested format.
+        /// </param>
+        /// <returns>
+        /// A task that represents the asynchronous operation. The value of the
+        /// <c>TResult</c> parameter contains the response data.
+        /// </returns>
+        protected internal delegate Task<IResponseData> OverrideMethod(IRequestData request, IContentConverter converter);
+
+        /// <summary>
         /// Processes a request and generates a response.
         /// </summary>
-        /// <param name="request">The request data to process.</param>
+        /// <param name="match">
+        /// The result of calling <see cref="Match(string, string, ILookup{string, string})"/>.
+        /// </param>
+        /// <param name="request">Used to create the request data to process.</param>
         /// <returns>A task that represents the asynchronous operation.</returns>
-        protected internal async Task HandleRequestAsync(IRequestData request)
+        protected internal async Task HandleRequestAsync(MatchResult match, Func<MatchResult, IRequestData> request)
         {
-            IResponseData response = null;
+            IRequestData requestData = null;
+            IResponseData response;
+
             try
             {
-                response = await this.OnBeforeRequestAsync(request).ConfigureAwait(false);
-                if (response == null)
+                requestData = request(match.IsOverride ? NoMatch : match);
+                IContentConverter converter = this.GetConverter(requestData);
+                if (converter == null)
                 {
-                    response = await this.InvokeHandlerAsync(request).ConfigureAwait(false);
-                    response = await this.OnAfterRequestAsync(request, response).ConfigureAwait(false);
+                    response = await this.responseGenerator.NotAcceptableAsync(requestData).ConfigureAwait(false);
+                }
+                else
+                {
+                    if (match.IsOverride)
+                    {
+                        response = await match.Override(requestData, converter).ConfigureAwait(false);
+                    }
+                    else
+                    {
+                        response = await this.ProcessRequestAsync(requestData, converter).ConfigureAwait(false);
+                    }
                 }
             }
             catch (Exception ex)
             {
-                // TODO: If the response is null use an internal error one...
-                response = await this.OnErrorAsync(request, ex).ConfigureAwait(false);
+                response = await this.GetErrorResponseAsync(requestData, ex);
             }
 
-            await this.WriteResponseAsync(request, response).ConfigureAwait(false);
+            await this.WriteResponseAsync(requestData, response).ConfigureAwait(false);
         }
 
         /// <summary>
         /// Invokes the registered handler and converts the response.
         /// </summary>
         /// <param name="request">The request data to process.</param>
+        /// <param name="converter">
+        /// Allows the conversion to the requested content type.
+        /// </param>
         /// <returns>
         /// A task that represents the asynchronous operation. The value of the
         /// <c>TResult</c> parameter contains the response to send.
         /// </returns>
-        protected internal virtual async Task<IResponseData> InvokeHandlerAsync(IRequestData request)
+        protected internal virtual async Task<IResponseData> InvokeHandlerAsync(IRequestData request, IContentConverter converter)
         {
             RouteMethod method = this.mapper.GetAdapter(request.Handler);
             if (method == null)
             {
                 throw new InvalidOperationException("Request data contains an invalid method.");
-            }
-
-            IContentConverter converter = this.GetConverter(request);
-            if (converter == null)
-            {
-                return await this.responseGenerator.NotAcceptableAsync(request).ConfigureAwait(false);
             }
 
             object result = await method(request.Parameters).ConfigureAwait(false);
@@ -124,7 +156,7 @@ namespace Crest.Host
             MethodInfo method = this.mapper.Match(verb, path, query, out parameters);
             if (method == null)
             {
-                return default(MatchResult);
+                return this.notFound;
             }
             else
             {
@@ -219,11 +251,53 @@ namespace Crest.Host
         /// <returns>A task that represents the asynchronous operation.</returns>
         protected internal abstract Task WriteResponseAsync(IRequestData request, IResponseData response);
 
+        private static Task OverrideMethodAdapter()
+        {
+            throw new InvalidOperationException(
+                "The request matched an override method and, therefore, this method MUST not be called.");
+        }
+
         private IContentConverter GetConverter(IRequestData request)
         {
             string accept;
             request.Headers.TryGetValue("Accept", out accept);
             return this.converterFactory.GetConverter(accept);
+        }
+
+        private async Task<IResponseData> GetErrorResponseAsync(IRequestData request, Exception exception)
+        {
+            IResponseData response = null;
+            try
+            {
+                response = await this.OnErrorAsync(request, exception).ConfigureAwait(false);
+            }
+            catch (Exception ex)
+            {
+                // TODO: Trace the exception - don't return any details though...
+                try
+                {
+                    response = await this.responseGenerator.InternalErrorAsync(ex).ConfigureAwait(false);
+                }
+                catch (Exception inner)
+                {
+                    // TODO: Trace the exception - don't return any details though...
+                    GC.KeepAlive(inner); // HACK: Just use the variable until we can trace it...
+                }
+            }
+
+            return response ?? ResponseGenerator.InternalError;
+        }
+
+        private async Task<IResponseData> ProcessRequestAsync(IRequestData request, IContentConverter converter)
+        {
+            IResponseData response = await this.OnBeforeRequestAsync(request).ConfigureAwait(false);
+            if (response == null)
+            {
+                response = await this.InvokeHandlerAsync(request, converter).ConfigureAwait(false);
+                response = await this.OnAfterRequestAsync(request, response).ConfigureAwait(false);
+            }
+
+            return response;
         }
 
         private ResponseData SerializeResponse(IContentConverter converter, object value)

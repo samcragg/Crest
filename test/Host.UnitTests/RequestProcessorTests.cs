@@ -9,12 +9,13 @@
     using Crest.Host;
     using Crest.Host.Conversion;
     using Crest.Host.Engine;
+    using FluentAssertions;
     using NSubstitute;
     using NSubstitute.ExceptionExtensions;
     using NUnit.Framework;
 
     [TestFixture]
-    public sealed class RequestProcessorTests
+    public class RequestProcessorTests
     {
         private Bootstrapper bootstrapper;
         private IContentConverterFactory converterFactory;
@@ -57,161 +58,230 @@
                 Throws.InstanceOf<ArgumentNullException>());
         }
 
-        [Test]
-        public async Task HandleRequestAsyncShouldCallTheMethodsInTheCorrectOrder()
+        [TestFixture]
+        public sealed class HandleRequestAsync : RequestProcessorTests
         {
-            this.processor.WhenForAnyArgs(p => p.OnAfterRequestAsync(null, null)).DoNotCallBase();
-            this.processor.WhenForAnyArgs(p => p.OnBeforeRequestAsync(null)).DoNotCallBase();
-            this.processor.WhenForAnyArgs(p => p.InvokeHandlerAsync(null)).DoNotCallBase();
-            this.processor.OnBeforeRequestAsync(null).ReturnsForAnyArgs((IResponseData)null);
+            private static readonly MethodInfo FakeMethodInfo =
+                typeof(HandleRequestAsync).GetMethod(nameof(FakeMethod));
 
-            await this.processor.HandleRequestAsync(this.request);
+            private readonly RequestProcessor.MatchResult simpleMatch =
+                new RequestProcessor.MatchResult(FakeMethodInfo, new Dictionary<string, object>());
 
-            Received.InOrder(() =>
+            [Test]
+            public async Task ShouldProvideANonInvokableMethodToOverrideMatches()
             {
-                this.processor.OnBeforeRequestAsync(this.request);
-                this.processor.InvokeHandlerAsync(this.request);
-                this.processor.OnAfterRequestAsync(this.request, Arg.Any<IResponseData>());
-            });
-        }
-
-        [Test]
-        public async Task HandleRequestAsyncShouldReturnNonNullValuesFromOnBeforeRequest()
-        {
-            IResponseData response = Substitute.For<IResponseData>();
-            this.processor.OnBeforeRequestAsync(Arg.Is(this.request)).Returns(response);
-
-            await this.processor.HandleRequestAsync(this.request);
-
-            await this.processor.Received().WriteResponseAsync(this.request, response);
-            await this.processor.DidNotReceive().InvokeHandlerAsync(Arg.Any<IRequestData>());
-        }
-
-        [Test]
-        public async Task HandleRequestAsyncShouldCatchExceptionsFromInvokeHandler()
-        {
-            IResponseData response = Substitute.For<IResponseData>();
-            Exception exception = new DivideByZeroException();
-            this.processor.InvokeHandlerAsync(Arg.Is(this.request)).Throws(exception);
-            this.processor.OnErrorAsync(Arg.Is(this.request), exception).Returns(response);
-
-            await this.processor.HandleRequestAsync(this.request);
-
-            await this.processor.Received().WriteResponseAsync(this.request, response);
-        }
-
-        [Test]
-        public async Task InvokeHandlerAsyncShouldReturnOKStatusCode()
-        {
-            this.mapper.GetAdapter(this.request.Handler)
-                       .Returns(_ => Task.FromResult<object>("Response"));
-
-            IResponseData result = await this.processor.InvokeHandlerAsync(this.request);
-
-            Assert.That(result.StatusCode, Is.EqualTo(200));
-        }
-
-        [Test]
-        public void InvokeHandlerAsyncShouldCheckTheHandlerIsFound()
-        {
-            this.mapper.GetAdapter(this.request.Handler)
-                       .Returns((RouteMethod)null);
-
-            Assert.That(
-                async () => await this.processor.InvokeHandlerAsync(this.request),
-                Throws.InstanceOf<InvalidOperationException>());
-        }
-
-        [Test]
-        public async Task InvokeHandlerAsyncShouldSerializeTheResult()
-        {
-            IContentConverter converter = Substitute.For<IContentConverter>();
-            this.converterFactory.GetConverter("accept/value").Returns(converter);
-
-            this.request.Headers.Returns(new Dictionary<string, string> { { "Accept", "accept/value" } });
-            this.mapper.GetAdapter(this.request.Handler)
-                       .Returns(_ => Task.FromResult<object>("Response"));
-
-            using (var stream = new MemoryStream())
-            {
-                IResponseData response = await this.processor.InvokeHandlerAsync(this.request);
-                await response.WriteBody(stream);
-            }
-
-            converter.Received().WriteTo(Arg.Any<Stream>(), "Response");
-        }
-
-        [Test]
-        public async Task InvokeHandlerAsyncShouldInvokeNoContentStatusCodeHandler()
-        {
-            this.mapper.GetAdapter(this.request.Handler)
-                       .Returns(_ => Task.FromResult<object>(NoContent.Value));
-
-            await this.processor.InvokeHandlerAsync(this.request);
-
-            await this.responseGenerator.ReceivedWithAnyArgs().NoContentAsync(null, null);
-        }
-
-        [Test]
-        public async Task InvokeHandlerAsyncShouldInvokeNotAcceptableStatusCodeHandler()
-        {
-            this.converterFactory.GetConverter(null)
-                .ReturnsForAnyArgs((IContentConverter)null);
-
-            await this.processor.InvokeHandlerAsync(this.request);
-
-            await this.responseGenerator.ReceivedWithAnyArgs().NotAcceptableAsync(null);
-        }
-
-        [Test]
-        public async Task InvokeHandlerAsyncShouldInvokeNotFoundStatusCodeHandler()
-        {
-            this.mapper.GetAdapter(this.request.Handler)
-                       .Returns(_ => Task.FromResult<object>(null));
-
-            await this.processor.InvokeHandlerAsync(this.request);
-
-            await this.responseGenerator.ReceivedWithAnyArgs().NotFoundAsync(null, null);
-        }
-
-        [Test]
-        public void MatchShouldReturnFalseIfNotMethodMatches()
-        {
-            IReadOnlyDictionary<string, object> notUsed;
-            this.mapper.Match(null, null, null, out notUsed).ReturnsForAnyArgs((MethodInfo)null);
-
-            RequestProcessor.MatchResult result =
-                this.processor.Match("", "", Substitute.For<ILookup<string, string>>());
-
-            Assert.That(result.Success, Is.False);
-        }
-
-        [Test]
-        public void MatchShouldReturnTheMatchedInformation()
-        {
-            MethodInfo method = Substitute.For<MethodInfo>();
-            IReadOnlyDictionary<string, object> parameters = new Dictionary<string, object>();
-            ILookup<string, string> query = Substitute.For<ILookup<string, string>>();
-
-            // We need to call the Arg.XXX calls in the same order as the method
-            // for NSubstitute to handle them and we need to use the specifier
-            // for both string parameters so it doesn't get confused
-            string verb = Arg.Is("GET");
-            string path = Arg.Is("/route");
-            IReadOnlyDictionary<string, object> any = Arg.Any<IReadOnlyDictionary<string, object>>();
-            this.mapper.Match(verb, path, query, out any)
-                .Returns(args =>
+                var capturedMatch = default(RequestProcessor.MatchResult);
+                var callback = new Func<RequestProcessor.MatchResult, IRequestData>(match =>
                 {
-                    args[3] = parameters;
-                    return method;
+                    capturedMatch = match;
+                    return null;
                 });
 
-            RequestProcessor.MatchResult result =
-                this.processor.Match("GET", "/route", query);
+                await this.processor.HandleRequestAsync(
+                    new RequestProcessor.MatchResult((r, c) => Task.FromResult<IResponseData>(null)),
+                    callback);
 
-            Assert.That(result.Success, Is.True);
-            Assert.That(result.Method, Is.SameAs(method));
-            Assert.That(result.Parameters, Is.SameAs(parameters));
+                capturedMatch.IsOverride.Should().BeFalse();
+                capturedMatch.Method.Invoking(m => m.Invoke(null, null))
+                             .ShouldThrow<TargetInvocationException>()
+                             .WithInnerException<InvalidOperationException>();
+            }
+
+            [Test]
+            public async Task ShouldReturnNotAcceptableIfNoConverter()
+            {
+                this.converterFactory.GetConverter(null)
+                    .ReturnsForAnyArgs((IContentConverter)null);
+                IRequestData request = Substitute.For<IRequestData>();
+
+                await this.processor.HandleRequestAsync(this.simpleMatch, r => request);
+
+                await this.responseGenerator.Received().NotAcceptableAsync(request);
+            }
+
+            [Test]
+            public async Task ShouldInvokeTheOverrideMethod()
+            {
+                IRequestData capturedRequest = null;
+                IContentConverter capturedConverter = null;
+                IResponseData response = Substitute.For<IResponseData>();
+                RequestProcessor.OverrideMethod overrideMethod = (r, c) =>
+                {
+                    capturedConverter = c;
+                    capturedRequest = r;
+                    return Task.FromResult(response);
+                };
+
+                IRequestData request = Substitute.For<IRequestData>();
+
+                await this.processor.HandleRequestAsync(
+                    new RequestProcessor.MatchResult(overrideMethod),
+                    _ => request);
+
+                capturedRequest.Should().BeSameAs(request);
+                capturedConverter.Should().NotBeNull();
+                await this.processor.Received().WriteResponseAsync(request, response);
+            }
+
+            [Test]
+            public async Task ShouldInvokeThePipelineInTheCorrectOrder()
+            {
+                this.processor.WhenForAnyArgs(p => p.OnAfterRequestAsync(null, null)).DoNotCallBase();
+                this.processor.WhenForAnyArgs(p => p.OnBeforeRequestAsync(null)).DoNotCallBase();
+                this.processor.WhenForAnyArgs(p => p.InvokeHandlerAsync(null, null)).DoNotCallBase();
+                this.processor.OnBeforeRequestAsync(null).ReturnsForAnyArgs((IResponseData)null);
+
+                await this.processor.HandleRequestAsync(this.simpleMatch, _ => this.request);
+
+                Received.InOrder(() =>
+                {
+                    this.processor.OnBeforeRequestAsync(this.request);
+                    this.processor.InvokeHandlerAsync(this.request, Arg.Is<IContentConverter>(c => c != null));
+                    this.processor.OnAfterRequestAsync(this.request, Arg.Any<IResponseData>());
+                });
+            }
+
+            [Test]
+            public async Task ShouldReturnNonNullValuesFromOnBeforeRequest()
+            {
+                IResponseData response = Substitute.For<IResponseData>();
+                this.processor.OnBeforeRequestAsync(Arg.Is(this.request)).Returns(response);
+
+                await this.processor.HandleRequestAsync(this.simpleMatch, _ => this.request);
+
+                await this.processor.Received().WriteResponseAsync(this.request, response);
+                await this.processor.DidNotReceiveWithAnyArgs().InvokeHandlerAsync(null, null);
+            }
+
+            [Test]
+            public async Task ShouldCatchExceptionsFromInvokeHandler()
+            {
+                IResponseData response = Substitute.For<IResponseData>();
+                Exception exception = new DivideByZeroException();
+                this.processor.InvokeHandlerAsync(Arg.Is(this.request), Arg.Any<IContentConverter>()).Throws(exception);
+                this.processor.OnErrorAsync(Arg.Is(this.request), exception).Returns(response);
+
+                await this.processor.HandleRequestAsync(this.simpleMatch, _ => this.request);
+
+                await this.processor.Received().WriteResponseAsync(this.request, response);
+            }
+
+            public void FakeMethod()
+            {
+            }
+        }
+
+        [TestFixture]
+        public sealed class InvokeHandlerAsync : RequestProcessorTests
+        {
+            private readonly IContentConverter converter = Substitute.For<IContentConverter>();
+
+            [Test]
+            public async Task ShouldReturnOKStatusCode()
+            {
+                this.mapper.GetAdapter(this.request.Handler)
+                           .Returns(_ => Task.FromResult<object>("Response"));
+
+                IResponseData result = await this.processor.InvokeHandlerAsync(this.request, this.converter);
+
+                Assert.That(result.StatusCode, Is.EqualTo(200));
+            }
+
+            [Test]
+            public void ShouldCheckTheHandlerIsFound()
+            {
+                this.mapper.GetAdapter(this.request.Handler)
+                           .Returns((RouteMethod)null);
+
+                Assert.That(
+                    async () => await this.processor.InvokeHandlerAsync(this.request, this.converter),
+                    Throws.InstanceOf<InvalidOperationException>());
+            }
+
+            [Test]
+            public async Task ShouldSerializeTheResult()
+            {
+                this.mapper.GetAdapter(this.request.Handler)
+                           .Returns(_ => Task.FromResult<object>("Response"));
+
+                using (var stream = new MemoryStream())
+                {
+                    IResponseData response = await this.processor.InvokeHandlerAsync(this.request, this.converter);
+                    await response.WriteBody(stream);
+                }
+
+                this.converter.Received().WriteTo(Arg.Any<Stream>(), "Response");
+            }
+
+            [Test]
+            public async Task ShouldInvokeNoContentStatusCodeHandler()
+            {
+                this.mapper.GetAdapter(this.request.Handler)
+                           .Returns(_ => Task.FromResult<object>(NoContent.Value));
+
+                await this.processor.InvokeHandlerAsync(this.request, this.converter);
+
+                await this.responseGenerator.ReceivedWithAnyArgs().NoContentAsync(null, null);
+            }
+
+            [Test]
+            public async Task ShouldInvokeNotFoundStatusCodeHandler()
+            {
+                this.mapper.GetAdapter(this.request.Handler)
+                           .Returns(_ => Task.FromResult<object>(null));
+
+                await this.processor.InvokeHandlerAsync(this.request, this.converter);
+
+                await this.responseGenerator.ReceivedWithAnyArgs().NotFoundAsync(null, null);
+            }
+        }
+
+        [TestFixture]
+        public sealed class Match : RequestProcessorTests
+        {
+            [Test]
+            public void ShouldReturnAnOverrideIfNoMethodMatches()
+            {
+                IReadOnlyDictionary<string, object> notUsed;
+                this.mapper.Match(null, null, null, out notUsed).ReturnsForAnyArgs((MethodInfo)null);
+
+                RequestProcessor.MatchResult result =
+                    this.processor.Match("", "", Substitute.For<ILookup<string, string>>());
+
+                result.IsOverride.Should().BeTrue();
+                result.Override.Should().NotBeNull();
+                result.Method.Should().BeNull();
+                result.Parameters.Should().BeNull();
+            }
+
+            [Test]
+            public void ShouldReturnTheMatchedInformation()
+            {
+                MethodInfo method = Substitute.For<MethodInfo>();
+                IReadOnlyDictionary<string, object> parameters = new Dictionary<string, object>();
+                ILookup<string, string> query = Substitute.For<ILookup<string, string>>();
+
+                // We need to call the Arg.XXX calls in the same order as the method
+                // for NSubstitute to handle them and we need to use the specifier
+                // for both string parameters so it doesn't get confused
+                string verb = Arg.Is("GET");
+                string path = Arg.Is("/route");
+                IReadOnlyDictionary<string, object> any = Arg.Any<IReadOnlyDictionary<string, object>>();
+                this.mapper.Match(verb, path, query, out any)
+                    .Returns(args =>
+                    {
+                        args[3] = parameters;
+                        return method;
+                    });
+
+                RequestProcessor.MatchResult result =
+                    this.processor.Match("GET", "/route", query);
+
+                result.IsOverride.Should().BeFalse();
+                result.Method.Should().BeSameAs(method);
+                result.Override.Should().BeNull();
+                result.Parameters.Should().BeSameAs(parameters);
+            }
         }
 
         [Test]
