@@ -11,11 +11,12 @@
     using Crest.Host.Conversion;
     using Crest.Host.Engine;
     using Microsoft.AspNetCore.Http;
+    using FluentAssertions;
     using NSubstitute;
     using NUnit.Framework;
 
     [TestFixture]
-    public sealed class HttpContextProcessorTests
+    public class HttpContextProcessorTests
     {
         private Bootstrapper bootstrapper;
         private IContentConverter converter;
@@ -40,67 +41,69 @@
             this.processor = new HttpContextProcessor(this.bootstrapper);
         }
 
-        [Test]
-        public async Task HandleRequestShouldReturn404IfNoRouteIsFound()
+        [TestFixture]
+        public sealed class HandleRequest : HttpContextProcessorTests
         {
-            HttpContext context = CreateContext("http://localhost/unknown");
+            [Test]
+            public async Task ShouldReturn200ForFoundRoutes()
+            {
+                HttpContext context = CreateContext("http://localhost/route");
+                MethodInfo method = Substitute.For<MethodInfo>();
+                this.mapper.GetAdapter(method).Returns(_ => Task.FromResult<object>(""));
 
-            await this.processor.HandleRequest(context);
+                // We need to call the Arg.Any calls in the same order as the method
+                // for NSubstitute to handle them
+                ILookup<string, string> query = Arg.Any<ILookup<string, string>>();
+                IReadOnlyDictionary<string, object> any = Arg.Any<IReadOnlyDictionary<string, object>>();
+                this.mapper.Match("GET", "/route", query, out any)
+                    .Returns(ci =>
+                    {
+                        ci[3] = new Dictionary<string, object>();
+                        return method;
+                    });
 
-            Assert.That(context.Response.StatusCode, Is.EqualTo(404));
-        }
+                await this.processor.HandleRequest(context);
 
-        [Test]
-        public async Task HandleRequestShouldReturn200ForFoundRoutes()
-        {
-            HttpContext context = CreateContext("http://localhost/route");
-            MethodInfo method = Substitute.For<MethodInfo>();
-            this.mapper.GetAdapter(method).Returns(_ => Task.FromResult<object>(""));
+                context.Response.StatusCode.Should().Be(200);
+            }
 
-            // We need to call the Arg.Any calls in the same order as the method
-            // for NSubstitute to handle them
-            ILookup<string, string> query = Arg.Any<ILookup<string, string>>();
-            IReadOnlyDictionary<string, object> any = Arg.Any<IReadOnlyDictionary<string, object>>();
-            this.mapper.Match("GET", "/route", query, out any)
-                .Returns(method);
+            [Test]
+            public async Task ShouldWriteTheBodyToTheResponse()
+            {
+                object methodReturn = new object();
+                HttpContext context = CreateContext("http://localhost/route");
+                MethodInfo method = Substitute.For<MethodInfo>();
+                this.mapper.GetAdapter(method).Returns(_ => Task.FromResult(methodReturn));
 
-            await this.processor.HandleRequest(context);
+                // Write to the passed in stream so it will get copied to the out response
+                this.converter.WriteTo(Arg.Do<Stream>(s => s.WriteByte(1)), methodReturn);
 
-            Assert.That(context.Response.StatusCode, Is.EqualTo(200));
-        }
+                IReadOnlyDictionary<string, object> notUsed;
+                this.mapper.Match(null, null, null, out notUsed)
+                    .ReturnsForAnyArgs(ci =>
+                    {
+                        ci[3] = new Dictionary<string, object>();
+                        return method;
+                    });
 
-        [Test]
-        public async Task HandleRequestShouldWriteTheBodyToTheResponse()
-        {
-            object methodReturn = new object();
-            HttpContext context = CreateContext("http://localhost/route");
-            MethodInfo method = Substitute.For<MethodInfo>();
-            this.mapper.GetAdapter(method).Returns(_ => Task.FromResult(methodReturn));
+                await this.processor.HandleRequest(context);
 
-            // Write to the passed in stream so it will get copied to the out response
-            this.converter.WriteTo(Arg.Do<Stream>(s => s.WriteByte(1)), methodReturn);
+                context.Response.Body.Length.Should().Be(1);
+            }
 
-            IReadOnlyDictionary<string, object> notUsed;
-            this.mapper.Match(null, null, null, out notUsed)
-                .ReturnsForAnyArgs(method);
+            private static HttpContext CreateContext(string urlString)
+            {
+                Uri url = new Uri(urlString);
 
-            await this.processor.HandleRequest(context);
-
-            Assert.That(context.Response.Body.Length, Is.EqualTo(1));
-        }
-
-        private static HttpContext CreateContext(string urlString)
-        {
-            Uri url = new Uri(urlString);
-
-            HttpContext context = Substitute.For<HttpContext>();
-            context.Request.Host = new HostString(url.Host, url.Port);
-            context.Request.Method = "GET";
-            context.Request.Path = new PathString(url.AbsolutePath);
-            context.Request.QueryString = new QueryString(url.Query);
-            context.Request.Scheme = url.Scheme;
-            context.Response.Body = new MemoryStream();
-            return context;
+                HttpContext context = Substitute.For<HttpContext>();
+                context.Request.Host = new HostString(url.Host, url.Port);
+                context.Request.Method = "GET";
+                context.Request.Path = new PathString(url.AbsolutePath);
+                context.Request.QueryString = new QueryString(url.Query);
+                context.Request.Scheme = url.Scheme;
+                context.Response.Body = new MemoryStream();
+                return context;
+            }
         }
     }
 }

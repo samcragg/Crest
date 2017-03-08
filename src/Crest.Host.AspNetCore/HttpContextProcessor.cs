@@ -5,7 +5,6 @@
 
 namespace Crest.Host.AspNetCore
 {
-    using System.Net;
     using System.Threading.Tasks;
     using Crest.Host;
     using Microsoft.AspNetCore.Http;
@@ -37,16 +36,9 @@ namespace Crest.Host.AspNetCore
                 context.Request.Path.Value,
                 new QueryLookup(context.Request.QueryString.Value));
 
-            if (result.Success)
-            {
-                var data = new HttpContextRequestData(result.Method, result.Parameters, context);
-                return this.HandleRequestAsync(data);
-            }
-            else
-            {
-                context.Response.StatusCode = (int)HttpStatusCode.NotFound;
-                return Task.CompletedTask;
-            }
+            return this.HandleRequestAsync(
+                result,
+                m => new HttpContextRequestData(m.Method, m.Parameters, context));
         }
 
         /// <inheritdoc />
