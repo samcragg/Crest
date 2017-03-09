@@ -2,17 +2,15 @@
 {
     using Crest.Core;
     using FluentAssertions;
-    using NUnit.Framework;
+    using Xunit;
 
-    [TestFixture]
     public class DeleteAttributeTests
     {
-        [TestFixture]
         public sealed class Route : DeleteAttributeTests
         {
             private const string ExampleRoute = "example/route";
 
-            [Test]
+            [Fact]
             public void ShouldReturnTheRoutePassedInToTheConstructor()
             {
                 var attribute = new DeleteAttribute(ExampleRoute);
@@ -21,10 +19,9 @@
             }
         }
 
-        [TestFixture]
         public sealed class Verb : DeleteAttributeTests
         {
-            [Test]
+            [Fact]
             public void ShouldReturnDELETE()
             {
                 var attribute = new DeleteAttribute(string.Empty);

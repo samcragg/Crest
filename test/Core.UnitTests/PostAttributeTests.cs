@@ -2,17 +2,15 @@
 {
     using Crest.Core;
     using FluentAssertions;
-    using NUnit.Framework;
+    using Xunit;
 
-    [TestFixture]
     public class PostAttributeTests
     {
-        [TestFixture]
         public sealed class Route : PostAttributeTests
         {
             private const string ExampleRoute = "example/route";
 
-            [Test]
+            [Fact]
             public void ShouldReturnTheRoutePassedInToTheConstructor()
             {
                 var attribute = new PostAttribute(ExampleRoute);
@@ -21,10 +19,9 @@
             }
         }
 
-        [TestFixture]
         public sealed class Verb : PostAttributeTests
         {
-            [Test]
+            [Fact]
             public void ShouldReturnPOST()
             {
                 var attribute = new PostAttribute(string.Empty);
