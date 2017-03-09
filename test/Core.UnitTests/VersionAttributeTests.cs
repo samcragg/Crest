@@ -1,33 +1,42 @@
 ﻿namespace Core.UnitTests
 {
     using Crest.Core;
+    using FluentAssertions;
     using NUnit.Framework;
 
     [TestFixture]
-    public sealed class VersionAttributeTests
+    public class VersionAttributeTests
     {
-        [Test]
-        public void ConstructorShouldSetTheFromProperty()
+        [TestFixture]
+        public sealed class From : VersionAttributeTests
         {
-            var instance = new VersionAttribute(123);
+            [Test]
+            public void ShouldReturnTheValueFromTheConstructor()
+            {
+                var instance = new VersionAttribute(123);
 
-            Assert.That(instance.From, Is.EqualTo(123));
+                instance.From.Should().Be(123);
+            }
         }
 
-        [Test]
-        public void ConstructorShouldSetTheToProperty()
+        [TestFixture]
+        public sealed class To : VersionAttributeTests
         {
-            var instance = new VersionAttribute(0, 123);
+            [Test]
+            public void ShouldDefaultToIntMaxValue()
+            {
+                var instance = new VersionAttribute(0);
 
-            Assert.That(instance.To, Is.EqualTo(123));
-        }
+                instance.To.Should().Be(int.MaxValue);
+            }
 
-        [Test]
-        public void ToShouldDefaultToIntMaxValue()
-        {
-            var instance = new VersionAttribute(0);
+            [Test]
+            public void ShouldReturnTheValueFromTheConstructor()
+            {
+                var instance = new VersionAttribute(0, 123);
 
-            Assert.That(instance.To, Is.EqualTo(int.MaxValue));
+                instance.To.Should().Be(123);
+            }
         }
     }
 }

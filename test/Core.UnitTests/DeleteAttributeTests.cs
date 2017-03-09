@@ -1,27 +1,36 @@
 ﻿namespace Core.UnitTests
 {
     using Crest.Core;
+    using FluentAssertions;
     using NUnit.Framework;
 
     [TestFixture]
-    public sealed class DeleteAttributeTests
+    public class DeleteAttributeTests
     {
-        [Test]
-        public void RouteShouldReturnTheRoutePassedInToTheConstructor()
+        [TestFixture]
+        public sealed class Route : DeleteAttributeTests
         {
-            const string Route = "example/route";
+            private const string ExampleRoute = "example/route";
 
-            var attribute = new DeleteAttribute(Route);
+            [Test]
+            public void ShouldReturnTheRoutePassedInToTheConstructor()
+            {
+                var attribute = new DeleteAttribute(ExampleRoute);
 
-            Assert.That(attribute.Route, Is.EqualTo(Route));
+                attribute.Route.Should().Be(ExampleRoute);
+            }
         }
 
-        [Test]
-        public void VerbShouldReturnDELETE()
+        [TestFixture]
+        public sealed class Verb : DeleteAttributeTests
         {
-            var attribute = new DeleteAttribute(string.Empty);
+            [Test]
+            public void ShouldReturnDELETE()
+            {
+                var attribute = new DeleteAttribute(string.Empty);
 
-            Assert.That(attribute.Verb, Is.EqualTo("DELETE"));
+                attribute.Verb.Should().Be("DELETE");
+            }
         }
     }
 }

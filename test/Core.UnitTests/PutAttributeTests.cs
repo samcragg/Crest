@@ -1,27 +1,36 @@
 ﻿namespace Core.UnitTests
 {
     using Crest.Core;
+    using FluentAssertions;
     using NUnit.Framework;
 
     [TestFixture]
-    public sealed class PutAttributeTests
+    public class PutAttributeTests
     {
-        [Test]
-        public void RouteShouldReturnTheRoutePassedInToTheConstructor()
+        [TestFixture]
+        public sealed class Route : PutAttributeTests
         {
-            const string Route = "example/route";
+            private const string ExampleRoute = "example/route";
 
-            var attribute = new PutAttribute(Route);
+            [Test]
+            public void ShouldReturnTheRoutePassedInToTheConstructor()
+            {
+                var attribute = new PutAttribute(ExampleRoute);
 
-            Assert.That(attribute.Route, Is.EqualTo(Route));
+                attribute.Route.Should().Be(ExampleRoute);
+            }
         }
 
-        [Test]
-        public void VerbShouldReturnPUT()
+        [TestFixture]
+        public sealed class Verb : PutAttributeTests
         {
-            var attribute = new PutAttribute(string.Empty);
+            [Test]
+            public void ShouldReturnPUT()
+            {
+                var attribute = new PutAttribute(string.Empty);
 
-            Assert.That(attribute.Verb, Is.EqualTo("PUT"));
+                attribute.Verb.Should().Be("PUT");
+            }
         }
     }
 }
