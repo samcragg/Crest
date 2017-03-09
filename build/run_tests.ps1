@@ -1,5 +1,11 @@
+# Grab NuGet so we can download our tools
+$sourceNugetExe = "https://dist.nuget.org/win-x86-commandline/latest/nuget.exe"
+$nugetExe = "./nuget.exe"
+Invoke-WebRequest $sourceNugetExe -OutFile $nugetExe
+
 # "Install" the tools to run/upload the coverage
-dotnet restore .\build\project.json --packages .\build\tools
+& $nugetExe install OpenCover -OutputDirectory .\tools -version 4.6.519 -verbosity quiet
+& $nugetExe install coveralls.net -OutputDirectory .\tools -version 0.7.0 -verbosity quiet
 
 $dotnetexe = (Get-Command dotnet).Definition
 $wc = New-Object 'System.Net.WebClient'
