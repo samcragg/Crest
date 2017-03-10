@@ -10,12 +10,11 @@
     using Crest.Host.AspNetCore;
     using Crest.Host.Conversion;
     using Crest.Host.Engine;
-    using Microsoft.AspNetCore.Http;
     using FluentAssertions;
+    using Microsoft.AspNetCore.Http;
     using NSubstitute;
-    using NUnit.Framework;
+    using Xunit;
 
-    [TestFixture]
     public class HttpContextProcessorTests
     {
         private Bootstrapper bootstrapper;
@@ -23,8 +22,7 @@
         private IRouteMapper mapper;
         private HttpContextProcessor processor;
 
-        [SetUp]
-        public void SetUp()
+        protected HttpContextProcessorTests()
         {
             this.converter = Substitute.For<IContentConverter>();
             this.mapper = Substitute.For<IRouteMapper>();
@@ -41,10 +39,9 @@
             this.processor = new HttpContextProcessor(this.bootstrapper);
         }
 
-        [TestFixture]
         public sealed class HandleRequest : HttpContextProcessorTests
         {
-            [Test]
+            [Fact]
             public async Task ShouldReturn200ForFoundRoutes()
             {
                 HttpContext context = CreateContext("http://localhost/route");
@@ -67,7 +64,7 @@
                 context.Response.StatusCode.Should().Be(200);
             }
 
-            [Test]
+            [Fact]
             public async Task ShouldWriteTheBodyToTheResponse()
             {
                 object methodReturn = new object();

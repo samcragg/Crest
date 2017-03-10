@@ -7,15 +7,13 @@
     using FluentAssertions;
     using Microsoft.AspNetCore.Http;
     using NSubstitute;
-    using NUnit.Framework;
+    using Xunit;
 
-    [TestFixture]
     public class HttpContextRequestDataTests
     {
-        [TestFixture]
         public sealed class Constructor : HttpContextRequestDataTests
         {
-            [Test]
+            [Fact]
             public void ShouldAssignTheHandlerProperty()
             {
                 MethodInfo method = Substitute.For<MethodInfo>();
@@ -25,7 +23,7 @@
                 data.Handler.Should().BeSameAs(method);
             }
 
-            [Test]
+            [Fact]
             public void ShouldAssignTheHeadersProperty()
             {
                 var data = new HttpContextRequestData(null, null, CreateContext());
@@ -33,7 +31,7 @@
                 data.Headers.Should().NotBeNull();
             }
 
-            [Test]
+            [Fact]
             public void ShouldAssignTheParametersProperty()
             {
                 var parameters = new Dictionary<string, object>();
@@ -43,7 +41,7 @@
                 data.Parameters.Should().BeSameAs(parameters);
             }
 
-            [Test]
+            [Fact]
             public void ShouldCreateTheUrlFromTheContext()
             {
                 const string Url = "https://host:123/path?query";

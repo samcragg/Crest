@@ -8,31 +8,28 @@
     using Microsoft.AspNetCore.Http;
     using Microsoft.Extensions.Primitives;
     using NSubstitute;
-    using NUnit.Framework;
+    using Xunit;
 
-    [TestFixture]
     public class HeadersAdapterTests
     {
         private HeadersAdapter adapter;
         private IHeaderDictionary headers;
 
-        [SetUp]
-        public void SetUp()
+        public HeadersAdapterTests()
         {
             this.headers = Substitute.For<IHeaderDictionary>();
             this.adapter = new HeadersAdapter(this.headers);
         }
 
-        [TestFixture]
         public sealed class ContainsKey : HeadersAdapterTests
         {
-            [Test]
+            [Fact]
             public void ShouldReturnFalseIfTheHeaderDoesNotExist()
             {
                 this.adapter.ContainsKey("unknown").Should().BeFalse();
             }
 
-            [Test]
+            [Fact]
             public void ShouldReturnTrueIfTheHeaderExists()
             {
                 this.headers.ContainsKey("key").Returns(true);
@@ -41,10 +38,9 @@
             }
         }
 
-        [TestFixture]
         public sealed class Count : HeadersAdapterTests
         {
-            [Test]
+            [Fact]
             public void ShouldReturnTheNumberOfHeaders()
             {
                 this.headers.Count.Returns(12);
@@ -53,10 +49,9 @@
             }
         }
 
-        [TestFixture]
         public sealed class GetEnumerator : HeadersAdapterTests
         {
-            [Test]
+            [Fact]
             public void ShouldIterateOverAllTheKeyValues()
             {
                 // Array.GetEnumerator returns the non-generic one
@@ -77,10 +72,9 @@
             }
         }
 
-        [TestFixture]
         public sealed class Index : HeadersAdapterTests
         {
-            [Test]
+            [Fact]
             public void ShouldReturnTheValue()
             {
                 StringValues any = Arg.Any<StringValues>();
@@ -96,7 +90,7 @@
                 result.Should().Be("value");
             }
 
-            [Test]
+            [Fact]
             public void ShouldThrowAnExceptionIfTheHeaderDoesNotExist()
             {
                 Action action = () => { var x = this.adapter["unknown"]; };
@@ -105,10 +99,9 @@
             }
         }
 
-        [TestFixture]
         public sealed class Keys : HeadersAdapterTests
         {
-            [Test]
+            [Fact]
             public void ShouldReturnTheHeaderFields()
             {
                 this.headers.Keys.Returns(new[] { "1", "2" });
@@ -117,10 +110,9 @@
             }
         }
 
-        [TestFixture]
         public sealed class NonGenericGetEnumerator : HeadersAdapterTests
         {
-            [Test]
+            [Fact]
             public void ShouldGetAllTheValues()
             {
                 // Array.GetEnumerator returns the non-generic one
@@ -138,10 +130,9 @@
             }
         }
 
-        [TestFixture]
         public sealed class TryGetValue : HeadersAdapterTests
         {
-            [Test]
+            [Fact]
             public void ShouldReturnFalseIfTheHeaderDoesNotExist()
             {
                 string value;
@@ -151,7 +142,7 @@
                 value.Should().BeNull();
             }
 
-            [Test]
+            [Fact]
             public void ShouldReturnTrueIfTheHeaderExists()
             {
                 StringValues any = Arg.Any<StringValues>();
@@ -170,10 +161,9 @@
             }
         }
 
-        [TestFixture]
         public sealed class Values : HeadersAdapterTests
         {
-            [Test]
+            [Fact]
             public void ShouldReturnTheJoinedValues()
             {
                 this.headers.Values.Returns(new[]

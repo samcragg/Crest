@@ -5,15 +5,13 @@
     using FluentAssertions;
     using Microsoft.AspNetCore.Hosting;
     using NSubstitute;
-    using NUnit.Framework;
+    using Xunit;
 
-    [TestFixture]
     public class CrestWebHostBuilderExtensionsTests
     {
-        [TestFixture]
         public sealed class UseCrest : CrestWebHostBuilderExtensionsTests
         {
-            [Test]
+            [Fact]
             public void ShouldCheckForNullArguments()
             {
                 Action action = () => CrestWebHostBuilderExtensions.UseCrest(null);
@@ -21,7 +19,7 @@
                 action.ShouldThrow<ArgumentNullException>();
             }
 
-            [Test]
+            [Fact]
             public void ShouldRegisterTheStartupClass()
             {
                 IWebHostBuilder builder = Substitute.For<IWebHostBuilder>();
@@ -33,7 +31,7 @@
                     Arg.Any<string>());
             }
 
-            [Test]
+            [Fact]
             public void ShouldReturnThePassedInValue()
             {
                 IWebHostBuilder builder = Substitute.For<IWebHostBuilder>();

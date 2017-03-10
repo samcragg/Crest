@@ -7,23 +7,16 @@
     using Microsoft.AspNetCore.Builder;
     using Microsoft.Extensions.DependencyInjection;
     using NSubstitute;
-    using NUnit.Framework;
+    using Xunit;
 
-    [TestFixture]
     public class StartupBootstrapperTests
     {
-        private StartupBootstrapper startup;
+        private readonly StartupBootstrapper startup =
+            new StartupBootstrapper(Substitute.For<IServiceRegister>());
 
-        [SetUp]
-        public void SetUp()
-        {
-            this.startup = new StartupBootstrapper(Substitute.For<IServiceRegister>());
-        }
-
-        [TestFixture]
         public sealed class Configure : StartupBootstrapperTests
         {
-            [Test]
+            [Fact]
             public void ShouldRegisterARequestHandler()
             {
                 var builder = Substitute.For<IApplicationBuilder>();
@@ -34,10 +27,9 @@
             }
         }
 
-        [TestFixture]
         public sealed class ConfigureServices : StartupBootstrapperTests
         {
-            [Test]
+            [Fact]
             public void ShouldReturnTheDefaultAspNetContainer()
             {
                 IServiceProvider result = this.startup.ConfigureServices(Substitute.For<IServiceCollection>());
@@ -47,10 +39,9 @@
             }
         }
 
-        [TestFixture]
         public sealed class DefaultConstructor : StartupBootstrapperTests
         {
-            [Test]
+            [Fact]
             public void ShouldSetTheServiceLocator()
             {
                 using (var bootstrapper = new StartupBootstrapper())
