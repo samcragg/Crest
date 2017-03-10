@@ -3,13 +3,14 @@
     using System;
     using Crest.Host.AspNetCore;
     using Crest.Host.Engine;
+    using FluentAssertions;
     using Microsoft.AspNetCore.Builder;
     using Microsoft.Extensions.DependencyInjection;
     using NSubstitute;
     using NUnit.Framework;
 
     [TestFixture]
-    public sealed class StartupBootstrapperTests
+    public class StartupBootstrapperTests
     {
         private StartupBootstrapper startup;
 
@@ -19,32 +20,44 @@
             this.startup = new StartupBootstrapper(Substitute.For<IServiceRegister>());
         }
 
-        [Test]
-        public void DefaultConstructorShouldSetTheServiceLocator()
+        [TestFixture]
+        public sealed class Configure : StartupBootstrapperTests
         {
-            using (var bootstrapper = new StartupBootstrapper())
+            [Test]
+            public void ShouldRegisterARequestHandler()
             {
-                Assert.That(bootstrapper.ServiceLocator, Is.Not.Null);
+                var builder = Substitute.For<IApplicationBuilder>();
+
+                this.startup.Configure(builder);
+
+                builder.ReceivedWithAnyArgs().Use(null);
             }
         }
 
-        [Test]
-        public void ConfigureShouldRegisterARequestHandler()
+        [TestFixture]
+        public sealed class ConfigureServices : StartupBootstrapperTests
         {
-            var builder = Substitute.For<IApplicationBuilder>();
+            [Test]
+            public void ShouldReturnTheDefaultAspNetContainer()
+            {
+                IServiceProvider result = this.startup.ConfigureServices(Substitute.For<IServiceCollection>());
 
-            this.startup.Configure(builder);
-
-            builder.ReceivedWithAnyArgs().Use(null);
+                result.Should().NotBeNull();
+                result.GetType().FullName.Should().StartWith("Microsoft.");
+            }
         }
 
-        [Test]
-        public void ConfigureServicesShouldReturnTheDefaultAspNetContainer()
+        [TestFixture]
+        public sealed class DefaultConstructor : StartupBootstrapperTests
         {
-            IServiceProvider result = this.startup.ConfigureServices(Substitute.For<IServiceCollection>());
-
-            Assert.That(result, Is.Not.Null);
-            Assert.That(result.GetType().FullName, Does.StartWith("Microsoft."));
+            [Test]
+            public void ShouldSetTheServiceLocator()
+            {
+                using (var bootstrapper = new StartupBootstrapper())
+                {
+                    bootstrapper.ServiceLocator.Should().NotBeNull();
+                }
+            }
         }
     }
 }
