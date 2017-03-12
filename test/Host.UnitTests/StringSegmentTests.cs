@@ -4,123 +4,155 @@
     using System.Collections;
     using System.Linq;
     using Crest.Host;
+    using FluentAssertions;
     using NUnit.Framework;
 
     [TestFixture]
-    public sealed class StringSegmentTests
+    public class StringSegmentTests
     {
-        [Test]
-        public void TheConstructorShouldSetTheProperties()
+        [TestFixture]
+        public sealed class Constructor : StringSegmentTests
         {
-            const string ExampleString = "Example";
+            [Test]
+            public void ShouldSetTheProperties()
+            {
+                const string ExampleString = "Example";
 
-            var segment = new StringSegment(ExampleString, 1, 5);
+                var segment = new StringSegment(ExampleString, 1, 5);
 
-            Assert.That(segment.String, Is.EqualTo(ExampleString));
-            Assert.That(segment.Start, Is.EqualTo(1));
-            Assert.That(segment.End, Is.EqualTo(5));
+                segment.String.Should().Be(ExampleString);
+                segment.Start.Should().Be(1);
+                segment.End.Should().Be(5);
+            }
         }
 
-        [Test]
-        public void CountShouldReturnTheNumberOfCharactersOfTheSubString()
+        [TestFixture]
+        public sealed class Count : StringSegmentTests
         {
-            var segment = new StringSegment("string", 2, 3);
+            [Test]
+            public void ShouldReturnTheNumberOfCharactersOfTheSubString()
+            {
+                var segment = new StringSegment("string", 2, 3);
 
-            Assert.That(segment.Count, Is.EqualTo(1));
+                segment.Count.Should().Be(1);
+            }
         }
 
-        [Test]
-        public void IndexShouldReturnTheCharacterRelativeToTheStartOfTheSubString()
+        [TestFixture]
+        public sealed new class Equals : StringSegmentTests
         {
-            var segment = new StringSegment("0123456", 2, 4);
+            [Test]
+            public void ShouldReturnFalseForNullValues()
+            {
+                var segment = new StringSegment("012", 0, 3);
 
-            Assert.That(segment[0], Is.EqualTo('2'));
-            Assert.That(segment[1], Is.EqualTo('3'));
+                bool result = segment.Equals(null, StringComparison.Ordinal);
+
+                result.Should().BeFalse();
+            }
+
+            [Test]
+            public void ShouldReturnFalseIfTheSubStringIsNotEqual()
+            {
+                var segment = new StringSegment("0123456", 2, 5);
+
+                bool result = segment.Equals("345", StringComparison.Ordinal);
+
+                result.Should().BeFalse();
+            }
+
+            [Test]
+            public void ShouldReturnFalseIfTheValueIsLongerThanTheSubstring()
+            {
+                var segment = new StringSegment("0123456", 2, 4);
+
+                bool result = segment.Equals("234", StringComparison.Ordinal);
+
+                result.Should().BeFalse();
+            }
+
+            [Test]
+            public void ShouldReturnTrueIfTheSubStringIsEqual()
+            {
+                var segment = new StringSegment("0123456", 2, 5);
+
+                bool result = segment.Equals("234", StringComparison.Ordinal);
+
+                result.Should().BeTrue();
+            }
+
+            [Test]
+            public void ShouldUseTheComparisonType()
+            {
+                var segment = new StringSegment("abc", 0, 3);
+
+                segment.Equals("AbC", StringComparison.Ordinal)
+                       .Should().BeFalse();
+
+                segment.Equals("AbC", StringComparison.OrdinalIgnoreCase)
+                       .Should().BeTrue();
+            }
         }
 
-        [Test]
-        public void EqualsShouldReturnTrueIfTheSubStringIsEqual()
+        [TestFixture]
+        public sealed class GetEnumerator : StringSegmentTests
         {
-            var segment = new StringSegment("0123456", 2, 5);
+            [Test]
+            public void ShouldReturnAllOfTheSubString()
+            {
+                var segment = new StringSegment("0123456", 2, 4);
 
-            bool result = segment.Equals("234", StringComparison.Ordinal);
+                string subString = new string(Enumerable.ToArray(segment));
 
-            Assert.That(result, Is.True);
+                subString.Should().Be("23");
+            }
         }
 
-        [Test]
-        public void EqualsShouldReturnFalseIfTheSubStringIsNotEqual()
+        [TestFixture]
+        public sealed class Index : StringSegmentTests
         {
-            var segment = new StringSegment("0123456", 2, 5);
+            [Test]
+            public void ShouldReturnTheCharacterRelativeToTheStartOfTheSubString()
+            {
+                var segment = new StringSegment("0123456", 2, 4);
 
-            bool result = segment.Equals("345", StringComparison.Ordinal);
-
-            Assert.That(result, Is.False);
+                segment[0].Should().Be('2');
+                segment[1].Should().Be('3');
+            }
         }
 
-        [Test]
-        public void EqualsShouldReturnFalseForNullValues()
+        [TestFixture]
+        public sealed class NonGenericGetEnumerator : StringSegmentTests
         {
-            var segment = new StringSegment("012", 0, 3);
+            [Test]
+            public void ShouldReturnAllOfTheSubString()
+            {
+                IEnumerable segment = new StringSegment("0123456", 2, 4);
 
-            bool result = segment.Equals(null, StringComparison.Ordinal);
+                IEnumerator enumerator = segment.GetEnumerator();
 
-            Assert.That(result, Is.False);
+                enumerator.MoveNext().Should().BeTrue();
+                enumerator.Current.Should().Be('2');
+
+                enumerator.MoveNext().Should().BeTrue();
+                enumerator.Current.Should().Be('3');
+
+                enumerator.MoveNext().Should().BeFalse();
+            }
         }
 
-        [Test]
-        public void EqualsShouldReturnFalseIfTheValueIsLongerThanTheSubstring()
+        [TestFixture]
+        public sealed new class ToString : StringSegmentTests
         {
-            var segment = new StringSegment("0123456", 2, 4);
+            [Test]
+            public void ShouldReturnAllOfTheSubString()
+            {
+                var segment = new StringSegment("0123456", 2, 4);
 
-            bool result = segment.Equals("234", StringComparison.Ordinal);
+                string subString = segment.ToString();
 
-            Assert.That(result, Is.False);
-        }
-
-        [Test]
-        public void EqualsShouldUseTheComparisonType()
-        {
-            var segment = new StringSegment("abc", 0, 3);
-
-            Assert.That(segment.Equals("AbC", StringComparison.Ordinal), Is.False);
-            Assert.That(segment.Equals("AbC", StringComparison.OrdinalIgnoreCase), Is.True);
-        }
-
-        [Test]
-        public void GetEnumeratorShouldReturnAllOfTheSubString()
-        {
-            var segment = new StringSegment("0123456", 2, 4);
-
-            string subString = new string(Enumerable.ToArray(segment));
-
-            Assert.That(subString, Is.EqualTo("23"));
-        }
-
-        [Test]
-        public void NonGenericGetEnumeratorShouldReturnAllOfTheSubString()
-        {
-            IEnumerable segment = new StringSegment("0123456", 2, 4);
-
-            IEnumerator enumerator = segment.GetEnumerator();
-
-            Assert.That(enumerator.MoveNext(), Is.True);
-            Assert.That(enumerator.Current, Is.EqualTo('2'));
-
-            Assert.That(enumerator.MoveNext(), Is.True);
-            Assert.That(enumerator.Current, Is.EqualTo('3'));
-
-            Assert.That(enumerator.MoveNext(), Is.False);
-        }
-
-        [Test]
-        public void ToStringShouldReturnAllOfTheSubString()
-        {
-            var segment = new StringSegment("0123456", 2, 4);
-
-            string subString = segment.ToString();
-
-            Assert.That(subString, Is.EqualTo("23"));
+                subString.Should().Be("23");
+            }
         }
     }
 }

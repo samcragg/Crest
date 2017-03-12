@@ -5,78 +5,18 @@
     using System.Collections.Generic;
     using System.Linq;
     using Crest.Host;
+    using FluentAssertions;
     using NUnit.Framework;
 
     [TestFixture]
-    public sealed class QueryLookupTests
+    public class QueryLookupTests
     {
-        [Test]
-        public void CountShouldReturnTheNumberOfUniqueKeys()
-        {
-            var lookup = new QueryLookup("?key1=_&key2=_&key1=_");
-
-            Assert.That(lookup.Count, Is.EqualTo(2));
-        }
-
-        [Test]
-        public void ContainsShouldReturnTrueIfTheKeyIsPresent()
-        {
-            var lookup = new QueryLookup("key=value");
-
-            Assert.That(lookup.Contains("key"), Is.True);
-        }
-
-        [Test]
-        public void ContainsShouldReturnFalseIfTheKeyIsNotPresent()
-        {
-            var lookup = new QueryLookup("?key=value");
-
-            Assert.That(lookup.Contains("unknown"), Is.False);
-        }
-
-        [Test]
-        public void GetEnumeratorShouldReturnAllTheGroups()
-        {
-            var lookup = new QueryLookup("?key1=value1&key2=value2");
-
-            IGrouping<string, string>[] groups = lookup.ToArray();
-
-            Assert.That(groups, Has.Length.EqualTo(2));
-        }
-
-        [Test]
-        public void IndexShouldReturnAllTheValues()
-        {
-            var lookup = new QueryLookup("?key=1&key=2");
-
-            Assert.That(lookup["key"].ToList(), Is.EqualTo(new[] { "1", "2" }));
-        }
-
-        [Test]
-        public void IndexShouldReturnAnEmptySequenceIfTheKeyDoesNotExist()
-        {
-            var lookup = new QueryLookup("?key=value");
-
-            Assert.That(lookup["unknown"], Is.Empty);
-        }
-
-        [Test]
-        public void NonGenericGetEnumeratorShouldReturnAllTheGroups()
-        {
-            IEnumerable lookup = new QueryLookup("?key1=value1&key2=value2");
-
-            IEnumerator enumerator = lookup.GetEnumerator();
-            Assert.That(enumerator.MoveNext(), Is.True);
-            Assert.That(enumerator.MoveNext(), Is.True);
-            Assert.That(enumerator.MoveNext(), Is.False);
-        }
-
         [Test]
         public void ShouldHandleEmptyQueryStrings()
         {
             var lookup = new QueryLookup(string.Empty);
 
-            Assert.That(lookup.Count, Is.EqualTo(0));
+            lookup.Count.Should().Be(0);
         }
 
         [Test]
@@ -84,15 +24,7 @@
         {
             var lookup = new QueryLookup("?key");
 
-            Assert.That(lookup.Contains("key"), Is.True);
-        }
-
-        [Test]
-        public void ShouldUnescapePrecentageEscapedKeys()
-        {
-            var lookup = new QueryLookup("?%41");
-
-            Assert.That(lookup.Contains("A"), Is.True);
+            lookup.Contains("key").Should().BeTrue();
         }
 
         [Test]
@@ -100,7 +32,15 @@
         {
             var lookup = new QueryLookup("?%2A=%2a");
 
-            Assert.That(lookup["*"].Single(), Is.EqualTo("*"));
+            lookup["*"].Single().Should().Be("*");
+        }
+
+        [Test]
+        public void ShouldUnescapePrecentageEscapedKeys()
+        {
+            var lookup = new QueryLookup("?%41");
+
+            lookup.Contains("A").Should().BeTrue();
         }
 
         [Test]
@@ -108,86 +48,174 @@
         {
             var lookup = new QueryLookup("?a+b=c+d");
 
-            Assert.That(lookup["a b"].Single(), Is.EqualTo("c d"));
+            lookup["a b"].Single().Should().Be("c d");
         }
 
-        [TestCase("%1")]
-        [TestCase("%0G")]
-        public void ShouldThrowUriFormatExceptionForInvalidPercentageEscapedValues(string value)
+        [TestFixture]
+        public sealed class Constructor : QueryLookupTests
         {
-            Assert.That(
-                () => new QueryLookup("?" + value),
-                Throws.InstanceOf<UriFormatException>());
+            [TestCase("%1")]
+            [TestCase("%0G")]
+            public void ShouldThrowUriFormatExceptionForInvalidPercentageEscapedValues(string value)
+            {
+                Action action = () => new QueryLookup("?" + value);
+
+                action.ShouldThrow<UriFormatException>();
+            }
         }
 
-        [Test]
-        public void GroupingsShouldHaveTheCorrectKey()
+        [TestFixture]
+        public sealed class Contains : QueryLookupTests
         {
-            var lookup = new QueryLookup("?key=value");
-            IGrouping<string, string> group = lookup.Single();
+            [Test]
+            public void ShouldReturnFalseIfTheKeyIsNotPresent()
+            {
+                var lookup = new QueryLookup("?key=value");
 
-            Assert.That(group.Key, Is.EqualTo("key"));
+                lookup.Contains("unknown").Should().BeFalse();
+            }
+
+            [Test]
+            public void ShouldReturnTrueIfTheKeyIsPresent()
+            {
+                var lookup = new QueryLookup("key=value");
+
+                lookup.Contains("key").Should().BeTrue();
+            }
         }
 
-        [Test]
-        public void GroupingsShouldReturnAllTheValues()
+        [TestFixture]
+        public sealed class Count : QueryLookupTests
         {
-            var lookup = new QueryLookup("?key=1&key=2");
-            IGrouping<string, string> group = lookup.Single();
+            [Test]
+            public void ShouldReturnTheNumberOfUniqueKeys()
+            {
+                var lookup = new QueryLookup("?key1=_&key2=_&key1=_");
 
-            string[] values = group.ToArray();
-
-            Assert.That(values, Is.EqualTo(new[] { "1", "2" }));
+                lookup.Count.Should().Be(2);
+            }
         }
 
-        [Test]
-        public void GroupingsNonGenericGetEnumeratorShouldReturnTheValues()
+        [TestFixture]
+        public sealed class GetEnumerator : QueryLookupTests
         {
-            var lookup = new QueryLookup("?key=1&key=2");
-            IEnumerable group = lookup.Single();
-            IEnumerator enumerator = group.GetEnumerator();
+            [Test]
+            public void ShouldReturnAllTheGroups()
+            {
+                var lookup = new QueryLookup("?key1=value1&key2=value2");
 
-            // We can test the order of the results as well here...
-            Assert.That(enumerator.MoveNext(), Is.True);
-            Assert.That(enumerator.Current, Is.EqualTo("1"));
-            Assert.That(enumerator.MoveNext(), Is.True);
-            Assert.That(enumerator.Current, Is.EqualTo("2"));
-            Assert.That(enumerator.MoveNext(), Is.False);
+                IGrouping<string, string>[] groups = lookup.ToArray();
+
+                groups.Should().HaveCount(2);
+            }
         }
 
-        [Test]
-        public void GroupingsShouldBeAReadOnlyCollection()
+        [TestFixture]
+        public sealed class Groupings : QueryLookupTests
         {
-            var lookup = new QueryLookup("?key=value");
-            ICollection<string> group = (ICollection<string>)lookup.Single();
+            [Test]
+            public void ContainsShouldReturnWhetherTheValueIsPresentOrNot()
+            {
+                var lookup = new QueryLookup("?key=value");
+                ICollection<string> group = (ICollection<string>)lookup.Single();
 
-            Assert.That(group.Count, Is.EqualTo(1));
-            Assert.That(group.IsReadOnly, Is.True);
-            Assert.That(() => group.Add(""), Throws.InstanceOf<NotSupportedException>());
-            Assert.That(() => group.Clear(), Throws.InstanceOf<NotSupportedException>());
-            Assert.That(() => group.Remove(""), Throws.InstanceOf<NotSupportedException>());
+                group.Contains("value").Should().BeTrue();
+                group.Contains("unknown").Should().BeFalse();
+            }
+
+            [Test]
+            public void CopyToShouldCopyAllTheValues()
+            {
+                var lookup = new QueryLookup("?key=1&key=2");
+                ICollection<string> group = (ICollection<string>)lookup.Single();
+
+                string[] target = new string[3];
+                group.CopyTo(target, 1);
+
+                target.Should().BeEquivalentTo(null, "1", "2");
+            }
+
+            [Test]
+            public void NonGenericGetEnumeratorShouldReturnTheValues()
+            {
+                var lookup = new QueryLookup("?key=1&key=2");
+                IEnumerable group = lookup.Single();
+                IEnumerator enumerator = group.GetEnumerator();
+
+                enumerator.MoveNext().Should().BeTrue();
+                enumerator.Current.Should().Be("1");
+                enumerator.MoveNext().Should().BeTrue();
+                enumerator.Current.Should().Be("2");
+                enumerator.MoveNext().Should().BeFalse();
+            }
+
+            [Test]
+            public void ShouldBeAReadOnlyCollection()
+            {
+                var lookup = new QueryLookup("?key=value");
+                ICollection<string> group = (ICollection<string>)lookup.Single();
+
+                group.Count.Should().Be(1);
+                group.IsReadOnly.Should().BeTrue();
+                group.Invoking(g => g.Add("")).ShouldThrow<NotSupportedException>();
+                group.Invoking(g => g.Clear()).ShouldThrow<NotSupportedException>();
+                group.Invoking(g => g.Remove("")).ShouldThrow<NotSupportedException>();
+            }
+
+            [Test]
+            public void ShouldHaveTheCorrectKey()
+            {
+                var lookup = new QueryLookup("?key=value");
+                IGrouping<string, string> group = lookup.Single();
+
+                group.Key.Should().Be("key");
+            }
+
+            [Test]
+            public void ShouldReturnAllTheValues()
+            {
+                var lookup = new QueryLookup("?key=1&key=2");
+                IGrouping<string, string> group = lookup.Single();
+
+                string[] values = group.ToArray();
+
+                values.Should().BeEquivalentTo("1", "2");
+            }
         }
 
-        [Test]
-        public void GroupingsContainsShouldReturnWhetherTheValueIsPresentOrNot()
+        [TestFixture]
+        public sealed class Index : QueryLookupTests
         {
-            var lookup = new QueryLookup("?key=value");
-            ICollection<string> group = (ICollection<string>)lookup.Single();
+            [Test]
+            public void ShouldReturnAllTheValues()
+            {
+                var lookup = new QueryLookup("?key=1&key=2");
 
-            Assert.That(group.Contains("value"), Is.True);
-            Assert.That(group.Contains("unknown"), Is.False);
+                lookup["key"].ToList().Should().BeEquivalentTo("1", "2");
+            }
+
+            [Test]
+            public void ShouldReturnAnEmptySequenceIfTheKeyDoesNotExist()
+            {
+                var lookup = new QueryLookup("?key=value");
+
+                lookup["unknown"].Should().BeEmpty();
+            }
         }
 
-        [Test]
-        public void GroupingsCopyToShouldCopyAllTheValues()
+        [TestFixture]
+        public sealed class NonGenericGetEnumerator : QueryLookupTests
         {
-            var lookup = new QueryLookup("?key=1&key=2");
-            ICollection<string> group = (ICollection<string>)lookup.Single();
+            [Test]
+            public void ShouldReturnAllTheGroups()
+            {
+                IEnumerable lookup = new QueryLookup("?key1=value1&key2=value2");
 
-            string[] target = new string[3];
-            group.CopyTo(target, 1);
-
-            Assert.That(target, Is.EqualTo(new[] { null, "1", "2" }));
+                IEnumerator enumerator = lookup.GetEnumerator();
+                enumerator.MoveNext().Should().BeTrue();
+                enumerator.MoveNext().Should().BeTrue();
+                enumerator.MoveNext().Should().BeFalse();
+            }
         }
     }
 }
