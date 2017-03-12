@@ -2,63 +2,72 @@
 {
     using Crest.Host;
     using Crest.Host.Conversion;
+    using FluentAssertions;
     using NUnit.Framework;
 
     [TestFixture]
-    public sealed class IntegerConverterTests
+    public class IntegerConverterTests
     {
-        [TestCase("123", ExpectedResult = 123)]
-        public int ParseIntegerValueShouldMatchValidIntegers(string integer)
+        [TestFixture]
+        public sealed class ParseIntegerValue : IntegerConverterTests
         {
-            var segment = new StringSegment("X" + integer + "X", 1, integer.Length + 1);
+            [TestCase("123", ExpectedResult = 123)]
+            public int ShouldMatchValidIntegers(string integer)
+            {
+                var segment = new StringSegment("X" + integer + "X", 1, integer.Length + 1);
 
-            long value;
-            bool result = IntegerConverter.ParseIntegerValue(segment, out value);
+                long value;
+                bool result = IntegerConverter.ParseIntegerValue(segment, out value);
 
-            Assert.That(result, Is.True);
-            return (int)value;
+                result.Should().BeTrue();
+                return (int)value;
+            }
+
+            [TestCase("123a")]
+            [TestCase("+123")]
+            [TestCase("-123")]
+            [TestCase("a123")]
+            public void ShouldNotMatchInvalidIntegers(string integer)
+            {
+                var segment = new StringSegment(integer, 0, integer.Length);
+
+                long value;
+                bool result = IntegerConverter.ParseIntegerValue(segment, out value);
+
+                result.Should().BeFalse();
+                value.Should().Be(0);
+            }
         }
 
-        [TestCase("123a")]
-        [TestCase("+123")]
-        [TestCase("-123")]
-        [TestCase("a123")]
-        public void ParseIntegerValueShouldNotMatchInvalidIntegers(string integer)
+        [TestFixture]
+        public sealed class ParseSignedValue : IntegerConverterTests
         {
-            var segment = new StringSegment(integer, 0, integer.Length);
+            [TestCase("123", ExpectedResult = 123)]
+            [TestCase("+123", ExpectedResult = 123)]
+            [TestCase("-123", ExpectedResult = -123)]
+            public int ShouldMatchValidIntegers(string integer)
+            {
+                var segment = new StringSegment("X" + integer + "X", 1, integer.Length + 1);
 
-            long value;
-            bool result = IntegerConverter.ParseIntegerValue(segment, out value);
+                long value;
+                bool result = IntegerConverter.ParseSignedValue(segment, out value);
 
-            Assert.That(result, Is.False);
-            Assert.That(value, Is.EqualTo(0L));
-        }
+                result.Should().BeTrue();
+                return (int)value;
+            }
 
-        [TestCase("123", ExpectedResult = 123)]
-        [TestCase("+123", ExpectedResult = 123)]
-        [TestCase("-123", ExpectedResult = -123)]
-        public int ParseSignedValueShouldMatchValidIntegers(string integer)
-        {
-            var segment = new StringSegment("X" + integer + "X", 1, integer.Length + 1);
+            [TestCase("123a")]
+            [TestCase("a123")]
+            public void ShouldNotMatchInvalidIntegers(string integer)
+            {
+                var segment = new StringSegment(integer, 0, integer.Length);
 
-            long value;
-            bool result = IntegerConverter.ParseSignedValue(segment, out value);
+                long value;
+                bool result = IntegerConverter.ParseSignedValue(segment, out value);
 
-            Assert.That(result, Is.True);
-            return (int)value;
-        }
-
-        [TestCase("123a")]
-        [TestCase("a123")]
-        public void ParseSignedValueShouldNotMatchInvalidIntegers(string integer)
-        {
-            var segment = new StringSegment(integer, 0, integer.Length);
-
-            long value;
-            bool result = IntegerConverter.ParseSignedValue(segment, out value);
-
-            Assert.That(result, Is.False);
-            Assert.That(value, Is.EqualTo(0L));
+                result.Should().BeFalse();
+                value.Should().Be(0);
+            }
         }
     }
 }

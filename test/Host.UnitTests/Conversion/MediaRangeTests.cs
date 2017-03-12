@@ -3,31 +3,12 @@
     using System;
     using Crest.Host;
     using Crest.Host.Conversion;
+    using FluentAssertions;
     using NUnit.Framework;
 
     [TestFixture]
-    public sealed class MediaRangeTests
+    public class MediaRangeTests
     {
-        [Test]
-        public void QualityShouldDefualtTo1000()
-        {
-            var range = new MediaRange(new StringSegment("*/*", 0, 3));
-
-            Assert.That(range.Quality, Is.EqualTo(1000));
-        }
-
-        [TestCase("missing_separator")]
-        [TestCase("missing_sub_type/")]
-        [TestCase("not_allowed / spaces_here")]
-        [TestCase("")]
-        [TestCase(" ")]
-        public void ShouldThrowIfNotAValidMediaType(string input)
-        {
-            Assert.That(
-                () => new MediaRange(new StringSegment(input, 0, input.Length)),
-                Throws.InstanceOf<ArgumentException>());
-        }
-
         [Test]
         public void ShouldAllowValidSymbolsInTheTypes()
         {
@@ -38,7 +19,35 @@
             var rangeA = new MediaRange(new StringSegment(MediaType, 0, MediaType.Length));
             var rangeB = new MediaRange(new StringSegment(MediaType, 0, MediaType.Length));
 
-            Assert.That(rangeA.MediaTypesMatch(rangeB), Is.True);
+            rangeA.MediaTypesMatch(rangeB).Should().BeTrue();
+        }
+
+        [TestCase("*/*;parameter=value ; q=0.8", 800)]
+        [TestCase("*/* invalid", 1000)]
+        [TestCase("*/* ; p=1;q=0.2;", 200)]
+        [TestCase("*/*;p=1", 1000)]
+        public void ShouldIgnoreParametersWhenParsingTheQuality(string input, int quality)
+        {
+            var range = new MediaRange(new StringSegment(input, 0, input.Length));
+
+            range.Quality.Should().Be(quality);
+        }
+
+        [TestCase("*/*", "text/plain", ExpectedResult = true)]
+        [TestCase("text/*", "text/plain", ExpectedResult = true)]
+        [TestCase("text/plain", "text/plain", ExpectedResult = true)]
+        [TestCase("text/xml", "text/plain", ExpectedResult = false)]
+        [TestCase("application/*", "text/plain", ExpectedResult = false)]
+        public bool ShouldMatchMediaTypes(string first, string second)
+        {
+            var rangeA = new MediaRange(new StringSegment(first, 0, first.Length));
+            var rangeB = new MediaRange(new StringSegment(second, 0, second.Length));
+
+            bool result = rangeA.MediaTypesMatch(rangeB);
+
+            // Shouldn't matter which way around they are...
+            rangeB.MediaTypesMatch(rangeA).Should().Be(result);
+            return result;
         }
 
         [TestCase("0", ExpectedResult = 0)]
@@ -57,40 +66,40 @@
             return range.Quality;
         }
 
-        [TestCase("*/*;parameter=value ; q=0.8", 800)]
-        [TestCase("*/* invalid", 1000)]
-        [TestCase("*/* ; p=1;q=0.2;", 200)]
-        [TestCase("*/*;p=1", 1000)]
-        public void ShouldIgnoreParametersWhenParsingTheQuality(string input, int quality)
+        [TestFixture]
+        public sealed class Constructor : MediaRangeTests
         {
-            var range = new MediaRange(new StringSegment(input, 0, input.Length));
+            [Test]
+            public void ShouldThrowForInvalidQualityValues()
+            {
+                Action action = () => new MediaRange(new StringSegment("*/*;Q=2.0", 0, 9));
 
-            Assert.That(range.Quality, Is.EqualTo(quality));
+                action.ShouldThrow<ArgumentException>();
+            }
+
+            [TestCase("missing_separator")]
+            [TestCase("missing_sub_type/")]
+            [TestCase("not_allowed / spaces_here")]
+            [TestCase("")]
+            [TestCase(" ")]
+            public void ShouldThrowIfNotAValidMediaType(string input)
+            {
+                Action action = () => new MediaRange(new StringSegment(input, 0, input.Length));
+
+                action.ShouldThrow<ArgumentException>();
+            }
         }
 
-        [Test]
-        public void ShouldThrowForInvalidQualityValues()
+        [TestFixture]
+        public sealed class Quality : MediaRangeTests
         {
-            Assert.That(
-                () => new MediaRange(new StringSegment("*/*;Q=2.0", 0, 9)),
-                Throws.InstanceOf<ArgumentException>());
-        }
+            [Test]
+            public void ShouldDefualtTo1000()
+            {
+                var range = new MediaRange(new StringSegment("*/*", 0, 3));
 
-        [TestCase("*/*", "text/plain", ExpectedResult = true)]
-        [TestCase("text/*", "text/plain", ExpectedResult = true)]
-        [TestCase("text/plain", "text/plain", ExpectedResult = true)]
-        [TestCase("text/xml", "text/plain", ExpectedResult = false)]
-        [TestCase("application/*", "text/plain", ExpectedResult = false)]
-        public bool ShouldMatchMediaTypes(string first, string second)
-        {
-            var rangeA = new MediaRange(new StringSegment(first, 0, first.Length));
-            var rangeB = new MediaRange(new StringSegment(second, 0, second.Length));
-
-            bool result = rangeA.MediaTypesMatch(rangeB);
-
-            // Shouldn't matter which way around they are...
-            Assert.That(rangeB.MediaTypesMatch(rangeA), Is.EqualTo(result));
-            return result;
+                range.Quality.Should().Be(1000);
+            }
         }
     }
 }

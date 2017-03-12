@@ -3,10 +3,11 @@
     using System;
     using System.IO;
     using Crest.Host.Conversion;
+    using FluentAssertions;
     using NUnit.Framework;
 
     [TestFixture]
-    public sealed class BlockStreamTests
+    public class BlockStreamTests
     {
         private BlockStreamPool pool;
         private BlockStream stream;
@@ -18,195 +19,245 @@
             this.stream = new BlockStream(this.pool);
         }
 
-        [Test]
-        public void CanReadShouldReturnTrue()
+        [TestFixture]
+        public sealed class CanRead : BlockStreamTests
         {
-            Assert.That(this.stream.CanRead, Is.True);
-        }
-
-        [Test]
-        public void CanReadShouldThrowIfDisposed()
-        {
-            this.stream.Dispose();
-
-            Assert.That(() => this.stream.CanRead, Throws.InstanceOf<ObjectDisposedException>());
-        }
-
-        [Test]
-        public void CanSeekShouldReturnTrue()
-        {
-            Assert.That(this.stream.CanSeek, Is.True);
-        }
-
-        [Test]
-        public void CanSeekShouldThrowIfDisposed()
-        {
-            this.stream.Dispose();
-
-            Assert.That(() => this.stream.CanSeek, Throws.InstanceOf<ObjectDisposedException>());
-        }
-
-        [Test]
-        public void CanWriteShouldReturnTrue()
-        {
-            Assert.That(this.stream.CanWrite, Is.True);
-        }
-
-        [Test]
-        public void CanWriteShouldThrowIfDisposed()
-        {
-            this.stream.Dispose();
-
-            Assert.That(() => this.stream.CanWrite, Throws.InstanceOf<ObjectDisposedException>());
-        }
-
-        [Test]
-        public void LengthShouldThrowIfDisposed()
-        {
-            this.stream.Dispose();
-
-            Assert.That(() => this.stream.Length, Throws.InstanceOf<ObjectDisposedException>());
-        }
-
-        [Test]
-        public void DisposeShouldReleaseTheMemoryToThePool()
-        {
-            // This block will be recycled
-            byte[] block = this.pool.GetBlock();
-            this.pool.ReturnBlocks(new[] { block });
-
-            // Write something to force it to grab a block
-            this.stream.Write(new byte[10], 0, 10);
-            this.stream.Dispose();
-
-            Assert.That(this.pool.GetBlock(), Is.SameAs(block));
-        }
-
-        [Test]
-        public void FlushShouldNotThrowAnException()
-        {
-            Assert.That(() => this.stream.Flush(), Throws.Nothing);
-        }
-
-        [Test]
-        public void FlushShouldThrowIfDisposed()
-        {
-            this.stream.Dispose();
-
-            Assert.That(() => this.stream.Flush(), Throws.InstanceOf<ObjectDisposedException>());
-        }
-
-        [Test]
-        public void ReadShouldReturnZeroForEmptyStreams()
-        {
-            byte[] buffer = new byte[1];
-
-            int result = this.stream.Read(buffer, 0, 1);
-
-            Assert.That(result, Is.EqualTo(0));
-        }
-
-        [Test]
-        public void ReadShouldReadAllTheBytes()
-        {
-            byte[] data = new byte[BlockStreamPool.DefaultBlockSize + 1];
-            for (int i = 0; i < data.Length; i++)
+            [Test]
+            public void ShouldReturnTrue()
             {
-                data[i] = 1;
+                this.stream.CanRead.Should().BeTrue();
             }
-            this.stream.Write(data, 0, data.Length);
-            this.stream.Position = 0;
 
-            byte[] buffer = new byte[data.Length + 2];
-            int read = this.stream.Read(buffer, 1, data.Length);
+            [Test]
+            public void ShouldThrowIfDisposed()
+            {
+                this.stream.Dispose();
 
-            Assert.That(read, Is.EqualTo(data.Length));
-            Assert.That(buffer[0], Is.EqualTo(0));
-            Assert.That(buffer[1], Is.EqualTo(1));
-            Assert.That(buffer[buffer.Length - 2], Is.EqualTo(1));
-            Assert.That(buffer[buffer.Length - 1], Is.EqualTo(0));
+                this.stream.Invoking(s => { var _ = s.CanRead; })
+                    .ShouldThrow<ObjectDisposedException>();
+            }
         }
 
-        [Test]
-        public void ReadShouldThrowIfDisposed()
+        [TestFixture]
+        public sealed class CanSeek : BlockStreamTests
         {
-            this.stream.Dispose();
+            [Test]
+            public void ShouldReturnTrue()
+            {
+                this.stream.CanSeek.Should().BeTrue();
+            }
 
-            byte[] buffer = new byte[1];
-            Assert.That(() => this.stream.Read(buffer, 0, 1), Throws.InstanceOf<ObjectDisposedException>());
+            [Test]
+            public void ShouldThrowIfDisposed()
+            {
+                this.stream.Dispose();
+
+                this.stream.Invoking(s => { var _ = s.CanSeek; })
+                    .ShouldThrow<ObjectDisposedException>();
+            }
         }
 
-        [Test]
-        public void SeekShouldSetThePositionFromTheStart()
+        [TestFixture]
+        public sealed class CanWrite : BlockStreamTests
         {
-            this.stream.Position = 1;
+            [Test]
+            public void ShouldReturnTrue()
+            {
+                this.stream.CanWrite.Should().BeTrue();
+            }
 
-            this.stream.Seek(2, SeekOrigin.Begin);
+            [Test]
+            public void ShouldThrowIfDisposed()
+            {
+                this.stream.Dispose();
 
-            Assert.That(this.stream.Position, Is.EqualTo(2L));
+                this.stream.Invoking(s => { var _ = s.CanWrite; })
+                    .ShouldThrow<ObjectDisposedException>();
+            }
         }
 
-        [Test]
-        public void SeekShouldSetThePositionFromTheCurrentPosition()
+        [TestFixture]
+        public sealed class Dispose : BlockStreamTests
         {
-            this.stream.Position = 1;
+            [Test]
+            public void ShouldReleaseTheMemoryToThePool()
+            {
+                // This block will be recycled
+                byte[] block = this.pool.GetBlock();
+                this.pool.ReturnBlocks(new[] { block });
 
-            this.stream.Seek(2, SeekOrigin.Current);
+                // Write something to force it to grab a block
+                this.stream.Write(new byte[10], 0, 10);
+                this.stream.Dispose();
 
-            Assert.That(this.stream.Position, Is.EqualTo(3L));
+                this.pool.GetBlock().Should().BeSameAs(block);
+            }
         }
 
-        [Test]
-        public void SeekShouldSetThePositionFromTheEnd()
+        [TestFixture]
+        public sealed class Flush : BlockStreamTests
         {
-            this.stream.SetLength(1);
+            [Test]
+            public void ShouldNotThrowAnException()
+            {
+                this.stream.Invoking(s => s.Flush())
+                    .ShouldNotThrow();
+            }
 
-            this.stream.Seek(2, SeekOrigin.End);
+            [Test]
+            public void ShouldThrowIfDisposed()
+            {
+                this.stream.Dispose();
 
-            Assert.That(this.stream.Position, Is.EqualTo(3L));
+                this.stream.Invoking(s => s.Flush())
+                    .ShouldThrow<ObjectDisposedException>();
+            }
         }
 
-        [Test]
-        public void SeekShouldThrowIfDisposed()
+        [TestFixture]
+        public sealed class Length : BlockStreamTests
         {
-            this.stream.Dispose();
+            [Test]
+            public void ShouldThrowIfDisposed()
+            {
+                this.stream.Dispose();
 
-            Assert.That(() => this.stream.Seek(0, SeekOrigin.Begin), Throws.InstanceOf<ObjectDisposedException>());
+                this.stream.Invoking(s => { var _ = s.Length; })
+                    .ShouldThrow<ObjectDisposedException>();
+            }
         }
 
-        [Test]
-        public void SetLengthShouldUpdateTheLength()
+        [TestFixture]
+        public sealed class Read : BlockStreamTests
         {
-            this.stream.SetLength(3);
+            [Test]
+            public void ShouldReadAllTheBytes()
+            {
+                byte[] data = new byte[BlockStreamPool.DefaultBlockSize + 1];
+                for (int i = 0; i < data.Length; i++)
+                {
+                    data[i] = 1;
+                }
+                this.stream.Write(data, 0, data.Length);
+                this.stream.Position = 0;
 
-            Assert.That(stream.Length, Is.EqualTo(3L));
+                byte[] buffer = new byte[data.Length + 2];
+                int read = this.stream.Read(buffer, 1, data.Length);
+
+                read.Should().Be(data.Length);
+                buffer[0].Should().Be(0);
+                buffer[1].Should().Be(1);
+                buffer[buffer.Length - 2].Should().Be(1);
+                buffer[buffer.Length - 1].Should().Be(0);
+            }
+
+            [Test]
+            public void ShouldReturnZeroForEmptyStreams()
+            {
+                byte[] buffer = new byte[1];
+
+                int result = this.stream.Read(buffer, 0, 1);
+
+                result.Should().Be(0);
+            }
+
+            [Test]
+            public void ShouldThrowIfDisposed()
+            {
+                this.stream.Dispose();
+
+                byte[] buffer = new byte[1];
+                this.stream.Invoking(s => s.Read(buffer, 0, 1))
+                    .ShouldThrow<ObjectDisposedException>();
+            }
         }
 
-        [Test]
-        public void SetLengthShouldEnsurePositionIsSmaller()
+        [TestFixture]
+        public sealed class Seek : BlockStreamTests
         {
-            this.stream.Position = 12;
+            [Test]
+            public void ShouldSetThePositionFromTheCurrentPosition()
+            {
+                this.stream.Position = 1;
 
-            this.stream.SetLength(5);
+                this.stream.Seek(2, SeekOrigin.Current);
 
-            Assert.That(this.stream.Position, Is.EqualTo(5L));
+                this.stream.Position.Should().Be(3);
+            }
+
+            [Test]
+            public void ShouldSetThePositionFromTheEnd()
+            {
+                this.stream.SetLength(1);
+
+                this.stream.Seek(2, SeekOrigin.End);
+
+                this.stream.Position.Should().Be(3);
+            }
+
+            [Test]
+            public void ShouldSetThePositionFromTheStart()
+            {
+                this.stream.Position = 1;
+
+                this.stream.Seek(2, SeekOrigin.Begin);
+
+                this.stream.Position.Should().Be(2);
+            }
+
+            [Test]
+            public void ShouldThrowIfDisposed()
+            {
+                this.stream.Dispose();
+
+                this.stream.Invoking(s => s.Seek(0, SeekOrigin.Begin))
+                    .ShouldThrow<ObjectDisposedException>();
+            }
         }
 
-        [Test]
-        public void SetLengthShouldThrowIfDisposed()
+        [TestFixture]
+        public sealed class SetLength : BlockStreamTests
         {
-            this.stream.Dispose();
+            [Test]
+            public void ShouldEnsurePositionIsSmaller()
+            {
+                this.stream.Position = 12;
 
-            Assert.That(() => this.stream.SetLength(0), Throws.InstanceOf<ObjectDisposedException>());
+                this.stream.SetLength(5);
+
+                this.stream.Position.Should().Be(5);
+            }
+
+            [Test]
+            public void ShouldThrowIfDisposed()
+            {
+                this.stream.Dispose();
+
+                this.stream.Invoking(s => s.SetLength(0))
+                    .ShouldThrow<ObjectDisposedException>();
+            }
+
+            [Test]
+            public void ShouldUpdateTheLength()
+            {
+                this.stream.SetLength(3);
+
+                stream.Length.Should().Be(3);
+            }
         }
 
-        [Test]
-        public void WriteShouldThrowIfDisposed()
+        [TestFixture]
+        public sealed class Write : BlockStreamTests
         {
-            this.stream.Dispose();
+            [Test]
+            public void ShouldThrowIfDisposed()
+            {
+                this.stream.Dispose();
 
-            byte[] buffer = new byte[1];
-            Assert.That(() => this.stream.Write(buffer, 0, 1), Throws.InstanceOf<ObjectDisposedException>());
+                byte[] buffer = new byte[1];
+                this.stream.Invoking(s => s.Write(buffer, 0, 1))
+                    .ShouldThrow<ObjectDisposedException>();
+            }
         }
     }
 }

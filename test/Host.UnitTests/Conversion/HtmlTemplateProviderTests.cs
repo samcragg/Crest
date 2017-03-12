@@ -1,35 +1,48 @@
 ﻿namespace Host.UnitTests.Conversion
 {
     using Crest.Host.Conversion;
+    using FluentAssertions;
     using NUnit.Framework;
 
     [TestFixture]
-    public sealed class HtmlTemplateProviderTests
+    public class HtmlTemplateProviderTests
     {
-        [Test]
-        public void ContentLocationShouldReturnTheLocationAfterTheBodyTag()
+        [TestFixture]
+        public sealed class ContentLocation : HtmlTemplateProviderTests
         {
-            var provider = new HtmlTemplateProvider();
+            [Test]
+            public void ShouldReturnTheLocationAfterTheBodyTag()
+            {
+                var provider = new HtmlTemplateProvider();
 
-            string beforeLocation = provider.Template.Substring(0, provider.ContentLocation);
+                string beforeLocation = provider.Template.Substring(0, provider.ContentLocation);
 
-            Assert.That(beforeLocation, Does.EndWith("<body>"));
+                beforeLocation.Should().EndWith("<body>");
+            }
         }
 
-        [Test]
-        public void HintTextShouldReturnANonEmptyValue()
+        [TestFixture]
+        public sealed class HintText : HtmlTemplateProviderTests
         {
-            var provider = new HtmlTemplateProvider();
+            [Test]
+            public void ShouldReturnANonEmptyValue()
+            {
+                var provider = new HtmlTemplateProvider();
 
-            Assert.That(provider.HintText, Is.Not.Null.Or.Empty);
+                provider.HintText.Should().NotBeNullOrEmpty();
+            }
         }
 
-        [Test]
-        public void TemplateShouldReturnANonEmptyValue()
+        [TestFixture]
+        public sealed class Template : HtmlTemplateProviderTests
         {
-            var provider = new HtmlTemplateProvider();
+            [Test]
+            public void ShouldReturnANonEmptyValue()
+            {
+                var provider = new HtmlTemplateProvider();
 
-            Assert.That(provider.Template, Is.Not.Null.Or.Empty);
+                provider.Template.Should().NotBeNullOrEmpty();
+            }
         }
     }
 }
