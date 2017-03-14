@@ -5,11 +5,12 @@
     using System.Threading.Tasks;
     using Crest.Core;
     using Crest.Host.Engine;
+    using FluentAssertions;
     using NSubstitute;
     using NUnit.Framework;
 
     [TestFixture]
-    public sealed class ConfigurationServiceTests
+    public class ConfigurationServiceTests
     {
         private IConfigurationProvider provider;
         private ConfigurationService service;
@@ -21,64 +22,80 @@
             this.service = new ConfigurationService(new[] { this.provider });
         }
 
-        [Test]
-        public void CanConfigureShouldReturnTrueIfTheTypeIsMarkedAsConfiguration()
+        [TestFixture]
+        public sealed class CanConfigure : ConfigurationServiceTests
         {
-            Assert.That(this.service.CanConfigure(typeof(FakeConfiguration)), Is.True);
-        }
-
-        [Test]
-        public void CanConfigureShouldReturnFalseIfTheTypeIsNotMarkedAsConfiguration()
-        {
-            Assert.That(this.service.CanConfigure(typeof(ConfigurationServiceTests)), Is.False);
-        }
-
-        [Test]
-        public void InitializeInstanceShouldPassTheObjectToTheProviders()
-        {
-            object instance = new FakeConfiguration();
-
-            this.service.InitializeInstance(instance, Substitute.For<IServiceProvider>());
-
-            this.provider.Received().Inject(instance);
-        }
-
-        [Test]
-        public void InitializeInstanceShouldInvokeTheProvidersInOrder()
-        {
-            var provider1 = Substitute.For<IConfigurationProvider>();
-            provider1.Order.Returns(1);
-            var provider2 = Substitute.For<IConfigurationProvider>();
-            provider2.Order.Returns(2);
-            this.service = new ConfigurationService(new[] { provider2, provider1 });
-
-            this.service.InitializeInstance(new FakeConfiguration(), Substitute.For<IServiceProvider>());
-
-            Received.InOrder(() =>
+            [Test]
+            public void ShouldReturnFalseIfTheTypeIsNotMarkedAsConfiguration()
             {
-                provider1.Inject(Arg.Any<object>());
-                provider2.Inject(Arg.Any<object>());
-            });
-        }
+                bool result = this.service.CanConfigure(typeof(ConfigurationServiceTests));
 
-        [Test]
-        public async Task InitializeProvidersShouldInitializeTheProviders()
-        {
-            await this.service.InitializeProviders(new Type[0]);
+                result.Should().BeFalse();
+            }
 
-            await this.provider.ReceivedWithAnyArgs().Initialize(null);
-        }
-
-        [Test]
-        public async Task InitializeProvidersShouldPassTheConfigurableClassesToTheProviders()
-        {
-            Type[] types = new[] { typeof(ConfigurationServiceTests), typeof(FakeConfiguration) };
-            await this.provider.Initialize(Arg.Do<IEnumerable<Type>>(t =>
+            [Test]
+            public void ShouldReturnTrueIfTheTypeIsMarkedAsConfiguration()
             {
-                Assert.That(t, Is.EquivalentTo(new[] { typeof(FakeConfiguration) }));
-            }));
+                bool result = this.service.CanConfigure(typeof(FakeConfiguration));
 
-            await this.service.InitializeProviders(types);
+                result.Should().BeTrue();
+            }
+        }
+
+        [TestFixture]
+        public sealed class InitializeInstance : ConfigurationServiceTests
+        {
+            [Test]
+            public void ShouldInvokeTheProvidersInOrder()
+            {
+                var provider1 = Substitute.For<IConfigurationProvider>();
+                provider1.Order.Returns(1);
+                var provider2 = Substitute.For<IConfigurationProvider>();
+                provider2.Order.Returns(2);
+                this.service = new ConfigurationService(new[] { provider2, provider1 });
+
+                this.service.InitializeInstance(new FakeConfiguration(), Substitute.For<IServiceProvider>());
+
+                Received.InOrder(() =>
+                {
+                    provider1.Inject(Arg.Any<object>());
+                    provider2.Inject(Arg.Any<object>());
+                });
+            }
+
+            [Test]
+            public void ShouldPassTheObjectToTheProviders()
+            {
+                object instance = new FakeConfiguration();
+
+                this.service.InitializeInstance(instance, Substitute.For<IServiceProvider>());
+
+                this.provider.Received().Inject(instance);
+            }
+        }
+
+        [TestFixture]
+        public sealed class InitializeProviders : ConfigurationServiceTests
+        {
+            [Test]
+            public async Task ShouldInitializeTheProviders()
+            {
+                await this.service.InitializeProviders(new Type[0]);
+
+                await this.provider.ReceivedWithAnyArgs().Initialize(null);
+            }
+
+            [Test]
+            public async Task ShouldPassTheConfigurableClassesToTheProviders()
+            {
+                Type[] types = new[] { typeof(ConfigurationServiceTests), typeof(FakeConfiguration) };
+                await this.provider.Initialize(Arg.Do<IEnumerable<Type>>(t =>
+                {
+                    t.Should().BeEquivalentTo(typeof(FakeConfiguration));
+                }));
+
+                await this.service.InitializeProviders(types);
+            }
         }
 
         [Configuration]

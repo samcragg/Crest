@@ -8,14 +8,23 @@
     using Crest.Host;
     using Crest.Host.Engine;
     using DryIoc;
+    using FluentAssertions;
     using NSubstitute;
     using NUnit.Framework;
 
     [TestFixture]
-    public sealed class ServiceLocatorTests
+    public class ServiceLocatorTests
     {
         private IContainer container;
         private FakeServiceLocator locator;
+
+        private interface IInterface1
+        {
+        }
+
+        private interface IInterface2
+        {
+        }
 
         [SetUp]
         public void SetUp()
@@ -25,356 +34,383 @@
         }
 
         [Test]
-        public void DiposeShouldSetIsDisposedToTrue()
-        {
-            Assert.That(this.locator.IsDisposed, Is.False);
-
-            this.locator.Dispose();
-
-            Assert.That(this.locator.IsDisposed, Is.True);
-        }
-
-        [Test]
-        public void DisposeCanBeCalledMultipleTimes()
-        {
-            this.locator.Dispose();
-
-            Assert.That(() => this.locator.Dispose(), Throws.Nothing);
-        }
-
-        [Test]
-        public void DisposeShouldDisposeOfTheContainer()
-        {
-            this.locator.Dispose();
-
-            this.container.Received().Dispose();
-        }
-
-        [Test]
         public void ShouldThrowAnExceptionIfMultipleServicesAreRegisteredForASingleItem()
         {
             this.container.Resolve(typeof(IDiscoveryService[]))
                 .Returns(new IDiscoveryService[2]);
 
-            Assert.That(
-                () => this.locator.GetDiscoveryService(),
-                Throws.InstanceOf<InvalidOperationException>()
-                      .And.Message.Contains(nameof(IDiscoveryService)));
+            Action action = () => this.locator.GetDiscoveryService();
+
+            action.ShouldThrow<InvalidOperationException>()
+                  .WithMessage("*" + nameof(IDiscoveryService) + "*");
         }
 
-        [Test]
-        public void GetAfterRequestPluginsShouldCheckForDisposed()
+        [TestFixture]
+        public sealed class Dispose : ServiceLocatorTests
         {
-            this.locator.Dispose();
-
-            Assert.That(
-                () => this.locator.GetAfterRequestPlugins(),
-                Throws.InstanceOf<ObjectDisposedException>());
-        }
-
-        [Test]
-        public void GetAfterRequestPluginsShouldReturnTheValueFromTheContainer()
-        {
-            var plugins = new IPostRequestPlugin[0];
-            this.container.Resolve(typeof(IPostRequestPlugin[]))
-                .Returns(plugins);
-
-            IPostRequestPlugin[] result = this.locator.GetAfterRequestPlugins();
-
-            Assert.That(result, Is.SameAs(plugins));
-        }
-
-        [Test]
-        public void GetBeforeRequestPluginsShouldCheckForDisposed()
-        {
-            this.locator.Dispose();
-
-            Assert.That(
-                () => this.locator.GetBeforeRequestPlugins(),
-                Throws.InstanceOf<ObjectDisposedException>());
-        }
-
-        [Test]
-        public void GetBeforeRequestPluginsShouldReturnTheValueFromTheContainer()
-        {
-            var plugins = new IPreRequestPlugin[0];
-            this.container.Resolve(typeof(IPreRequestPlugin[]))
-                .Returns(plugins);
-
-            IPreRequestPlugin[] result = this.locator.GetBeforeRequestPlugins();
-
-            Assert.That(result, Is.SameAs(plugins));
-        }
-
-        [Test]
-        public void GetConfigurationServiceShouldCheckForDisposed()
-        {
-            this.locator.Dispose();
-
-            Assert.That(
-                () => this.locator.GetConfigurationService(),
-                Throws.InstanceOf<ObjectDisposedException>());
-        }
-
-        [Test]
-        public async Task GetConfigurationServiceShouldGetTheProvidersFromTheContainer()
-        {
-            var configurationProvider = Substitute.For<IConfigurationProvider>();
-            this.container.Resolve(typeof(IEnumerable<IConfigurationProvider>))
-                .Returns(new[] { configurationProvider });
-
-            ConfigurationService result = this.locator.GetConfigurationService();
-            await result.InitializeProviders(new Type[0]);
-
-            await configurationProvider.ReceivedWithAnyArgs().Initialize(null);
-        }
-
-        [Test]
-        public void GetErrorHandlersShouldCheckForDisposed()
-        {
-            this.locator.Dispose();
-
-            Assert.That(
-                () => this.locator.GetErrorHandlers(),
-                Throws.InstanceOf<ObjectDisposedException>());
-        }
-
-        [Test]
-        public void GetErrorHandlersShouldReturnTheValueFromTheContainer()
-        {
-            var plugins = new IErrorHandlerPlugin[0];
-            this.container.Resolve(typeof(IErrorHandlerPlugin[]))
-                .Returns(plugins);
-
-            IErrorHandlerPlugin[] result = this.locator.GetErrorHandlers();
-
-            Assert.That(result, Is.SameAs(plugins));
-        }
-
-        [Test]
-        public void GetServiceShouldCheckForNulls()
-        {
-            Assert.That(
-                () => this.locator.GetService(null),
-                Throws.InstanceOf<ArgumentNullException>());
-        }
-
-        [Test]
-        public void GetServiceShouldCheckForDisposed()
-        {
-            this.locator.Dispose();
-
-            Assert.That(
-                () => this.locator.GetService(typeof(string)),
-                Throws.InstanceOf<ObjectDisposedException>());
-        }
-
-        [Test]
-        public void GetServiceShouldReturnAnInstanceOfTheSpecifiedType()
-        {
-            this.container.Resolve(typeof(string))
-                .Returns("Instance");
-
-            object result = this.locator.GetService(typeof(string));
-
-            Assert.That(result, Is.EqualTo("Instance"));
-        }
-
-        [TestCase(nameof(ServiceLocator.GetContentConverterFactory))]
-        [TestCase(nameof(ServiceLocator.GetDiscoveryService))]
-        [TestCase(nameof(ServiceLocator.GetHtmlTemplateProvider))]
-        [TestCase(nameof(ServiceLocator.GetResponseStatusGenerator))]
-        public void GetSpecificItemShouldCheckForDisposed(string methodName)
-        {
-            MethodInfo method = typeof(ServiceLocator).GetMethod(methodName);
-
-            this.locator.Dispose();
-
-            // Throws TargetInvocationException, so check the inner exception
-            Assert.That(
-                () => method.Invoke(this.locator, null),
-                Throws.InnerException.InstanceOf<ObjectDisposedException>());
-        }
-
-        [TestCase(nameof(ServiceLocator.GetContentConverterFactory))]
-        [TestCase(nameof(ServiceLocator.GetDiscoveryService))]
-        [TestCase(nameof(ServiceLocator.GetHtmlTemplateProvider))]
-        [TestCase(nameof(ServiceLocator.GetResponseStatusGenerator))]
-        public void GetSpecificItemShouldGetTheServiceFromTheContainer(string methodName)
-        {
-            MethodInfo method = typeof(ServiceLocator).GetMethod(methodName);
-
-            // The expected type is an array as that's how the TryResolve method
-            // determines whether there is a registered instance or not
-            Type expectedType = method.ReturnType.MakeArrayType();
-            this.container.Resolve(null).ReturnsForAnyArgs(Array.CreateInstance(method.ReturnType, 1));
-
-            method.Invoke(this.locator, null);
-
-            this.container.Received().Resolve(expectedType);
-        }
-
-        [TestCase(nameof(ServiceLocator.GetContentConverterFactory))]
-        [TestCase(nameof(ServiceLocator.GetDiscoveryService))]
-        [TestCase(nameof(ServiceLocator.GetHtmlTemplateProvider))]
-        [TestCase(nameof(ServiceLocator.GetResponseStatusGenerator))]
-        public void GetSpecificItemShouldReturnADefaultRegisteredInstance(string methodName)
-        {
-            MethodInfo method = typeof(ServiceLocator).GetMethod(methodName);
-
-            using (var serviceLocator = new ServiceLocator())
+            [Test]
+            public void CanBeCalledMultipleTimes()
             {
-                object result = method.Invoke(serviceLocator, null);
+                this.locator.Dispose();
 
-                Assert.That(result, Is.Not.Null);
+                Action action = () => this.locator.Dispose();
+
+                action.ShouldNotThrow();
+            }
+
+            [Test]
+            public void ShouldDisposeOfTheContainer()
+            {
+                this.locator.Dispose();
+
+                this.container.Received().Dispose();
+            }
+
+            [Test]
+            public void ShouldSetIsDisposedToTrue()
+            {
+                this.locator.IsDisposed.Should().BeFalse();
+
+                this.locator.Dispose();
+
+                this.locator.IsDisposed.Should().BeTrue();
             }
         }
 
-        [Test]
-        public void RegisterFactoryShouldCheckForNulls()
+        [TestFixture]
+        public sealed class GetAfterRequestPlugins : ServiceLocatorTests
         {
-            Assert.That(
-                () => this.locator.RegisterFactory(null, () => string.Empty),
-                Throws.InstanceOf<ArgumentNullException>());
-
-            Assert.That(
-                () => this.locator.RegisterFactory(typeof(string), null),
-                Throws.InstanceOf<ArgumentNullException>());
-        }
-
-        [Test]
-        public void RegisterFactoryShouldCheckForDisposed()
-        {
-            this.locator.Dispose();
-
-            Assert.That(
-                () => this.locator.RegisterFactory(typeof(string), () => string.Empty),
-                Throws.InstanceOf<ObjectDisposedException>());
-        }
-
-        [Test]
-        public void RegisterFactoryShouldUseTheSpecifiedFunctionToCreateTheService()
-        {
-            string instance = "Returned by factory";
-
-            using (var serviceLocator = new ServiceLocator())
+            [Test]
+            public void ShouldCheckForDisposed()
             {
-                serviceLocator.RegisterFactory(typeof(string), () => instance);
-                object result = serviceLocator.GetService(typeof(string));
+                this.locator.Dispose();
 
-                Assert.That(result, Is.SameAs(instance));
+                Action action = () => this.locator.GetAfterRequestPlugins();
+
+                action.ShouldThrow<ObjectDisposedException>();
+            }
+
+            [Test]
+            public void ShouldReturnTheValueFromTheContainer()
+            {
+                var plugins = new IPostRequestPlugin[0];
+                this.container.Resolve(typeof(IPostRequestPlugin[]))
+                    .Returns(plugins);
+
+                IPostRequestPlugin[] result = this.locator.GetAfterRequestPlugins();
+
+                result.Should().BeSameAs(plugins);
             }
         }
 
-        [Test]
-        public void RegisterInitializerShouldCheckForNulls()
+        [TestFixture]
+        public sealed class GetBeforeRequestPlugins : ServiceLocatorTests
         {
-            Assert.That(
-                () => this.locator.RegisterInitializer(null, _ => { }),
-                Throws.InstanceOf<ArgumentNullException>());
-
-            Assert.That(
-                () => this.locator.RegisterInitializer(_ => false, null),
-                Throws.InstanceOf<ArgumentNullException>());
-        }
-
-        [Test]
-        public void RegisterInitializerShouldCheckForDisposed()
-        {
-            this.locator.Dispose();
-
-            Assert.That(
-                () => this.locator.RegisterInitializer(_ => false, _ => { }),
-                Throws.InstanceOf<ObjectDisposedException>());
-        }
-
-        [Test]
-        public void RegisterInitializerShouldCallTheFunctionsOnCreatedInstances()
-        {
-            using (var serviceLocator = new ServiceLocator())
+            [Test]
+            public void ShouldCheckForDisposed()
             {
-                object instance = null;
-                serviceLocator.RegisterInitializer(t => t == typeof(ExampleClass), i => instance = i);
+                this.locator.Dispose();
 
-                // Need to register the type before you can resolve it...
-                serviceLocator.RegisterFactory(typeof(ExampleClass), () => new ExampleClass());
-                object result = serviceLocator.GetService(typeof(ExampleClass));
+                Action action = () => this.locator.GetBeforeRequestPlugins();
 
-                Assert.That(instance, Is.SameAs(result));
+                action.ShouldThrow<ObjectDisposedException>();
+            }
+
+            [Test]
+            public void ShouldReturnTheValueFromTheContainer()
+            {
+                var plugins = new IPreRequestPlugin[0];
+                this.container.Resolve(typeof(IPreRequestPlugin[]))
+                    .Returns(plugins);
+
+                IPreRequestPlugin[] result = this.locator.GetBeforeRequestPlugins();
+
+                result.Should().BeSameAs(plugins);
             }
         }
 
-        [Test]
-        public void RegisterManyShouldCheckForNulls()
+        [TestFixture]
+        public sealed class GetConfigurationService : ServiceLocatorTests
         {
-            Assert.That(
-                () => this.locator.RegisterMany(null, _ => false),
-                Throws.InstanceOf<ArgumentNullException>());
-
-            Assert.That(
-                () => this.locator.RegisterMany(Enumerable.Empty<Type>(), null),
-                Throws.InstanceOf<ArgumentNullException>());
-        }
-
-        [Test]
-        public void RegisterManyShouldCheckForDisposed()
-        {
-            this.locator.Dispose();
-
-            Assert.That(
-                () => this.locator.RegisterMany(Enumerable.Empty<Type>(), _ => false),
-                Throws.InstanceOf<ObjectDisposedException>());
-        }
-
-        [Test]
-        public void RegisterManyShouldRegisterTypesAsTransient()
-        {
-            using (var serviceLocator = new ServiceLocator())
+            [Test]
+            public void ShouldCheckForDisposed()
             {
-                serviceLocator.RegisterMany(new[] { typeof(ExampleClass) }, _ => false);
+                this.locator.Dispose();
 
-                object result1 = serviceLocator.GetService(typeof(IInterface1));
-                object result2 = serviceLocator.GetService(typeof(IInterface1));
+                Action action = () => this.locator.GetConfigurationService();
 
-                Assert.That(result1, Is.Not.SameAs(result2));
+                action.ShouldThrow<ObjectDisposedException>();
+            }
+
+            [Test]
+            public async Task ShouldGetTheProvidersFromTheContainer()
+            {
+                var configurationProvider = Substitute.For<IConfigurationProvider>();
+                this.container.Resolve(typeof(IEnumerable<IConfigurationProvider>))
+                    .Returns(new[] { configurationProvider });
+
+                ConfigurationService result = this.locator.GetConfigurationService();
+                await result.InitializeProviders(new Type[0]);
+
+                await configurationProvider.ReceivedWithAnyArgs().Initialize(null);
             }
         }
 
-        [Test]
-        public void RegisterManyShouldRegisterAllTheImplementingInterfaces()
+        [TestFixture]
+        public sealed class GetErrorHandlers : ServiceLocatorTests
         {
-            using (var serviceLocator = new ServiceLocator())
+            [Test]
+            public void ShouldCheckForDisposed()
             {
-                serviceLocator.RegisterMany(new[] { typeof(ExampleClass) }, _ => false);
+                this.locator.Dispose();
 
-                object result1 = serviceLocator.GetService(typeof(IInterface1));
-                object result2 = serviceLocator.GetService(typeof(IInterface2));
+                Action action = () => this.locator.GetErrorHandlers();
 
-                Assert.That(result1, Is.InstanceOf<ExampleClass>());
-                Assert.That(result2, Is.InstanceOf<ExampleClass>());
+                action.ShouldThrow<ObjectDisposedException>();
+            }
+
+            [Test]
+            public void ShouldReturnTheValueFromTheContainer()
+            {
+                var plugins = new IErrorHandlerPlugin[0];
+                this.container.Resolve(typeof(IErrorHandlerPlugin[]))
+                    .Returns(plugins);
+
+                IErrorHandlerPlugin[] result = this.locator.GetErrorHandlers();
+
+                result.Should().BeSameAs(plugins);
             }
         }
 
-        [Test]
-        public void RegisterManyShouldRegisterSingleInstanceTypes()
+        [TestFixture]
+        public sealed class GetService : ServiceLocatorTests
         {
-            using (var serviceLocator = new ServiceLocator())
+            [Test]
+            public void ShouldCheckForDisposed()
             {
-                serviceLocator.RegisterMany(new[] { typeof(ExampleClass) }, _ => true);
+                this.locator.Dispose();
 
-                object result1 = serviceLocator.GetService(typeof(IInterface1));
-                object result2 = serviceLocator.GetService(typeof(IInterface1));
+                Action action = () => this.locator.GetService(typeof(string));
 
-                Assert.That(result1, Is.SameAs(result2));
+                action.ShouldThrow<ObjectDisposedException>();
+            }
+
+            [Test]
+            public void ShouldCheckForNulls()
+            {
+                Action action = () => this.locator.GetService(null);
+
+                action.ShouldThrow<ArgumentNullException>();
+            }
+
+            [Test]
+            public void ShouldReturnAnInstanceOfTheSpecifiedType()
+            {
+                this.container.Resolve(typeof(string))
+                    .Returns("Instance");
+
+                object result = this.locator.GetService(typeof(string));
+
+                result.Should().Be("Instance");
             }
         }
 
-        private interface IInterface1
+        [TestFixture]
+        public sealed class GetSpecificItem : ServiceLocatorTests
         {
+            [TestCase(nameof(ServiceLocator.GetContentConverterFactory))]
+            [TestCase(nameof(ServiceLocator.GetDiscoveryService))]
+            [TestCase(nameof(ServiceLocator.GetHtmlTemplateProvider))]
+            [TestCase(nameof(ServiceLocator.GetResponseStatusGenerator))]
+            public void ShouldCheckForDisposed(string methodName)
+            {
+                MethodInfo method = typeof(ServiceLocator).GetMethod(methodName);
+                Action action = () => method.Invoke(this.locator, null);
+
+                this.locator.Dispose();
+
+                action.ShouldThrow<TargetInvocationException>()
+                      .WithInnerException<ObjectDisposedException>();
+            }
+
+            [TestCase(nameof(ServiceLocator.GetContentConverterFactory))]
+            [TestCase(nameof(ServiceLocator.GetDiscoveryService))]
+            [TestCase(nameof(ServiceLocator.GetHtmlTemplateProvider))]
+            [TestCase(nameof(ServiceLocator.GetResponseStatusGenerator))]
+            public void ShouldGetTheServiceFromTheContainer(string methodName)
+            {
+                MethodInfo method = typeof(ServiceLocator).GetMethod(methodName);
+
+                // The expected type is an array as that's how the TryResolve method
+                // determines whether there is a registered instance or not
+                Type expectedType = method.ReturnType.MakeArrayType();
+                this.container.Resolve(null).ReturnsForAnyArgs(Array.CreateInstance(method.ReturnType, 1));
+
+                method.Invoke(this.locator, null);
+
+                this.container.Received().Resolve(expectedType);
+            }
+
+            [TestCase(nameof(ServiceLocator.GetContentConverterFactory))]
+            [TestCase(nameof(ServiceLocator.GetDiscoveryService))]
+            [TestCase(nameof(ServiceLocator.GetHtmlTemplateProvider))]
+            [TestCase(nameof(ServiceLocator.GetResponseStatusGenerator))]
+            public void ShouldReturnADefaultRegisteredInstance(string methodName)
+            {
+                MethodInfo method = typeof(ServiceLocator).GetMethod(methodName);
+
+                using (var serviceLocator = new ServiceLocator())
+                {
+                    object result = method.Invoke(serviceLocator, null);
+
+                    result.Should().NotBeNull();
+                }
+            }
         }
 
-        private interface IInterface2
+        [TestFixture]
+        public sealed class RegisterFactory : ServiceLocatorTests
         {
+            [Test]
+            public void ShouldCheckForDisposed()
+            {
+                this.locator.Dispose();
+
+                Action action = () => this.locator.RegisterFactory(typeof(string), () => string.Empty);
+
+                action.ShouldThrow<ObjectDisposedException>();
+            }
+
+            [Test]
+            public void ShouldCheckForNulls()
+            {
+                this.locator.Invoking(l => l.RegisterFactory(null, () => string.Empty))
+                    .ShouldThrow<ArgumentNullException>();
+
+                this.locator.Invoking(l => l.RegisterFactory(typeof(string), null))
+                    .ShouldThrow<ArgumentNullException>();
+            }
+
+            [Test]
+            public void ShouldUseTheSpecifiedFunctionToCreateTheService()
+            {
+                string instance = "Returned by factory";
+
+                using (var serviceLocator = new ServiceLocator())
+                {
+                    serviceLocator.RegisterFactory(typeof(string), () => instance);
+                    object result = serviceLocator.GetService(typeof(string));
+
+                    result.Should().BeSameAs(instance);
+                }
+            }
+        }
+
+        [TestFixture]
+        public sealed class RegisterInitializer : ServiceLocatorTests
+        {
+            [Test]
+            public void ShouldCallTheFunctionsOnCreatedInstances()
+            {
+                using (var serviceLocator = new ServiceLocator())
+                {
+                    object initializedObject = null;
+                    serviceLocator.RegisterInitializer(t => t == typeof(ExampleClass), i => initializedObject = i);
+
+                    // Need to register the type before you can resolve it...
+                    serviceLocator.RegisterFactory(typeof(ExampleClass), () => new ExampleClass());
+                    object result = serviceLocator.GetService(typeof(ExampleClass));
+
+                    initializedObject.Should().BeSameAs(result);
+                }
+            }
+
+            [Test]
+            public void ShouldCheckForDisposed()
+            {
+                this.locator.Dispose();
+
+                Action action = () => this.locator.RegisterInitializer(_ => false, _ => { });
+
+                action.ShouldThrow<ObjectDisposedException>();
+            }
+
+            [Test]
+            public void ShouldCheckForNulls()
+            {
+                this.locator.Invoking(l => l.RegisterInitializer(null, _ => { }))
+                    .ShouldThrow<ArgumentNullException>();
+
+                this.locator.Invoking(l => l.RegisterInitializer(_ => false, null))
+                    .ShouldThrow<ArgumentNullException>();
+            }
+        }
+
+        [TestFixture]
+        public sealed class RegisterMany : ServiceLocatorTests
+        {
+            [Test]
+            public void ShouldCheckForDisposed()
+            {
+                this.locator.Dispose();
+
+                Action action = () => this.locator.RegisterMany(Enumerable.Empty<Type>(), _ => false);
+
+                action.ShouldThrow<ObjectDisposedException>();
+            }
+
+            [Test]
+            public void ShouldCheckForNulls()
+            {
+                this.locator.Invoking(l => l.RegisterMany(null, _ => false))
+                    .ShouldThrow<ArgumentNullException>();
+
+                this.locator.Invoking(l => l.RegisterMany(Enumerable.Empty<Type>(), null))
+                    .ShouldThrow<ArgumentNullException>();
+            }
+
+            [Test]
+            public void ShouldRegisterAllTheImplementingInterfaces()
+            {
+                using (var serviceLocator = new ServiceLocator())
+                {
+                    serviceLocator.RegisterMany(new[] { typeof(ExampleClass) }, _ => false);
+
+                    object result1 = serviceLocator.GetService(typeof(IInterface1));
+                    object result2 = serviceLocator.GetService(typeof(IInterface2));
+
+                    result1.Should().BeOfType<ExampleClass>();
+                    result2.Should().BeOfType<ExampleClass>();
+                }
+            }
+
+            [Test]
+            public void ShouldRegisterSingleInstanceTypes()
+            {
+                using (var serviceLocator = new ServiceLocator())
+                {
+                    serviceLocator.RegisterMany(new[] { typeof(ExampleClass) }, _ => true);
+
+                    object result1 = serviceLocator.GetService(typeof(IInterface1));
+                    object result2 = serviceLocator.GetService(typeof(IInterface1));
+
+                    result1.Should().BeSameAs(result2);
+                }
+            }
+
+            [Test]
+            public void ShouldRegisterTypesAsTransient()
+            {
+                using (var serviceLocator = new ServiceLocator())
+                {
+                    serviceLocator.RegisterMany(new[] { typeof(ExampleClass) }, _ => false);
+
+                    object result1 = serviceLocator.GetService(typeof(IInterface1));
+                    object result2 = serviceLocator.GetService(typeof(IInterface1));
+
+                    result1.Should().NotBeSameAs(result2);
+                }
+            }
         }
 
         private class ExampleClass : IInterface1, IInterface2
