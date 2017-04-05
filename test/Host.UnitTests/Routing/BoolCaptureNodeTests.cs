@@ -2,11 +2,12 @@
 {
     using Crest.Host;
     using Crest.Host.Routing;
+    using FluentAssertions;
     using NSubstitute;
     using NUnit.Framework;
 
     [TestFixture]
-    public sealed class BoolCaptureNodeTests
+    public class BoolCaptureNodeTests
     {
         private const string ParameterName = "parameter";
         private BoolCaptureNode node;
@@ -17,87 +18,99 @@
             this.node = new BoolCaptureNode(ParameterName);
         }
 
-        [Test]
-        public void PriorityShouldReturnAPositiveValue()
+        [TestFixture]
+        public sealed new class Equals : BoolCaptureNodeTests
         {
-            Assert.That(this.node.Priority, Is.Positive);
+            [Test]
+            public void ShouldReturnFalseForDifferentParameters()
+            {
+                var other = new BoolCaptureNode(ParameterName + "New");
+                this.node.Equals(other).Should().BeFalse();
+            }
+
+            [Test]
+            public void ShouldReturnFalseForNonBoolCaptureNodes()
+            {
+                IMatchNode other = Substitute.For<IMatchNode>();
+                this.node.Equals(other).Should().BeFalse();
+            }
+
+            [Test]
+            public void ShouldReturnTrueForTheSameParameter()
+            {
+                var other = new BoolCaptureNode(ParameterName);
+                this.node.Equals(other).Should().BeTrue();
+            }
         }
 
-        [Test]
-        public void EqualsShouldReturnFalseForNonBoolCaptureNodes()
+        [TestFixture]
+        public sealed class Match : BoolCaptureNodeTests
         {
-            IMatchNode other = Substitute.For<IMatchNode>();
-            Assert.That(this.node.Equals(other), Is.False);
+            [Test]
+            public void ShouldMatchFalse()
+            {
+                NodeMatchResult result = this.node.Match(
+                    new StringSegment("/False/", 1, 6));
+
+                result.Success.Should().BeTrue();
+            }
+
+            [Test]
+            public void ShouldMatchOneAsTrue()
+            {
+                NodeMatchResult result = this.node.Match(
+                    new StringSegment("_1_", 1, 2));
+
+                result.Success.Should().BeTrue();
+                result.Value.Should().Be(true);
+            }
+
+            [Test]
+            public void ShouldMatchTrue()
+            {
+                NodeMatchResult result = this.node.Match(
+                    new StringSegment("/True/", 1, 5));
+
+                result.Success.Should().BeTrue();
+            }
+
+            [Test]
+            public void ShouldMatchZeroAsFalse()
+            {
+                NodeMatchResult result = this.node.Match(
+                    new StringSegment("_0_", 1, 2));
+
+                result.Success.Should().BeTrue();
+                result.Value.Should().Be(false);
+            }
+
+            [Test]
+            public void ShouldNotMatchPartialWords()
+            {
+                NodeMatchResult result = this.node.Match(
+                    new StringSegment("_true_", 1, 4));
+
+                result.Success.Should().BeFalse();
+            }
+
+            [Test]
+            public void ShouldReturnTheCapturedParameter()
+            {
+                NodeMatchResult result = this.node.Match(
+                    new StringSegment("true", 0, 4));
+
+                result.Name.Should().Be(ParameterName);
+            }
         }
 
-        [Test]
-        public void EqualsShouldReturnFalseForDifferentParameters()
+        [TestFixture]
+        public sealed class Priority : BoolCaptureNodeTests
         {
-            var other = new BoolCaptureNode(ParameterName + "New");
-            Assert.That(this.node.Equals(other), Is.False);
-        }
-
-        [Test]
-        public void EqualsShouldReturnTrueForTheSameParameter()
-        {
-            var other = new BoolCaptureNode(ParameterName);
-            Assert.That(this.node.Equals(other), Is.True);
-        }
-
-        [Test]
-        public void MatchShouldMatchFalse()
-        {
-            NodeMatchResult result = this.node.Match(
-                new StringSegment("/False/", 1, 6));
-
-            Assert.That(result.Success, Is.True);
-        }
-
-        [Test]
-        public void MatchShouldMatchTrue()
-        {
-            NodeMatchResult result = this.node.Match(
-                new StringSegment("/True/", 1, 5));
-
-            Assert.That(result.Success, Is.True);
-        }
-
-        [Test]
-        public void MatchShouldNotMatchPartialWords()
-        {
-            NodeMatchResult result = this.node.Match(
-                new StringSegment("_true_", 1, 4));
-
-            Assert.That(result.Success, Is.False);
-        }
-
-        [Test]
-        public void MatchShouldReturnTheCapturedParameter()
-        {
-            NodeMatchResult result = this.node.Match(
-                new StringSegment("true", 0, 4));
-
-            Assert.That(result.Name, Is.EqualTo(ParameterName));
-        }
-
-        [Test]
-        public void MatchShouldMatchZeroAsFalse()
-        {
-            NodeMatchResult result = this.node.Match(
-                new StringSegment("_0_", 1, 2));
-
-            Assert.That(result.Success, Is.True);
-            Assert.That(result.Value, Is.False);
-        }
-
-        [Test]
-        public void MatchShouldMatchOneAsTrue()
-        {
-            NodeMatchResult result = this.node.Match(
-                new StringSegment("_1_", 1, 2));
-
-            Assert.That(result.Success, Is.True);
-            Assert.That(result.Value, Is.True);
+            [Test]
+            public void ShouldReturnAPositiveValue()
+            {
+                this.node.Priority.Should().BePositive();
+            }
         }
     }
 }

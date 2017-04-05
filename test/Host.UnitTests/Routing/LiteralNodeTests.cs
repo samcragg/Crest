@@ -2,11 +2,12 @@
 {
     using Crest.Host;
     using Crest.Host.Routing;
+    using FluentAssertions;
     using NSubstitute;
     using NUnit.Framework;
 
     [TestFixture]
-    public sealed class LiteralNodeTests
+    public class LiteralNodeTests
     {
         private const string LiteralString = "literal";
         private LiteralNode node;
@@ -17,65 +18,77 @@
             this.node = new LiteralNode(LiteralString);
         }
 
-        [Test]
-        public void PriorityShouldReturnAPositiveValue()
+        [TestFixture]
+        public sealed new class Equals : LiteralNodeTests
         {
-            Assert.That(this.node.Priority, Is.Positive);
+            [Test]
+            public void ShouldIgnoreTheCaseOfTheLiteral()
+            {
+                var other = new LiteralNode(LiteralString.ToUpperInvariant());
+                this.node.Equals(other).Should().BeTrue();
+            }
+
+            [Test]
+            public void ShouldReturnFalseForDifferentParameters()
+            {
+                var other = new LiteralNode(LiteralString + "New");
+                this.node.Equals(other).Should().BeFalse();
+            }
+
+            [Test]
+            public void ShouldReturnFalseForNonLiteralNodes()
+            {
+                IMatchNode other = Substitute.For<IMatchNode>();
+                this.node.Equals(other).Should().BeFalse();
+            }
+
+            [Test]
+            public void ShouldReturnTrueForTheSameParameter()
+            {
+                var other = new LiteralNode(LiteralString);
+                this.node.Equals(other).Should().BeTrue();
+            }
         }
 
-        [Test]
-        public void EqualsShouldReturnFalseForNonLiteralNodes()
+        [TestFixture]
+        public sealed class Match : LiteralNodeTests
         {
-            IMatchNode other = Substitute.For<IMatchNode>();
-            Assert.That(this.node.Equals(other), Is.False);
+            [Test]
+            public void ShouldIgnoreTheCaseWhenComparing()
+            {
+                NodeMatchResult result = this.node.Match(
+                    new StringSegment(LiteralString.ToUpperInvariant(), 0, LiteralString.Length));
+
+                result.Success.Should().BeTrue();
+            }
+
+            [Test]
+            public void ShouldReturnSuccessIfTheLiteralIfTheSubstringMatchesTheLiteral()
+            {
+                NodeMatchResult result = this.node.Match(
+                    new StringSegment("ignore_" + LiteralString, "ignore_".Length, "ignore_".Length + LiteralString.Length));
+
+                result.Success.Should().BeTrue();
+            }
+
+            [Test]
+            public void ShouldReturnUnsuccessfulIfTheLiteralIsNotAtTheSpecifiedLocation()
+            {
+                NodeMatchResult result = this.node.Match(
+                    new StringSegment("not_here_literal", 0, 16));
+
+                result.Success.Should().BeFalse();
+            }
         }
 
-        [Test]
-        public void EqualsShouldReturnFalseForDifferentLiterals()
+        [TestFixture]
+        public sealed class Priority : LiteralNodeTests
         {
-            var other = new LiteralNode(LiteralString + "New");
-            Assert.That(this.node.Equals(other), Is.False);
-        }
-
-        [Test]
-        public void EqualsShouldReturnTrueForTheSameLiteral()
-        {
-            var other = new LiteralNode(LiteralString);
-            Assert.That(this.node.Equals(other), Is.True);
-        }
-
-        [Test]
-        public void EqualsShouldIgnoreTheCaseOfTheLiteral()
-        {
-            var other = new LiteralNode(LiteralString.ToUpperInvariant());
-            Assert.That(this.node.Equals(other), Is.True);
-        }
-
-        [Test]
-        public void MatchShouldReturnUnsuccessfulIfTheLiteralIsNotAtTheSpecifiedLocation()
-        {
-            NodeMatchResult result = this.node.Match(
-                new StringSegment("not_here_literal", 0, 16));
-
-            Assert.That(result.Success, Is.False);
-        }
-
-        [Test]
-        public void MatchShouldReturnSuccessIfTheLiteralIfTheSubstringMatchesTheLiteral()
-        {
-            NodeMatchResult result = this.node.Match(
-                new StringSegment("ignore_" + LiteralString, "ignore_".Length, "ignore_".Length + LiteralString.Length));
-
-            Assert.That(result.Success, Is.True);
-        }
-
-        [Test]
-        public void MatchShouldIgnoreTheCaseWhenComparing()
-        {
-            NodeMatchResult result = this.node.Match(
-                new StringSegment(LiteralString.ToUpperInvariant(), 0, LiteralString.Length));
-
-            Assert.That(result.Success, Is.True);
+            [Test]
+            public void ShouldReturnAPositiveValue()
+            {
+                this.node.Priority.Should().BePositive();
+            }
         }
     }
 }
