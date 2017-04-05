@@ -6,23 +6,15 @@
     using Crest.Host;
     using Crest.Host.Routing;
     using FluentAssertions;
-    using NUnit.Framework;
+    using Xunit;
 
-    [TestFixture]
     public class UrlParserTests
     {
-        private FakeUrlParser parser;
+        private readonly FakeUrlParser parser = new FakeUrlParser();
 
-        [SetUp]
-        public void SetUp()
-        {
-            this.parser = new FakeUrlParser();
-        }
-
-        [TestFixture]
         public sealed class GetSegments : UrlParserTests
         {
-            [Test]
+            [Fact]
             public void ShouldReturnAllTheParts()
             {
                 StringSegment[] segments = UrlParser.GetSegments("/one/two").ToArray();
@@ -33,10 +25,9 @@
             }
         }
 
-        [TestFixture]
         public sealed class ParseUrl : UrlParserTests
         {
-            [Test]
+            [Fact]
             public void ShouldCaptureLiterals()
             {
                 this.parser.ParseUrl("/literal/", new Dictionary<string, Type>());
@@ -44,7 +35,7 @@
                 parser.Literals.Single().Should().Be("literal");
             }
 
-            [Test]
+            [Fact]
             public void ShouldCaptureParameters()
             {
                 var parameters = new Dictionary<string, Type>
@@ -58,7 +49,7 @@
                 parser.Captures.Single().Item2.Should().Be("capture");
             }
 
-            [Test]
+            [Fact]
             public void ShouldCheckForDuplicateParameters()
             {
                 var parameters = new Dictionary<string, Type>
@@ -71,7 +62,7 @@
                 this.parser.ErrorParameters.Single().Should().Be("parameter");
             }
 
-            [Test]
+            [Fact]
             public void ShouldCheckForMissingClosingBraces()
             {
                 this.parser.ParseUrl("/{234/", new Dictionary<string, Type>());
@@ -79,7 +70,7 @@
                 this.parser.ErrorParts.Single().Should().Be("4");
             }
 
-            [Test]
+            [Fact]
             public void ShouldCheckForUnescapedBraces()
             {
                 this.parser.ParseUrl("/123}/", new Dictionary<string, Type>());
@@ -88,7 +79,7 @@
                 this.parser.ErrorParts.Should().BeEquivalentTo("}", "{");
             }
 
-            [Test]
+            [Fact]
             public void ShouldCheckForUnmatchedParameters()
             {
                 var parameters = new Dictionary<string, Type>
@@ -101,7 +92,7 @@
                 this.parser.ErrorParameters.Single().Should().Be("parameter");
             }
 
-            [Test]
+            [Fact]
             public void ShouldCheckForValidParameters()
             {
                 this.parser.ParseUrl("/{missingParameter}/", new Dictionary<string, Type>());
@@ -109,7 +100,7 @@
                 this.parser.ErrorParts.Single().Should().Be("missingParameter");
             }
 
-            [Test]
+            [Fact]
             public void ShouldUnescapeBraces()
             {
                 this.parser.ParseUrl("/{{escaped_braces}}/", new Dictionary<string, Type>());

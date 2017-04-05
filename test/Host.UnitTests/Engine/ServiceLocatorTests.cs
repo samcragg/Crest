@@ -10,13 +10,18 @@
     using DryIoc;
     using FluentAssertions;
     using NSubstitute;
-    using NUnit.Framework;
+    using Xunit;
 
-    [TestFixture]
     public class ServiceLocatorTests
     {
-        private IContainer container;
-        private FakeServiceLocator locator;
+        private readonly IContainer container;
+        private readonly FakeServiceLocator locator;
+
+        public ServiceLocatorTests()
+        {
+            this.container = Substitute.For<IContainer>();
+            this.locator = new FakeServiceLocator(this.container);
+        }
 
         private interface IInterface1
         {
@@ -26,14 +31,7 @@
         {
         }
 
-        [SetUp]
-        public void SetUp()
-        {
-            this.container = Substitute.For<IContainer>();
-            this.locator = new FakeServiceLocator(this.container);
-        }
-
-        [Test]
+        [Fact]
         public void ShouldThrowAnExceptionIfMultipleServicesAreRegisteredForASingleItem()
         {
             this.container.Resolve(typeof(IDiscoveryService[]))
@@ -45,10 +43,9 @@
                   .WithMessage("*" + nameof(IDiscoveryService) + "*");
         }
 
-        [TestFixture]
         public sealed class Dispose : ServiceLocatorTests
         {
-            [Test]
+            [Fact]
             public void CanBeCalledMultipleTimes()
             {
                 this.locator.Dispose();
@@ -58,7 +55,7 @@
                 action.ShouldNotThrow();
             }
 
-            [Test]
+            [Fact]
             public void ShouldDisposeOfTheContainer()
             {
                 this.locator.Dispose();
@@ -66,7 +63,7 @@
                 this.container.Received().Dispose();
             }
 
-            [Test]
+            [Fact]
             public void ShouldSetIsDisposedToTrue()
             {
                 this.locator.IsDisposed.Should().BeFalse();
@@ -77,10 +74,9 @@
             }
         }
 
-        [TestFixture]
         public sealed class GetAfterRequestPlugins : ServiceLocatorTests
         {
-            [Test]
+            [Fact]
             public void ShouldCheckForDisposed()
             {
                 this.locator.Dispose();
@@ -90,7 +86,7 @@
                 action.ShouldThrow<ObjectDisposedException>();
             }
 
-            [Test]
+            [Fact]
             public void ShouldReturnTheValueFromTheContainer()
             {
                 var plugins = new IPostRequestPlugin[0];
@@ -103,10 +99,9 @@
             }
         }
 
-        [TestFixture]
         public sealed class GetBeforeRequestPlugins : ServiceLocatorTests
         {
-            [Test]
+            [Fact]
             public void ShouldCheckForDisposed()
             {
                 this.locator.Dispose();
@@ -116,7 +111,7 @@
                 action.ShouldThrow<ObjectDisposedException>();
             }
 
-            [Test]
+            [Fact]
             public void ShouldReturnTheValueFromTheContainer()
             {
                 var plugins = new IPreRequestPlugin[0];
@@ -129,10 +124,9 @@
             }
         }
 
-        [TestFixture]
         public sealed class GetConfigurationService : ServiceLocatorTests
         {
-            [Test]
+            [Fact]
             public void ShouldCheckForDisposed()
             {
                 this.locator.Dispose();
@@ -142,7 +136,7 @@
                 action.ShouldThrow<ObjectDisposedException>();
             }
 
-            [Test]
+            [Fact]
             public async Task ShouldGetTheProvidersFromTheContainer()
             {
                 var configurationProvider = Substitute.For<IConfigurationProvider>();
@@ -156,10 +150,9 @@
             }
         }
 
-        [TestFixture]
         public sealed class GetErrorHandlers : ServiceLocatorTests
         {
-            [Test]
+            [Fact]
             public void ShouldCheckForDisposed()
             {
                 this.locator.Dispose();
@@ -169,7 +162,7 @@
                 action.ShouldThrow<ObjectDisposedException>();
             }
 
-            [Test]
+            [Fact]
             public void ShouldReturnTheValueFromTheContainer()
             {
                 var plugins = new IErrorHandlerPlugin[0];
@@ -182,10 +175,9 @@
             }
         }
 
-        [TestFixture]
         public sealed class GetService : ServiceLocatorTests
         {
-            [Test]
+            [Fact]
             public void ShouldCheckForDisposed()
             {
                 this.locator.Dispose();
@@ -195,7 +187,7 @@
                 action.ShouldThrow<ObjectDisposedException>();
             }
 
-            [Test]
+            [Fact]
             public void ShouldCheckForNulls()
             {
                 Action action = () => this.locator.GetService(null);
@@ -203,7 +195,7 @@
                 action.ShouldThrow<ArgumentNullException>();
             }
 
-            [Test]
+            [Fact]
             public void ShouldReturnAnInstanceOfTheSpecifiedType()
             {
                 this.container.Resolve(typeof(string))
@@ -215,13 +207,13 @@
             }
         }
 
-        [TestFixture]
         public sealed class GetSpecificItem : ServiceLocatorTests
         {
-            [TestCase(nameof(ServiceLocator.GetContentConverterFactory))]
-            [TestCase(nameof(ServiceLocator.GetDiscoveryService))]
-            [TestCase(nameof(ServiceLocator.GetHtmlTemplateProvider))]
-            [TestCase(nameof(ServiceLocator.GetResponseStatusGenerator))]
+            [Theory]
+            [InlineData(nameof(ServiceLocator.GetContentConverterFactory))]
+            [InlineData(nameof(ServiceLocator.GetDiscoveryService))]
+            [InlineData(nameof(ServiceLocator.GetHtmlTemplateProvider))]
+            [InlineData(nameof(ServiceLocator.GetResponseStatusGenerator))]
             public void ShouldCheckForDisposed(string methodName)
             {
                 MethodInfo method = typeof(ServiceLocator).GetMethod(methodName);
@@ -233,10 +225,11 @@
                       .WithInnerException<ObjectDisposedException>();
             }
 
-            [TestCase(nameof(ServiceLocator.GetContentConverterFactory))]
-            [TestCase(nameof(ServiceLocator.GetDiscoveryService))]
-            [TestCase(nameof(ServiceLocator.GetHtmlTemplateProvider))]
-            [TestCase(nameof(ServiceLocator.GetResponseStatusGenerator))]
+            [Theory]
+            [InlineData(nameof(ServiceLocator.GetContentConverterFactory))]
+            [InlineData(nameof(ServiceLocator.GetDiscoveryService))]
+            [InlineData(nameof(ServiceLocator.GetHtmlTemplateProvider))]
+            [InlineData(nameof(ServiceLocator.GetResponseStatusGenerator))]
             public void ShouldGetTheServiceFromTheContainer(string methodName)
             {
                 MethodInfo method = typeof(ServiceLocator).GetMethod(methodName);
@@ -251,10 +244,11 @@
                 this.container.Received().Resolve(expectedType);
             }
 
-            [TestCase(nameof(ServiceLocator.GetContentConverterFactory))]
-            [TestCase(nameof(ServiceLocator.GetDiscoveryService))]
-            [TestCase(nameof(ServiceLocator.GetHtmlTemplateProvider))]
-            [TestCase(nameof(ServiceLocator.GetResponseStatusGenerator))]
+            [Theory]
+            [InlineData(nameof(ServiceLocator.GetContentConverterFactory))]
+            [InlineData(nameof(ServiceLocator.GetDiscoveryService))]
+            [InlineData(nameof(ServiceLocator.GetHtmlTemplateProvider))]
+            [InlineData(nameof(ServiceLocator.GetResponseStatusGenerator))]
             public void ShouldReturnADefaultRegisteredInstance(string methodName)
             {
                 MethodInfo method = typeof(ServiceLocator).GetMethod(methodName);
@@ -268,10 +262,9 @@
             }
         }
 
-        [TestFixture]
         public sealed class RegisterFactory : ServiceLocatorTests
         {
-            [Test]
+            [Fact]
             public void ShouldCheckForDisposed()
             {
                 this.locator.Dispose();
@@ -281,7 +274,7 @@
                 action.ShouldThrow<ObjectDisposedException>();
             }
 
-            [Test]
+            [Fact]
             public void ShouldCheckForNulls()
             {
                 this.locator.Invoking(l => l.RegisterFactory(null, () => string.Empty))
@@ -291,7 +284,7 @@
                     .ShouldThrow<ArgumentNullException>();
             }
 
-            [Test]
+            [Fact]
             public void ShouldUseTheSpecifiedFunctionToCreateTheService()
             {
                 string instance = "Returned by factory";
@@ -306,10 +299,9 @@
             }
         }
 
-        [TestFixture]
         public sealed class RegisterInitializer : ServiceLocatorTests
         {
-            [Test]
+            [Fact]
             public void ShouldCallTheFunctionsOnCreatedInstances()
             {
                 using (var serviceLocator = new ServiceLocator())
@@ -325,7 +317,7 @@
                 }
             }
 
-            [Test]
+            [Fact]
             public void ShouldCheckForDisposed()
             {
                 this.locator.Dispose();
@@ -335,7 +327,7 @@
                 action.ShouldThrow<ObjectDisposedException>();
             }
 
-            [Test]
+            [Fact]
             public void ShouldCheckForNulls()
             {
                 this.locator.Invoking(l => l.RegisterInitializer(null, _ => { }))
@@ -346,10 +338,9 @@
             }
         }
 
-        [TestFixture]
         public sealed class RegisterMany : ServiceLocatorTests
         {
-            [Test]
+            [Fact]
             public void ShouldCheckForDisposed()
             {
                 this.locator.Dispose();
@@ -359,7 +350,7 @@
                 action.ShouldThrow<ObjectDisposedException>();
             }
 
-            [Test]
+            [Fact]
             public void ShouldCheckForNulls()
             {
                 this.locator.Invoking(l => l.RegisterMany(null, _ => false))
@@ -369,7 +360,7 @@
                     .ShouldThrow<ArgumentNullException>();
             }
 
-            [Test]
+            [Fact]
             public void ShouldRegisterAllTheImplementingInterfaces()
             {
                 using (var serviceLocator = new ServiceLocator())
@@ -384,7 +375,7 @@
                 }
             }
 
-            [Test]
+            [Fact]
             public void ShouldRegisterSingleInstanceTypes()
             {
                 using (var serviceLocator = new ServiceLocator())
@@ -398,7 +389,7 @@
                 }
             }
 
-            [Test]
+            [Fact]
             public void ShouldRegisterTypesAsTransient()
             {
                 using (var serviceLocator = new ServiceLocator())

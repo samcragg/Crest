@@ -5,15 +5,13 @@
     using Crest.Host;
     using FluentAssertions;
     using NSubstitute;
-    using NUnit.Framework;
+    using Xunit;
 
-    [TestFixture]
     public class ResponseDataTests
     {
-        [TestFixture]
         public sealed class WriteBody : ResponseDataTests
         {
-            [Test]
+            [Fact]
             public void ShouldNotBeNull()
             {
                 var data = new ResponseData("", 0, body: null);
@@ -21,7 +19,7 @@
                 data.WriteBody.Should().NotBeNull();
             }
 
-            [Test]
+            [Fact]
             public void ShouldReturnACompletedTask()
             {
                 var data = new ResponseData("", 0, body: null);

@@ -11,12 +11,11 @@
     using Crest.Host.Routing;
     using FluentAssertions;
     using NSubstitute;
-    using NUnit.Framework;
+    using Xunit;
 
-    [TestFixture]
     public class RouteMethodAdapterTests
     {
-        private RouteMethodAdapter adapter;
+        private readonly RouteMethodAdapter adapter = new RouteMethodAdapter();
 
         public interface IFakeInterface
         {
@@ -35,16 +34,9 @@
             Task TaskMethod();
         }
 
-        [SetUp]
-        public void SetUp()
-        {
-            this.adapter = new RouteMethodAdapter();
-        }
-
-        [TestFixture]
         public sealed class CreateMethod : RouteMethodAdapterTests
         {
-            [Test]
+            [Fact]
             public void ShouldCheckTheMethodReturnsATask()
             {
                 MethodInfo nonTaskMethod = typeof(IFakeInterface).GetMethod(nameof(IFakeInterface.NonTaskMethod));
@@ -54,7 +46,7 @@
                 action.ShouldThrow<ArgumentException>();
             }
 
-            [Test]
+            [Fact]
             public void ShouldConstructTheObjectWithTheFactoryDelegate()
             {
                 bool delegateCalled = false;
@@ -75,7 +67,7 @@
                 FakeClass.ConstructorCount.Value.Should().Be(1);
             }
 
-            [Test]
+            [Fact]
             public async Task ShouldConvertGenericTaskToTaskObject()
             {
                 IFakeInterface instance = Substitute.For<IFakeInterface>();
@@ -90,7 +82,7 @@
                 result.Should().Be(123);
             }
 
-            [Test]
+            [Fact]
             public void ShouldInvokeTheSpecifiedMethod()
             {
                 IFakeInterface instance = Substitute.For<IFakeInterface>();
@@ -103,7 +95,7 @@
                 instance.Received().SimpleMethod();
             }
 
-            [Test]
+            [Fact]
             public void ShouldPassInDefaultedValuesForOptionalParametersWithDefaults()
             {
                 IFakeInterface instance = Substitute.For<IFakeInterface>();
@@ -117,7 +109,7 @@
                 instance.Received().OptionalParameter(321);
             }
 
-            [Test]
+            [Fact]
             public void ShouldPassInTheCapturedParameters()
             {
                 IFakeInterface instance = Substitute.For<IFakeInterface>();
@@ -131,7 +123,7 @@
                 instance.Received().SingleParameter(1234);
             }
 
-            [Test]
+            [Fact]
             public void ShouldPassInTheCapturedValueForOptionalParameters()
             {
                 IFakeInterface instance = Substitute.For<IFakeInterface>();
@@ -145,7 +137,7 @@
                 instance.Received().OptionalParameter(123);
             }
 
-            [Test]
+            [Fact]
             public void ShouldPassInTheTypesDefaultValueForParametersMarkedAsOptional()
             {
                 IFakeInterface instance = Substitute.For<IFakeInterface>();
@@ -159,7 +151,7 @@
                 instance.Received().NonDefaultedOptions(0);
             }
 
-            [Test]
+            [Fact]
             public async Task ShouldReturnNoContentValueForTaskMethods()
             {
                 IFakeInterface instance = Substitute.For<IFakeInterface>();
@@ -174,7 +166,7 @@
                 await instance.Received().TaskMethod();
             }
 
-            [Test]
+            [Fact]
             public void ShouldThrowExceptionsInsideTheConvertedTask()
             {
                 IFakeInterface instance = Substitute.For<IFakeInterface>();

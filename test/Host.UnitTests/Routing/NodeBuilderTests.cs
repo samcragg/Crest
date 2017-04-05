@@ -9,18 +9,11 @@
     using Crest.Host.Routing;
     using FluentAssertions;
     using NSubstitute;
-    using NUnit.Framework;
+    using Xunit;
 
-    [TestFixture]
     public class NodeBuilderTests
     {
-        private NodeBuilder builder;
-
-        [SetUp]
-        public void SetUp()
-        {
-            this.builder = new NodeBuilder();
-        }
+        private readonly NodeBuilder builder = new NodeBuilder();
 
         private static ParameterInfo CreateParameter<T>(string name)
         {
@@ -35,10 +28,9 @@
             return param;
         }
 
-        [TestFixture]
         public sealed class Parse : NodeBuilderTests
         {
-            [Test]
+            [Fact]
             public void ShouldAllowDifferentVersionsOfTheSameRoute()
             {
                 ParameterInfo param1 = CreateParameter<string>("param1");
@@ -51,7 +43,7 @@
                 action.ShouldNotThrow();
             }
 
-            [Test]
+            [Fact]
             public void ShouldAllowOverloadingByType()
             {
                 ParameterInfo intParam = CreateParameter<int>("intParam");
@@ -63,7 +55,7 @@
                 action.ShouldNotThrow();
             }
 
-            [Test]
+            [Fact]
             public void ShouldCaptureBooleans()
             {
                 ParameterInfo capture = CreateParameter<bool>("capture");
@@ -76,7 +68,7 @@
                 match.Value.Should().Be(true);
             }
 
-            [Test]
+            [Fact]
             public void ShouldCaptureGuids()
             {
                 Guid guid = Guid.NewGuid();
@@ -90,15 +82,16 @@
                 match.Value.Should().Be(guid);
             }
 
-            [TestCase(typeof(byte), "1", ExpectedResult = (byte)1)]
-            [TestCase(typeof(int), "1", ExpectedResult = (int)1)]
-            [TestCase(typeof(long), "1", ExpectedResult = (long)1)]
-            [TestCase(typeof(sbyte), "1", ExpectedResult = (sbyte)1)]
-            [TestCase(typeof(short), "1", ExpectedResult = (short)1)]
-            [TestCase(typeof(uint), "1", ExpectedResult = (uint)1)]
-            [TestCase(typeof(ulong), "1", ExpectedResult = (ulong)1)]
-            [TestCase(typeof(ushort), "1", ExpectedResult = (ushort)1)]
-            public object ShouldCaptureIntegerTypes(Type type, string value)
+            [Theory]
+            [InlineData(typeof(byte), "1", (byte)1)]
+            [InlineData(typeof(int), "1", (int)1)]
+            [InlineData(typeof(long), "1", (long)1)]
+            [InlineData(typeof(sbyte), "1", (sbyte)1)]
+            [InlineData(typeof(short), "1", (short)1)]
+            [InlineData(typeof(uint), "1", (uint)1)]
+            [InlineData(typeof(ulong), "1", (ulong)1)]
+            [InlineData(typeof(ushort), "1", (ushort)1)]
+            public void ShouldCaptureIntegerTypes(Type type, string value, object expected)
             {
                 ParameterInfo capture = CreateParameter(type, "capture");
 
@@ -108,10 +101,10 @@
 
                 match.Success.Should().BeTrue();
                 match.Value.Should().BeOfType(type);
-                return match.Value;
+                match.Value.Should().Be(expected);
             }
 
-            [Test]
+            [Fact]
             public void ShouldCaptureTypesWithTypeConverters()
             {
                 ParameterInfo capture = CreateParameter<CustomData>("capture");
@@ -125,7 +118,7 @@
                      .Which.Data.Should().Be("custom_data");
             }
 
-            [Test]
+            [Fact]
             public void ShouldReturnNodesThatMatchTheRoute()
             {
                 ParameterInfo captureParameter = CreateParameter<string>("capture");
@@ -142,7 +135,7 @@
                 capture.Value.Should().Be("string_value");
             }
 
-            [Test]
+            [Fact]
             public void ShouldThrowForAmbiguousRoutes()
             {
                 ParameterInfo param1 = CreateParameter<string>("param1");
@@ -157,7 +150,7 @@
                 action.ShouldThrow<InvalidOperationException>();
             }
 
-            [Test]
+            [Fact]
             public void ShouldThrowFormatExceptionForParsingErrors()
             {
                 // No need to test the parsing, as that's handled by UrlParse,
@@ -167,7 +160,7 @@
                 action.ShouldThrow<FormatException>();
             }
 
-            [Test]
+            [Fact]
             public void ShouldThrowFormatExceptionForParsingParemeterErrors()
             {
                 ParameterInfo param = CreateParameter<string>("param");

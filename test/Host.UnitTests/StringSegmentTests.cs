@@ -5,15 +5,13 @@
     using System.Linq;
     using Crest.Host;
     using FluentAssertions;
-    using NUnit.Framework;
+    using Xunit;
 
-    [TestFixture]
     public class StringSegmentTests
     {
-        [TestFixture]
         public sealed class Constructor : StringSegmentTests
         {
-            [Test]
+            [Fact]
             public void ShouldSetTheProperties()
             {
                 const string ExampleString = "Example";
@@ -26,10 +24,9 @@
             }
         }
 
-        [TestFixture]
         public sealed class Count : StringSegmentTests
         {
-            [Test]
+            [Fact]
             public void ShouldReturnTheNumberOfCharactersOfTheSubString()
             {
                 var segment = new StringSegment("string", 2, 3);
@@ -38,10 +35,9 @@
             }
         }
 
-        [TestFixture]
         public sealed new class Equals : StringSegmentTests
         {
-            [Test]
+            [Fact]
             public void ShouldReturnFalseForNullValues()
             {
                 var segment = new StringSegment("012", 0, 3);
@@ -51,7 +47,7 @@
                 result.Should().BeFalse();
             }
 
-            [Test]
+            [Fact]
             public void ShouldReturnFalseIfTheSubStringIsNotEqual()
             {
                 var segment = new StringSegment("0123456", 2, 5);
@@ -61,7 +57,7 @@
                 result.Should().BeFalse();
             }
 
-            [Test]
+            [Fact]
             public void ShouldReturnFalseIfTheValueIsLongerThanTheSubstring()
             {
                 var segment = new StringSegment("0123456", 2, 4);
@@ -71,7 +67,7 @@
                 result.Should().BeFalse();
             }
 
-            [Test]
+            [Fact]
             public void ShouldReturnTrueIfTheSubStringIsEqual()
             {
                 var segment = new StringSegment("0123456", 2, 5);
@@ -81,7 +77,7 @@
                 result.Should().BeTrue();
             }
 
-            [Test]
+            [Fact]
             public void ShouldUseTheComparisonType()
             {
                 var segment = new StringSegment("abc", 0, 3);
@@ -94,10 +90,9 @@
             }
         }
 
-        [TestFixture]
         public sealed class GetEnumerator : StringSegmentTests
         {
-            [Test]
+            [Fact]
             public void ShouldReturnAllOfTheSubString()
             {
                 var segment = new StringSegment("0123456", 2, 4);
@@ -108,10 +103,9 @@
             }
         }
 
-        [TestFixture]
         public sealed class Index : StringSegmentTests
         {
-            [Test]
+            [Fact]
             public void ShouldReturnTheCharacterRelativeToTheStartOfTheSubString()
             {
                 var segment = new StringSegment("0123456", 2, 4);
@@ -121,10 +115,9 @@
             }
         }
 
-        [TestFixture]
         public sealed class NonGenericGetEnumerator : StringSegmentTests
         {
-            [Test]
+            [Fact]
             public void ShouldReturnAllOfTheSubString()
             {
                 IEnumerable segment = new StringSegment("0123456", 2, 4);
@@ -141,10 +134,9 @@
             }
         }
 
-        [TestFixture]
         public sealed new class ToString : StringSegmentTests
         {
-            [Test]
+            [Fact]
             public void ShouldReturnAllOfTheSubString()
             {
                 var segment = new StringSegment("0123456", 2, 4);

@@ -4,23 +4,15 @@
     using System.IO;
     using Crest.Host.Conversion;
     using FluentAssertions;
-    using NUnit.Framework;
+    using Xunit;
 
-    [TestFixture]
     public class BlockStreamPoolTests
     {
-        private BlockStreamPool pool;
+        private readonly BlockStreamPool pool = new BlockStreamPool();
 
-        [SetUp]
-        public void SetUp()
-        {
-            this.pool = new BlockStreamPool();
-        }
-
-        [TestFixture]
         public sealed class GetBlock : BlockStreamPoolTests
         {
-            [Test]
+            [Fact]
             public void ShouldReturnAByteArray()
             {
                 byte[] block = this.pool.GetBlock();
@@ -28,7 +20,7 @@
                 block.Length.Should().Be(BlockStreamPool.DefaultBlockSize);
             }
 
-            [Test]
+            [Fact]
             public void ShouldReturnAByteArrayFromThePoolIfAvailable()
             {
                 byte[] first = this.pool.GetBlock();
@@ -40,10 +32,9 @@
             }
         }
 
-        [TestFixture]
         public sealed class GetStream : BlockStreamPoolTests
         {
-            [Test]
+            [Fact]
             public void ShouldReturnANewObject()
             {
                 Stream stream1 = this.pool.GetStream();
@@ -55,10 +46,9 @@
             }
         }
 
-        [TestFixture]
         public sealed class ReturnBlocks : BlockStreamPoolTests
         {
-            [Test]
+            [Fact]
             public void ShouldNotExceedMaximumPoolSize()
             {
                 var blocks = new List<byte[]>();

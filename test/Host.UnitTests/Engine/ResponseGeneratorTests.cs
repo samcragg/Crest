@@ -7,23 +7,21 @@
     using Crest.Host.Engine;
     using FluentAssertions;
     using NSubstitute;
-    using NUnit.Framework;
+    using Xunit;
 
-    [TestFixture]
     public class ResponseGeneratorTests
     {
         private readonly Task<IResponseData> NullResponse = Task.FromResult<IResponseData>(null);
-        private ResponseGenerator generator;
-        private StatusCodeHandler handler;
+        private readonly ResponseGenerator generator;
+        private readonly StatusCodeHandler handler;
 
-        [SetUp]
-        public void SetUp()
+        public ResponseGeneratorTests()
         {
             this.handler = Substitute.For<StatusCodeHandler>();
             this.generator = new ResponseGenerator(new[] { this.handler });
         }
 
-        [Test]
+        [Fact]
         public async Task ShouldInvokeTheHandlersInOrder()
         {
             var handler1 = Substitute.For<StatusCodeHandler>();
@@ -34,8 +32,8 @@
             handler2.Order.Returns(2);
             handler2.NoContentAsync(null, null).ReturnsForAnyArgs(NullResponse);
 
-            this.generator = new ResponseGenerator(new[] { handler2, handler1 });
-            await this.generator.NoContentAsync(null, null);
+            var generator = new ResponseGenerator(new[] { handler2, handler1 });
+            await generator.NoContentAsync(null, null);
 
             Received.InOrder(() =>
             {
@@ -44,10 +42,9 @@
             });
         }
 
-        [TestFixture]
         public sealed class InternalErrorAsync : ResponseGeneratorTests
         {
-            [Test]
+            [Fact]
             public async Task ShouldReturnTheHandlerResult()
             {
                 Exception exception = new Exception();
@@ -59,7 +56,7 @@
                 result.Should().BeSameAs(response);
             }
 
-            [Test]
+            [Fact]
             public async Task ShouldReturn500()
             {
                 this.handler.InternalErrorAsync(null).ReturnsForAnyArgs(NullResponse);
@@ -70,10 +67,9 @@
             }
         }
 
-        [TestFixture]
         public sealed class NoContentAsync : ResponseGeneratorTests
         {
-            [Test]
+            [Fact]
             public async Task ShouldReturnTheHandlerResult()
             {
                 IRequestData request = Substitute.For<IRequestData>();
@@ -86,7 +82,7 @@
                 result.Should().BeSameAs(response);
             }
 
-            [Test]
+            [Fact]
             public async Task ShouldReturn204()
             {
                 this.handler.NoContentAsync(null, null).ReturnsForAnyArgs(NullResponse);
@@ -97,10 +93,9 @@
             }
         }
 
-        [TestFixture]
         public sealed class NotAcceptableAsync : ResponseGeneratorTests
         {
-            [Test]
+            [Fact]
             public async Task ShouldReturnTheHandlerResult()
             {
                 IRequestData request = Substitute.For<IRequestData>();
@@ -112,7 +107,7 @@
                 result.Should().BeSameAs(response);
             }
 
-            [Test]
+            [Fact]
             public async Task ShouldReturn406()
             {
                 this.handler.NotAcceptableAsync(null).ReturnsForAnyArgs(NullResponse);
@@ -123,10 +118,9 @@
             }
         }
 
-        [TestFixture]
         public sealed class NotFoundAsync : ResponseGeneratorTests
         {
-            [Test]
+            [Fact]
             public async Task ShouldReturnTheHandlerResult()
             {
                 IRequestData request = Substitute.For<IRequestData>();
@@ -139,7 +133,7 @@
                 result.Should().BeSameAs(response);
             }
 
-            [Test]
+            [Fact]
             public async Task ShouldReturn404()
             {
                 this.handler.NotFoundAsync(null, null).ReturnsForAnyArgs(NullResponse);

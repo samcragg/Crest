@@ -2,15 +2,13 @@
 {
     using Crest.Host.Conversion;
     using FluentAssertions;
-    using NUnit.Framework;
+    using Xunit;
 
-    [TestFixture]
     public class HtmlTemplateProviderTests
     {
-        [TestFixture]
         public sealed class ContentLocation : HtmlTemplateProviderTests
         {
-            [Test]
+            [Fact]
             public void ShouldReturnTheLocationAfterTheBodyTag()
             {
                 var provider = new HtmlTemplateProvider();
@@ -21,10 +19,9 @@
             }
         }
 
-        [TestFixture]
         public sealed class HintText : HtmlTemplateProviderTests
         {
-            [Test]
+            [Fact]
             public void ShouldReturnANonEmptyValue()
             {
                 var provider = new HtmlTemplateProvider();
@@ -33,10 +30,9 @@
             }
         }
 
-        [TestFixture]
         public sealed class Template : HtmlTemplateProviderTests
         {
-            [Test]
+            [Fact]
             public void ShouldReturnANonEmptyValue()
             {
                 var provider = new HtmlTemplateProvider();

@@ -4,38 +4,30 @@
     using Crest.Host.Routing;
     using FluentAssertions;
     using NSubstitute;
-    using NUnit.Framework;
+    using Xunit;
 
-    [TestFixture]
     public class BoolCaptureNodeTests
     {
         private const string ParameterName = "parameter";
-        private BoolCaptureNode node;
+        private readonly BoolCaptureNode node = new BoolCaptureNode(ParameterName);
 
-        [SetUp]
-        public void SetUp()
-        {
-            this.node = new BoolCaptureNode(ParameterName);
-        }
-
-        [TestFixture]
         public sealed new class Equals : BoolCaptureNodeTests
         {
-            [Test]
+            [Fact]
             public void ShouldReturnFalseForDifferentParameters()
             {
                 var other = new BoolCaptureNode(ParameterName + "New");
                 this.node.Equals(other).Should().BeFalse();
             }
 
-            [Test]
+            [Fact]
             public void ShouldReturnFalseForNonBoolCaptureNodes()
             {
                 IMatchNode other = Substitute.For<IMatchNode>();
                 this.node.Equals(other).Should().BeFalse();
             }
 
-            [Test]
+            [Fact]
             public void ShouldReturnTrueForTheSameParameter()
             {
                 var other = new BoolCaptureNode(ParameterName);
@@ -43,10 +35,9 @@
             }
         }
 
-        [TestFixture]
         public sealed class Match : BoolCaptureNodeTests
         {
-            [Test]
+            [Fact]
             public void ShouldMatchFalse()
             {
                 NodeMatchResult result = this.node.Match(
@@ -55,7 +46,7 @@
                 result.Success.Should().BeTrue();
             }
 
-            [Test]
+            [Fact]
             public void ShouldMatchOneAsTrue()
             {
                 NodeMatchResult result = this.node.Match(
@@ -65,7 +56,7 @@
                 result.Value.Should().Be(true);
             }
 
-            [Test]
+            [Fact]
             public void ShouldMatchTrue()
             {
                 NodeMatchResult result = this.node.Match(
@@ -74,7 +65,7 @@
                 result.Success.Should().BeTrue();
             }
 
-            [Test]
+            [Fact]
             public void ShouldMatchZeroAsFalse()
             {
                 NodeMatchResult result = this.node.Match(
@@ -84,7 +75,7 @@
                 result.Value.Should().Be(false);
             }
 
-            [Test]
+            [Fact]
             public void ShouldNotMatchPartialWords()
             {
                 NodeMatchResult result = this.node.Match(
@@ -93,7 +84,7 @@
                 result.Success.Should().BeFalse();
             }
 
-            [Test]
+            [Fact]
             public void ShouldReturnTheCapturedParameter()
             {
                 NodeMatchResult result = this.node.Match(
@@ -103,10 +94,9 @@
             }
         }
 
-        [TestFixture]
         public sealed class Priority : BoolCaptureNodeTests
         {
-            [Test]
+            [Fact]
             public void ShouldReturnAPositiveValue()
             {
                 this.node.Priority.Should().BePositive();

@@ -5,17 +5,15 @@
     using Crest.Host.Routing;
     using FluentAssertions;
     using NSubstitute;
-    using NUnit.Framework;
+    using Xunit;
 
-    [TestFixture]
     public class RouteNodeTests
     {
-        private IMatchNode matcher;
-        private string MatcherValue = "Stored value";
-        private RouteNode<string> node;
+        private const string MatcherValue = "Stored value";
+        private readonly IMatchNode matcher;
+        private readonly RouteNode<string> node;
 
-        [SetUp]
-        public void SetUp()
+        public RouteNodeTests()
         {
             this.matcher = Substitute.For<IMatchNode>();
             this.matcher.Match(Arg.Any<StringSegment>())
@@ -24,10 +22,9 @@
             this.node = new RouteNode<string>(this.matcher) { Value = MatcherValue };
         }
 
-        [TestFixture]
         public sealed class Add : RouteNodeTests
         {
-            [Test]
+            [Fact]
             public void ShouldCombineMatchers()
             {
                 IMatchNode child = Substitute.For<IMatchNode>();
@@ -42,7 +39,7 @@
                 duplicate.DidNotReceiveWithAnyArgs().Match(default(StringSegment));
             }
 
-            [Test]
+            [Fact]
             public void ShouldReturnTheLeafNode()
             {
                 IMatchNode first = Substitute.For<IMatchNode>();
@@ -56,10 +53,9 @@
             }
         }
 
-        [TestFixture]
         public sealed class Match : RouteNodeTests
         {
-            [Test]
+            [Fact]
             public void ShouldInvokeHigherPriorityNodesFirst()
             {
                 IMatchNode normal = Substitute.For<IMatchNode>();
@@ -78,7 +74,7 @@
                 normal.DidNotReceiveWithAnyArgs().Match(default(StringSegment));
             }
 
-            [Test]
+            [Fact]
             public void ShouldReturnTheCapturedValues()
             {
                 this.matcher.Match(default(StringSegment))
@@ -90,7 +86,7 @@
                 result.Captures.Values.Single().Should().Be(123);
             }
 
-            [Test]
+            [Fact]
             public void ShouldReturnTheValueSavedAgainstTheNode()
             {
                 this.matcher.Match(default(StringSegment))

@@ -4,45 +4,37 @@
     using Crest.Host.Routing;
     using FluentAssertions;
     using NSubstitute;
-    using NUnit.Framework;
+    using Xunit;
 
-    [TestFixture]
     public class LiteralNodeTests
     {
         private const string LiteralString = "literal";
-        private LiteralNode node;
+        private readonly LiteralNode node = new LiteralNode(LiteralString);
 
-        [SetUp]
-        public void SetUp()
-        {
-            this.node = new LiteralNode(LiteralString);
-        }
-
-        [TestFixture]
         public sealed new class Equals : LiteralNodeTests
         {
-            [Test]
+            [Fact]
             public void ShouldIgnoreTheCaseOfTheLiteral()
             {
                 var other = new LiteralNode(LiteralString.ToUpperInvariant());
                 this.node.Equals(other).Should().BeTrue();
             }
 
-            [Test]
+            [Fact]
             public void ShouldReturnFalseForDifferentParameters()
             {
                 var other = new LiteralNode(LiteralString + "New");
                 this.node.Equals(other).Should().BeFalse();
             }
 
-            [Test]
+            [Fact]
             public void ShouldReturnFalseForNonLiteralNodes()
             {
                 IMatchNode other = Substitute.For<IMatchNode>();
                 this.node.Equals(other).Should().BeFalse();
             }
 
-            [Test]
+            [Fact]
             public void ShouldReturnTrueForTheSameParameter()
             {
                 var other = new LiteralNode(LiteralString);
@@ -50,10 +42,9 @@
             }
         }
 
-        [TestFixture]
         public sealed class Match : LiteralNodeTests
         {
-            [Test]
+            [Fact]
             public void ShouldIgnoreTheCaseWhenComparing()
             {
                 NodeMatchResult result = this.node.Match(
@@ -62,7 +53,7 @@
                 result.Success.Should().BeTrue();
             }
 
-            [Test]
+            [Fact]
             public void ShouldReturnSuccessIfTheLiteralIfTheSubstringMatchesTheLiteral()
             {
                 NodeMatchResult result = this.node.Match(
@@ -71,7 +62,7 @@
                 result.Success.Should().BeTrue();
             }
 
-            [Test]
+            [Fact]
             public void ShouldReturnUnsuccessfulIfTheLiteralIsNotAtTheSpecifiedLocation()
             {
                 NodeMatchResult result = this.node.Match(
@@ -81,10 +72,9 @@
             }
         }
 
-        [TestFixture]
         public sealed class Priority : LiteralNodeTests
         {
-            [Test]
+            [Fact]
             public void ShouldReturnAPositiveValue()
             {
                 this.node.Priority.Should().BePositive();

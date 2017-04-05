@@ -4,38 +4,30 @@
     using Crest.Host.Routing;
     using FluentAssertions;
     using NSubstitute;
-    using NUnit.Framework;
+    using Xunit;
 
-    [TestFixture]
     public class StringCaptureNodeTests
     {
         private const string ParameterName = "parameter";
-        private StringCaptureNode node;
+        private readonly StringCaptureNode node = new StringCaptureNode(ParameterName);
 
-        [SetUp]
-        public void SetUp()
-        {
-            this.node = new StringCaptureNode(ParameterName);
-        }
-
-        [TestFixture]
         public sealed new class Equals : StringCaptureNodeTests
         {
-            [Test]
+            [Fact]
             public void ShouldReturnFalseForDifferentParameters()
             {
                 var other = new StringCaptureNode(ParameterName + "New");
                 this.node.Equals(other).Should().BeFalse();
             }
 
-            [Test]
+            [Fact]
             public void ShouldReturnFalseForNonStringCaptureNodes()
             {
                 IMatchNode other = Substitute.For<IMatchNode>();
                 this.node.Equals(other).Should().BeFalse();
             }
 
-            [Test]
+            [Fact]
             public void ShouldReturnTrueForTheSameParameter()
             {
                 var other = new StringCaptureNode(ParameterName);
@@ -43,10 +35,9 @@
             }
         }
 
-        [TestFixture]
         public sealed class Match : StringCaptureNodeTests
         {
-            [Test]
+            [Fact]
             public void ShouldMatchAnyString()
             {
                 NodeMatchResult result = this.node.Match(
@@ -55,7 +46,7 @@
                 result.Success.Should().BeTrue();
             }
 
-            [Test]
+            [Fact]
             public void ShouldSaveTheCapturedParameter()
             {
                 NodeMatchResult result = this.node.Match(
@@ -66,10 +57,9 @@
             }
         }
 
-        [TestFixture]
         public sealed class Priority : StringCaptureNodeTests
         {
-            [Test]
+            [Fact]
             public void ShouldReturnAPositiveValue()
             {
                 this.node.Priority.Should().BePositive();

@@ -6,61 +6,55 @@
     using Crest.Host.Conversion;
     using FluentAssertions;
     using NSubstitute;
-    using NUnit.Framework;
+    using Xunit;
 
-    [TestFixture]
     public class HtmlConverterTests
     {
-        private HtmlConverter converter;
-        private IHtmlTemplateProvider templateProvider;
+        private readonly HtmlConverter converter;
+        private readonly IHtmlTemplateProvider templateProvider;
 
-        [SetUp]
-        public void SetUp()
+        public HtmlConverterTests()
         {
             this.templateProvider = Substitute.For<IHtmlTemplateProvider>();
             this.converter = new HtmlConverter(this.templateProvider);
         }
 
-        [TestFixture]
         public sealed class ContentType : HtmlConverterTests
         {
-            [Test]
+            [Fact]
             public void ShouldBeTheHtmlMimeType()
             {
                 this.converter.ContentType.Should().Be("text/html");
             }
         }
 
-        [TestFixture]
         public sealed class Formats : HtmlConverterTests
         {
-            [Test]
+            [Fact]
             public void ShouldIncludeTheHtmlMimeType()
             {
                 this.converter.Formats.Should().Contain("text/html");
             }
 
-            [Test]
+            [Fact]
             public void ShouldIncludeTheXHtmlMimeType()
             {
                 this.converter.Formats.Should().Contain("application/xhtml+xml");
             }
         }
 
-        [TestFixture]
         public sealed class Proirity : HtmlConverterTests
         {
-            [Test]
+            [Fact]
             public void ShouldReturnAPositiveNumber()
             {
                 this.converter.Priority.Should().BePositive();
             }
         }
 
-        [TestFixture]
         public sealed class WriteTo : HtmlConverterTests
         {
-            [Test]
+            [Fact]
             public void MustNotDisposeTheStream()
             {
                 Stream stream = Substitute.For<Stream>();
@@ -71,7 +65,7 @@
                 stream.DidNotReceive().Dispose();
             }
 
-            [Test]
+            [Fact]
             public void ShouldHandleRecursiveProperties()
             {
                 var instance = new RecursiveClass
@@ -87,7 +81,7 @@
                 output.Should().Contain(nameof(RecursiveClass.Self));
             }
 
-            [Test]
+            [Fact]
             public void ShouldIncludeTheHintText()
             {
                 this.templateProvider.HintText.Returns("Hint text");
@@ -97,7 +91,7 @@
                 output.Should().Contain("Hint text");
             }
 
-            [Test]
+            [Fact]
             public void ShouldIncludeTheTemplateParts()
             {
                 this.templateProvider.Template.Returns("BeforeAfter");
@@ -109,7 +103,7 @@
                 output.Should().EndWith("After");
             }
 
-            [Test]
+            [Fact]
             public void ShouldOuputClassProperties()
             {
                 string output = this.GetOutput(new SimpleClass { Integer = 123 });
@@ -118,7 +112,7 @@
                 output.Should().Contain("123");
             }
 
-            [Test]
+            [Fact]
             public void ShouldOuputLists()
             {
                 var instance = new ComplexClass
@@ -135,7 +129,7 @@
                 output.Should().Contain("second");
             }
 
-            [Test]
+            [Fact]
             public void ShouldOuputNestedClassesProperties()
             {
                 var instance = new ComplexClass();
@@ -148,7 +142,7 @@
                 output.Should().Contain("123");
             }
 
-            [Test]
+            [Fact]
             public void ShouldOutputTheStatusCode()
             {
                 string output = this.GetOutput(null);
@@ -157,7 +151,7 @@
                 output.Should().Contain("200");
             }
 
-            [Test]
+            [Fact]
             public void ShouldWriteStrings()
             {
                 // This test is to make sure the IEnumerable logic doesn't interpret

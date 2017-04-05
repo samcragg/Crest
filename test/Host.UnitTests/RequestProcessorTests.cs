@@ -12,21 +12,19 @@
     using FluentAssertions;
     using NSubstitute;
     using NSubstitute.ExceptionExtensions;
-    using NUnit.Framework;
+    using Xunit;
 
-    [TestFixture]
     public class RequestProcessorTests
     {
-        private Bootstrapper bootstrapper;
-        private IContentConverterFactory converterFactory;
-        private IRouteMapper mapper;
-        private RequestProcessor processor;
-        private IRequestData request;
-        private IResponseStatusGenerator responseGenerator;
-        private IServiceLocator serviceLocator;
+        private readonly Bootstrapper bootstrapper;
+        private readonly IContentConverterFactory converterFactory;
+        private readonly IRouteMapper mapper;
+        private readonly RequestProcessor processor;
+        private readonly IRequestData request;
+        private readonly IResponseStatusGenerator responseGenerator;
+        private readonly IServiceLocator serviceLocator;
 
-        [SetUp]
-        public void SetUp()
+        public RequestProcessorTests()
         {
             IServiceRegister register = Substitute.For<IServiceRegister>();
             this.bootstrapper = Substitute.For<Bootstrapper>(register);
@@ -50,10 +48,9 @@
             this.processor = Substitute.ForPartsOf<RequestProcessor>(this.bootstrapper);
         }
 
-        [TestFixture]
         public sealed class Constructor : RequestProcessorTests
         {
-            [Test]
+            [Fact]
             public void ShouldCheckForNullArguments()
             {
                 new Action(() => new FakeRequestProcessor(null))
@@ -73,7 +70,6 @@
             }
         }
 
-        [TestFixture]
         public sealed class HandleRequestAsync : RequestProcessorTests
         {
             private static readonly MethodInfo FakeMethodInfo =
@@ -82,7 +78,7 @@
             private readonly RequestProcessor.MatchResult simpleMatch =
                 new RequestProcessor.MatchResult(FakeMethodInfo, new Dictionary<string, object>());
 
-            [Test]
+            [Fact]
             public async Task ShouldProvideANonInvokableMethodToOverrideMatches()
             {
                 var capturedMatch = default(RequestProcessor.MatchResult);
@@ -102,7 +98,7 @@
                              .WithInnerException<InvalidOperationException>();
             }
 
-            [Test]
+            [Fact]
             public async Task ShouldReturnNotAcceptableIfNoConverter()
             {
                 this.converterFactory.GetConverter(null)
@@ -114,7 +110,7 @@
                 await this.responseGenerator.Received().NotAcceptableAsync(request);
             }
 
-            [Test]
+            [Fact]
             public async Task ShouldInvokeTheOverrideMethod()
             {
                 IRequestData capturedRequest = null;
@@ -138,7 +134,7 @@
                 await this.processor.Received().WriteResponseAsync(request, response);
             }
 
-            [Test]
+            [Fact]
             public async Task ShouldInvokeThePipelineInTheCorrectOrder()
             {
                 this.processor.WhenForAnyArgs(p => p.OnAfterRequestAsync(null, null)).DoNotCallBase();
@@ -156,7 +152,7 @@
                 });
             }
 
-            [Test]
+            [Fact]
             public async Task ShouldReturnNonNullValuesFromOnBeforeRequest()
             {
                 IResponseData response = Substitute.For<IResponseData>();
@@ -168,7 +164,7 @@
                 await this.processor.DidNotReceiveWithAnyArgs().InvokeHandlerAsync(null, null);
             }
 
-            [Test]
+            [Fact]
             public async Task ShouldCatchExceptionsFromInvokeHandler()
             {
                 IResponseData response = Substitute.For<IResponseData>();
@@ -186,12 +182,11 @@
             }
         }
 
-        [TestFixture]
         public sealed class InvokeHandlerAsync : RequestProcessorTests
         {
             private readonly IContentConverter converter = Substitute.For<IContentConverter>();
 
-            [Test]
+            [Fact]
             public async Task ShouldReturnOKStatusCode()
             {
                 this.mapper.GetAdapter(this.request.Handler)
@@ -202,7 +197,7 @@
                 result.StatusCode.Should().Be(200);
             }
 
-            [Test]
+            [Fact]
             public void ShouldCheckTheHandlerIsFound()
             {
                 this.mapper.GetAdapter(this.request.Handler)
@@ -212,7 +207,7 @@
                     .ShouldThrow<InvalidOperationException>();
             }
 
-            [Test]
+            [Fact]
             public async Task ShouldSerializeTheResult()
             {
                 this.mapper.GetAdapter(this.request.Handler)
@@ -227,7 +222,7 @@
                 this.converter.Received().WriteTo(Arg.Any<Stream>(), "Response");
             }
 
-            [Test]
+            [Fact]
             public async Task ShouldInvokeNoContentStatusCodeHandler()
             {
                 this.mapper.GetAdapter(this.request.Handler)
@@ -238,7 +233,7 @@
                 await this.responseGenerator.ReceivedWithAnyArgs().NoContentAsync(null, null);
             }
 
-            [Test]
+            [Fact]
             public async Task ShouldInvokeNotFoundStatusCodeHandler()
             {
                 this.mapper.GetAdapter(this.request.Handler)
@@ -250,10 +245,9 @@
             }
         }
 
-        [TestFixture]
         public sealed class Match : RequestProcessorTests
         {
-            [Test]
+            [Fact]
             public void ShouldReturnAnOverrideIfNoMethodMatches()
             {
                 IReadOnlyDictionary<string, object> notUsed;
@@ -268,7 +262,7 @@
                 result.Parameters.Should().BeNull();
             }
 
-            [Test]
+            [Fact]
             public void ShouldReturnTheMatchedInformation()
             {
                 MethodInfo method = Substitute.For<MethodInfo>();
@@ -298,10 +292,9 @@
             }
         }
 
-        [TestFixture]
         public sealed class OnAfterRequestAsync : RequestProcessorTests
         {
-            [Test]
+            [Fact]
             public async Task ShouldInvokeThePluginsInTheCorrectOrder()
             {
                 IPostRequestPlugin one = CreatePostRequestPlugin(1);
@@ -328,10 +321,9 @@
             }
         }
 
-        [TestFixture]
         public sealed class OnBeforeRequestAsync : RequestProcessorTests
         {
-            [Test]
+            [Fact]
             public async Task ShouldInvokeThePluginsInTheCorrectOrder()
             {
                 IPreRequestPlugin one = CreatePreRequestPlugin(1);
@@ -349,7 +341,7 @@
                 });
             }
 
-            [Test]
+            [Fact]
             public async Task ShouldReturnTheReturnedRepsonse()
             {
                 IResponseData response = Substitute.For<IResponseData>();
@@ -371,10 +363,9 @@
             }
         }
 
-        [TestFixture]
         public sealed class OnErrorAsync : RequestProcessorTests
         {
-            [Test]
+            [Fact]
             public async Task ShouldInvokeThePluginsInTheCorrectOrder()
             {
                 Exception exception = new DivideByZeroException();
@@ -393,7 +384,7 @@
                 });
             }
 
-            [Test]
+            [Fact]
             public async Task ShouldInvokeProcessIfCanHandleReturnsTrue()
             {
                 Exception exception = new DivideByZeroException();

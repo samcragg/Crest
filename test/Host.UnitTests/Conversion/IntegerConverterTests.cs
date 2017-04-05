@@ -3,16 +3,15 @@
     using Crest.Host;
     using Crest.Host.Conversion;
     using FluentAssertions;
-    using NUnit.Framework;
+    using Xunit;
 
-    [TestFixture]
     public class IntegerConverterTests
     {
-        [TestFixture]
         public sealed class ParseIntegerValue : IntegerConverterTests
         {
-            [TestCase("123", ExpectedResult = 123)]
-            public int ShouldMatchValidIntegers(string integer)
+            [Theory]
+            [InlineData("123", 123)]
+            public void ShouldMatchValidIntegers(string integer, int expected)
             {
                 var segment = new StringSegment("X" + integer + "X", 1, integer.Length + 1);
 
@@ -20,13 +19,14 @@
                 bool result = IntegerConverter.ParseIntegerValue(segment, out value);
 
                 result.Should().BeTrue();
-                return (int)value;
+                ((int)value).Should().Be(expected);
             }
 
-            [TestCase("123a")]
-            [TestCase("+123")]
-            [TestCase("-123")]
-            [TestCase("a123")]
+            [Theory]
+            [InlineData("123a")]
+            [InlineData("+123")]
+            [InlineData("-123")]
+            [InlineData("a123")]
             public void ShouldNotMatchInvalidIntegers(string integer)
             {
                 var segment = new StringSegment(integer, 0, integer.Length);
@@ -39,13 +39,13 @@
             }
         }
 
-        [TestFixture]
         public sealed class ParseSignedValue : IntegerConverterTests
         {
-            [TestCase("123", ExpectedResult = 123)]
-            [TestCase("+123", ExpectedResult = 123)]
-            [TestCase("-123", ExpectedResult = -123)]
-            public int ShouldMatchValidIntegers(string integer)
+            [Theory]
+            [InlineData("123", 123)]
+            [InlineData("+123", 123)]
+            [InlineData("-123", -123)]
+            public void ShouldMatchValidIntegers(string integer, int expected)
             {
                 var segment = new StringSegment("X" + integer + "X", 1, integer.Length + 1);
 
@@ -53,11 +53,12 @@
                 bool result = IntegerConverter.ParseSignedValue(segment, out value);
 
                 result.Should().BeTrue();
-                return (int)value;
+                ((int)value).Should().Be(expected);
             }
 
-            [TestCase("123a")]
-            [TestCase("a123")]
+            [Theory]
+            [InlineData("123a")]
+            [InlineData("a123")]
             public void ShouldNotMatchInvalidIntegers(string integer)
             {
                 var segment = new StringSegment(integer, 0, integer.Length);

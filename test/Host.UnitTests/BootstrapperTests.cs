@@ -7,21 +7,15 @@
     using Crest.Host.Engine;
     using FluentAssertions;
     using NSubstitute;
-    using NUnit.Framework;
+    using Xunit;
 
-    [TestFixture]
     public class BootstrapperTests
     {
-        private FakeBootstrapper bootstrapper;
-        private IDiscoveryService discoveryService;
-        private IServiceRegister serviceRegister;
+        private readonly FakeBootstrapper bootstrapper;
+        private readonly IDiscoveryService discoveryService;
+        private readonly IServiceRegister serviceRegister;
 
-        internal interface IFakeInterface
-        {
-        }
-
-        [SetUp]
-        public void SetUp()
+        public BootstrapperTests()
         {
             this.discoveryService = Substitute.For<IDiscoveryService>();
             this.discoveryService.GetDiscoveredTypes()
@@ -33,10 +27,13 @@
             this.bootstrapper = new FakeBootstrapper(this.serviceRegister);
         }
 
-        [TestFixture]
+        internal interface IFakeInterface
+        {
+        }
+
         public sealed class Dispose : BootstrapperTests
         {
-            [Test]
+            [Fact]
             public void CanBeCalledMultipleTimes()
             {
                 this.bootstrapper.Dispose();
@@ -44,7 +41,7 @@
                 this.bootstrapper.Invoking(b => b.Dispose()).ShouldNotThrow();
             }
 
-            [Test]
+            [Fact]
             public void ShouldDisposeOfTheServiceLocator()
             {
                 this.bootstrapper.Dispose();
@@ -52,7 +49,7 @@
                 this.serviceRegister.Received().Dispose();
             }
 
-            [Test]
+            [Fact]
             public void ShouldSetIsDisposedToTrue()
             {
                 this.bootstrapper.IsDisposed.Should().BeFalse();
@@ -63,7 +60,6 @@
             }
         }
 
-        [TestFixture]
         public sealed class Initialize : BootstrapperTests
         {
             private interface IFakeRoute
@@ -71,7 +67,7 @@
                 Task Route();
             }
 
-            [Test]
+            [Fact]
             public void ShouldHandleDisposableTypes()
             {
                 this.discoveryService.GetDiscoveredTypes().Returns(new[] { typeof(FakeDisposabe) });
@@ -80,7 +76,7 @@
                     .ShouldNotThrow();
             }
 
-            [Test]
+            [Fact]
             public void ShouldHandleTypesThatCannotBeConstructed()
             {
                 this.discoveryService.GetDiscoveredTypes().Returns(new[] { typeof(CannotInject) });
@@ -89,7 +85,7 @@
                     .ShouldNotThrow();
             }
 
-            [Test]
+            [Fact]
             public void ShouldInitializeClassesWithTheConfigurationService()
             {
                 ConfigurationService configurationService = Substitute.For<ConfigurationService>();
@@ -108,7 +104,7 @@
                 configurationService.Received().InitializeInstance(toInitialize, this.serviceRegister);
             }
 
-            [Test]
+            [Fact]
             public void ShouldInitializeTheConfigurationService()
             {
                 ConfigurationService configurationService = Substitute.For<ConfigurationService>();
@@ -120,7 +116,7 @@
                 configurationService.ReceivedWithAnyArgs().InitializeProviders(null);
             }
 
-            [Test]
+            [Fact]
             public void ShouldRegisterCustomFactories()
             {
                 ITypeFactory factory = Substitute.For<ITypeFactory>();
@@ -140,7 +136,7 @@
                 factory.Received().Create(typeof(IFakeInterface), this.serviceRegister);
             }
 
-            [Test]
+            [Fact]
             public void ShouldRegisterSingletons()
             {
                 using (var bootstrapper = new FakeBootstrapper(new ServiceLocator()))
@@ -156,17 +152,17 @@
                 }
             }
 
-            [Test]
+            [Fact]
             public void ShouldSetTheRouteMapper()
             {
-                Assert.That(this.bootstrapper.RouteMapper, Is.Null);
+                this.bootstrapper.RouteMapper.Should().BeNull();
 
                 this.bootstrapper.Initialize();
 
                 this.bootstrapper.RouteMapper.Should().NotBeNull();
             }
 
-            [Test]
+            [Fact]
             public void ShouldSetTheRouteMetadataFactory()
             {
                 var metadata = new RouteMetadata
@@ -202,16 +198,15 @@
             }
         }
 
-        [TestFixture]
         public sealed class ServiceLocatorProperty : BootstrapperTests
         {
-            [Test]
+            [Fact]
             public void ShouldReturnTheValuePassedToTheConstructor()
             {
                 this.bootstrapper.ServiceLocator.Should().BeSameAs(this.serviceRegister);
             }
 
-            [Test]
+            [Fact]
             public void ShouldThrowIfDisposed()
             {
                 this.bootstrapper.Dispose();
@@ -221,10 +216,9 @@
             }
         }
 
-        [TestFixture]
         public sealed class ThrowIfDisposed : BootstrapperTests
         {
-            [Test]
+            [Fact]
             public void ShouldIncludeTheDerivedClassName()
             {
                 this.bootstrapper.Dispose();

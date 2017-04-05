@@ -3,15 +3,13 @@
     using Crest.Host.Conversion;
     using FluentAssertions;
     using NSubstitute;
-    using NUnit.Framework;
+    using Xunit;
 
-    [TestFixture]
     public class ContentConverterFactoryTests
     {
-        [TestFixture]
         public sealed class GetConverter : ContentConverterFactoryTests
         {
-            [Test]
+            [Fact]
             public void ShouldDefaultToJsonIfAcceptIsEmpty()
             {
                 var json = CreateConverter("application/json", 100);
@@ -23,7 +21,7 @@
                 result.Should().BeSameAs(json);
             }
 
-            [Test]
+            [Fact]
             public void ShouldMatchTheAcceptWithTheHighestQualityAvailable()
             {
                 var application = CreateConverter("application/test", 100);
@@ -35,7 +33,7 @@
                 result.Should().BeSameAs(text);
             }
 
-            [Test]
+            [Fact]
             public void ShouldReturnNullIfNoMatches()
             {
                 var factory = new ContentConverterFactory(new IContentConverter[0]);
@@ -45,7 +43,7 @@
                 result.Should().BeNull();
             }
 
-            [Test]
+            [Fact]
             public void ShouldReturnTheConverterThatMatchesTheAcceptExactly()
             {
                 var converter = CreateConverter("application/test", 100);
@@ -56,7 +54,7 @@
                 result.Should().BeSameAs(converter);
             }
 
-            [Test]
+            [Fact]
             public void ShouldReturnTheConverterWithTheBestQuality()
             {
                 var low = CreateConverter("application/test;q=0.5", 100);
@@ -68,7 +66,7 @@
                 result.Should().BeSameAs(high);
             }
 
-            [Test]
+            [Fact]
             public void ShouldReturnTheConverterWithTheHighestPriority()
             {
                 var low = CreateConverter("application/test", 5);

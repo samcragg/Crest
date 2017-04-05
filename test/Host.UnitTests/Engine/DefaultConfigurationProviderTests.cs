@@ -4,23 +4,15 @@
     using System.Threading.Tasks;
     using Crest.Host.Engine;
     using FluentAssertions;
-    using NUnit.Framework;
+    using Xunit;
 
-    [TestFixture]
     public class DefaultConfigurationProviderTests
     {
-        private DefaultConfigurationProvider provider;
+        private readonly DefaultConfigurationProvider provider = new DefaultConfigurationProvider();
 
-        [SetUp]
-        public void SetUp()
-        {
-            this.provider = new DefaultConfigurationProvider();
-        }
-
-        [TestFixture]
         public class Inject : DefaultConfigurationProviderTests
         {
-            [Test]
+            [Fact]
             public async Task ShouldHandleTypesWithNoDefaultProperties()
             {
                 await this.provider.Initialize(new[] { typeof(NoDefaultProperties) });
@@ -31,7 +23,7 @@
                 instance.String.Should().BeNull();
             }
 
-            [Test]
+            [Fact]
             public async Task ShouldSetNestedProperties()
             {
                 await this.provider.Initialize(new[] { typeof(HasNestedProperties) });
@@ -42,7 +34,7 @@
                 instance.NotNullNested.Integer.Should().Be(HasDefaultProperties.IntegerDefault);
             }
 
-            [Test]
+            [Fact]
             public async Task ShouldSetTheDefaultValuesOfProperties()
             {
                 await this.provider.Initialize(new[] { typeof(HasDefaultProperties) });
@@ -74,10 +66,9 @@
             }
         }
 
-        [TestFixture]
         public class Order : DefaultConfigurationProviderTests
         {
-            [Test]
+            [Fact]
             public void ShouldReturnAPositiveValue()
             {
                 provider.Order.Should().BePositive();

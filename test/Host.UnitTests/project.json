@@ -9,7 +9,8 @@
     "FluentAssertions": "4.19.0",
     "NETStandard.Library": "1.6.0",
     "NSubstitute": "2.0.0-rc",
-    "NUnit": "3.5.0"
+    "xunit": "2.2.0",
+    "dotnet-test-xunit": "2.2.0-preview2-build1029"
   },
 
   "frameworks": {
@@ -25,5 +26,5 @@
 
   },
 
-  "testRunner": "nunit"
+  "testRunner": "xunit"
 }

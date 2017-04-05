@@ -7,25 +7,22 @@
     using Crest.Host.Engine;
     using FluentAssertions;
     using NSubstitute;
-    using NUnit.Framework;
+    using Xunit;
 
-    [TestFixture]
     public class ConfigurationServiceTests
     {
-        private IConfigurationProvider provider;
-        private ConfigurationService service;
+        private readonly IConfigurationProvider provider;
+        private readonly ConfigurationService service;
 
-        [SetUp]
-        public void SetUp()
+        public ConfigurationServiceTests()
         {
             this.provider = Substitute.For<IConfigurationProvider>();
             this.service = new ConfigurationService(new[] { this.provider });
         }
 
-        [TestFixture]
         public sealed class CanConfigure : ConfigurationServiceTests
         {
-            [Test]
+            [Fact]
             public void ShouldReturnFalseIfTheTypeIsNotMarkedAsConfiguration()
             {
                 bool result = this.service.CanConfigure(typeof(ConfigurationServiceTests));
@@ -33,7 +30,7 @@
                 result.Should().BeFalse();
             }
 
-            [Test]
+            [Fact]
             public void ShouldReturnTrueIfTheTypeIsMarkedAsConfiguration()
             {
                 bool result = this.service.CanConfigure(typeof(FakeConfiguration));
@@ -42,19 +39,18 @@
             }
         }
 
-        [TestFixture]
         public sealed class InitializeInstance : ConfigurationServiceTests
         {
-            [Test]
+            [Fact]
             public void ShouldInvokeTheProvidersInOrder()
             {
                 var provider1 = Substitute.For<IConfigurationProvider>();
                 provider1.Order.Returns(1);
                 var provider2 = Substitute.For<IConfigurationProvider>();
                 provider2.Order.Returns(2);
-                this.service = new ConfigurationService(new[] { provider2, provider1 });
+                var service = new ConfigurationService(new[] { provider2, provider1 });
 
-                this.service.InitializeInstance(new FakeConfiguration(), Substitute.For<IServiceProvider>());
+                service.InitializeInstance(new FakeConfiguration(), Substitute.For<IServiceProvider>());
 
                 Received.InOrder(() =>
                 {
@@ -63,7 +59,7 @@
                 });
             }
 
-            [Test]
+            [Fact]
             public void ShouldPassTheObjectToTheProviders()
             {
                 object instance = new FakeConfiguration();
@@ -74,10 +70,9 @@
             }
         }
 
-        [TestFixture]
         public sealed class InitializeProviders : ConfigurationServiceTests
         {
-            [Test]
+            [Fact]
             public async Task ShouldInitializeTheProviders()
             {
                 await this.service.InitializeProviders(new Type[0]);
@@ -85,7 +80,7 @@
                 await this.provider.ReceivedWithAnyArgs().Initialize(null);
             }
 
-            [Test]
+            [Fact]
             public async Task ShouldPassTheConfigurableClassesToTheProviders()
             {
                 Type[] types = new[] { typeof(ConfigurationServiceTests), typeof(FakeConfiguration) };

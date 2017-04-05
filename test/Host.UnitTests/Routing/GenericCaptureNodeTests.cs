@@ -5,45 +5,37 @@
     using Crest.Host.Routing;
     using FluentAssertions;
     using NSubstitute;
-    using NUnit.Framework;
+    using Xunit;
 
-    [TestFixture]
     public class GenericCaptureNodeTests
     {
         private const string ParameterName = "parameter";
-        private GenericCaptureNode node;
+        private readonly GenericCaptureNode node = new GenericCaptureNode(ParameterName, typeof(int));
 
-        [SetUp]
-        public void SetUp()
-        {
-            this.node = new GenericCaptureNode(ParameterName, typeof(int));
-        }
-
-        [TestFixture]
         public sealed new class Equals : GenericCaptureNodeTests
         {
-            [Test]
+            [Fact]
             public void ShouldReturnFalseForDifferentParameters()
             {
                 var other = new GenericCaptureNode(ParameterName + "New", typeof(int));
                 this.node.Equals(other).Should().BeFalse();
             }
 
-            [Test]
+            [Fact]
             public void ShouldReturnFalseForDifferentTypes()
             {
                 var other = new GenericCaptureNode(ParameterName, typeof(Guid));
                 this.node.Equals(other).Should().BeFalse();
             }
 
-            [Test]
+            [Fact]
             public void ShouldReturnFalseForNonGenericCaptureNodes()
             {
                 IMatchNode other = Substitute.For<IMatchNode>();
                 this.node.Equals(other).Should().BeFalse();
             }
 
-            [Test]
+            [Fact]
             public void ShouldReturnTrueForTheSameParameter()
             {
                 var other = new GenericCaptureNode(ParameterName, typeof(int));
@@ -51,10 +43,9 @@
             }
         }
 
-        [TestFixture]
         public sealed class Match : GenericCaptureNodeTests
         {
-            [Test]
+            [Fact]
             public void ShouldReturnNoneIfTheConversionErrored()
             {
                 var result = this.node.Match(new StringSegment("Not an integer", 0, 14));
@@ -62,7 +53,7 @@
                 result.Success.Should().BeFalse();
             }
 
-            [Test]
+            [Fact]
             public void ShouldReturnSuccessIfTheConversionSucceeded()
             {
                 var result = this.node.Match(new StringSegment("1", 0, 1));
@@ -70,7 +61,7 @@
                 result.Success.Should().BeTrue();
             }
 
-            [Test]
+            [Fact]
             public void ShouldReturnTheConvertedParameter()
             {
                 var result = this.node.Match(new StringSegment("123", 0, 3));
@@ -80,10 +71,9 @@
             }
         }
 
-        [TestFixture]
         public sealed class Priority : GenericCaptureNodeTests
         {
-            [Test]
+            [Fact]
             public void ShouldReturnAPositiveValue()
             {
                 this.node.Priority.Should().BePositive();

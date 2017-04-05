@@ -8,18 +8,11 @@
     using Crest.Core;
     using Crest.Host.Engine;
     using FluentAssertions;
-    using NUnit.Framework;
+    using Xunit;
 
-    [TestFixture]
     public class DiscoveryServiceTests
     {
-        private DiscoveryService service;
-
-        [SetUp]
-        public void SetUp()
-        {
-            this.service = new DiscoveryService(typeof(DiscoveryServiceTests).GetTypeInfo().Assembly);
-        }
+        private readonly DiscoveryService service = new DiscoveryService(typeof(DiscoveryServiceTests).GetTypeInfo().Assembly);
 
         public class FakeTypeFactory : ITypeFactory
         {
@@ -34,10 +27,9 @@
             }
         }
 
-        [TestFixture]
         public sealed class GetCustomFactories : DiscoveryServiceTests
         {
-            [Test]
+            [Fact]
             public void ShouldReturnInstancesOfTheITypeFactory()
             {
                 IEnumerable<ITypeFactory> factories = this.service.GetCustomFactories();
@@ -46,10 +38,9 @@
             }
         }
 
-        [TestFixture]
         public sealed class GetDiscoveredTypes : DiscoveryServiceTests
         {
-            [Test]
+            [Fact]
             public void ShouldHandleExceptionsWhenLoadingAssemblies()
             {
                 this.service.AssemblyLoad = _ => { throw new BadImageFormatException(); };
@@ -61,7 +52,7 @@
                 result.Should().BeEmpty();
             }
 
-            [Test]
+            [Fact]
             public void ShouldIncludeInternalTypes()
             {
                 IEnumerable<Type> types = this.service.GetDiscoveredTypes();
@@ -74,7 +65,6 @@
             }
         }
 
-        [TestFixture]
         public sealed class GetRoutes : DiscoveryServiceTests
         {
             internal interface IHasRoutes
@@ -114,7 +104,7 @@
                 Task InvalidVersionRange();
             }
 
-            [Test]
+            [Fact]
             public void ShouldNotAllowAMethodWithAMinimumVersionAfterItsMaximumVersion()
             {
                 // Use ToList to force evaluation
@@ -123,7 +113,7 @@
                 action.ShouldThrow<InvalidOperationException>();
             }
 
-            [Test]
+            [Fact]
             public void ShouldNotAllowAMethodWithDifferentVerbs()
             {
                 // Use ToList to force evaluation
@@ -132,7 +122,7 @@
                 action.ShouldThrow<InvalidOperationException>();
             }
 
-            [Test]
+            [Fact]
             public void ShouldNotAllowAMethodWithoutAVersion()
             {
                 // Use ToList to force evaluation
@@ -141,7 +131,7 @@
                 action.ShouldThrow<InvalidOperationException>();
             }
 
-            [Test]
+            [Fact]
             public void ShouldReturnAllTheRoutesOnAMethod()
             {
                 IEnumerable<string> routes =
@@ -152,7 +142,7 @@
                 routes.Should().BeEquivalentTo("Route1", "Route2");
             }
 
-            [Test]
+            [Fact]
             public void ShouldReturnTheVerb()
             {
                 RouteMetadata metadata =
@@ -163,7 +153,7 @@
                 metadata.Verb.Should().BeEquivalentTo("DELETE");
             }
 
-            [Test]
+            [Fact]
             public void ShouldReturnTheVersionInformation()
             {
                 RouteMetadata metadata =
@@ -176,10 +166,9 @@
             }
         }
 
-        [TestFixture]
         public sealed class IsSingleInstance : DiscoveryServiceTests
         {
-            [Test]
+            [Fact]
             public void ShouldReturnFalse()
             {
                 // Out of the box everything is created per request

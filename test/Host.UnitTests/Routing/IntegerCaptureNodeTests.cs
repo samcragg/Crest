@@ -5,24 +5,16 @@
     using Crest.Host.Routing;
     using FluentAssertions;
     using NSubstitute;
-    using NUnit.Framework;
+    using Xunit;
 
-    [TestFixture]
     public class IntegerCaptureNodeTests
     {
         private const string ParameterName = "parameter";
-        private IntegerCaptureNode node;
+        private readonly IntegerCaptureNode node = new IntegerCaptureNode(ParameterName, typeof(int));
 
-        [SetUp]
-        public void SetUp()
-        {
-            this.node = new IntegerCaptureNode(ParameterName, typeof(int));
-        }
-
-        [TestFixture]
         public sealed class Constructor : IntegerCaptureNodeTests
         {
-            [Test]
+            [Fact]
             public void ShouldThrowForInvalidIntegerTypes()
             {
                 Action action = () => new IntegerCaptureNode("", typeof(Guid));
@@ -33,31 +25,30 @@
             }
         }
 
-        [TestFixture]
         public sealed new class Equals : IntegerCaptureNodeTests
         {
-            [Test]
+            [Fact]
             public void ShouldReturnFalseForDifferentParameters()
             {
                 var other = new IntegerCaptureNode(ParameterName + "New", typeof(int));
                 this.node.Equals(other).Should().BeFalse();
             }
 
-            [Test]
+            [Fact]
             public void ShouldReturnFalseForDifferentTypes()
             {
                 var other = new IntegerCaptureNode(ParameterName, typeof(short));
                 this.node.Equals(other).Should().BeFalse();
             }
 
-            [Test]
+            [Fact]
             public void ShouldReturnFalseForNonIntegerCaptureNodes()
             {
                 IMatchNode other = Substitute.For<IMatchNode>();
                 this.node.Equals(other).Should().BeFalse();
             }
 
-            [Test]
+            [Fact]
             public void ShouldReturnTrueForTheSameParameter()
             {
                 var other = new IntegerCaptureNode(ParameterName, typeof(int));
@@ -65,23 +56,23 @@
             }
         }
 
-        [TestFixture]
         public sealed class Match : IntegerCaptureNodeTests
         {
-            [TestCase("123", ExpectedResult = 123)]
-            [TestCase("+123", ExpectedResult = 123)]
-            [TestCase("-123", ExpectedResult = -123)]
-            public int ShouldMatchValidIntegers(string integer)
+            [Theory]
+            [InlineData("123", 123)]
+            [InlineData("+123", 123)]
+            [InlineData("-123", -123)]
+            public void ShouldMatchValidIntegers(string integer, int expected)
             {
                 NodeMatchResult result = this.node.Match(
                     new StringSegment("/" + integer + "/", 1, integer.Length + 1));
 
                 result.Success.Should().BeTrue();
                 result.Name.Should().Be(ParameterName);
-                return (int)result.Value;
+                ((int)result.Value).Should().Be(expected);
             }
 
-            [Test]
+            [Fact]
             public void ShouldNotMatchInvalidIntegers()
             {
                 NodeMatchResult result = this.node.Match(
@@ -91,10 +82,9 @@
             }
         }
 
-        [TestFixture]
         public sealed class Priority : IntegerCaptureNodeTests
         {
-            [Test]
+            [Fact]
             public void ShouldReturnAPositiveValue()
             {
                 this.node.Priority.Should().BePositive();

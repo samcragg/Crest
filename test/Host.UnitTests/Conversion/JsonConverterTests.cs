@@ -6,23 +6,15 @@
     using Crest.Host.Conversion;
     using FluentAssertions;
     using NSubstitute;
-    using NUnit.Framework;
+    using Xunit;
 
-    [TestFixture]
     public class JsonConverterTests
     {
-        private JsonConverter converter;
+        private readonly JsonConverter converter = new JsonConverter();
 
-        [SetUp]
-        public void SetUp()
-        {
-            this.converter = new JsonConverter();
-        }
-
-        [TestFixture]
         public sealed class ContentType : JsonConverterTests
         {
-            [Test]
+            [Fact]
             public void ShouldBeTheIanaJsonMimeType()
             {
                 // http://www.iana.org/assignments/media-types/application/json
@@ -30,10 +22,9 @@
             }
         }
 
-        [TestFixture]
         public sealed class Formats : JsonConverterTests
         {
-            [Test]
+            [Fact]
             public void ShouldIncludeTheIanaJsonMimeType()
             {
                 // http://www.iana.org/assignments/media-types/application/json
@@ -41,20 +32,18 @@
             }
         }
 
-        [TestFixture]
         public sealed class Priority : JsonConverterTests
         {
-            [Test]
+            [Fact]
             public void ShouldReturnAPositiveNumber()
             {
                 this.converter.Priority.Should().BePositive();
             }
         }
 
-        [TestFixture]
         public sealed class WriteTo : JsonConverterTests
         {
-            [Test]
+            [Fact]
             public void MustNotDisposeTheStream()
             {
                 Stream stream = Substitute.For<Stream>();
@@ -65,7 +54,7 @@
                 stream.DidNotReceive().Dispose();
             }
 
-            [Test]
+            [Fact]
             public void ShouldEncodeWithUtf8()
             {
                 using (var stream = new MemoryStream())
@@ -81,7 +70,7 @@
                 }
             }
 
-            [Test]
+            [Fact]
             public void ShouldUseCamelCaseForProperties()
             {
                 using (var stream = new MemoryStream())

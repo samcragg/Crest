@@ -4,23 +4,15 @@
     using Crest.Host;
     using Crest.Host.Engine;
     using FluentAssertions;
-    using NUnit.Framework;
+    using Xunit;
 
-    [TestFixture]
     public class StatusCodeHandlerTests
     {
-        private StatusCodeHandler handler;
+        private readonly StatusCodeHandler handler = new FakeStatusCodeHandler();
 
-        [SetUp]
-        public void SetUp()
-        {
-            this.handler = new FakeStatusCodeHandler();
-        }
-
-        [TestFixture]
         public sealed class InternalErrorAsync : StatusCodeHandlerTests
         {
-            [Test]
+            [Fact]
             public void ShouldReturnACompletedTaskWithNull()
             {
                 Task<IResponseData> response = this.handler.InternalErrorAsync(null);
@@ -30,10 +22,9 @@
             }
         }
 
-        [TestFixture]
         public sealed class NoContentAsync : StatusCodeHandlerTests
         {
-            [Test]
+            [Fact]
             public void ShouldReturnACompletedTaskWithNull()
             {
                 Task<IResponseData> response = this.handler.NoContentAsync(null, null);
@@ -43,10 +34,9 @@
             }
         }
 
-        [TestFixture]
         public sealed class NotAcceptableAsync : StatusCodeHandlerTests
         {
-            [Test]
+            [Fact]
             public void ShouldReturnACompletedTaskWithNull()
             {
                 Task<IResponseData> response = this.handler.NotAcceptableAsync(null);
@@ -56,10 +46,9 @@
             }
         }
 
-        [TestFixture]
         public sealed class NotFoundAsync : StatusCodeHandlerTests
         {
-            [Test]
+            [Fact]
             public void ShouldReturnACompletedTaskWithNull()
             {
                 Task<IResponseData> response = this.handler.NotFoundAsync(null, null);

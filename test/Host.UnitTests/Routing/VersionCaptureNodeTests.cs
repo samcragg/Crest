@@ -4,30 +4,22 @@
     using Crest.Host.Routing;
     using FluentAssertions;
     using NSubstitute;
-    using NUnit.Framework;
+    using Xunit;
 
-    [TestFixture]
     public class VersionCaptureNodeTests
     {
-        private VersionCaptureNode node;
+        private readonly VersionCaptureNode node = new VersionCaptureNode();
 
-        [SetUp]
-        public void SetUp()
-        {
-            this.node = new VersionCaptureNode();
-        }
-
-        [TestFixture]
         public sealed new class Equals : VersionCaptureNodeTests
         {
-            [Test]
+            [Fact]
             public void ShouldReturnFalseForNonVersionCaptureNodes()
             {
                 IMatchNode other = Substitute.For<IMatchNode>();
                 this.node.Equals(other).Should().BeFalse();
             }
 
-            [Test]
+            [Fact]
             public void ShouldReturnTrueForOtherVersionCaptureNodes()
             {
                 var other = new VersionCaptureNode();
@@ -35,10 +27,9 @@
             }
         }
 
-        [TestFixture]
         public sealed class Match : VersionCaptureNodeTests
         {
-            [Test]
+            [Fact]
             public void ShouldMatchAnyCase()
             {
                 NodeMatchResult lower = this.node.Match(
@@ -51,9 +42,10 @@
                 upper.Success.Should().BeTrue();
             }
 
-            [TestCase("v")]
-            [TestCase("x10")]
-            [TestCase("vNext")]
+            [Theory]
+            [InlineData("v")]
+            [InlineData("x10")]
+            [InlineData("vNext")]
             public void ShouldNotMatchInvalidVersions(string version)
             {
                 NodeMatchResult result = this.node.Match(
@@ -62,7 +54,7 @@
                 result.Success.Should().BeFalse();
             }
 
-            [Test]
+            [Fact]
             public void ShouldSaveTheVersionNumber()
             {
                 NodeMatchResult result = this.node.Match(
@@ -73,10 +65,9 @@
             }
         }
 
-        [TestFixture]
         public sealed class Priority : VersionCaptureNodeTests
         {
-            [Test]
+            [Fact]
             public void ShouldReturnAPositiveValue()
             {
                 this.node.Priority.Should().BePositive();

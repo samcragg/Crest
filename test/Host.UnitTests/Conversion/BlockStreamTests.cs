@@ -4,31 +4,28 @@
     using System.IO;
     using Crest.Host.Conversion;
     using FluentAssertions;
-    using NUnit.Framework;
+    using Xunit;
 
-    [TestFixture]
     public class BlockStreamTests
     {
-        private BlockStreamPool pool;
-        private BlockStream stream;
+        private readonly BlockStreamPool pool;
+        private readonly BlockStream stream;
 
-        [SetUp]
-        public void SetUp()
+        public BlockStreamTests()
         {
             this.pool = new BlockStreamPool();
             this.stream = new BlockStream(this.pool);
         }
 
-        [TestFixture]
         public sealed class CanRead : BlockStreamTests
         {
-            [Test]
+            [Fact]
             public void ShouldReturnTrue()
             {
                 this.stream.CanRead.Should().BeTrue();
             }
 
-            [Test]
+            [Fact]
             public void ShouldThrowIfDisposed()
             {
                 this.stream.Dispose();
@@ -38,16 +35,15 @@
             }
         }
 
-        [TestFixture]
         public sealed class CanSeek : BlockStreamTests
         {
-            [Test]
+            [Fact]
             public void ShouldReturnTrue()
             {
                 this.stream.CanSeek.Should().BeTrue();
             }
 
-            [Test]
+            [Fact]
             public void ShouldThrowIfDisposed()
             {
                 this.stream.Dispose();
@@ -57,16 +53,15 @@
             }
         }
 
-        [TestFixture]
         public sealed class CanWrite : BlockStreamTests
         {
-            [Test]
+            [Fact]
             public void ShouldReturnTrue()
             {
                 this.stream.CanWrite.Should().BeTrue();
             }
 
-            [Test]
+            [Fact]
             public void ShouldThrowIfDisposed()
             {
                 this.stream.Dispose();
@@ -76,10 +71,9 @@
             }
         }
 
-        [TestFixture]
         public sealed class Dispose : BlockStreamTests
         {
-            [Test]
+            [Fact]
             public void ShouldReleaseTheMemoryToThePool()
             {
                 // This block will be recycled
@@ -94,17 +88,16 @@
             }
         }
 
-        [TestFixture]
         public sealed class Flush : BlockStreamTests
         {
-            [Test]
+            [Fact]
             public void ShouldNotThrowAnException()
             {
                 this.stream.Invoking(s => s.Flush())
                     .ShouldNotThrow();
             }
 
-            [Test]
+            [Fact]
             public void ShouldThrowIfDisposed()
             {
                 this.stream.Dispose();
@@ -114,10 +107,9 @@
             }
         }
 
-        [TestFixture]
         public sealed class Length : BlockStreamTests
         {
-            [Test]
+            [Fact]
             public void ShouldThrowIfDisposed()
             {
                 this.stream.Dispose();
@@ -127,10 +119,9 @@
             }
         }
 
-        [TestFixture]
         public sealed class Read : BlockStreamTests
         {
-            [Test]
+            [Fact]
             public void ShouldReadAllTheBytes()
             {
                 byte[] data = new byte[BlockStreamPool.DefaultBlockSize + 1];
@@ -151,7 +142,7 @@
                 buffer[buffer.Length - 1].Should().Be(0);
             }
 
-            [Test]
+            [Fact]
             public void ShouldReturnZeroForEmptyStreams()
             {
                 byte[] buffer = new byte[1];
@@ -161,7 +152,7 @@
                 result.Should().Be(0);
             }
 
-            [Test]
+            [Fact]
             public void ShouldThrowIfDisposed()
             {
                 this.stream.Dispose();
@@ -172,10 +163,9 @@
             }
         }
 
-        [TestFixture]
         public sealed class Seek : BlockStreamTests
         {
-            [Test]
+            [Fact]
             public void ShouldSetThePositionFromTheCurrentPosition()
             {
                 this.stream.Position = 1;
@@ -185,7 +175,7 @@
                 this.stream.Position.Should().Be(3);
             }
 
-            [Test]
+            [Fact]
             public void ShouldSetThePositionFromTheEnd()
             {
                 this.stream.SetLength(1);
@@ -195,7 +185,7 @@
                 this.stream.Position.Should().Be(3);
             }
 
-            [Test]
+            [Fact]
             public void ShouldSetThePositionFromTheStart()
             {
                 this.stream.Position = 1;
@@ -205,7 +195,7 @@
                 this.stream.Position.Should().Be(2);
             }
 
-            [Test]
+            [Fact]
             public void ShouldThrowIfDisposed()
             {
                 this.stream.Dispose();
@@ -215,10 +205,9 @@
             }
         }
 
-        [TestFixture]
         public sealed class SetLength : BlockStreamTests
         {
-            [Test]
+            [Fact]
             public void ShouldEnsurePositionIsSmaller()
             {
                 this.stream.Position = 12;
@@ -228,7 +217,7 @@
                 this.stream.Position.Should().Be(5);
             }
 
-            [Test]
+            [Fact]
             public void ShouldThrowIfDisposed()
             {
                 this.stream.Dispose();
@@ -237,7 +226,7 @@
                     .ShouldThrow<ObjectDisposedException>();
             }
 
-            [Test]
+            [Fact]
             public void ShouldUpdateTheLength()
             {
                 this.stream.SetLength(3);
@@ -246,10 +235,9 @@
             }
         }
 
-        [TestFixture]
         public sealed class Write : BlockStreamTests
         {
-            [Test]
+            [Fact]
             public void ShouldThrowIfDisposed()
             {
                 this.stream.Dispose();

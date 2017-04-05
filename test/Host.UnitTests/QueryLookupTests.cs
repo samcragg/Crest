@@ -6,12 +6,11 @@
     using System.Linq;
     using Crest.Host;
     using FluentAssertions;
-    using NUnit.Framework;
+    using Xunit;
 
-    [TestFixture]
     public class QueryLookupTests
     {
-        [Test]
+        [Fact]
         public void ShouldHandleEmptyQueryStrings()
         {
             var lookup = new QueryLookup(string.Empty);
@@ -19,7 +18,7 @@
             lookup.Count.Should().Be(0);
         }
 
-        [Test]
+        [Fact]
         public void ShouldHandleKeysWithoutValues()
         {
             var lookup = new QueryLookup("?key");
@@ -27,7 +26,7 @@
             lookup.Contains("key").Should().BeTrue();
         }
 
-        [Test]
+        [Fact]
         public void ShouldIgnoreTheCaseOfPercentageEscapedValues()
         {
             var lookup = new QueryLookup("?%2A=%2a");
@@ -35,7 +34,7 @@
             lookup["*"].Single().Should().Be("*");
         }
 
-        [Test]
+        [Fact]
         public void ShouldUnescapePrecentageEscapedKeys()
         {
             var lookup = new QueryLookup("?%41");
@@ -43,7 +42,7 @@
             lookup.Contains("A").Should().BeTrue();
         }
 
-        [Test]
+        [Fact]
         public void ShouldUnescapeSpacesEncodedAsPlus()
         {
             var lookup = new QueryLookup("?a+b=c+d");
@@ -51,11 +50,11 @@
             lookup["a b"].Single().Should().Be("c d");
         }
 
-        [TestFixture]
         public sealed class Constructor : QueryLookupTests
         {
-            [TestCase("%1")]
-            [TestCase("%0G")]
+            [Theory]
+            [InlineData("%1")]
+            [InlineData("%0G")]
             public void ShouldThrowUriFormatExceptionForInvalidPercentageEscapedValues(string value)
             {
                 Action action = () => new QueryLookup("?" + value);
@@ -64,10 +63,9 @@
             }
         }
 
-        [TestFixture]
         public sealed class Contains : QueryLookupTests
         {
-            [Test]
+            [Fact]
             public void ShouldReturnFalseIfTheKeyIsNotPresent()
             {
                 var lookup = new QueryLookup("?key=value");
@@ -75,7 +73,7 @@
                 lookup.Contains("unknown").Should().BeFalse();
             }
 
-            [Test]
+            [Fact]
             public void ShouldReturnTrueIfTheKeyIsPresent()
             {
                 var lookup = new QueryLookup("key=value");
@@ -84,10 +82,9 @@
             }
         }
 
-        [TestFixture]
         public sealed class Count : QueryLookupTests
         {
-            [Test]
+            [Fact]
             public void ShouldReturnTheNumberOfUniqueKeys()
             {
                 var lookup = new QueryLookup("?key1=_&key2=_&key1=_");
@@ -96,10 +93,9 @@
             }
         }
 
-        [TestFixture]
         public sealed class GetEnumerator : QueryLookupTests
         {
-            [Test]
+            [Fact]
             public void ShouldReturnAllTheGroups()
             {
                 var lookup = new QueryLookup("?key1=value1&key2=value2");
@@ -110,10 +106,9 @@
             }
         }
 
-        [TestFixture]
         public sealed class Groupings : QueryLookupTests
         {
-            [Test]
+            [Fact]
             public void ContainsShouldReturnWhetherTheValueIsPresentOrNot()
             {
                 var lookup = new QueryLookup("?key=value");
@@ -123,7 +118,7 @@
                 group.Contains("unknown").Should().BeFalse();
             }
 
-            [Test]
+            [Fact]
             public void CopyToShouldCopyAllTheValues()
             {
                 var lookup = new QueryLookup("?key=1&key=2");
@@ -135,7 +130,7 @@
                 target.Should().BeEquivalentTo(null, "1", "2");
             }
 
-            [Test]
+            [Fact]
             public void NonGenericGetEnumeratorShouldReturnTheValues()
             {
                 var lookup = new QueryLookup("?key=1&key=2");
@@ -149,7 +144,7 @@
                 enumerator.MoveNext().Should().BeFalse();
             }
 
-            [Test]
+            [Fact]
             public void ShouldBeAReadOnlyCollection()
             {
                 var lookup = new QueryLookup("?key=value");
@@ -162,7 +157,7 @@
                 group.Invoking(g => g.Remove("")).ShouldThrow<NotSupportedException>();
             }
 
-            [Test]
+            [Fact]
             public void ShouldHaveTheCorrectKey()
             {
                 var lookup = new QueryLookup("?key=value");
@@ -171,7 +166,7 @@
                 group.Key.Should().Be("key");
             }
 
-            [Test]
+            [Fact]
             public void ShouldReturnAllTheValues()
             {
                 var lookup = new QueryLookup("?key=1&key=2");
@@ -183,10 +178,9 @@
             }
         }
 
-        [TestFixture]
         public sealed class Index : QueryLookupTests
         {
-            [Test]
+            [Fact]
             public void ShouldReturnAllTheValues()
             {
                 var lookup = new QueryLookup("?key=1&key=2");
@@ -194,7 +188,7 @@
                 lookup["key"].ToList().Should().BeEquivalentTo("1", "2");
             }
 
-            [Test]
+            [Fact]
             public void ShouldReturnAnEmptySequenceIfTheKeyDoesNotExist()
             {
                 var lookup = new QueryLookup("?key=value");
@@ -203,10 +197,9 @@
             }
         }
 
-        [TestFixture]
         public sealed class NonGenericGetEnumerator : QueryLookupTests
         {
-            [Test]
+            [Fact]
             public void ShouldReturnAllTheGroups()
             {
                 IEnumerable lookup = new QueryLookup("?key1=value1&key2=value2");

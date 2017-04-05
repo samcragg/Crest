@@ -9,9 +9,8 @@
     using Crest.Host.Routing;
     using FluentAssertions;
     using NSubstitute;
-    using NUnit.Framework;
+    using Xunit;
 
-    [TestFixture]
     public class RouteMapperTests
     {
         private static readonly MethodInfo ExampleMethod2Info =
@@ -44,10 +43,9 @@
             throw new NotImplementedException();
         }
 
-        [TestFixture]
         public sealed class Constructor : RouteMapperTests
         {
-            [Test]
+            [Fact]
             public void ShouldCheckedForOverlappingMaximumVersions()
             {
                 var routes = new[]
@@ -61,7 +59,7 @@
                 action.ShouldThrow<InvalidOperationException>();
             }
 
-            [Test]
+            [Fact]
             public void ShouldCheckedForOverlappingMinimumVersions()
             {
                 var routes = new[]
@@ -76,10 +74,9 @@
             }
         }
 
-        [TestFixture]
         public sealed class GetAdapter : RouteMapperTests
         {
-            [Test]
+            [Fact]
             public void ShouldReturnAnAdapterForKnownMethods()
             {
                 var mapper = new RouteMapper(new[] { CreateRoute("GET", "/route") });
@@ -89,7 +86,7 @@
                 result.Should().NotBeNull();
             }
 
-            [Test]
+            [Fact]
             public void ShouldReturnNullForUnknownMethods()
             {
                 var mapper = new RouteMapper(new RouteMetadata[0]);
@@ -100,10 +97,9 @@
             }
         }
 
-        [TestFixture]
         public sealed class Match : RouteMapperTests
         {
-            [Test]
+            [Fact]
             public void ShouldMatchTheRoute()
             {
                 IReadOnlyDictionary<string, object> parameters = null;
@@ -117,7 +113,7 @@
                 unknown.Should().BeNull();
             }
 
-            [Test]
+            [Fact]
             public void ShouldMatchTheVerb()
             {
                 IReadOnlyDictionary<string, object> parameters = null;
@@ -131,7 +127,7 @@
                 put.Should().NotBeNull();
             }
 
-            [Test]
+            [Fact]
             public void ShouldMatchTheVersion()
             {
                 var routes = new[]
@@ -150,7 +146,7 @@
                 result.Should().BeSameAs(ExampleMethod2Info);
             }
 
-            [Test]
+            [Fact]
             public void ShouldReturnNullWrongVersions()
             {
                 IReadOnlyDictionary<string, object> parameters = null;
@@ -162,7 +158,7 @@
                 result.Should().BeNull();
             }
 
-            [Test]
+            [Fact]
             public void ShouldSetTheParameters()
             {
                 IReadOnlyDictionary<string, object> parameters = null;
