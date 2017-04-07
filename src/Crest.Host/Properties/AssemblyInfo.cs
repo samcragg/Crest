@@ -4,12 +4,8 @@
 // full license information.
 
 using System;
-using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-
-[assembly: AssemblyCompany("Samuel Cragg")]
-[assembly: AssemblyProduct("Crest.Host")]
 
 [assembly: ComVisible(false)]
 [assembly: CLSCompliant(true)]
