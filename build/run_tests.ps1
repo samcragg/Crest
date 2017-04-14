@@ -18,8 +18,6 @@ $dotnetexe = (Get-Command dotnet).Definition
 $openCover = Join-Path $pwd build\tools\OpenCover.4.6.519\tools\OpenCover.Console.exe
 $xunit = Join-Path $pwd build\tools\dotnet-xunit\lib\netcoreapp1.0\dotnet-xunit.dll
 
-# $wc = New-Object 'System.Net.WebClient'
-
 # Run all the projects in the test directory
 foreach ($path in (dir .\test -Directory))
 {
@@ -29,7 +27,7 @@ foreach ($path in (dir .\test -Directory))
 	
 	# This runs the unit tests and gets the coverage
 	& $openCover `
-	-output:"&coverResult" `
+	-output:"$coverResult" `
 	-mergeoutput `
 	-hideskipped `
 	-oldstyle `
@@ -39,13 +37,8 @@ foreach ($path in (dir .\test -Directory))
 	-targetargs:"$xunit -nologo -appveyor" `
 	-returntargetcode
 	
-	# We still want to upload the failed tests so we know what went wrong
-	$tests_exit_code = $?
-
-	# Upload the results
-	# $wc.UploadFile("https://ci.appveyor.com/api/testresults/nunit3/$($env:APPVEYOR_JOB_ID)", (Resolve-Path .\TestResult.xml))
-	
 	# Fail the build if a test failed
+	$tests_exit_code = $?
 	if (-not $tests_exit_code) { throw "Unit tests failed" }
 }
 
