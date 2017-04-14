@@ -4,41 +4,55 @@ $nugetExe = "./nuget.exe"
 Invoke-WebRequest $sourceNugetExe -OutFile $nugetExe
 
 # "Install" the tools to run/upload the coverage
-& $nugetExe install OpenCover -OutputDirectory .\tools -version 4.6.519 -verbosity quiet
-& $nugetExe install coveralls.net -OutputDirectory .\tools -version 0.7.0 -verbosity quiet
+& $nugetExe install OpenCover -OutputDirectory .\build\tools -version 4.6.519 -verbosity quiet
+& $nugetExe install coveralls.net -OutputDirectory .\build\tools -version 0.7.0 -verbosity quiet
 
+# dotnet-xunit is a tool package, so we can't install it :(
+wget 'https://www.nuget.org/api/v2/package/dotnet-xunit/2.3.0-beta1-build3642' -OutFile .\build\tools\dotnet-xunit.zip
+Expand-Archive .\build\tools\dotnet-xunit.zip .\build\tools\dotnet-xunit -Force
+
+# Setup our variables relative to the current directory
+$coveralls = Join-Path $pwd build\tools\coveralls.net.0.7.0\tools\csmacnz.Coveralls.exe
+$coverResult = Join-Path $pwd CoverResult.xml
 $dotnetexe = (Get-Command dotnet).Definition
-$wc = New-Object 'System.Net.WebClient'
+$openCover = Join-Path $pwd build\tools\OpenCover.4.6.519\tools\OpenCover.Console.exe
+$xunit = Join-Path $pwd build\tools\dotnet-xunit\lib\netcoreapp1.0\dotnet-xunit.dll
+
+# $wc = New-Object 'System.Net.WebClient'
 
 # Run all the projects in the test directory
-foreach ($test in (dir .\test -Name))
+foreach ($path in (dir .\test -Directory))
 {
+	# In order to invoke "dotnet xunit", we have to be in the test directory
+	Write-Host ("Running unit tests for " + $path.Name)
+	cd $path.FullName
+	
 	# This runs the unit tests and gets the coverage
-	.\build\tools\OpenCover\4.6.519\tools\OpenCover.Console.exe `
-	-output:.\CoverResult.xml `
+	& $openCover `
+	-output:"&coverResult" `
 	-mergeoutput `
 	-hideskipped `
 	-oldstyle `
 	-register:user `
 	-filter:"+[Crest.*]* -[*]DryIoc.*" `
 	-target:"$dotnetexe" `
-	-targetargs:"test test\$test --no-build  --labels=Off --noheader" `
+	-targetargs:"$xunit -nologo -appveyor" `
 	-returntargetcode
 	
 	# We still want to upload the failed tests so we know what went wrong
 	$tests_exit_code = $?
 
 	# Upload the results
-	$wc.UploadFile("https://ci.appveyor.com/api/testresults/nunit3/$($env:APPVEYOR_JOB_ID)", (Resolve-Path .\TestResult.xml))
+	# $wc.UploadFile("https://ci.appveyor.com/api/testresults/nunit3/$($env:APPVEYOR_JOB_ID)", (Resolve-Path .\TestResult.xml))
 	
 	# Fail the build if a test failed
 	if (-not $tests_exit_code) { throw "Unit tests failed" }
 }
 
 # Upload the coverage in one go, as CoverResult.xml gets merged with all the results
-.\build\tools\coveralls.net\0.7.0\tools\csmacnz.Coveralls.exe `
+& $coveralls `
 	--opencover `
-	-i .\CoverResult.xml `
+	-i "$coverResult" `
 	--repoTokenVariable COVERALLS_REPO_TOKEN `
 	--useRelativePaths `
 	--serviceName appveyor `
