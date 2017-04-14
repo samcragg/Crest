@@ -6,6 +6,7 @@
     <AssemblyName>Crest.Host</AssemblyName>
     <PackageId>Crest.Host</PackageId>
     <Authors>Samuel Cragg</Authors>
+    <GenerateAssemblyVersionAttribute>false</GenerateAssemblyVersionAttribute>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
