@@ -177,6 +177,35 @@
                 await this.processor.Received().WriteResponseAsync(this.request, response);
             }
 
+            [Fact]
+            public async Task ShouldCatchExceptionsFromTheErrorHandler()
+            {
+                Exception exception = new DivideByZeroException();
+                this.processor.InvokeHandlerAsync(Arg.Is(this.request), Arg.Any<IContentConverter>())
+                    .Throws<ArgumentNullException>();
+                this.processor.OnErrorAsync(Arg.Is(this.request), Arg.Any<Exception>())
+                    .Throws(exception);
+
+                await this.processor.HandleRequestAsync(this.simpleMatch, _ => this.request);
+
+                await this.responseGenerator.Received().InternalErrorAsync(exception);
+            }
+
+            [Fact]
+            public async Task ShouldCatchExceptionsFromTheInternalErrorHandler()
+            {
+                this.processor.InvokeHandlerAsync(Arg.Is(this.request), Arg.Any<IContentConverter>())
+                    .Throws<DivideByZeroException>();
+                this.processor.OnErrorAsync(Arg.Is(this.request), Arg.Any<Exception>())
+                    .Throws<DivideByZeroException>();
+                this.responseGenerator.InternalErrorAsync(Arg.Any<Exception>())
+                    .Throws<DivideByZeroException>();
+
+                await this.processor.HandleRequestAsync(this.simpleMatch, _ => this.request);
+
+                await this.processor.Received().WriteResponseAsync(this.request, ResponseGenerator.InternalError);
+            }
+
             public void FakeMethod()
             {
             }

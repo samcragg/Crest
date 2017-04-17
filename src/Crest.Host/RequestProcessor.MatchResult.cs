@@ -72,11 +72,11 @@ namespace Crest.Host
             /// </remarks>
             public IReadOnlyDictionary<string, object> Parameters { get; }
 
-            /// <summary>
-            /// Gets a value indicating whether this instance has been
-            /// constructed with one of the constructors or not.
-            /// </summary>
-            internal bool IsValid => (this.Method != null) || (this.Override != null);
+            //// <summary>
+            //// Gets a value indicating whether this instance has been
+            //// constructed with one of the constructors or not.
+            //// </summary>
+            ////internal bool IsValid => (this.Method != null) || (this.Override != null);
         }
     }
 }

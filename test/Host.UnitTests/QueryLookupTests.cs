@@ -10,44 +10,47 @@
 
     public class QueryLookupTests
     {
-        [Fact]
-        public void ShouldHandleEmptyQueryStrings()
+        public sealed class Parsing : QueryLookupTests
         {
-            var lookup = new QueryLookup(string.Empty);
+            [Fact]
+            public void ShouldHandleEmptyQueryStrings()
+            {
+                var lookup = new QueryLookup(string.Empty);
 
-            lookup.Count.Should().Be(0);
-        }
+                lookup.Count.Should().Be(0);
+            }
 
-        [Fact]
-        public void ShouldHandleKeysWithoutValues()
-        {
-            var lookup = new QueryLookup("?key");
+            [Fact]
+            public void ShouldHandleKeysWithoutValues()
+            {
+                var lookup = new QueryLookup("?key");
 
-            lookup.Contains("key").Should().BeTrue();
-        }
+                lookup.Contains("key").Should().BeTrue();
+            }
 
-        [Fact]
-        public void ShouldIgnoreTheCaseOfPercentageEscapedValues()
-        {
-            var lookup = new QueryLookup("?%2A=%2a");
+            [Fact]
+            public void ShouldIgnoreTheCaseOfPercentageEscapedValues()
+            {
+                var lookup = new QueryLookup("?%2A=%2a");
 
-            lookup["*"].Single().Should().Be("*");
-        }
+                lookup["*"].Single().Should().Be("*");
+            }
 
-        [Fact]
-        public void ShouldUnescapePrecentageEscapedKeys()
-        {
-            var lookup = new QueryLookup("?%41");
+            [Fact]
+            public void ShouldUnescapePrecentageEscapedKeys()
+            {
+                var lookup = new QueryLookup("?%41");
 
-            lookup.Contains("A").Should().BeTrue();
-        }
+                lookup.Contains("A").Should().BeTrue();
+            }
 
-        [Fact]
-        public void ShouldUnescapeSpacesEncodedAsPlus()
-        {
-            var lookup = new QueryLookup("?a+b=c+d");
+            [Fact]
+            public void ShouldUnescapeSpacesEncodedAsPlus()
+            {
+                var lookup = new QueryLookup("?a+b=c+d");
 
-            lookup["a b"].Single().Should().Be("c d");
+                lookup["a b"].Single().Should().Be("c d");
+            }
         }
 
         public sealed class Constructor : QueryLookupTests
