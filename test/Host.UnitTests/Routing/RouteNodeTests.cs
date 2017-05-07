@@ -17,7 +17,7 @@
         {
             this.matcher = Substitute.For<IMatchNode>();
             this.matcher.Match(Arg.Any<StringSegment>())
-                .Returns(new NodeMatchResult(null, null));
+                .Returns(new NodeMatchResult(string.Empty, null));
 
             this.node = new RouteNode<string>(this.matcher) { Value = MatcherValue };
         }
@@ -65,7 +65,7 @@
                 IMatchNode important = Substitute.For<IMatchNode>();
                 important.Priority.Returns(200);
                 important.Match(default(StringSegment))
-                         .ReturnsForAnyArgs(new NodeMatchResult(null, null));
+                         .ReturnsForAnyArgs(new NodeMatchResult(string.Empty, null));
                 this.node.Add(new[] { important }, 0);
 
                 this.node.Match("/matcher/part");
@@ -89,9 +89,6 @@
             [Fact]
             public void ShouldReturnTheValueSavedAgainstTheNode()
             {
-                this.matcher.Match(default(StringSegment))
-                    .ReturnsForAnyArgs(new NodeMatchResult(null, null));
-
                 RouteNode<string>.MatchResult result = this.node.Match("/route");
 
                 result.Success.Should().BeTrue();

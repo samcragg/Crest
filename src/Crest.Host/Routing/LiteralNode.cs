@@ -12,7 +12,7 @@ namespace Crest.Host.Routing
     /// </summary>
     internal sealed class LiteralNode : IMatchNode
     {
-        private static readonly NodeMatchResult Success = new NodeMatchResult(null, null);
+        private static readonly NodeMatchResult Success = new NodeMatchResult(string.Empty, null);
 
         /// <summary>
         /// Initializes a new instance of the <see cref="LiteralNode"/> class.

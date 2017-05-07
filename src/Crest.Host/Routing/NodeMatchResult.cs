@@ -5,6 +5,8 @@
 
 namespace Crest.Host.Routing
 {
+    using static System.Diagnostics.Debug;
+
     /// <summary>
     /// Represents the result of matching a URL segment.
     /// </summary>
@@ -22,7 +24,8 @@ namespace Crest.Host.Routing
         /// <param name="value">The value of the captured parameter.</param>
         public NodeMatchResult(string name, object value)
         {
-            this.Success = true;
+            Assert(name != null, "Name cannot be null");
+
             this.Name = name;
             this.Value = value;
         }
@@ -35,7 +38,7 @@ namespace Crest.Host.Routing
         /// <summary>
         /// Gets a value indicating whether the segment was matched or not.
         /// </summary>
-        public bool Success { get; }
+        public bool Success => this.Name != null;
 
         /// <summary>
         /// Gets the value of the captured parameter, if any.
