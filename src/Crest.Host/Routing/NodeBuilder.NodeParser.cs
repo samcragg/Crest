@@ -26,8 +26,9 @@ namespace Crest.Host.Routing
 
             protected override void OnCaptureSegment(Type parameterType, string name)
             {
-                Func<string, IMatchNode> factoryMethod;
-                if (this.specializedCaptureNodes.TryGetValue(parameterType, out factoryMethod))
+                if (this.specializedCaptureNodes.TryGetValue(
+                        parameterType,
+                        out Func<string, IMatchNode> factoryMethod))
                 {
                     this.Nodes.Add(factoryMethod(name));
                 }
@@ -50,6 +51,11 @@ namespace Crest.Host.Routing
             protected override void OnLiteralSegment(string value)
             {
                 this.Nodes.Add(new LiteralNode(value));
+            }
+
+            protected override void OnQueryParameter(string key, Type parameterType, string name)
+            {
+                throw new NotImplementedException();
             }
         }
     }

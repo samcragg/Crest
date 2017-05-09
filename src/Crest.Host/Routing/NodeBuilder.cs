@@ -43,13 +43,17 @@ namespace Crest.Host.Routing
         /// <param name="routeUrl">The route URL to add.</param>
         /// <param name="parameters">The parameters to capture.</param>
         /// <returns>The parsed nodes.</returns>
-        public IMatchNode[] Parse(string version, string routeUrl, IEnumerable<ParameterInfo> parameters)
+        public IMatchNode[] Parse(string version, string routeUrl, IReadOnlyCollection<ParameterInfo> parameters)
         {
             IReadOnlyDictionary<string, Type> parameterPairs =
                 parameters.ToDictionary(p => p.Name, p => p.ParameterType, StringComparer.Ordinal);
 
+            ISet<string> optional = new HashSet<string>(
+                parameters.Where(p => p.IsOptional).Select(p => p.Name),
+                StringComparer.Ordinal);
+
             var parser = new NodeParser(this.specializedCaptureNodes);
-            parser.ParseUrl(routeUrl, parameterPairs);
+            parser.ParseUrl(routeUrl, parameterPairs, optional);
 
             string normalizedUrl = GetNormalizedRoute(version, routeUrl, parser.Nodes);
             if (!this.normalizedUrls.Add(normalizedUrl))

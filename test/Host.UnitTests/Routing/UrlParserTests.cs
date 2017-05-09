@@ -27,37 +27,60 @@
 
         public sealed class ParseUrl : UrlParserTests
         {
+            private static readonly ISet<string> NoOptional = new SortedSet<string>();
+
             [Fact]
             public void ShouldCaptureLiterals()
             {
-                this.parser.ParseUrl("/literal/", new Dictionary<string, Type>());
+                this.parser.ParseUrl("/literal/");
 
-                parser.Literals.Single().Should().Be("literal");
+                this.parser.Literals.Single().Should().Be("literal");
             }
 
             [Fact]
             public void ShouldCaptureParameters()
             {
                 var parameters = new Dictionary<string, Type>
+                {
+                    { "capture", typeof(int) }
+                };
+
+                this.parser.ParseUrl("/{capture}/", parameters, NoOptional);
+
+                this.parser.Captures.Single().type.Should().Be(typeof(int));
+                this.parser.Captures.Single().name.Should().Be("capture");
+            }
+
+            [Fact]
+            public void ShouldCaptureQueryParemters()
             {
-                { "capture", typeof(int) }
-            };
+                var parameters = new Dictionary<string, Type>
+                {
+                    { "query1", typeof(int) },
+                    { "query2", typeof(int) }
+                };
 
-                this.parser.ParseUrl("/{capture}/", parameters);
+                this.parser.ParseUrl(
+                    "/literal?key1={query1}&key2={query2}",
+                    parameters,
+                    new SortedSet<string>(new[] { "query1", "query2" }));
 
-                parser.Captures.Single().Item1.Should().Be(typeof(int));
-                parser.Captures.Single().Item2.Should().Be("capture");
+                this.parser.QueryParameters.Keys
+                    .Should().BeEquivalentTo("key1", "key2");
+
+                this.parser.QueryParameters.Values.Select(x => x.name)
+                    .Should().BeEquivalentTo("query1", "query2");
             }
 
             [Fact]
             public void ShouldCheckForDuplicateParameters()
             {
                 var parameters = new Dictionary<string, Type>
-            {
-                { "parameter", typeof(int) }
-            };
+                {
+                    { "parameter", typeof(int) }
+                };
 
-                this.parser.ParseUrl("/{parameter}/{parameter}", parameters);
+                this.parser.ParseUrl("/{parameter}/{parameter}", parameters, NoOptional);
 
                 this.parser.ErrorParameters.Single().Should().Be("parameter");
             }
@@ -65,16 +88,24 @@
             [Fact]
             public void ShouldCheckForMissingClosingBraces()
             {
-                this.parser.ParseUrl("/{234/", new Dictionary<string, Type>());
+                this.parser.ParseUrl("/{234/");
 
                 this.parser.ErrorParts.Single().Should().Be("4");
             }
 
             [Fact]
+            public void ShouldCheckForQueryValues()
+            {
+                this.parser.ParseUrl("/literal?key");
+
+                this.parser.ErrorParts.Single().Should().Be("key");
+            }
+
+            [Fact]
             public void ShouldCheckForUnescapedBraces()
             {
-                this.parser.ParseUrl("/123}/", new Dictionary<string, Type>());
-                this.parser.ParseUrl("/123{/", new Dictionary<string, Type>());
+                this.parser.ParseUrl("/123}/");
+                this.parser.ParseUrl("/123{/");
 
                 this.parser.ErrorParts.Should().BeEquivalentTo("}", "{");
             }
@@ -87,7 +118,7 @@
                     { "parameter", typeof(int) }
                 };
 
-                this.parser.ParseUrl("/literal", parameters);
+                this.parser.ParseUrl("/literal", parameters, NoOptional);
 
                 this.parser.ErrorParameters.Single().Should().Be("parameter");
             }
@@ -95,15 +126,37 @@
             [Fact]
             public void ShouldCheckForValidParameters()
             {
-                this.parser.ParseUrl("/{missingParameter}/", new Dictionary<string, Type>());
+                this.parser.ParseUrl("/{missingParameter}/");
 
                 this.parser.ErrorParts.Single().Should().Be("missingParameter");
             }
 
             [Fact]
+            public void ShouldCheckQueryParemtersAreOptional()
+            {
+                var parameters = new Dictionary<string, Type>
+                {
+                    { "query", typeof(int) }
+                };
+
+                this.parser.ParseUrl("/literal?key={query}", parameters, NoOptional);
+
+                this.parser.QueryParameters.Should().BeEmpty();
+                this.parser.ErrorParameters.Single().Should().Be("query");
+            }
+
+            [Fact]
+            public void ShouldCheckQueryValuesAreCaptures()
+            {
+                this.parser.ParseUrl("/literal?key=value");
+
+                this.parser.ErrorParts.Single().Should().Be("value");
+            }
+
+            [Fact]
             public void ShouldUnescapeBraces()
             {
-                this.parser.ParseUrl("/{{escaped_braces}}/", new Dictionary<string, Type>());
+                this.parser.ParseUrl("/{{escaped_braces}}/");
 
                 this.parser.Literals.Single().Should().Be("{escaped_braces}");
             }
@@ -113,20 +166,26 @@
         {
             private string routeUrl;
 
-            internal List<Tuple<Type, string>> Captures { get; } = new List<Tuple<Type, string>>();
+            internal List<(Type type, string name)> Captures { get; } = new List<(Type type, string name)>();
             internal List<string> ErrorParameters { get; } = new List<string>();
             internal List<string> ErrorParts { get; } = new List<string>();
             internal List<string> Literals { get; } = new List<string>();
+            internal Dictionary<string, (Type type, string name)> QueryParameters { get; } = new Dictionary<string, (Type type, string name)>();
 
-            internal override void ParseUrl(string routeUrl, IReadOnlyDictionary<string, Type> parameters)
+            internal void ParseUrl(string routeUrl)
+            {
+                this.ParseUrl(routeUrl, new Dictionary<string, Type>(), new HashSet<string>());
+            }
+
+            internal override void ParseUrl(string routeUrl, IReadOnlyDictionary<string, Type> parameters, ISet<string> optionalParameters)
             {
                 this.routeUrl = routeUrl;
-                base.ParseUrl(routeUrl, parameters);
+                base.ParseUrl(routeUrl, parameters, optionalParameters);
             }
 
             protected override void OnCaptureSegment(Type parameterType, string name)
             {
-                this.Captures.Add(Tuple.Create(parameterType, name));
+                this.Captures.Add((parameterType, name));
             }
 
             protected override void OnError(string error, string parameter)
@@ -142,6 +201,11 @@
             protected override void OnLiteralSegment(string value)
             {
                 this.Literals.Add(value);
+            }
+
+            protected override void OnQueryParameter(string key, Type parameterType, string name)
+            {
+                this.QueryParameters[key] = (parameterType, name);
             }
         }
     }

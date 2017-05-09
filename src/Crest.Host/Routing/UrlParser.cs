@@ -11,8 +11,24 @@ namespace Crest.Host.Routing
     /// <summary>
     /// Allows the parsing of URLs.
     /// </summary>
+    /// <remarks>
+    /// This class is designed to allow the parsing of the route information
+    /// for route mapping and also to allow the analyzer to parse the route
+    /// during development and provide feedback via the IDE.
+    /// </remarks>
     internal abstract partial class UrlParser
     {
+        private const string DuplicateParameter = "Parameter is captured multiple times";
+        private const string MissingClosingBrace = "Missing closing brace.";
+        private const string MissingQueryValue = "Missing query value capture.";
+        private const string MustBeOptional = "Query parameters must be optional.";
+        private const string MustCaptureQueryValue = "Query values must be parameter captures.";
+        private const string ParameterNotFound = "Parameter is missing from the URL.";
+        private const string UnknownParameterPrefix = "Unable to find parameter called: ";
+
+        private readonly HashSet<string> capturedParameters =
+            new HashSet<string>(StringComparer.Ordinal);
+
         private enum SegmentType
         {
             Literal,
@@ -58,36 +74,19 @@ namespace Crest.Host.Routing
         /// </summary>
         /// <param name="routeUrl">The URL to parse.</param>
         /// <param name="parameters">The parameter names and types.</param>
-        internal virtual void ParseUrl(string routeUrl, IReadOnlyDictionary<string, Type> parameters)
+        /// <param name="optionalParameters">Contains the names of optional parameters.</param>
+        internal virtual void ParseUrl(
+            string routeUrl,
+            IReadOnlyDictionary<string, Type> parameters,
+            ISet<string> optionalParameters)
         {
-            var usedParameters = new HashSet<string>(StringComparer.Ordinal);
-            foreach (StringSegment segment in GetSegments(routeUrl))
+            this.capturedParameters.Clear();
+
+            if (this.ParsePath(routeUrl, parameters) &&
+                this.ParseQuery(routeUrl, parameters, optionalParameters.Contains))
             {
-                string segmentValue;
-                SegmentType type = this.UnescapeSegment(segment, out segmentValue);
-
-                if (type == SegmentType.Capture)
-                {
-                    Type parameterType = this.GetValidParameter(
-                        parameters,
-                        usedParameters,
-                        segment,
-                        segmentValue);
-
-                    if (parameterType == null)
-                    {
-                        return;
-                    }
-
-                    this.OnCaptureSegment(parameterType, segmentValue);
-                }
-                else if (type == SegmentType.Literal)
-                {
-                    this.OnLiteralSegment(segmentValue);
-                }
+                this.CheckAllParametersAreCaptured(parameters);
             }
-
-            this.CheckAllParametersAreCaptured(parameters, usedParameters);
         }
 
         /// <summary>
@@ -118,45 +117,158 @@ namespace Crest.Host.Routing
         /// <param name="value">The literal text.</param>
         protected abstract void OnLiteralSegment(string value);
 
-        private void CheckAllParametersAreCaptured(IReadOnlyDictionary<string, Type> parameters, ISet<string> usedParameters)
+        /// <summary>
+        /// Called when a query variable is captured.
+        /// </summary>
+        /// <param name="key">The query key name.</param>
+        /// <param name="parameterType">The type of the parameter being captured.</param>
+        /// <param name="name">The name of the captured parameter.</param>
+        protected abstract void OnQueryParameter(string key, Type parameterType, string name);
+
+        private static IEnumerable<StringSegment> GetKeyValues(string url)
+        {
+            int start = url.IndexOf('?') + 1;
+            if (start > 0)
+            {
+                int end = url.IndexOf('&', start);
+                while (end != -1)
+                {
+                    yield return new StringSegment(url, start, end);
+                    start = end + 1;
+                    end = url.IndexOf('&', start);
+                }
+
+                yield return new StringSegment(url, start, url.Length);
+            }
+        }
+
+        private void CheckAllParametersAreCaptured(IReadOnlyDictionary<string, Type> parameters)
         {
             foreach (string name in parameters.Keys)
             {
-                if (!usedParameters.Contains(name))
+                if (!this.capturedParameters.Contains(name))
                 {
-                    this.OnError("Parameter is missing from the URL.", name);
+                    this.OnError(ParameterNotFound, name);
                     break;
                 }
             }
         }
 
-        private Type GetValidParameter(
+        private bool GetQueryParameter(
             IReadOnlyDictionary<string, Type> parameters,
-            ISet<string> usedParameters,
-            StringSegment segment,
-            string segmentValue)
+            StringSegment value,
+            Func<string, bool> isOptional,
+            out string parameterName,
+            out Type parameterType)
         {
-            Type parameterType;
-            if (!parameters.TryGetValue(segmentValue, out parameterType))
+            switch (this.UnescapeSegment(value, out parameterName))
+            {
+                case SegmentType.Error:
+                case SegmentType.PartialCapture:
+                    parameterType = null;
+                    return false;
+
+                case SegmentType.Literal:
+                    this.OnError(MustCaptureQueryValue, value.Start, value.Count);
+                    parameterType = null;
+                    return false;
+            }
+
+            parameterType = this.GetValidParameter(
+                parameters,
+                value,
+                parameterName);
+
+            if ((parameterType != null) && isOptional(parameterName))
+            {
+                return true;
+            }
+            else
+            {
+                this.OnError(MustBeOptional, parameterName);
+                return false;
+            }
+        }
+
+        private Type GetValidParameter(
+                    IReadOnlyDictionary<string, Type> parameters,
+            StringSegment declaration,
+            string name)
+        {
+            if (!parameters.TryGetValue(name, out Type parameterType))
             {
                 this.OnError(
-                    "Unable to find parameter called: " + segmentValue,
-                    segment.Start + 1,
-                    segment.Count - 2);
+                    UnknownParameterPrefix + name,
+                    declaration.Start + 1,
+                    declaration.Count - 2);
 
                 return null;
             }
 
-            if (!usedParameters.Add(segmentValue))
+            if (!this.capturedParameters.Add(name))
             {
-                this.OnError(
-                    "Parameter is captured multiple times",
-                    segmentValue);
-
+                this.OnError(DuplicateParameter, name);
                 return null;
             }
 
             return parameterType;
+        }
+
+        private bool ParsePath(string routeUrl, IReadOnlyDictionary<string, Type> parameters)
+        {
+            foreach (StringSegment segment in GetSegments(routeUrl))
+            {
+                SegmentType type = this.UnescapeSegment(segment, out string segmentValue);
+                if (type == SegmentType.Capture)
+                {
+                    Type parameterType = this.GetValidParameter(
+                        parameters,
+                        segment,
+                        segmentValue);
+
+                    if (parameterType == null)
+                    {
+                        return false;
+                    }
+
+                    this.OnCaptureSegment(parameterType, segmentValue);
+                }
+                else if (type == SegmentType.Literal)
+                {
+                    this.OnLiteralSegment(segmentValue);
+                }
+            }
+
+            return true;
+        }
+
+        private bool ParseQuery(string url, IReadOnlyDictionary<string, Type> parameters, Func<string, bool> isOptional)
+        {
+            foreach (StringSegment segment in GetKeyValues(url))
+            {
+                string keyValue = segment.ToString();
+                int separator = keyValue.IndexOf('=');
+                if (separator < 0)
+                {
+                    this.OnError(MissingQueryValue, segment.Start, segment.Count);
+                    return false;
+                }
+
+                if (!this.GetQueryParameter(
+                    parameters,
+                    new StringSegment(segment.String, segment.Start + separator + 1, segment.End),
+                    isOptional,
+                    out string parameterName,
+                    out Type parameterType))
+                {
+                    return false;
+                }
+
+                string key = keyValue.Substring(0, separator);
+                this.OnQueryParameter(key, parameterType, parameterName);
+            }
+
+            return true;
         }
 
         private SegmentType UnescapeSegment(StringSegment segment, out string segmentValue)
@@ -166,7 +278,7 @@ namespace Crest.Host.Routing
             var parser = new SegmentParser(this, segment.String, segment.Start, segment.End);
             if (parser.Type == SegmentType.PartialCapture)
             {
-                this.OnError("Missing closing brace.", segment.End - 1, 1);
+                this.OnError(MissingClosingBrace, segment.End - 1, 1);
             }
             else if (parser.Type != SegmentType.Error)
             {
