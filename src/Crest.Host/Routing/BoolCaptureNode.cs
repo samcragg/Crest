@@ -10,7 +10,7 @@ namespace Crest.Host.Routing
     /// <summary>
     /// Allows the capturing of boolean values from the route.
     /// </summary>
-    internal sealed class BoolCaptureNode : IMatchNode
+    internal sealed class BoolCaptureNode : IMatchNode, IQueryValueConverter
     {
         private static readonly object BoxedFalse = false;
         private static readonly object BoxedTrue = true;
@@ -30,10 +30,7 @@ namespace Crest.Host.Routing
         }
 
         /// <inheritdoc />
-        public int Priority
-        {
-            get { return 500; }
-        }
+        public int Priority => 500;
 
         /// <inheritdoc />
         public bool Equals(IMatchNode other)
@@ -45,17 +42,29 @@ namespace Crest.Host.Routing
         /// <inheritdoc />
         public NodeMatchResult Match(StringSegment segment)
         {
-            if (Matches(segment, FalseValues))
+            object converted = ParseValue(segment);
+            if (converted == null)
             {
-                return new NodeMatchResult(this.property, BoxedFalse);
-            }
-            else if (Matches(segment, TrueValues))
-            {
-                return new NodeMatchResult(this.property, BoxedTrue);
+                return NodeMatchResult.None;
             }
             else
             {
-                return NodeMatchResult.None;
+                return new NodeMatchResult(this.property, converted);
+            }
+        }
+
+        /// <inheritdoc />
+        public bool TryConvertValue(StringSegment value, out object result)
+        {
+            if (value.Count == 0)
+            {
+                result = BoxedTrue;
+                return true;
+            }
+            else
+            {
+                result = ParseValue(value);
+                return result != null;
             }
         }
 
@@ -70,6 +79,22 @@ namespace Crest.Host.Routing
             }
 
             return false;
+        }
+
+        private static object ParseValue(StringSegment value)
+        {
+            if (Matches(value, FalseValues))
+            {
+                return BoxedFalse;
+            }
+            else if (Matches(value, TrueValues))
+            {
+                return BoxedTrue;
+            }
+            else
+            {
+                return null;
+            }
         }
     }
 }

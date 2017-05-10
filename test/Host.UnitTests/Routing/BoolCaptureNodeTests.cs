@@ -102,5 +102,52 @@
                 this.node.Priority.Should().BePositive();
             }
         }
+
+        public sealed class TryConvertValue : BoolCaptureNodeTests
+        {
+            [Fact]
+            public void ShouldMatchFalse()
+            {
+                bool result = this.node.TryConvertValue(
+                    new StringSegment("_false_", 1, 6),
+                    out object value);
+
+                result.Should().BeTrue();
+                value.Should().Be(false);
+            }
+
+            [Fact]
+            public void ShouldMatchTrue()
+            {
+                bool result = this.node.TryConvertValue(
+                    new StringSegment("_true_", 1, 5),
+                    out object value);
+
+                result.Should().BeTrue();
+                value.Should().Be(true);
+            }
+
+            [Fact]
+            public void ShouldReturnFalseForInvalidValues()
+            {
+                bool result = this.node.TryConvertValue(
+                    new StringSegment("invalid", 0, 7),
+                    out object value);
+
+                result.Should().BeFalse();
+                value.Should().BeNull();
+            }
+
+            [Fact]
+            public void ShouldReturnTrueForEmptyValues()
+            {
+                bool result = this.node.TryConvertValue(
+                    new StringSegment(string.Empty, 0, 0),
+                    out object value);
+
+                result.Should().BeTrue();
+                value.Should().Be(true);
+            }
+        }
     }
 }
