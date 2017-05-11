@@ -11,6 +11,11 @@ namespace Crest.Host.Routing
     internal interface IQueryValueConverter
     {
         /// <summary>
+        /// Gets the name of the parameter the converter is for.
+        /// </summary>
+        string ParameterName { get; }
+
+        /// <summary>
         /// Attempts to convert the specified string into another type.
         /// </summary>
         /// <param name="value">The string value to convert.</param>

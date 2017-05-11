@@ -16,27 +16,29 @@ namespace Crest.Host.Routing
         private static readonly object BoxedTrue = true;
         private static readonly string[] FalseValues = { "false", "0" };
         private static readonly string[] TrueValues = { "true", "1" };
-        private readonly string property;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="BoolCaptureNode"/> class.
         /// </summary>
-        /// <param name="property">
+        /// <param name="parameter">
         /// The name of the property to capture the value to.
         /// </param>
-        public BoolCaptureNode(string property)
+        public BoolCaptureNode(string parameter)
         {
-            this.property = property;
+            this.ParameterName = parameter;
         }
 
         /// <inheritdoc />
         public int Priority => 500;
 
         /// <inheritdoc />
+        public string ParameterName { get; }
+
+        /// <inheritdoc />
         public bool Equals(IMatchNode other)
         {
             var node = other as BoolCaptureNode;
-            return string.Equals(this.property, node?.property, StringComparison.Ordinal);
+            return string.Equals(this.ParameterName, node?.ParameterName, StringComparison.Ordinal);
         }
 
         /// <inheritdoc />
@@ -49,7 +51,7 @@ namespace Crest.Host.Routing
             }
             else
             {
-                return new NodeMatchResult(this.property, converted);
+                return new NodeMatchResult(this.ParameterName, converted);
             }
         }
 

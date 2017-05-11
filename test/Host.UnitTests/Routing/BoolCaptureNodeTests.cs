@@ -8,15 +8,15 @@
 
     public class BoolCaptureNodeTests
     {
-        private const string ParameterName = "parameter";
-        private readonly BoolCaptureNode node = new BoolCaptureNode(ParameterName);
+        private const string Parameter = "parameter";
+        private readonly BoolCaptureNode node = new BoolCaptureNode(Parameter);
 
         public sealed new class Equals : BoolCaptureNodeTests
         {
             [Fact]
             public void ShouldReturnFalseForDifferentParameters()
             {
-                var other = new BoolCaptureNode(ParameterName + "New");
+                var other = new BoolCaptureNode(Parameter + "New");
                 this.node.Equals(other).Should().BeFalse();
             }
 
@@ -30,7 +30,7 @@
             [Fact]
             public void ShouldReturnTrueForTheSameParameter()
             {
-                var other = new BoolCaptureNode(ParameterName);
+                var other = new BoolCaptureNode(Parameter);
                 this.node.Equals(other).Should().BeTrue();
             }
         }
@@ -89,7 +89,7 @@
             {
                 NodeMatchResult result = this.node.Match(new StringSegment("true"));
 
-                result.Name.Should().Be(ParameterName);
+                result.Name.Should().Be(Parameter);
             }
         }
 
@@ -99,6 +99,15 @@
             public void ShouldReturnAPositiveValue()
             {
                 this.node.Priority.Should().BePositive();
+            }
+        }
+
+        public sealed class ParameterName : BoolCaptureNodeTests
+        {
+            [Fact]
+            public void ShouldReturnTheValuePassedInTheConstructor()
+            {
+                this.node.ParameterName.Should().Be(Parameter);
             }
         }
 
