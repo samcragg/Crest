@@ -87,8 +87,7 @@
             [Fact]
             public void ShouldReturnTheCapturedParameter()
             {
-                NodeMatchResult result = this.node.Match(
-                    new StringSegment("true", 0, 4));
+                NodeMatchResult result = this.node.Match(new StringSegment("true"));
 
                 result.Name.Should().Be(ParameterName);
             }
@@ -131,7 +130,7 @@
             public void ShouldReturnFalseForInvalidValues()
             {
                 bool result = this.node.TryConvertValue(
-                    new StringSegment("invalid", 0, 7),
+                    new StringSegment("invalid"),
                     out object value);
 
                 result.Should().BeFalse();
@@ -142,7 +141,7 @@
             public void ShouldReturnTrueForEmptyValues()
             {
                 bool result = this.node.TryConvertValue(
-                    new StringSegment(string.Empty, 0, 0),
+                    new StringSegment(string.Empty),
                     out object value);
 
                 result.Should().BeTrue();

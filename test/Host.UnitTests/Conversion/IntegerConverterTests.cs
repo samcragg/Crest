@@ -15,8 +15,7 @@
             {
                 var segment = new StringSegment("X" + integer + "X", 1, integer.Length + 1);
 
-                long value;
-                bool result = IntegerConverter.ParseIntegerValue(segment, out value);
+                bool result = IntegerConverter.ParseIntegerValue(segment, out long value);
 
                 result.Should().BeTrue();
                 ((int)value).Should().Be(expected);
@@ -31,8 +30,7 @@
             {
                 var segment = new StringSegment(integer, 0, integer.Length);
 
-                long value;
-                bool result = IntegerConverter.ParseIntegerValue(segment, out value);
+                bool result = IntegerConverter.ParseIntegerValue(segment, out long value);
 
                 result.Should().BeFalse();
                 value.Should().Be(0);
@@ -49,8 +47,7 @@
             {
                 var segment = new StringSegment("X" + integer + "X", 1, integer.Length + 1);
 
-                long value;
-                bool result = IntegerConverter.ParseSignedValue(segment, out value);
+                bool result = IntegerConverter.ParseSignedValue(segment, out long value);
 
                 result.Should().BeTrue();
                 ((int)value).Should().Be(expected);
@@ -61,10 +58,9 @@
             [InlineData("a123")]
             public void ShouldNotMatchInvalidIntegers(string integer)
             {
-                var segment = new StringSegment(integer, 0, integer.Length);
-
-                long value;
-                bool result = IntegerConverter.ParseSignedValue(segment, out value);
+                bool result = IntegerConverter.ParseSignedValue(
+                    new StringSegment(integer),
+                    out long value);
 
                 result.Should().BeFalse();
                 value.Should().Be(0);

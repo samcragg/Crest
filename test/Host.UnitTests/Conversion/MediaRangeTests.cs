@@ -17,8 +17,8 @@
                 const string ValidCharacters = "!#$%&'*+-.^_`|~09azAZ";
                 const string MediaType = ValidCharacters + "/" + ValidCharacters;
 
-                var rangeA = new MediaRange(new StringSegment(MediaType, 0, MediaType.Length));
-                var rangeB = new MediaRange(new StringSegment(MediaType, 0, MediaType.Length));
+                var rangeA = new MediaRange(new StringSegment(MediaType));
+                var rangeB = new MediaRange(new StringSegment(MediaType));
 
                 rangeA.MediaTypesMatch(rangeB).Should().BeTrue();
             }
@@ -30,7 +30,7 @@
             [InlineData("*/*;p=1", 1000)]
             public void ShouldIgnoreParametersWhenParsingTheQuality(string input, int quality)
             {
-                var range = new MediaRange(new StringSegment(input, 0, input.Length));
+                var range = new MediaRange(new StringSegment(input));
 
                 range.Quality.Should().Be(quality);
             }
@@ -43,8 +43,8 @@
             [InlineData("application/*", "text/plain", false)]
             public void ShouldMatchMediaTypes(string first, string second, bool expected)
             {
-                var rangeA = new MediaRange(new StringSegment(first, 0, first.Length));
-                var rangeB = new MediaRange(new StringSegment(second, 0, second.Length));
+                var rangeA = new MediaRange(new StringSegment(first));
+                var rangeB = new MediaRange(new StringSegment(second));
 
                 bool result = rangeA.MediaTypesMatch(rangeB);
 
@@ -66,7 +66,7 @@
             public void ShouldParseTheQuality(string input, int expected)
             {
                 string media = "*/*;q=" + input;
-                var range = new MediaRange(new StringSegment(media, 0, media.Length));
+                var range = new MediaRange(new StringSegment(media));
                 range.Quality.Should().Be(expected);
             }
         }
@@ -76,7 +76,7 @@
             [Fact]
             public void ShouldThrowForInvalidQualityValues()
             {
-                Action action = () => new MediaRange(new StringSegment("*/*;Q=2.0", 0, 9));
+                Action action = () => new MediaRange(new StringSegment("*/*;Q=2.0"));
 
                 action.ShouldThrow<ArgumentException>();
             }
@@ -89,7 +89,7 @@
             [InlineData(" ")]
             public void ShouldThrowIfNotAValidMediaType(string input)
             {
-                Action action = () => new MediaRange(new StringSegment(input, 0, input.Length));
+                Action action = () => new MediaRange(new StringSegment(input));
 
                 action.ShouldThrow<ArgumentException>();
             }
@@ -100,7 +100,7 @@
             [Fact]
             public void ShouldDefualtTo1000()
             {
-                var range = new MediaRange(new StringSegment("*/*", 0, 3));
+                var range = new MediaRange(new StringSegment("*/*"));
 
                 range.Quality.Should().Be(1000);
             }

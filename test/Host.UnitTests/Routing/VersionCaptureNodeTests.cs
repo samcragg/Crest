@@ -48,8 +48,7 @@
             [InlineData("vNext")]
             public void ShouldNotMatchInvalidVersions(string version)
             {
-                NodeMatchResult result = this.node.Match(
-                    new StringSegment(version, 0, version.Length));
+                NodeMatchResult result = this.node.Match(new StringSegment(version));
 
                 result.Success.Should().BeFalse();
             }
@@ -57,8 +56,7 @@
             [Fact]
             public void ShouldSaveTheVersionNumber()
             {
-                NodeMatchResult result = this.node.Match(
-                    new StringSegment("v12", 0, 3));
+                NodeMatchResult result = this.node.Match(new StringSegment("v12"));
 
                 result.Name.Should().Be(VersionCaptureNode.KeyName);
                 result.Value.Should().Be(12);

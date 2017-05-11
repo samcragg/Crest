@@ -17,7 +17,7 @@
             typeof(RouteMapperTests).GetMethod(nameof(ExampleMethod2), BindingFlags.Instance | BindingFlags.NonPublic);
 
         private static readonly MethodInfo ExampleMethodInfo =
-                    typeof(RouteMapperTests).GetMethod(nameof(ExampleMethod), BindingFlags.Instance | BindingFlags.NonPublic);
+            typeof(RouteMapperTests).GetMethod(nameof(ExampleMethod), BindingFlags.Instance | BindingFlags.NonPublic);
 
         private static RouteMetadata CreateRoute(string verb, string route, int from = 1, int to = 1)
         {
@@ -48,7 +48,7 @@
             [Fact]
             public void ShouldCheckedForOverlappingMaximumVersions()
             {
-                var routes = new[]
+                RouteMetadata[] routes = new[]
                 {
                     CreateRoute("GET", "/route", 3, 5),
                     CreateRoute("GET", "/route", 1, 3),
@@ -62,7 +62,7 @@
             [Fact]
             public void ShouldCheckedForOverlappingMinimumVersions()
             {
-                var routes = new[]
+                RouteMetadata[] routes = new[]
                 {
                     CreateRoute("GET", "/route", 1, 3),
                     CreateRoute("GET", "/route", 3, 5),
@@ -100,14 +100,23 @@
         public sealed class Match : RouteMapperTests
         {
             [Fact]
+            public void ShouldAllowQueryParameterKeyOnlyForBooleans()
+            {
+            }
+
+            [Fact]
+            public void ShouldIncludeQueryParameters()
+            {
+            }
+
+            [Fact]
             public void ShouldMatchTheRoute()
             {
-                IReadOnlyDictionary<string, object> parameters = null;
                 ILookup<string, string> query = Substitute.For<ILookup<string, string>>();
                 var mapper = new RouteMapper(new[] { CreateRoute("GET", "/route") });
 
-                MethodInfo route = mapper.Match("GET", "/v1/route", query, out parameters);
-                MethodInfo unknown = mapper.Match("GET", "/v1/unknown", query, out parameters);
+                MethodInfo route = mapper.Match("GET", "/v1/route", query, out _);
+                MethodInfo unknown = mapper.Match("GET", "/v1/unknown", query, out _);
 
                 route.Should().NotBeNull();
                 unknown.Should().BeNull();
@@ -116,12 +125,11 @@
             [Fact]
             public void ShouldMatchTheVerb()
             {
-                IReadOnlyDictionary<string, object> parameters = null;
                 ILookup<string, string> query = Substitute.For<ILookup<string, string>>();
                 var mapper = new RouteMapper(new[] { CreateRoute("PUT", "/route") });
 
-                MethodInfo get = mapper.Match("GET", "/v1/route", query, out parameters);
-                MethodInfo put = mapper.Match("PUT", "/v1/route", query, out parameters);
+                MethodInfo get = mapper.Match("GET", "/v1/route", query, out _);
+                MethodInfo put = mapper.Match("PUT", "/v1/route", query, out _);
 
                 get.Should().BeNull();
                 put.Should().NotBeNull();
@@ -130,30 +138,28 @@
             [Fact]
             public void ShouldMatchTheVersion()
             {
-                var routes = new[]
+                RouteMetadata[] routes = new[]
                 {
                     CreateRoute("GET", "/route", 1, 2),
                     CreateRoute("GET", "/route", 3, 4)
                 };
                 routes[1].Method = ExampleMethod2Info;
 
-                IReadOnlyDictionary<string, object> parameters = null;
                 ILookup<string, string> query = Substitute.For<ILookup<string, string>>();
                 var mapper = new RouteMapper(routes);
 
-                MethodInfo result = mapper.Match("GET", "/v3/route", query, out parameters);
+                MethodInfo result = mapper.Match("GET", "/v3/route", query, out _);
 
                 result.Should().BeSameAs(ExampleMethod2Info);
             }
 
             [Fact]
-            public void ShouldReturnNullWrongVersions()
+            public void ShouldReturnNullForWrongVersions()
             {
-                IReadOnlyDictionary<string, object> parameters = null;
                 ILookup<string, string> query = Substitute.For<ILookup<string, string>>();
                 var mapper = new RouteMapper(new[] { CreateRoute("GET", "/route", 1, 1) });
 
-                MethodInfo result = mapper.Match("GET", "/v2/route", query, out parameters);
+                MethodInfo result = mapper.Match("GET", "/v2/route", query, out _);
 
                 result.Should().BeNull();
             }

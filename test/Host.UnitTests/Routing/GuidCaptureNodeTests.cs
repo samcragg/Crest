@@ -62,8 +62,7 @@
             [InlineData("+637325b6-75c1-45c4-aa64-d905cf3f7a90+")]
             public void ShouldNotMatchInvalidFormattedGuids(string guid)
             {
-                NodeMatchResult result = this.node.Match(
-                    new StringSegment(guid, 0, guid.Length));
+                NodeMatchResult result = this.node.Match(new StringSegment(guid));
 
                 result.Success.Should().BeFalse();
             }

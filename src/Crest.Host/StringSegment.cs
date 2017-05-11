@@ -18,6 +18,17 @@ namespace Crest.Host
         /// Initializes a new instance of the <see cref="StringSegment"/> struct.
         /// </summary>
         /// <param name="value">The string value.</param>
+        public StringSegment(string value)
+        {
+            this.String = value ?? string.Empty;
+            this.Start = 0;
+            this.End = this.String.Length;
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="StringSegment"/> struct.
+        /// </summary>
+        /// <param name="value">The string value.</param>
         /// <param name="start">The start index of the substring.</param>
         /// <param name="end">The end index of the substring.</param>
         public StringSegment(string value, int start, int end)
@@ -30,10 +41,7 @@ namespace Crest.Host
         /// <summary>
         /// Gets the number of characters in the substring.
         /// </summary>
-        public int Count
-        {
-            get { return this.End - this.Start; }
-        }
+        public int Count => this.End - this.Start;
 
         /// <summary>
         /// Gets the index of the character after the substring.
@@ -56,10 +64,7 @@ namespace Crest.Host
         /// </summary>
         /// <param name="index">The index of the character.</param>
         /// <returns>The character at the specified index.</returns>
-        public char this[int index]
-        {
-            get { return this.String[this.Start + index]; }
-        }
+        public char this[int index] => this.String[this.Start + index];
 
         /// <summary>
         /// Determines whether the substring pointed to by this instance matches

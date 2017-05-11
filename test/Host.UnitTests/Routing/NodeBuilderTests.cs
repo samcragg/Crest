@@ -61,8 +61,7 @@
                 ParameterInfo capture = CreateParameter<bool>("capture");
 
                 IMatchNode[] nodes = this.builder.Parse("", "/{capture}/", new[] { capture });
-                StringSegment segment = new StringSegment("true", 0, 4);
-                NodeMatchResult match = nodes.Single().Match(segment);
+                NodeMatchResult match = nodes.Single().Match(new StringSegment("true"));
 
                 match.Success.Should().BeTrue();
                 match.Value.Should().Be(true);
@@ -71,12 +70,11 @@
             [Fact]
             public void ShouldCaptureGuids()
             {
-                Guid guid = Guid.NewGuid();
+                var guid = Guid.NewGuid();
                 ParameterInfo capture = CreateParameter<Guid>("capture");
 
                 IMatchNode[] nodes = this.builder.Parse("", "/{capture}/", new[] { capture });
-                StringSegment segment = new StringSegment(guid.ToString(), 0, 36);
-                NodeMatchResult match = nodes.Single().Match(segment);
+                NodeMatchResult match = nodes.Single().Match(new StringSegment(guid.ToString()));
 
                 match.Success.Should().BeTrue();
                 match.Value.Should().Be(guid);
@@ -96,8 +94,7 @@
                 ParameterInfo capture = CreateParameter(type, "capture");
 
                 IMatchNode[] nodes = this.builder.Parse("", "/{capture}/", new[] { capture });
-                StringSegment segment = new StringSegment(value, 0, value.Length);
-                NodeMatchResult match = nodes.Single().Match(segment);
+                NodeMatchResult match = nodes.Single().Match(new StringSegment(value));
 
                 match.Success.Should().BeTrue();
                 match.Value.Should().BeOfType(type);
@@ -110,8 +107,7 @@
                 ParameterInfo capture = CreateParameter<CustomData>("capture");
 
                 IMatchNode[] nodes = this.builder.Parse("", "/{capture}/", new[] { capture });
-                StringSegment segment = new StringSegment("custom_data", 0, 11);
-                NodeMatchResult match = nodes.Single().Match(segment);
+                NodeMatchResult match = nodes.Single().Match(new StringSegment("custom_data"));
 
                 match.Success.Should().BeTrue();
                 match.Value.Should().BeOfType<CustomData>()

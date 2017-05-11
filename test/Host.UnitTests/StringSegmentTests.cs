@@ -12,6 +12,28 @@
         public sealed class Constructor : StringSegmentTests
         {
             [Fact]
+            public void ShouldHandleNullStrings()
+            {
+                var segment = new StringSegment(null);
+
+                segment.String.Should().BeEmpty();
+                segment.Start.Should().Be(0);
+                segment.End.Should().Be(0);
+            }
+
+            [Fact]
+            public void ShouldMatchTheWholeString()
+            {
+                const string ExampleString = "Example";
+
+                var segment = new StringSegment(ExampleString);
+
+                segment.String.Should().Be(ExampleString);
+                segment.Start.Should().Be(0);
+                segment.End.Should().Be(ExampleString.Length);
+            }
+
+            [Fact]
             public void ShouldSetTheProperties()
             {
                 const string ExampleString = "Example";
@@ -40,7 +62,7 @@
             [Fact]
             public void ShouldReturnFalseForNullValues()
             {
-                var segment = new StringSegment("012", 0, 3);
+                var segment = new StringSegment("012");
 
                 bool result = segment.Equals(null, StringComparison.Ordinal);
 

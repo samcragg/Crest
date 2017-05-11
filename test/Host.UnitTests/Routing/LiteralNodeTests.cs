@@ -48,7 +48,7 @@
             public void ShouldIgnoreTheCaseWhenComparing()
             {
                 NodeMatchResult result = this.node.Match(
-                    new StringSegment(LiteralString.ToUpperInvariant(), 0, LiteralString.Length));
+                    new StringSegment(LiteralString.ToUpperInvariant()));
 
                 result.Success.Should().BeTrue();
             }
@@ -65,8 +65,7 @@
             [Fact]
             public void ShouldReturnUnsuccessfulIfTheLiteralIsNotAtTheSpecifiedLocation()
             {
-                NodeMatchResult result = this.node.Match(
-                    new StringSegment("not_here_literal", 0, 16));
+                NodeMatchResult result = this.node.Match(new StringSegment("not_here_literal"));
 
                 result.Success.Should().BeFalse();
             }

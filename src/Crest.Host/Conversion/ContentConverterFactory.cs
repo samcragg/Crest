@@ -35,8 +35,7 @@ namespace Crest.Host.Conversion
             for (int i = 0; i < ordered.Count; i++)
             {
                 this.converters[i] = ordered[i].converter;
-                string format = ordered[i].format;
-                this.ranges[i] = new MediaRange(new StringSegment(format, 0, format.Length));
+                this.ranges[i] = new MediaRange(new StringSegment(ordered[i].format));
             }
         }
 

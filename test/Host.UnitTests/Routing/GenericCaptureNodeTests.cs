@@ -48,7 +48,7 @@
             [Fact]
             public void ShouldReturnNoneIfTheConversionErrored()
             {
-                var result = this.node.Match(new StringSegment("Not an integer", 0, 14));
+                NodeMatchResult result = this.node.Match(new StringSegment("Not an integer"));
 
                 result.Success.Should().BeFalse();
             }
@@ -56,7 +56,7 @@
             [Fact]
             public void ShouldReturnSuccessIfTheConversionSucceeded()
             {
-                var result = this.node.Match(new StringSegment("1", 0, 1));
+                NodeMatchResult result = this.node.Match(new StringSegment("1"));
 
                 result.Success.Should().BeTrue();
             }
@@ -64,7 +64,7 @@
             [Fact]
             public void ShouldReturnTheConvertedParameter()
             {
-                var result = this.node.Match(new StringSegment("123", 0, 3));
+                NodeMatchResult result = this.node.Match(new StringSegment("123"));
 
                 result.Name.Should().Be(ParameterName);
                 result.Value.Should().Be(123);
