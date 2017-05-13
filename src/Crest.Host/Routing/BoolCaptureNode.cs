@@ -21,7 +21,7 @@ namespace Crest.Host.Routing
         /// Initializes a new instance of the <see cref="BoolCaptureNode"/> class.
         /// </summary>
         /// <param name="parameter">
-        /// The name of the property to capture the value to.
+        /// The name of the parameter being captured.
         /// </param>
         public BoolCaptureNode(string parameter)
         {
@@ -29,10 +29,10 @@ namespace Crest.Host.Routing
         }
 
         /// <inheritdoc />
-        public int Priority => 500;
+        public string ParameterName { get; }
 
         /// <inheritdoc />
-        public string ParameterName { get; }
+        public int Priority => 500;
 
         /// <inheritdoc />
         public bool Equals(IMatchNode other)

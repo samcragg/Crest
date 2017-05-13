@@ -12,31 +12,30 @@ namespace Crest.Host.Routing
     /// Allows the capturing of information from the route and converting it
     /// with the types default TypeConverter.
     /// </summary>
-    internal sealed class GenericCaptureNode : IMatchNode
+    internal sealed class GenericCaptureNode : IMatchNode, IQueryValueConverter
     {
         private readonly TypeConverter converter;
-        private readonly string property;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="GenericCaptureNode"/> class.
         /// </summary>
-        /// <param name="property">
-        /// The name of the property to capture the value to.
+        /// <param name="parameter">
+        /// The name of the parameter being captured.
         /// </param>
         /// <param name="type">
         /// The type of the property to convert to.
         /// </param>
-        public GenericCaptureNode(string property, Type type)
+        public GenericCaptureNode(string parameter, Type type)
         {
             this.converter = TypeDescriptor.GetConverter(type);
-            this.property = property;
+            this.ParameterName = parameter;
         }
 
         /// <inheritdoc />
-        public int Priority
-        {
-            get { return 200; }
-        }
+        public string ParameterName { get; }
+
+        /// <inheritdoc />
+        public int Priority => 200;
 
         /// <inheritdoc />
         public bool Equals(IMatchNode other)
@@ -47,12 +46,25 @@ namespace Crest.Host.Routing
                 return false;
             }
 
-            return string.Equals(this.property, node.property, StringComparison.Ordinal) &&
+            return string.Equals(this.ParameterName, node.ParameterName, StringComparison.Ordinal) &&
                    (this.converter.GetType() == node.converter.GetType());
         }
 
         /// <inheritdoc />
         public NodeMatchResult Match(StringSegment segment)
+        {
+            if (this.TryConvertValue(segment, out object value))
+            {
+                return new NodeMatchResult(this.ParameterName, value);
+            }
+            else
+            {
+                return NodeMatchResult.None;
+            }
+        }
+
+        /// <inheritdoc />
+        public bool TryConvertValue(StringSegment value, out object result)
         {
             if (this.converter.CanConvertFrom(typeof(string)))
             {
@@ -60,8 +72,8 @@ namespace Crest.Host.Routing
                 // string is in a valid format, hence Pokemon exception handling...
                 try
                 {
-                    object value = this.converter.ConvertFromInvariantString(segment.ToString());
-                    return new NodeMatchResult(this.property, value);
+                    result = this.converter.ConvertFromInvariantString(value.ToString());
+                    return true;
                 }
                 catch
                 {
@@ -69,7 +81,8 @@ namespace Crest.Host.Routing
                 }
             }
 
-            return NodeMatchResult.None;
+            result = null;
+            return false;
         }
     }
 }
