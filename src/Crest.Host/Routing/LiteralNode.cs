@@ -10,7 +10,7 @@ namespace Crest.Host.Routing
     /// <summary>
     /// Matches a string literal in the route.
     /// </summary>
-    internal sealed class LiteralNode : IMatchNode
+    internal sealed class LiteralNode : IMatchNode, IQueryValueConverter
     {
         private static readonly NodeMatchResult Success = new NodeMatchResult(string.Empty, null);
 
@@ -32,10 +32,10 @@ namespace Crest.Host.Routing
         }
 
         /// <inheritdoc />
-        public int Priority
-        {
-            get { return 1000; }
-        }
+        public int Priority => 1000;
+
+        /// <inheritdoc />
+        string IQueryValueConverter.ParameterName => throw new NotSupportedException();
 
         /// <inheritdoc />
         public bool Equals(IMatchNode other)
@@ -55,6 +55,12 @@ namespace Crest.Host.Routing
             {
                 return NodeMatchResult.None;
             }
+        }
+
+        /// <inheritdoc />
+        bool IQueryValueConverter.TryConvertValue(StringSegment value, out object result)
+        {
+            throw new NotSupportedException();
         }
     }
 }

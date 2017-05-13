@@ -1,5 +1,6 @@
 ﻿namespace Host.UnitTests.Routing
 {
+    using System;
     using Crest.Host;
     using Crest.Host.Routing;
     using FluentAssertions;
@@ -63,12 +64,32 @@
             }
         }
 
+        public sealed class ParameterName : VersionCaptureNodeTests
+        {
+            [Fact]
+            public void ShouldThrowNotSupportedException()
+            {
+                this.node.Invoking<IQueryValueConverter>(x => _ = x.ParameterName)
+                    .ShouldThrow<NotSupportedException>();
+            }
+        }
+
         public sealed class Priority : VersionCaptureNodeTests
         {
             [Fact]
             public void ShouldReturnAPositiveValue()
             {
                 this.node.Priority.Should().BePositive();
+            }
+        }
+
+        public sealed class TryConvertValue : VersionCaptureNodeTests
+        {
+            [Fact]
+            public void ShouldThrowNotSupportedException()
+            {
+                this.node.Invoking<IQueryValueConverter>(x => x.TryConvertValue(default(StringSegment), out _))
+                    .ShouldThrow<NotSupportedException>();
             }
         }
     }

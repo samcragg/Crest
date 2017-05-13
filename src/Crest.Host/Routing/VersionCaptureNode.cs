@@ -5,13 +5,14 @@
 
 namespace Crest.Host.Routing
 {
+    using System;
     using Crest.Host.Conversion;
 
     /// <summary>
     /// Allows the capturing of information from the route and converting it
     /// with the types default TypeConverter.
     /// </summary>
-    internal class VersionCaptureNode : IMatchNode
+    internal class VersionCaptureNode : IMatchNode, IQueryValueConverter
     {
         /// <summary>
         /// Gets the key that stores the version information.
@@ -19,10 +20,10 @@ namespace Crest.Host.Routing
         internal const string KeyName = "__version__";
 
         /// <inheritdoc />
-        public int Priority
-        {
-            get { return 1; }
-        }
+        public int Priority => 1;
+
+        /// <inheritdoc />
+        string IQueryValueConverter.ParameterName => throw new NotSupportedException();
 
         /// <inheritdoc />
         public bool Equals(IMatchNode other)
@@ -39,8 +40,7 @@ namespace Crest.Host.Routing
                 if ((v == 'v') || (v == 'V'))
                 {
                     segment = new StringSegment(segment.String, segment.Start + 1, segment.End);
-                    long value;
-                    if (IntegerConverter.ParseIntegerValue(segment, out value))
+                    if (IntegerConverter.ParseIntegerValue(segment, out long value))
                     {
                         return new NodeMatchResult(KeyName, (int)value);
                     }
@@ -48,6 +48,12 @@ namespace Crest.Host.Routing
             }
 
             return NodeMatchResult.None;
+        }
+
+        /// <inheritdoc />
+        bool IQueryValueConverter.TryConvertValue(StringSegment value, out object result)
+        {
+            throw new NotSupportedException();
         }
     }
 }
