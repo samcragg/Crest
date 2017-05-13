@@ -12,7 +12,7 @@ namespace Crest.Host.Routing
     /// Allows the capturing of information from the route and converting it
     /// with the types default TypeConverter.
     /// </summary>
-    internal sealed class GenericCaptureNode : IMatchNode, IQueryValueConverter
+    internal sealed class GenericCaptureNode : IMatchNode
     {
         private readonly TypeConverter converter;
 

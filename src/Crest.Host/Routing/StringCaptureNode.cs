@@ -10,7 +10,7 @@ namespace Crest.Host.Routing
     /// <summary>
     /// Allows the capturing of string information from the route.
     /// </summary>
-    internal sealed class StringCaptureNode : IMatchNode, IQueryValueConverter
+    internal sealed class StringCaptureNode : IMatchNode
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="StringCaptureNode"/> class.

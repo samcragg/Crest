@@ -12,7 +12,7 @@ namespace Crest.Host.Routing
     /// Allows the capturing of information from the route and converting it
     /// with the types default TypeConverter.
     /// </summary>
-    internal class VersionCaptureNode : IMatchNode, IQueryValueConverter
+    internal class VersionCaptureNode : IMatchNode
     {
         /// <summary>
         /// Gets the key that stores the version information.

@@ -12,7 +12,7 @@ namespace Crest.Host.Routing
     /// <summary>
     /// Allows the capturing of integer values from the route.
     /// </summary>
-    internal sealed class IntegerCaptureNode : IMatchNode, IQueryValueConverter
+    internal sealed class IntegerCaptureNode : IMatchNode
     {
         private readonly IntegerType type;
 

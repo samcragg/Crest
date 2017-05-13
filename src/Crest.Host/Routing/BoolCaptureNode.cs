@@ -10,7 +10,7 @@ namespace Crest.Host.Routing
     /// <summary>
     /// Allows the capturing of boolean values from the route.
     /// </summary>
-    internal sealed class BoolCaptureNode : IMatchNode, IQueryValueConverter
+    internal sealed class BoolCaptureNode : IMatchNode
     {
         private static readonly object BoxedFalse = false;
         private static readonly object BoxedTrue = true;

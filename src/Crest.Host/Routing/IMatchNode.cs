@@ -10,7 +10,7 @@ namespace Crest.Host.Routing
     /// <summary>
     /// Allows the matching of parts of a route.
     /// </summary>
-    internal interface IMatchNode : IEquatable<IMatchNode>
+    internal interface IMatchNode : IEquatable<IMatchNode>, IQueryValueConverter
     {
         /// <summary>
         /// Gets the priority of this match when deciding between nodes that

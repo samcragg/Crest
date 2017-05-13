@@ -10,7 +10,7 @@ namespace Crest.Host.Routing
     /// <summary>
     /// Matches a string literal in the route.
     /// </summary>
-    internal sealed class LiteralNode : IMatchNode, IQueryValueConverter
+    internal sealed class LiteralNode : IMatchNode
     {
         private static readonly NodeMatchResult Success = new NodeMatchResult(string.Empty, null);
 

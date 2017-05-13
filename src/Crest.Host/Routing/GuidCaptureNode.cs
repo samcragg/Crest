@@ -10,7 +10,7 @@ namespace Crest.Host.Routing
     /// <summary>
     /// Allows the capturing of globally unique identifier values from the route.
     /// </summary>
-    internal sealed class GuidCaptureNode : IMatchNode, IQueryValueConverter
+    internal sealed class GuidCaptureNode : IMatchNode
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="GuidCaptureNode"/> class.
