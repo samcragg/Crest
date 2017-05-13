@@ -10,50 +10,61 @@ namespace Crest.Host.Routing
     /// <summary>
     /// Allows the capturing of globally unique identifier values from the route.
     /// </summary>
-    internal sealed class GuidCaptureNode : IMatchNode
+    internal sealed class GuidCaptureNode : IMatchNode, IQueryValueConverter
     {
-        private readonly string property;
-
         /// <summary>
         /// Initializes a new instance of the <see cref="GuidCaptureNode"/> class.
         /// </summary>
-        /// <param name="property">
-        /// The name of the property to capture the value to.
+        /// <param name="parameter">
+        /// The name of the parameter being captured.
         /// </param>
-        public GuidCaptureNode(string property)
+        public GuidCaptureNode(string parameter)
         {
-            this.property = property;
+            this.ParameterName = parameter;
         }
 
         /// <inheritdoc />
-        public int Priority
-        {
-            get { return 500; }
-        }
+        public string ParameterName { get; }
+
+        /// <inheritdoc />
+        public int Priority => 500;
 
         /// <inheritdoc />
         public bool Equals(IMatchNode other)
         {
             var node = other as GuidCaptureNode;
-            return string.Equals(this.property, node?.property, StringComparison.Ordinal);
+            return string.Equals(this.ParameterName, node?.ParameterName, StringComparison.Ordinal);
         }
 
         /// <inheritdoc />
         public NodeMatchResult Match(StringSegment segment)
         {
-            int start = segment.Start;
-            if (!CheckStringLength(segment, ref start))
+            if (this.TryConvertValue(segment, out object result))
+            {
+                return new NodeMatchResult(this.ParameterName, result);
+            }
+            else
             {
                 return NodeMatchResult.None;
             }
+        }
 
-            Guid value = default(Guid);
-            if (!TryParseGuid(segment.String, segment.Count > 32, start, ref value))
+        /// <inheritdoc />
+        public bool TryConvertValue(StringSegment value, out object result)
+        {
+            int start = value.Start;
+            if (CheckStringLength(value, ref start))
             {
-                return NodeMatchResult.None;
+                var guid = default(Guid);
+                if (TryParseGuid(value.String, value.Count > 32, start, ref guid))
+                {
+                    result = guid;
+                    return true;
+                }
             }
 
-            return new NodeMatchResult(this.property, value);
+            result = null;
+            return false;
         }
 
         private static int CheckHyphen(string str, bool hyphensAllowed, int index)

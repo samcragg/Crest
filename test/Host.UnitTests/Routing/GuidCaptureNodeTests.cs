@@ -9,15 +9,15 @@
 
     public class GuidCaptureNodeTests
     {
-        private const string ParameterName = "parameter";
-        private readonly GuidCaptureNode node = new GuidCaptureNode(ParameterName);
+        private const string Parameter = "parameter";
+        private readonly GuidCaptureNode node = new GuidCaptureNode(Parameter);
 
         public sealed new class Equals : GuidCaptureNodeTests
         {
             [Fact]
             public void ShouldReturnFalseForDifferentParameters()
             {
-                var other = new GuidCaptureNode(ParameterName + "New");
+                var other = new GuidCaptureNode(Parameter + "New");
                 this.node.Equals(other).Should().BeFalse();
             }
 
@@ -31,7 +31,7 @@
             [Fact]
             public void ShouldReturnTrueForTheSameParameter()
             {
-                var other = new GuidCaptureNode(ParameterName);
+                var other = new GuidCaptureNode(Parameter);
                 this.node.Equals(other).Should().BeTrue();
             }
         }
@@ -84,8 +84,17 @@
                 NodeMatchResult result = this.node.Match(
                     new StringSegment("/" + guid.ToString("D") + "/", 1, 37));
 
-                result.Name.Should().Be(ParameterName);
+                result.Name.Should().Be(Parameter);
                 result.Value.Should().Be(guid);
+            }
+        }
+
+        public sealed class ParameterName : GuidCaptureNodeTests
+        {
+            [Fact]
+            public void ShouldReturnTheValuePassedInTheConstructor()
+            {
+                this.node.ParameterName.Should().Be(Parameter);
             }
         }
 
@@ -95,6 +104,31 @@
             public void ShouldReturnAPositiveValue()
             {
                 this.node.Priority.Should().BePositive();
+            }
+        }
+
+        public sealed class TryConvertValue : GuidCaptureNodeTests
+        {
+            [Fact]
+            public void ShouldReturnFalseForInvalidValues()
+            {
+                bool result = this.node.TryConvertValue(
+                    new StringSegment("invalid"),
+                    out object value);
+
+                result.Should().BeFalse();
+                value.Should().BeNull();
+            }
+
+            [Fact]
+            public void ShouldReturnTrueForValidValues()
+            {
+                bool result = this.node.TryConvertValue(
+                    new StringSegment("637325b6-75c1-45c4-aa64-d905cf3f7a90"),
+                    out object value);
+
+                result.Should().BeTrue();
+                value.Should().Be(Guid.Parse("637325b6-75c1-45c4-aa64-d905cf3f7a90"));
             }
         }
     }
