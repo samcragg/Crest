@@ -10,38 +10,43 @@ namespace Crest.Host.Routing
     /// <summary>
     /// Allows the capturing of string information from the route.
     /// </summary>
-    internal sealed class StringCaptureNode : IMatchNode
+    internal sealed class StringCaptureNode : IMatchNode, IQueryValueConverter
     {
-        private readonly string property;
-
         /// <summary>
         /// Initializes a new instance of the <see cref="StringCaptureNode"/> class.
         /// </summary>
-        /// <param name="property">
-        /// The name of the property to capture the value to.
+        /// <param name="parameter">
+        /// The name of the parameter being captured.
         /// </param>
-        public StringCaptureNode(string property)
+        public StringCaptureNode(string parameter)
         {
-            this.property = property;
+            this.ParameterName = parameter;
         }
 
         /// <inheritdoc />
-        public int Priority
-        {
-            get { return 100; }
-        }
+        public string ParameterName { get; }
+
+        /// <inheritdoc />
+        public int Priority => 100;
 
         /// <inheritdoc />
         public bool Equals(IMatchNode other)
         {
             var node = other as StringCaptureNode;
-            return string.Equals(this.property, node?.property, StringComparison.Ordinal);
+            return string.Equals(this.ParameterName, node?.ParameterName, StringComparison.Ordinal);
         }
 
         /// <inheritdoc />
         public NodeMatchResult Match(StringSegment segment)
         {
-            return new NodeMatchResult(this.property, segment.ToString());
+            return new NodeMatchResult(this.ParameterName, segment.ToString());
+        }
+
+        /// <inheritdoc />
+        public bool TryConvertValue(StringSegment value, out object result)
+        {
+            result = value.ToString();
+            return true;
         }
     }
 }

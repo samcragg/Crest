@@ -8,15 +8,15 @@
 
     public class StringCaptureNodeTests
     {
-        private const string ParameterName = "parameter";
-        private readonly StringCaptureNode node = new StringCaptureNode(ParameterName);
+        private const string Parameter = "parameter";
+        private readonly StringCaptureNode node = new StringCaptureNode(Parameter);
 
         public sealed new class Equals : StringCaptureNodeTests
         {
             [Fact]
             public void ShouldReturnFalseForDifferentParameters()
             {
-                var other = new StringCaptureNode(ParameterName + "New");
+                var other = new StringCaptureNode(Parameter + "New");
                 this.node.Equals(other).Should().BeFalse();
             }
 
@@ -30,7 +30,7 @@
             [Fact]
             public void ShouldReturnTrueForTheSameParameter()
             {
-                var other = new StringCaptureNode(ParameterName);
+                var other = new StringCaptureNode(Parameter);
                 this.node.Equals(other).Should().BeTrue();
             }
         }
@@ -52,8 +52,17 @@
                 NodeMatchResult result = this.node.Match(
                     new StringSegment("01234", 2, 4));
 
-                result.Name.Should().Be(ParameterName);
+                result.Name.Should().Be(Parameter);
                 result.Value.Should().Be("23");
+            }
+        }
+
+        public sealed class ParameterName : StringCaptureNodeTests
+        {
+            [Fact]
+            public void ShouldReturnTheValuePassedInTheConstructor()
+            {
+                this.node.ParameterName.Should().Be(Parameter);
             }
         }
 
@@ -63,6 +72,20 @@
             public void ShouldReturnAPositiveValue()
             {
                 this.node.Priority.Should().BePositive();
+            }
+        }
+
+        public sealed class TryConvertValue : StringCaptureNodeTests
+        {
+            [Fact]
+            public void ShouldReturnThePassedInSegment()
+            {
+                bool result = this.node.TryConvertValue(
+                    new StringSegment("/string/", 1, 7),
+                    out object value);
+
+                result.Should().BeTrue();
+                value.Should().Be("string");
             }
         }
     }

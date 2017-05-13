@@ -93,21 +93,21 @@
             }
         }
 
-        public sealed class Priority : BoolCaptureNodeTests
-        {
-            [Fact]
-            public void ShouldReturnAPositiveValue()
-            {
-                this.node.Priority.Should().BePositive();
-            }
-        }
-
         public sealed class ParameterName : BoolCaptureNodeTests
         {
             [Fact]
             public void ShouldReturnTheValuePassedInTheConstructor()
             {
                 this.node.ParameterName.Should().Be(Parameter);
+            }
+        }
+
+        public sealed class Priority : BoolCaptureNodeTests
+        {
+            [Fact]
+            public void ShouldReturnAPositiveValue()
+            {
+                this.node.Priority.Should().BePositive();
             }
         }
 
