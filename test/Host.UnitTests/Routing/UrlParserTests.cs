@@ -94,7 +94,7 @@
             }
 
             [Fact]
-            public void ShouldCheckForQueryValues()
+            public void ShouldCheckForMissingQueryValueCaptures()
             {
                 this.parser.ParseUrl("/literal?key");
 
@@ -129,6 +129,14 @@
                 this.parser.ParseUrl("/{missingParameter}/");
 
                 this.parser.ErrorParts.Single().Should().Be("missingParameter");
+            }
+
+            [Fact]
+            public void ShouldCheckQueryCapturesSyntax()
+            {
+                this.parser.ParseUrl("/literal?key={missingClosingBrace");
+
+                this.parser.ErrorParts.Single().Should().Be("e");
             }
 
             [Fact]
