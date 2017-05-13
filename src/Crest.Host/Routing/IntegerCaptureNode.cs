@@ -7,28 +7,29 @@ namespace Crest.Host.Routing
 {
     using System;
     using Crest.Host.Conversion;
+    using static System.Diagnostics.Debug;
 
     /// <summary>
     /// Allows the capturing of integer values from the route.
     /// </summary>
-    internal sealed class IntegerCaptureNode : IMatchNode
+    internal sealed class IntegerCaptureNode : IMatchNode, IQueryValueConverter
     {
-        private readonly string property;
         private readonly IntegerType type;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="IntegerCaptureNode"/> class.
         /// </summary>
-        /// <param name="property">
-        /// The name of the property to capture the value to.
+        /// <param name="parameter">
+        /// The name of the parameter being captured.
         /// </param>
         /// <param name="targetType">The type of the integer.</param>
-        public IntegerCaptureNode(string property, Type targetType)
+        public IntegerCaptureNode(string parameter, Type targetType)
         {
-            this.property = property;
+            this.ParameterName = parameter;
             this.type = GetIntegerType(targetType);
         }
 
+        // Names MUST match the name of the structs in the System namespace
         private enum IntegerType
         {
             Byte,
@@ -42,10 +43,10 @@ namespace Crest.Host.Routing
         }
 
         /// <inheritdoc />
-        public int Priority
-        {
-            get { return 500; }
-        }
+        public string ParameterName { get; }
+
+        /// <inheritdoc />
+        public int Priority => 500;
 
         /// <inheritdoc />
         public bool Equals(IMatchNode other)
@@ -57,16 +58,15 @@ namespace Crest.Host.Routing
             }
 
             return (this.type == node.type) &&
-                    string.Equals(this.property, node.property, StringComparison.Ordinal);
+                    string.Equals(this.ParameterName, node.ParameterName, StringComparison.Ordinal);
         }
 
         /// <inheritdoc />
         public NodeMatchResult Match(StringSegment segment)
         {
-            long value;
-            if (IntegerConverter.ParseSignedValue(segment, out value))
+            if (this.TryConvertValue(segment, out object result))
             {
-                return new NodeMatchResult(this.property, this.BoxInteger(value));
+                return new NodeMatchResult(this.ParameterName, result);
             }
             else
             {
@@ -74,12 +74,26 @@ namespace Crest.Host.Routing
             }
         }
 
+        /// <inheritdoc />
+        public bool TryConvertValue(StringSegment value, out object result)
+        {
+            if (IntegerConverter.ParseSignedValue(value, out long converted))
+            {
+                result = this.BoxInteger(converted);
+                return true;
+            }
+            else
+            {
+                result = null;
+                return false;
+            }
+        }
+
         private static IntegerType GetIntegerType(Type type)
         {
             if (string.Equals("System", type.Namespace, StringComparison.Ordinal))
             {
-                IntegerType integerType;
-                if (Enum.TryParse(type.Name, out integerType))
+                if (Enum.TryParse(type.Name, out IntegerType integerType))
                 {
                     return integerType;
                 }
@@ -117,7 +131,7 @@ namespace Crest.Host.Routing
 
                 case IntegerType.UInt64:
                 default:
-                    System.Diagnostics.Debug.Assert(this.type == IntegerType.UInt64, "Unexpected value");
+                    Assert(this.type == IntegerType.UInt64, "Unexpected value");
                     return (ulong)value;
             }
         }
