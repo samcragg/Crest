@@ -37,7 +37,7 @@
             {
                 FakeTypeConverter.CreatedCount = 0;
 
-                QueryCapture.Create("", typeof(FakeClass), "", this.converters);
+                QueryCapture.Create("", typeof(FakeClass), "", this.converters.TryGetValue);
 
                 FakeTypeConverter.CreatedCount.Should().Be(1);
             }
@@ -48,7 +48,7 @@
                 string parameterName = null;
                 this.converters.Add(typeof(long), p => { parameterName = p; return this.converter; });
 
-                QueryCapture.Create("key", typeof(long), "parameter", this.converters);
+                QueryCapture.Create("key", typeof(long), "parameter", this.converters.TryGetValue);
 
                 parameterName.Should().Be("parameter");
             }
@@ -59,7 +59,7 @@
                 this.converter = Substitute.For<IQueryValueConverter>(); // We need to spy on it
                 this.AddLookupItem("key", "value");
 
-                var result = QueryCapture.Create("key", typeof(int), "", this.converters);
+                var result = QueryCapture.Create("key", typeof(int), "", this.converters.TryGetValue);
                 result.ParseParameters(this.lookup, new Dictionary<string, object>());
 
                 this.converter.ReceivedWithAnyArgs().TryConvertValue(default(StringSegment), out _);
@@ -89,7 +89,7 @@
                 var parameters = new Dictionary<string, object>();
                 this.AddLookupItem("key", "2", "3");
 
-                var capture = QueryCapture.Create("key", typeof(int[]), "", this.converters);
+                var capture = QueryCapture.Create("key", typeof(int[]), "", this.converters.TryGetValue);
                 capture.ParseParameters(this.lookup, parameters);
 
                 parameters[CapturedParameter].Should().BeAssignableTo<int[]>()
@@ -105,7 +105,7 @@
                 var parameters = new Dictionary<string, object>();
                 this.AddLookupItem("key", "2");
 
-                var capture = QueryCapture.Create("key", typeof(int), "", this.converters);
+                var capture = QueryCapture.Create("key", typeof(int), "", this.converters.TryGetValue);
                 capture.ParseParameters(this.lookup, parameters);
 
                 parameters[CapturedParameter].Should().Be(2);
@@ -117,7 +117,7 @@
                 var parameters = new Dictionary<string, object>();
                 this.AddLookupItem("key", "not an integer", "3");
 
-                var capture = QueryCapture.Create("key", typeof(int), "", this.converters);
+                var capture = QueryCapture.Create("key", typeof(int), "", this.converters.TryGetValue);
                 capture.ParseParameters(this.lookup, parameters);
 
                 parameters[CapturedParameter].Should().Be(3);

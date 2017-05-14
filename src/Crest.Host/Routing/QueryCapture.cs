@@ -24,13 +24,21 @@ namespace Crest.Host.Routing
         }
 
         /// <summary>
+        /// Gets the value associated with the specified key,
+        /// </summary>
+        /// <param name="key">The key to locate.</param>
+        /// <param name="value">Outputs the value, if any, to this parameter.</param>
+        /// <returns><c>true</c> if the key was found; otherwise, <c>false</c>.</returns>
+        public delegate bool TryGetValue(Type key, out Func<string, IQueryValueConverter> value);
+
+        /// <summary>
         /// Creates a <see cref="QueryCapture"/> that can capture the specified
         /// parameter.
         /// </summary>
         /// <param name="queryKey">The name of the query key.</param>
         /// <param name="parameterType">The type of the parameter.</param>
         /// <param name="parameterName">The name of the parameter.</param>
-        /// <param name="specializedConverters">
+        /// <param name="getConverter">
         /// Used to find a specialized converter.
         /// </param>
         /// <returns>A new instance of the <see cref="QueryCapture"/> class.</returns>
@@ -38,16 +46,14 @@ namespace Crest.Host.Routing
             string queryKey,
             Type parameterType,
             string parameterName,
-            IReadOnlyDictionary<Type, Func<string, IQueryValueConverter>> specializedConverters)
+            TryGetValue getConverter)
         {
             Type elementType = parameterType.IsArray ?
                 parameterType.GetElementType() :
                 parameterType;
 
             IQueryValueConverter converter;
-            if (specializedConverters.TryGetValue(
-                    elementType,
-                    out Func<string, IQueryValueConverter> factoryMethod))
+            if (getConverter(elementType, out Func<string, IQueryValueConverter> factoryMethod))
             {
                 converter = factoryMethod(parameterName);
             }
