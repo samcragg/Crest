@@ -13,16 +13,20 @@ namespace Crest.Host.Routing
     /// </content>
     internal sealed partial class NodeBuilder
     {
-        private sealed class NodeParser : UrlParser
+        private sealed class NodeParser : UrlParser, IParseResult
         {
-            private readonly Dictionary<Type, Func<string, IMatchNode>> specializedCaptureNodes;
+            private readonly List<IMatchNode> nodes = new List<IMatchNode>();
+            private readonly List<QueryCapture> queryCaptures = new List<QueryCapture>();
+            private readonly IReadOnlyDictionary<Type, Func<string, IMatchNode>> specializedCaptureNodes;
 
-            internal NodeParser(Dictionary<Type, Func<string, IMatchNode>> specializedCaptureNodes)
+            internal NodeParser(IReadOnlyDictionary<Type, Func<string, IMatchNode>> specializedCaptureNodes)
             {
                 this.specializedCaptureNodes = specializedCaptureNodes;
             }
 
-            internal List<IMatchNode> Nodes { get; } = new List<IMatchNode>();
+            public IReadOnlyList<IMatchNode> Nodes => this.nodes;
+
+            public IReadOnlyList<QueryCapture> QueryCaptures => this.queryCaptures;
 
             protected override void OnCaptureSegment(Type parameterType, string name)
             {
@@ -30,11 +34,11 @@ namespace Crest.Host.Routing
                         parameterType,
                         out Func<string, IMatchNode> factoryMethod))
                 {
-                    this.Nodes.Add(factoryMethod(name));
+                    this.nodes.Add(factoryMethod(name));
                 }
                 else
                 {
-                    this.Nodes.Add(new GenericCaptureNode(name, parameterType));
+                    this.nodes.Add(new GenericCaptureNode(name, parameterType));
                 }
             }
 
@@ -50,12 +54,26 @@ namespace Crest.Host.Routing
 
             protected override void OnLiteralSegment(string value)
             {
-                this.Nodes.Add(new LiteralNode(value));
+                this.nodes.Add(new LiteralNode(value));
             }
 
             protected override void OnQueryParameter(string key, Type parameterType, string name)
             {
-                throw new NotImplementedException();
+                // Helper method to avoid QueryCaptures taking a dependency on
+                // IMatchNode when all it needs is an IQueryValueConverter that
+                // IMatchNode inherits from
+                bool TryGetConverter(Type type, out Func<string, IQueryValueConverter> value)
+                {
+                    bool result = this.specializedCaptureNodes.TryGetValue(
+                        type,
+                        out Func<string, IMatchNode> node);
+
+                    value = node;
+                    return result;
+                }
+
+                this.queryCaptures.Add(
+                    QueryCapture.Create(key, parameterType, name, TryGetConverter));
             }
         }
     }

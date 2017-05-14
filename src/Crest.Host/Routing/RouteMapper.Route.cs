@@ -53,8 +53,7 @@ namespace Crest.Host.Routing
 
             private static bool InsideVersionRange(long range, int version)
             {
-                int from, to;
-                SplitVersion(range, out from, out to);
+                SplitVersion(range, out int from, out int to);
 
                 // Use bitwise and to avoid a branch...
                 return (from <= version) & (version <= to);
@@ -76,8 +75,7 @@ namespace Crest.Host.Routing
             {
                 for (int i = 0; i < this.versions.Length; i++)
                 {
-                    int from, to;
-                    SplitVersion(this.versions[i], out from, out to);
+                    SplitVersion(this.versions[i], out int from, out int to);
                     if ((minimum <= to) && (maximum >= from))
                     {
                         throw new InvalidOperationException(

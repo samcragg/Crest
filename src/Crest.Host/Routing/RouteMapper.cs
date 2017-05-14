@@ -34,12 +34,13 @@ namespace Crest.Host.Routing
 
             foreach (RouteMetadata metadata in routes)
             {
-                IMatchNode[] nodes = builder.Parse(
+                // TODO: Use the query captures...
+                NodeBuilder.IParseResult result = builder.Parse(
                     MakeVersion(metadata),
                     metadata.RouteUrl,
                     metadata.Method.GetParameters());
 
-                this.AddRoute(metadata.Verb, nodes, metadata);
+                this.AddRoute(metadata.Verb, result.Nodes, metadata);
 
                 RouteMethod lambda = adapter.CreateMethod(metadata.Factory, metadata.Method);
                 this.adapters[metadata.Method.MetadataToken] = lambda;
@@ -49,16 +50,14 @@ namespace Crest.Host.Routing
         /// <inheritdoc />
         public RouteMethod GetAdapter(MethodInfo method)
         {
-            RouteMethod adapter;
-            this.adapters.TryGetValue(method.MetadataToken, out adapter);
+            this.adapters.TryGetValue(method.MetadataToken, out RouteMethod adapter);
             return adapter;
         }
 
         /// <inheritdoc />
         public MethodInfo Match(string verb, string path, ILookup<string, string> query, out IReadOnlyDictionary<string, object> parameters)
         {
-            RouteNode<Route> node;
-            if (this.verbs.TryGetValue(verb, out node))
+            if (this.verbs.TryGetValue(verb, out RouteNode<Route> node))
             {
                 RouteNode<Route>.MatchResult match = node.Match(path);
                 if (match.Success)
@@ -84,10 +83,9 @@ namespace Crest.Host.Routing
             return string.Concat(from, ":", to);
         }
 
-        private void AddRoute(string verb, IMatchNode[] matches, RouteMetadata metadata)
+        private void AddRoute(string verb, IReadOnlyList<IMatchNode> matches, RouteMetadata metadata)
         {
-            RouteNode<Route> parent;
-            if (!this.verbs.TryGetValue(verb, out parent))
+            if (!this.verbs.TryGetValue(verb, out RouteNode<Route> parent))
             {
                 parent = new RouteNode<Route>(new VersionCaptureNode());
                 this.verbs.Add(verb, parent);

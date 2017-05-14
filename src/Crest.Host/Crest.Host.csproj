@@ -31,19 +31,28 @@
 
   <ItemGroup>
     <Compile Update="Conversion/HtmlConverter.ObjectWalker.cs">
-      <DependentUpon>Conversion/HtmlConverter.cs</DependentUpon>
+      <DependentUpon>HtmlConverter.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Routing/NodeBuilder.IParseResult.cs">
+      <DependentUpon>NodeBuilder.cs</DependentUpon>
     </Compile>
     <Compile Update="Routing/NodeBuilder.NodeParser.cs">
-      <DependentUpon>Routing/NodeBuilder.cs</DependentUpon>
+      <DependentUpon>NodeBuilder.cs</DependentUpon>
     </Compile>
     <Compile Update="Routing/RouteMapper.Route.cs">
-      <DependentUpon>Routing/RouteMapper.cs</DependentUpon>
+      <DependentUpon>RouteMapper.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Routing/QueryCapture.MultipleValues.cs">
+      <DependentUpon>QueryCapture.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Routing/QueryCapture.SingleValue.cs">
+      <DependentUpon>QueryCapture.cs</DependentUpon>
     </Compile>
     <Compile Update="Routing/RouteNode{T}.MatchResult.cs">
-      <DependentUpon>Routing/RouteNode{T}.cs</DependentUpon>
+      <DependentUpon>RouteNode{T}.cs</DependentUpon>
     </Compile>
     <Compile Update="Routing/UrlParser.SegmentParser.cs">
-      <DependentUpon>Routing/UrlParser.cs</DependentUpon>
+      <DependentUpon>UrlParser.cs</DependentUpon>
     </Compile>
     <Compile Update="QueryLookup.Grouping.cs">
       <DependentUpon>QueryLookup.cs</DependentUpon>

@@ -1,6 +1,7 @@
 ﻿namespace Host.UnitTests.Routing
 {
     using System;
+    using System.Collections.Generic;
     using System.ComponentModel;
     using System.Globalization;
     using System.Linq;
@@ -60,8 +61,9 @@
             {
                 ParameterInfo capture = CreateParameter<bool>("capture");
 
-                IMatchNode[] nodes = this.builder.Parse("", "/{capture}/", new[] { capture });
-                NodeMatchResult match = nodes.Single().Match(new StringSegment("true"));
+                NodeMatchResult match = GetMatch(
+                    this.builder.Parse("", "/{capture}/", new[] { capture }),
+                    "true");
 
                 match.Success.Should().BeTrue();
                 match.Value.Should().Be(true);
@@ -73,8 +75,9 @@
                 var guid = Guid.NewGuid();
                 ParameterInfo capture = CreateParameter<Guid>("capture");
 
-                IMatchNode[] nodes = this.builder.Parse("", "/{capture}/", new[] { capture });
-                NodeMatchResult match = nodes.Single().Match(new StringSegment(guid.ToString()));
+                NodeMatchResult match = GetMatch(
+                    this.builder.Parse("", "/{capture}/", new[] { capture }),
+                    guid.ToString());
 
                 match.Success.Should().BeTrue();
                 match.Value.Should().Be(guid);
@@ -93,8 +96,9 @@
             {
                 ParameterInfo capture = CreateParameter(type, "capture");
 
-                IMatchNode[] nodes = this.builder.Parse("", "/{capture}/", new[] { capture });
-                NodeMatchResult match = nodes.Single().Match(new StringSegment(value));
+                NodeMatchResult match = GetMatch(
+                    this.builder.Parse("", "/{capture}/", new[] { capture }),
+                    value);
 
                 match.Success.Should().BeTrue();
                 match.Value.Should().BeOfType(type);
@@ -106,8 +110,9 @@
             {
                 ParameterInfo capture = CreateParameter<CustomData>("capture");
 
-                IMatchNode[] nodes = this.builder.Parse("", "/{capture}/", new[] { capture });
-                NodeMatchResult match = nodes.Single().Match(new StringSegment("custom_data"));
+                NodeMatchResult match = GetMatch(
+                    this.builder.Parse("", "/{capture}/", new[] { capture }),
+                    "custom_data");
 
                 match.Success.Should().BeTrue();
                 match.Value.Should().BeOfType<CustomData>()
@@ -119,16 +124,31 @@
             {
                 ParameterInfo captureParameter = CreateParameter<string>("capture");
 
-                IMatchNode[] nodes = this.builder.Parse("", "/literal/{capture}/", new[] { captureParameter });
+                NodeBuilder.IParseResult result = this.builder.Parse("", "/literal/{capture}/", new[] { captureParameter });
                 StringSegment[] segments = UrlParser.GetSegments("/literal/string_value").ToArray();
 
-                NodeMatchResult literal = nodes[0].Match(segments[0]);
-                NodeMatchResult capture = nodes[1].Match(segments[1]);
+                NodeMatchResult literal = result.Nodes[0].Match(segments[0]);
+                NodeMatchResult capture = result.Nodes[1].Match(segments[1]);
 
-                nodes.Should().HaveCount(2);
+                result.Nodes.Should().HaveCount(2);
                 literal.Success.Should().BeTrue();
                 capture.Success.Should().BeTrue();
                 capture.Value.Should().Be("string_value");
+            }
+
+            [Fact]
+            public void ShouldReturnQueryCaptures()
+            {
+                ILookup<string, string> lookup = new[] { ("key", "value") }.ToLookup(x => x.Item1, x => x.Item2);
+                var dictionary = new Dictionary<string, object>();
+                ParameterInfo captureParameter = CreateParameter<string>("capture");
+                captureParameter.Attributes.Returns(ParameterAttributes.Optional);
+
+                NodeBuilder.IParseResult result = this.builder.Parse("", "/literal?key={capture}", new[] { captureParameter });
+                QueryCapture query = result.QueryCaptures.Single();
+
+                query.ParseParameters(lookup, dictionary);
+                dictionary["capture"].Should().Be("value");
             }
 
             [Fact]
@@ -166,6 +186,11 @@
                 Action action = () => this.builder.Parse("", "/unused_parameter/", new[] { param });
 
                 action.ShouldThrow<FormatException>();
+            }
+
+            private static NodeMatchResult GetMatch(NodeBuilder.IParseResult result, string value)
+            {
+                return result.Nodes.Single().Match(new StringSegment(value));
             }
         }
 

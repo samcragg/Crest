@@ -43,7 +43,7 @@ namespace Crest.Host.Routing
         /// <param name="routeUrl">The route URL to add.</param>
         /// <param name="parameters">The parameters to capture.</param>
         /// <returns>The parsed nodes.</returns>
-        public IMatchNode[] Parse(string version, string routeUrl, IReadOnlyCollection<ParameterInfo> parameters)
+        public IParseResult Parse(string version, string routeUrl, IReadOnlyCollection<ParameterInfo> parameters)
         {
             IReadOnlyDictionary<string, Type> parameterPairs =
                 parameters.ToDictionary(p => p.Name, p => p.ParameterType, StringComparer.Ordinal);
@@ -61,13 +61,12 @@ namespace Crest.Host.Routing
                 throw new InvalidOperationException("The route produces an ambiguous match.");
             }
 
-            return parser.Nodes.ToArray();
+            return parser;
         }
 
         private static void AppendNodeString(StringBuilder buffer, IMatchNode node)
         {
-            var literal = node as LiteralNode;
-            if (literal != null)
+            if (node is LiteralNode literal)
             {
                 buffer.Append(literal.Literal.ToLowerInvariant());
             }
