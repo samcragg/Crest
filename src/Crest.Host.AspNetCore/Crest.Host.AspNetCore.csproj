@@ -21,7 +21,9 @@
   <ItemGroup>
     <ProjectReference Include="..\Crest.Host\Crest.Host.csproj" />
     <PackageReference Include="Microsoft.AspNetCore.Hosting" Version="1.0.2" />
+    <!--
     <PackageReference Include="StyleCop.Analyzers" Version="1.0.0" PrivateAssets="All" />
+    -->
   </ItemGroup>
 
 </Project>

@@ -19,6 +19,8 @@
   </ItemGroup>
 
   <ItemGroup>
+    <!--
     <PackageReference Include="StyleCop.Analyzers" Version="1.0.0" PrivateAssets="All" />
+    -->
   </ItemGroup>
 </Project>
