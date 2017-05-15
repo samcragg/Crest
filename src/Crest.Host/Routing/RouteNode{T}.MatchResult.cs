@@ -22,7 +22,7 @@ namespace Crest.Host.Routing
             /// </summary>
             /// <param name="captures">The captured parameter values.</param>
             /// <param name="value">The matched value.</param>
-            internal MatchResult(IReadOnlyDictionary<string, object> captures, T value)
+            internal MatchResult(Dictionary<string, object> captures, T value)
             {
                 this.Captures = captures;
                 this.Value = value;
@@ -36,7 +36,7 @@ namespace Crest.Host.Routing
             /// This property will return <c>null</c> if <see cref="Success"/>
             /// returns <c>false</c>.
             /// </remarks>
-            public IReadOnlyDictionary<string, object> Captures { get; }
+            public Dictionary<string, object> Captures { get; }
 
             /// <summary>
             /// Gets a value indicating whether the match is successful.

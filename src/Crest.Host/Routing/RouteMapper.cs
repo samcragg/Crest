@@ -20,8 +20,8 @@ namespace Crest.Host.Routing
         // The method is stored against its MetadataToken so we can find it again
         private readonly Dictionary<int, RouteMethod> adapters = new Dictionary<int, RouteMethod>();
 
-        private readonly Dictionary<string, RouteNode<Route>> verbs =
-            new Dictionary<string, RouteNode<Route>>(StringComparer.OrdinalIgnoreCase);
+        private readonly Dictionary<string, RouteNode<Versions>> verbs =
+            new Dictionary<string, RouteNode<Versions>>(StringComparer.OrdinalIgnoreCase);
 
         /// <summary>
         /// Initializes a new instance of the <see cref="RouteMapper"/> class.
@@ -34,13 +34,13 @@ namespace Crest.Host.Routing
 
             foreach (RouteMetadata metadata in routes)
             {
-                // TODO: Use the query captures...
                 NodeBuilder.IParseResult result = builder.Parse(
                     MakeVersion(metadata),
                     metadata.RouteUrl,
                     metadata.Method.GetParameters());
 
-                this.AddRoute(metadata.Verb, result.Nodes, metadata);
+                var target = new Target(metadata.Method, result.QueryCaptures);
+                this.AddRoute(ref target, result.Nodes, metadata);
 
                 RouteMethod lambda = adapter.CreateMethod(metadata.Factory, metadata.Method);
                 this.adapters[metadata.Method.MetadataToken] = lambda;
@@ -57,17 +57,18 @@ namespace Crest.Host.Routing
         /// <inheritdoc />
         public MethodInfo Match(string verb, string path, ILookup<string, string> query, out IReadOnlyDictionary<string, object> parameters)
         {
-            if (this.verbs.TryGetValue(verb, out RouteNode<Route> node))
+            if (this.verbs.TryGetValue(verb, out RouteNode<Versions> node))
             {
-                RouteNode<Route>.MatchResult match = node.Match(path);
+                RouteNode<Versions>.MatchResult match = node.Match(path);
                 if (match.Success)
                 {
                     int version = (int)match.Captures[VersionCaptureNode.KeyName];
-                    MethodInfo method = match.Value.Match(version);
-                    if (method != null)
+                    Target target = match.Value.Match(version);
+                    if (target.Method != null)
                     {
+                        SaveQueryParameters(query, ref target, ref match);
                         parameters = match.Captures;
-                        return method;
+                        return target.Method;
                     }
                 }
             }
@@ -83,21 +84,32 @@ namespace Crest.Host.Routing
             return string.Concat(from, ":", to);
         }
 
-        private void AddRoute(string verb, IReadOnlyList<IMatchNode> matches, RouteMetadata metadata)
+        private static void SaveQueryParameters(ILookup<string, string> query, ref Target target, ref RouteNode<Versions>.MatchResult match)
         {
-            if (!this.verbs.TryGetValue(verb, out RouteNode<Route> parent))
+            if (target.QueryCaptures != null)
             {
-                parent = new RouteNode<Route>(new VersionCaptureNode());
-                this.verbs.Add(verb, parent);
+                foreach (QueryCapture capture in target.QueryCaptures)
+                {
+                    capture.ParseParameters(query, match.Captures);
+                }
+            }
+        }
+
+        private void AddRoute(ref Target target, IReadOnlyList<IMatchNode> matches, RouteMetadata metadata)
+        {
+            if (!this.verbs.TryGetValue(metadata.Verb, out RouteNode<Versions> parent))
+            {
+                parent = new RouteNode<Versions>(new VersionCaptureNode());
+                this.verbs.Add(metadata.Verb, parent);
             }
 
-            RouteNode<Route> node = parent.Add(matches, 0);
+            RouteNode<Versions> node = parent.Add(matches, 0);
             if (node.Value == null)
             {
-                node.Value = new Route();
+                node.Value = new Versions();
             }
 
-            node.Value.Add(metadata.Method, metadata.MinimumVersion, metadata.MaximumVersion);
+            node.Value.Add(target, metadata.MinimumVersion, metadata.MaximumVersion);
         }
     }
 }

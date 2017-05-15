@@ -35,10 +35,7 @@ namespace Crest.Host.Routing
         /// </summary>
         internal T Value
         {
-            get
-            {
-                return this.value;
-            }
+            get => this.value;
             set
             {
                 Debug.Assert(this.value == null, "Value can only be set once.");

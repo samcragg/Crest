@@ -6,49 +6,48 @@
 namespace Crest.Host.Routing
 {
     using System;
-    using System.Reflection;
 
     /// <content>
-    /// Contains the nested <see cref="Route"/> struct.
+    /// Contains the nested <see cref="Versions"/> class.
     /// </content>
     internal sealed partial class RouteMapper
     {
-        private class Route
+        private class Versions
         {
-            private MethodInfo[] methods;
+            private Target[] targets;
             private long[] versions;
 
-            public void Add(MethodInfo method, int from, int to)
+            public void Add(Target target, int from, int to)
             {
-                if (this.methods == null)
+                if (this.targets == null)
                 {
-                    this.methods = new[] { method };
+                    this.targets = new[] { target };
                     this.versions = new[] { MakeVersion(from, to) };
                 }
                 else
                 {
-                    this.CheckForOverlap(method, from, to);
+                    this.CheckForOverlap(target, from, to);
 
-                    int size = this.methods.Length;
-                    Array.Resize(ref this.methods, size + 1);
-                    this.methods[size] = method;
+                    int size = this.targets.Length;
+                    Array.Resize(ref this.targets, size + 1);
+                    this.targets[size] = target;
 
                     Array.Resize(ref this.versions, size + 1);
                     this.versions[size] = MakeVersion(from, to);
                 }
             }
 
-            public MethodInfo Match(int version)
+            public Target Match(int version)
             {
                 for (int i = 0; i < this.versions.Length; i++)
                 {
                     if (InsideVersionRange(this.versions[i], version))
                     {
-                        return this.methods[i];
+                        return this.targets[i];
                     }
                 }
 
-                return null;
+                return default(Target);
             }
 
             private static bool InsideVersionRange(long range, int version)
@@ -71,7 +70,7 @@ namespace Crest.Host.Routing
                 to = (int)(range >> 32);
             }
 
-            private void CheckForOverlap(MethodInfo method, int minimum, int maximum)
+            private void CheckForOverlap(Target target, int minimum, int maximum)
             {
                 for (int i = 0; i < this.versions.Length; i++)
                 {
@@ -79,7 +78,7 @@ namespace Crest.Host.Routing
                     if ((minimum <= to) && (maximum >= from))
                     {
                         throw new InvalidOperationException(
-                            method.Name + " specifies versions that overlap another method.");
+                            target.Method.Name + " specifies versions that overlap another method.");
                     }
                 }
             }
