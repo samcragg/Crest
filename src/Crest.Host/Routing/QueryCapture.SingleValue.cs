@@ -7,6 +7,7 @@ namespace Crest.Host.Routing
 {
     using System.Collections.Generic;
     using System.Linq;
+    using Crest.Host.Diagnostics;
 
     /// <content>
     /// Contains the nested <see cref="SingleValue"/> class.
@@ -31,7 +32,10 @@ namespace Crest.Host.Routing
                         break;
                     }
 
-                    // TODO: Trace we couldn't parse it...
+                    TraceSources.Routing.TraceError(
+                        "Unable to convert the value '{0}' for parameter '{1}'",
+                        value,
+                        this.converter.ParameterName);
                 }
             }
         }

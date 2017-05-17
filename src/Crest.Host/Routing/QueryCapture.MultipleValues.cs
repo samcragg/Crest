@@ -9,6 +9,7 @@ namespace Crest.Host.Routing
     using System.Collections;
     using System.Collections.Generic;
     using System.Linq;
+    using Crest.Host.Diagnostics;
 
     /// <content>
     /// Contains the nested <see cref="MultipleValues"/> class.
@@ -35,8 +36,17 @@ namespace Crest.Host.Routing
                     {
                         buffer.Add(result);
                     }
+                    else
+                    {
+                        TraceSources.Routing.TraceError(
+                            "Unable to convert '{0}' to type '{1}'",
+                            value,
+                            this.elementType);
 
-                    // TODO: Trace we couldn't parse it
+                        TraceSources.Routing.TraceWarning(
+                            "Parameter '{0}' does not contain all the information passed in the query dues to invalid values",
+                            this.converter.ParameterName);
+                    }
                 }
 
                 parameters[this.converter.ParameterName] = buffer.ToArray(this.elementType);

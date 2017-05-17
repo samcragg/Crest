@@ -13,6 +13,7 @@ namespace Crest.Host
     using System.Reflection;
     using System.Threading.Tasks;
     using Crest.Host.Conversion;
+    using Crest.Host.Diagnostics;
     using Crest.Host.Engine;
 
     /// <summary>
@@ -152,8 +153,12 @@ namespace Crest.Host
         /// </returns>
         protected internal MatchResult Match(string verb, string path, ILookup<string, string> query)
         {
-            IReadOnlyDictionary<string, object> parameters;
-            MethodInfo method = this.mapper.Match(verb, path, query, out parameters);
+            MethodInfo method = this.mapper.Match(
+                verb,
+                path,
+                query,
+                out IReadOnlyDictionary<string, object> parameters);
+
             if (method == null)
             {
                 return this.notFound;
@@ -259,8 +264,7 @@ namespace Crest.Host
 
         private IContentConverter GetConverter(IRequestData request)
         {
-            string accept;
-            request.Headers.TryGetValue("Accept", out accept);
+            request.Headers.TryGetValue("Accept", out string accept);
             return this.converterFactory.GetConverter(accept);
         }
 
@@ -273,15 +277,21 @@ namespace Crest.Host
             }
             catch (Exception ex)
             {
-                // TODO: Trace the exception - don't return any details though...
+                TraceSources.Routing.TraceError(
+                    "An exception occured handling the request: {0}:{1}",
+                    ex.GetType().Name,
+                    ex.Message);
+
                 try
                 {
                     response = await this.responseGenerator.InternalErrorAsync(ex).ConfigureAwait(false);
                 }
                 catch (Exception inner)
                 {
-                    // TODO: Trace the exception - don't return any details though...
-                    GC.KeepAlive(inner); // HACK: Just use the variable until we can trace it...
+                    TraceSources.Routing.TraceError(
+                        "An exception occured handling an exception: {0}:{1}",
+                        inner.GetType().Name,
+                        inner.Message);
                 }
             }
 

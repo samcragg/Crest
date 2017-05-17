@@ -95,6 +95,18 @@
                 parameters[CapturedParameter].Should().BeAssignableTo<int[]>()
                     .Which.Should().BeEquivalentTo(2, 3);
             }
+
+            [Fact]
+            public void ShouldSkipInvalidValues()
+            {
+                var parameters = new Dictionary<string, object>();
+                this.AddLookupItem("key", "invalid", "3");
+
+                var capture = QueryCapture.Create("key", typeof(int[]), "", this.converters.TryGetValue);
+                capture.ParseParameters(this.lookup, parameters);
+
+                ((int[])parameters[CapturedParameter]).Should().BeEquivalentTo(3);
+            }
         }
 
         public sealed class SingleValue : QueryCaptureTests
