@@ -44,6 +44,12 @@ namespace Crest.Host
         public ICollection<T> Values => new ArraySegment<T>(this.values, 0, this.length);
 
         /// <inheritdoc />
+        IEnumerable<string> IReadOnlyDictionary<string, T>.Keys => this.Keys;
+
+        /// <inheritdoc />
+        IEnumerable<T> IReadOnlyDictionary<string, T>.Values => this.Values;
+
+        /// <inheritdoc />
         public T this[string key]
         {
             get
@@ -54,12 +60,6 @@ namespace Crest.Host
 
             set => throw new NotSupportedException();
         }
-
-        /// <inheritdoc />
-        IEnumerable<string> IReadOnlyDictionary<string, T>.Keys => this.Keys;
-
-        /// <inheritdoc />
-        IEnumerable<T> IReadOnlyDictionary<string, T>.Values => this.Values;
 
         /// <inheritdoc />
         public void Add(string key, T value)

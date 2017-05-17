@@ -21,6 +21,7 @@
 
                 this.dictionary["key"].Should().Be(123);
             }
+
             [Fact]
             public void ShouldResizeToFitAllTheValues()
             {
@@ -66,16 +67,6 @@
             }
         }
 
-        public sealed class CopyTo : StringDictionaryTests
-        {
-            [Fact]
-            public void ShouldThrowNotSupportedException()
-            {
-                this.dictionary.Invoking<IDictionary<string, int>>(d => d.CopyTo(null, 0))
-                    .ShouldThrow<NotSupportedException>();
-            }
-        }
-
         public sealed class ContainsKey : StringDictionaryTests
         {
             [Fact]
@@ -94,6 +85,16 @@
                 bool result = this.dictionary.ContainsKey("key");
 
                 result.Should().BeTrue();
+            }
+        }
+
+        public sealed class CopyTo : StringDictionaryTests
+        {
+            [Fact]
+            public void ShouldThrowNotSupportedException()
+            {
+                this.dictionary.Invoking<IDictionary<string, int>>(d => d.CopyTo(null, 0))
+                    .ShouldThrow<NotSupportedException>();
             }
         }
 
@@ -186,18 +187,18 @@
         public sealed class Keys : StringDictionaryTests
         {
             [Fact]
-            public void ShouldReturnAnEmptyCollectionForAnEmptyDictionary()
-            {
-                this.dictionary.Keys.Should().BeEmpty();
-            }
-
-            [Fact]
             public void ShouldReturnAllTheAddedKeys()
             {
                 this.dictionary.Add("one", 1);
                 this.dictionary.Add("two", 2);
 
                 this.dictionary.Keys.Should().BeEquivalentTo("one", "two");
+            }
+
+            [Fact]
+            public void ShouldReturnAnEmptyCollectionForAnEmptyDictionary()
+            {
+                this.dictionary.Keys.Should().BeEmpty();
             }
 
             [Fact]
@@ -253,18 +254,18 @@
         public sealed class Values : StringDictionaryTests
         {
             [Fact]
-            public void ShouldReturnAnEmptyCollectionForAnEmptyDictionary()
-            {
-                this.dictionary.Values.Should().BeEmpty();
-            }
-
-            [Fact]
             public void ShouldReturnAllTheAddedKeys()
             {
                 this.dictionary.Add("one", 1);
                 this.dictionary.Add("two", 2);
 
                 this.dictionary.Values.Should().BeEquivalentTo(1, 2);
+            }
+
+            [Fact]
+            public void ShouldReturnAnEmptyCollectionForAnEmptyDictionary()
+            {
+                this.dictionary.Values.Should().BeEmpty();
             }
 
             [Fact]
