@@ -32,7 +32,7 @@ foreach ($path in (dir .\test -Directory))
 	-hideskipped `
 	-oldstyle `
 	-register:user `
-	-filter:"+[Crest.*]* -[*]DryIoc.*" `
+	-filter:"+Crest.* -DryIoc.* -ImTools.*" `
 	-target:"$dotnetexe" `
 	-targetargs:"$xunit -nologo -appveyor" `
 	-returntargetcode
