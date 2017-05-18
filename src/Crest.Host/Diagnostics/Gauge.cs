@@ -12,7 +12,7 @@ namespace Crest.Host.Diagnostics
     /// </summary>
     internal sealed class Gauge
     {
-        private const double MicrosecondsPerMinute = 1000 * 1000 * 60; //  μs/ms => sec => min
+        private const double MicrosecondsPerMinute = 1000 * 1000 * 60; // μs/ms => sec => min
         private readonly ITimeProvider time;
         private long count;
         private double fifteenMinuteAverage;
