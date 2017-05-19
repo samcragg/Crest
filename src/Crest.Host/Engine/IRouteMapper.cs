@@ -15,6 +15,17 @@ namespace Crest.Host.Engine
     public interface IRouteMapper
     {
         /// <summary>
+        /// Looks for an override method for the specified route.
+        /// </summary>
+        /// <param name="verb">The HTTP verb.</param>
+        /// <param name="path">The URL path.</param>
+        /// <returns>
+        /// A delegate to invoke if the route has been overridden, or
+        /// <c>null</c> if there are no overrides for the specified route.
+        /// </returns>
+        OverrideMethod FindOverride(string verb, string path);
+
+        /// <summary>
         /// Gets the adapter for the method returned by <see cref="Match"/>.
         /// </summary>
         /// <param name="method">The previously returned method info.</param>

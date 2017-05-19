@@ -43,6 +43,9 @@
     <Compile Update="Routing/NodeBuilder.NodeParser.cs">
       <DependentUpon>NodeBuilder.cs</DependentUpon>
     </Compile>
+    <Compile Update="Routing/RouteMapper.Routes.cs">
+      <DependentUpon>RouteMapper.cs</DependentUpon>
+    </Compile>
     <Compile Update="Routing/RouteMapper.Target.cs">
       <DependentUpon>RouteMapper.cs</DependentUpon>
     </Compile>

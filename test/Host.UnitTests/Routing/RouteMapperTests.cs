@@ -82,6 +82,31 @@
             }
         }
 
+        public sealed class FindOverride : RouteMapperTests
+        {
+            [Fact]
+            public void ShouldReturnNullIfNoOverrideExists()
+            {
+                RouteMetadata[] routes = new[] { CreateRoute("GET", "/normal_route") };
+                var mapper = new RouteMapper(routes);
+
+                OverrideMethod result = mapper.FindOverride("GET", "/normal_route");
+
+                result.Should().BeNull();
+            }
+
+            [Fact]
+            public void ShouldMatchTheVerb()
+            {
+                RouteMetadata[] routes = new[] { CreateRoute("GET", "/normal_route") };
+                var mapper = new RouteMapper(routes);
+
+                OverrideMethod result = mapper.FindOverride("GET", "/normal_route");
+
+                result.Should().BeNull();
+            }
+        }
+
         public sealed class GetAdapter : RouteMapperTests
         {
             [Fact]

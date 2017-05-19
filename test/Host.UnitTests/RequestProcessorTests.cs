@@ -116,7 +116,7 @@
                 IRequestData capturedRequest = null;
                 IContentConverter capturedConverter = null;
                 IResponseData response = Substitute.For<IResponseData>();
-                RequestProcessor.OverrideMethod overrideMethod = (r, c) =>
+                OverrideMethod overrideMethod = (r, c) =>
                 {
                     capturedConverter = c;
                     capturedRequest = r;

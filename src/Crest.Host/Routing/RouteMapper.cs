@@ -20,8 +20,7 @@ namespace Crest.Host.Routing
         // The method is stored against its MetadataToken so we can find it again
         private readonly Dictionary<int, RouteMethod> adapters = new Dictionary<int, RouteMethod>();
 
-        private readonly Dictionary<string, RouteNode<Versions>> verbs =
-            new Dictionary<string, RouteNode<Versions>>(StringComparer.OrdinalIgnoreCase);
+        private readonly StringDictionary<Routes> verbs = new StringDictionary<Routes>();
 
         /// <summary>
         /// Initializes a new instance of the <see cref="RouteMapper"/> class.
@@ -48,6 +47,19 @@ namespace Crest.Host.Routing
         }
 
         /// <inheritdoc />
+        public OverrideMethod FindOverride(string verb, string path)
+        {
+            if (this.verbs.TryGetValue(verb, out Routes routes))
+            {
+                return routes.Overrides[path];
+            }
+            else
+            {
+                return null;
+            }
+        }
+
+        /// <inheritdoc />
         public RouteMethod GetAdapter(MethodInfo method)
         {
             this.adapters.TryGetValue(method.MetadataToken, out RouteMethod adapter);
@@ -57,9 +69,9 @@ namespace Crest.Host.Routing
         /// <inheritdoc />
         public MethodInfo Match(string verb, string path, ILookup<string, string> query, out IReadOnlyDictionary<string, object> parameters)
         {
-            if (this.verbs.TryGetValue(verb, out RouteNode<Versions> node))
+            if (this.verbs.TryGetValue(verb, out Routes routes))
             {
-                RouteNode<Versions>.MatchResult match = node.Match(path);
+                RouteNode<Versions>.MatchResult match = routes.Root.Match(path);
                 if (match.Success)
                 {
                     int version = (int)match.Captures[VersionCaptureNode.KeyName];
@@ -97,13 +109,13 @@ namespace Crest.Host.Routing
 
         private void AddRoute(ref Target target, IReadOnlyList<IMatchNode> matches, RouteMetadata metadata)
         {
-            if (!this.verbs.TryGetValue(metadata.Verb, out RouteNode<Versions> parent))
+            if (!this.verbs.TryGetValue(metadata.Verb, out Routes parent))
             {
-                parent = new RouteNode<Versions>(new VersionCaptureNode());
+                parent = new Routes();
                 this.verbs.Add(metadata.Verb, parent);
             }
 
-            RouteNode<Versions> node = parent.Add(matches, 0);
+            RouteNode<Versions> node = parent.Root.Add(matches, 0);
             if (node.Value == null)
             {
                 node.Value = new Versions();
