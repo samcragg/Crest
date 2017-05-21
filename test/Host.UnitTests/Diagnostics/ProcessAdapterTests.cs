@@ -73,11 +73,11 @@
             public void ShouldReturnTheAmountOfTimeSinceTheProcessStarted()
             {
                 // Wait a little if the process has just been created to pass the
-                // tolerance amount
-                Thread.Sleep(32);
+                // tolerance amount (Windows time normally has intervals of 16ms)
+                Thread.Sleep(64);
                 TimeSpan amount = DateTime.UtcNow - this.process.StartTime.ToUniversalTime();
 
-                this.adapter.UpTime.Should().BeCloseTo(amount, 16);
+                this.adapter.UpTime.Should().BeCloseTo(amount, 32);
             }
         }
 
