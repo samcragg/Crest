@@ -37,5 +37,24 @@
                 TimeSpan.FromMilliseconds(delta / 1000.0).Should().BeCloseTo(sw.Elapsed);
             }
         }
+
+        public sealed class GetUtc : TimeProviderTests
+        {
+            [Fact]
+            public void ShouldReturnADateTimeInUtc()
+            {
+                DateTime result = this.provider.GetUtc();
+
+                result.Kind.Should().Be(DateTimeKind.Utc);
+            }
+
+            [Fact]
+            public void ShouldReturnTheCurrentTime()
+            {
+                DateTime result = this.provider.GetUtc();
+
+                result.Should().BeCloseTo(DateTime.UtcNow, 100);
+            }
+        }
     }
 }

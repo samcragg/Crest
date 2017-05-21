@@ -5,6 +5,7 @@
 
 namespace Crest.Host.Diagnostics
 {
+    using System;
     using System.Diagnostics;
 
     /// <summary>
@@ -18,6 +19,12 @@ namespace Crest.Host.Diagnostics
         public long GetCurrentMicroseconds()
         {
             return (long)(Stopwatch.GetTimestamp() / this.ticksPerMicrosecond);
+        }
+
+        /// <inheritdoc />
+        public DateTime GetUtc()
+        {
+            return DateTime.UtcNow;
         }
     }
 }

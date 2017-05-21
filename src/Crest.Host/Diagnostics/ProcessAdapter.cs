@@ -43,6 +43,11 @@ namespace Crest.Host.Diagnostics
         public virtual TimeSpan ApplicationCpuTime => this.process.UserProcessorTime;
 
         /// <summary>
+        /// Gets the name of the computer the associated process is running on.
+        /// </summary>
+        public virtual string MachineName => this.process.MachineName;
+
+        /// <summary>
         /// Gets the total amount of CPU time spent in the OS for the process.
         /// </summary>
         public virtual TimeSpan SystemCpuTime => this.process.PrivilegedProcessorTime;

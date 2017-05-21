@@ -29,6 +29,15 @@
             }
         }
 
+        public sealed class MachineName : ProcessAdapterTests
+        {
+            [Fact]
+            public void ShouldReturnTheMachineName()
+            {
+                this.adapter.MachineName.Should().Be(this.process.MachineName);
+            }
+        }
+
         public sealed class Refresh : ProcessAdapterTests
         {
             [Fact]
