@@ -9,7 +9,7 @@ namespace Crest.Host.Engine
     using System.Reflection;
 
     /// <summary>
-    /// PRovides information about a route to match.
+    /// Provides information about a route to match.
     /// </summary>
     public sealed class RouteMetadata
     {

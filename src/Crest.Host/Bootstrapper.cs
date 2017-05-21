@@ -7,7 +7,9 @@ namespace Crest.Host
 {
     using System;
     using System.Collections.Generic;
+    using System.Diagnostics;
     using System.Linq;
+    using Crest.Host.Diagnostics;
     using Crest.Host.Engine;
     using Crest.Host.Routing;
 
@@ -106,16 +108,27 @@ namespace Crest.Host
         }
 
         /// <summary>
+        /// Gets routes which should bypass the normal processing pipeline.
+        /// </summary>
+        /// <returns>A sequence of route metadata.</returns>
+        protected virtual IEnumerable<DirectRouteMetadata> GetDirectRoutes()
+        {
+            return Enumerable.Empty<DirectRouteMetadata>();
+        }
+
+        /// <summary>
         /// Initializes the container and routes.
         /// </summary>
         protected void Initialize()
         {
+            this.RegisterKnownTypes();
+
             IDiscoveryService discovery = this.ServiceLocator.GetDiscoveryService();
             IReadOnlyCollection<Type> types = this.RegisterTypes(discovery);
 
             List<RouteMetadata> routes =
                 types.SelectMany(t => this.GetRoutes(discovery, t)).ToList();
-            this.RouteMapper = new RouteMapper(routes);
+            this.RouteMapper = new RouteMapper(routes, this.GetDirectRoutes());
 
             ConfigurationService configuration = this.ServiceLocator.GetConfigurationService();
             configuration.InitializeProviders(types).Wait();
@@ -158,6 +171,13 @@ namespace Crest.Host
                 route.Factory = route.Factory ?? (() => this.serviceRegister.GetService(type));
                 yield return route;
             }
+        }
+
+        private void RegisterKnownTypes()
+        {
+            this.serviceRegister.RegisterFactory(
+                typeof(ProcessAdapter),
+                () => new ProcessAdapter(Process.GetCurrentProcess()));
         }
 
         private IReadOnlyCollection<Type> RegisterTypes(IDiscoveryService discovery)

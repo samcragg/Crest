@@ -5,7 +5,6 @@
 
 namespace Crest.Host.Routing
 {
-    using System;
     using System.Collections.Generic;
     using System.Globalization;
     using System.Linq;
@@ -26,10 +25,18 @@ namespace Crest.Host.Routing
         /// Initializes a new instance of the <see cref="RouteMapper"/> class.
         /// </summary>
         /// <param name="routes">The routes to match.</param>
-        public RouteMapper(IEnumerable<RouteMetadata> routes)
+        /// <param name="overrides">Optional override routes.</param>
+        public RouteMapper(
+            IEnumerable<RouteMetadata> routes,
+            IEnumerable<DirectRouteMetadata> overrides)
         {
             var adapter = new RouteMethodAdapter();
             var builder = new NodeBuilder();
+
+            foreach (DirectRouteMetadata metadata in overrides)
+            {
+                this.AddDirectRoute(metadata.Verb, metadata.RouteUrl, metadata.Method);
+            }
 
             foreach (RouteMetadata metadata in routes)
             {
@@ -105,6 +112,17 @@ namespace Crest.Host.Routing
                     capture.ParseParameters(query, match.Captures);
                 }
             }
+        }
+
+        private void AddDirectRoute(string verb, string route, OverrideMethod method)
+        {
+            if (!this.verbs.TryGetValue(verb, out Routes parent))
+            {
+                parent = new Routes();
+                this.verbs.Add(verb, parent);
+            }
+
+            parent.Overrides.Add(route, method);
         }
 
         private void AddRoute(ref Target target, IReadOnlyList<IMatchNode> matches, RouteMetadata metadata)

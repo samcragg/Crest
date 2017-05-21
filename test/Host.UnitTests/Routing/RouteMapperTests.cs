@@ -22,6 +22,9 @@
         private static readonly MethodInfo ExampleMethodInfo =
             typeof(RouteMapperTests).GetMethod(nameof(ExampleMethod), BindingFlags.Instance | BindingFlags.NonPublic);
 
+        private readonly IEnumerable<DirectRouteMetadata> noDirectRoutes = Enumerable.Empty<DirectRouteMetadata>();
+        private readonly IEnumerable<RouteMetadata> noRoutes = Enumerable.Empty<RouteMetadata>();
+
         private static RouteMetadata CreateRoute(string verb, string route, int from = 1, int to = 1)
         {
             return new RouteMetadata
@@ -62,7 +65,7 @@
                     CreateRoute("GET", "/route", 1, 3),
                 };
 
-                Action action = () => new RouteMapper(routes);
+                Action action = () => new RouteMapper(routes, this.noDirectRoutes);
 
                 action.ShouldThrow<InvalidOperationException>();
             }
@@ -76,7 +79,7 @@
                     CreateRoute("GET", "/route", 3, 5),
                 };
 
-                Action action = () => new RouteMapper(routes);
+                Action action = () => new RouteMapper(routes, this.noDirectRoutes);
 
                 action.ShouldThrow<InvalidOperationException>();
             }
@@ -88,7 +91,7 @@
             public void ShouldReturnNullIfNoOverrideExists()
             {
                 RouteMetadata[] routes = new[] { CreateRoute("GET", "/normal_route") };
-                var mapper = new RouteMapper(routes);
+                var mapper = new RouteMapper(routes, this.noDirectRoutes);
 
                 OverrideMethod result = mapper.FindOverride("GET", "/normal_route");
 
@@ -96,12 +99,31 @@
             }
 
             [Fact]
+            public void ShouldMatchTheRoute()
+            {
+                OverrideMethod method = Substitute.For<OverrideMethod>();
+                DirectRouteMetadata[] overrides = new[]
+                {
+                    new DirectRouteMetadata { Verb = "GET", RouteUrl = "/route", Method = method }
+                };
+                var mapper = new RouteMapper(this.noRoutes, overrides);
+
+                OverrideMethod result = mapper.FindOverride("GET", "/route");
+
+                result.Should().BeSameAs(method);
+            }
+
+            [Fact]
             public void ShouldMatchTheVerb()
             {
-                RouteMetadata[] routes = new[] { CreateRoute("GET", "/normal_route") };
-                var mapper = new RouteMapper(routes);
+                OverrideMethod method = Substitute.For<OverrideMethod>();
+                DirectRouteMetadata[] overrides = new[]
+                {
+                    new DirectRouteMetadata { Verb = "PUT", RouteUrl = "/route", Method = method }
+                };
+                var mapper = new RouteMapper(this.noRoutes, overrides);
 
-                OverrideMethod result = mapper.FindOverride("GET", "/normal_route");
+                OverrideMethod result = mapper.FindOverride("GET", "/route");
 
                 result.Should().BeNull();
             }
@@ -112,7 +134,7 @@
             [Fact]
             public void ShouldReturnAnAdapterForKnownMethods()
             {
-                var mapper = new RouteMapper(new[] { CreateRoute("GET", "/route") });
+                var mapper = new RouteMapper(new[] { CreateRoute("GET", "/route") }, this.noDirectRoutes);
 
                 RouteMethod result = mapper.GetAdapter(ExampleMethodInfo);
 
@@ -122,7 +144,7 @@
             [Fact]
             public void ShouldReturnNullForUnknownMethods()
             {
-                var mapper = new RouteMapper(new RouteMetadata[0]);
+                var mapper = new RouteMapper(this.noRoutes, this.noDirectRoutes);
 
                 RouteMethod result = mapper.GetAdapter(ExampleMethodInfo);
 
@@ -142,7 +164,7 @@
                 RouteMetadata[] routes = new[] { CreateRoute("GET", "/route?boolean={parameter}") };
                 routes[0].Method = BoolParameterMethodInfo;
 
-                var mapper = new RouteMapper(routes);
+                var mapper = new RouteMapper(routes, this.noDirectRoutes);
                 MethodInfo route = mapper.Match(
                     "GET",
                     "/v1/route",
@@ -160,7 +182,7 @@
                 RouteMetadata[] routes = new[] { CreateRoute("GET", "/route?key={parameter}") };
                 routes[0].Method = BoolParameterMethodInfo;
 
-                var mapper = new RouteMapper(routes);
+                var mapper = new RouteMapper(routes, this.noDirectRoutes);
                 MethodInfo route = mapper.Match(
                     "GET",
                     "/v1/route",
@@ -173,7 +195,7 @@
             [Fact]
             public void ShouldMatchTheRoute()
             {
-                var mapper = new RouteMapper(new[] { CreateRoute("GET", "/route") });
+                var mapper = new RouteMapper(new[] { CreateRoute("GET", "/route") }, this.noDirectRoutes);
 
                 MethodInfo route = mapper.Match("GET", "/v1/route", this.query, out _);
                 MethodInfo unknown = mapper.Match("GET", "/v1/unknown", this.query, out _);
@@ -185,7 +207,7 @@
             [Fact]
             public void ShouldMatchTheVerb()
             {
-                var mapper = new RouteMapper(new[] { CreateRoute("PUT", "/route") });
+                var mapper = new RouteMapper(new[] { CreateRoute("PUT", "/route") }, this.noDirectRoutes);
 
                 MethodInfo get = mapper.Match("GET", "/v1/route", this.query, out _);
                 MethodInfo put = mapper.Match("PUT", "/v1/route", this.query, out _);
@@ -204,7 +226,7 @@
                 };
                 routes[1].Method = ExampleMethod2Info;
 
-                var mapper = new RouteMapper(routes);
+                var mapper = new RouteMapper(routes, this.noDirectRoutes);
 
                 MethodInfo result = mapper.Match("GET", "/v3/route", this.query, out _);
 
@@ -214,7 +236,7 @@
             [Fact]
             public void ShouldReturnNullForWrongVersions()
             {
-                var mapper = new RouteMapper(new[] { CreateRoute("GET", "/route", 1, 1) });
+                var mapper = new RouteMapper(new[] { CreateRoute("GET", "/route", 1, 1) }, this.noDirectRoutes);
 
                 MethodInfo result = mapper.Match("GET", "/v2/route", this.query, out _);
 
@@ -224,7 +246,7 @@
             [Fact]
             public void ShouldSetTheParameters()
             {
-                var mapper = new RouteMapper(new[] { CreateRoute("GET", "/route") });
+                var mapper = new RouteMapper(new[] { CreateRoute("GET", "/route") }, this.noDirectRoutes);
                 mapper.Match(
                     "GET",
                     "/v1/route",
