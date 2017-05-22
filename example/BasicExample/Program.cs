@@ -15,13 +15,12 @@
         /// <param name="args">The command line arguments.</param>
         public static void Main(string[] args)
         {
-            var host = new WebHostBuilder()
-                .UseKestrel()
+            var host = new WebHostBuilder();
+            host.UseKestrel()
                 .UseIISIntegration()
                 .UseCrest()
-                .Build();
-
-            host.Run();
+                .Build()
+                .Run();
         }
     }
 }
