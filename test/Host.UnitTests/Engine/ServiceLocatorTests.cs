@@ -1,6 +1,7 @@
 ﻿namespace Host.UnitTests
 {
     using System;
+    using System.Collections;
     using System.Collections.Generic;
     using System.Linq;
     using System.Reflection;
@@ -361,6 +362,23 @@
             }
 
             [Fact]
+            public void ShouldIgnoreIEnumerableTypes()
+            {
+                using (var serviceLocator = new ServiceLocator())
+                {
+                    serviceLocator.RegisterMany(new[] { typeof(FakeEnumerable<>) }, _ => false);
+
+                    // Get all the registered types that extend IEnumerable, hence
+                    // the IEnumerable of IEnumerable
+                    object result = serviceLocator.GetService(
+                        typeof(IEnumerable<IEnumerable<int>>));
+
+                    result.Should().BeAssignableTo<IEnumerable<IEnumerable<int>>>()
+                          .Which.Should().BeEmpty();
+                }
+            }
+
+            [Fact]
             public void ShouldRegisterAllTheImplementingInterfaces()
             {
                 using (var serviceLocator = new ServiceLocator())
@@ -400,6 +418,19 @@
                     object result2 = serviceLocator.GetService(typeof(IInterface1));
 
                     result1.Should().NotBeSameAs(result2);
+                }
+            }
+
+            public class FakeEnumerable<T> : IEnumerable<T>
+            {
+                public IEnumerator<T> GetEnumerator()
+                {
+                    throw new NotImplementedException();
+                }
+
+                IEnumerator IEnumerable.GetEnumerator()
+                {
+                    throw new NotImplementedException();
                 }
             }
         }

@@ -289,6 +289,11 @@ namespace Crest.Host.Engine
 
             for (int i = 0; i < services.Length; i++)
             {
+                if (services[i] == typeof(IEnumerable<>))
+                {
+                    continue;
+                }
+
                 register(services[i], implementation);
             }
         }
