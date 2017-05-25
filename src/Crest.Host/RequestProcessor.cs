@@ -139,6 +139,12 @@ namespace Crest.Host
         /// </returns>
         protected internal MatchResult Match(string verb, string path, ILookup<string, string> query)
         {
+            OverrideMethod direct = this.mapper.FindOverride(verb, path);
+            if (direct != null)
+            {
+                return new MatchResult(direct);
+            }
+
             MethodInfo method = this.mapper.Match(
                 verb,
                 path,

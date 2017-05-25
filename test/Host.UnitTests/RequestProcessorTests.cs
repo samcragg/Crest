@@ -12,6 +12,7 @@
     using FluentAssertions;
     using NSubstitute;
     using NSubstitute.ExceptionExtensions;
+    using NSubstitute.ReturnsExtensions;
     using Xunit;
 
     public class RequestProcessorTests
@@ -78,36 +79,50 @@
             private readonly RequestProcessor.MatchResult simpleMatch =
                 new RequestProcessor.MatchResult(FakeMethodInfo, new Dictionary<string, object>());
 
-            [Fact]
-            public async Task ShouldProvideANonInvokableMethodToOverrideMatches()
+            public void FakeMethod()
             {
-                var capturedMatch = default(RequestProcessor.MatchResult);
-                var callback = new Func<RequestProcessor.MatchResult, IRequestData>(match =>
-                {
-                    capturedMatch = match;
-                    return null;
-                });
-
-                await this.processor.HandleRequestAsync(
-                    new RequestProcessor.MatchResult((r, c) => Task.FromResult<IResponseData>(null)),
-                    callback);
-
-                capturedMatch.IsOverride.Should().BeFalse();
-                capturedMatch.Method.Invoking(m => m.Invoke(null, null))
-                             .ShouldThrow<TargetInvocationException>()
-                             .WithInnerException<InvalidOperationException>();
             }
 
             [Fact]
-            public async Task ShouldReturnNotAcceptableIfNoConverter()
+            public async Task ShouldCatchExceptionsFromInvokeHandler()
             {
-                this.converterFactory.GetConverter(null)
-                    .ReturnsForAnyArgs((IContentConverter)null);
-                IRequestData request = Substitute.For<IRequestData>();
+                IResponseData response = Substitute.For<IResponseData>();
+                Exception exception = new DivideByZeroException();
+                this.processor.InvokeHandlerAsync(Arg.Is(this.request), Arg.Any<IContentConverter>()).Throws(exception);
+                this.processor.OnErrorAsync(Arg.Is(this.request), exception).Returns(response);
 
-                await this.processor.HandleRequestAsync(this.simpleMatch, r => request);
+                await this.processor.HandleRequestAsync(this.simpleMatch, _ => this.request);
 
-                await this.responseGenerator.Received().NotAcceptableAsync(request);
+                await this.processor.Received().WriteResponseAsync(this.request, response);
+            }
+
+            [Fact]
+            public async Task ShouldCatchExceptionsFromTheErrorHandler()
+            {
+                Exception exception = new DivideByZeroException();
+                this.processor.InvokeHandlerAsync(Arg.Is(this.request), Arg.Any<IContentConverter>())
+                    .Throws<ArgumentNullException>();
+                this.processor.OnErrorAsync(Arg.Is(this.request), Arg.Any<Exception>())
+                    .Throws(exception);
+
+                await this.processor.HandleRequestAsync(this.simpleMatch, _ => this.request);
+
+                await this.responseGenerator.Received().InternalErrorAsync(exception);
+            }
+
+            [Fact]
+            public async Task ShouldCatchExceptionsFromTheInternalErrorHandler()
+            {
+                this.processor.InvokeHandlerAsync(Arg.Is(this.request), Arg.Any<IContentConverter>())
+                    .Throws<DivideByZeroException>();
+                this.processor.OnErrorAsync(Arg.Is(this.request), Arg.Any<Exception>())
+                    .Throws<DivideByZeroException>();
+                this.responseGenerator.InternalErrorAsync(Arg.Any<Exception>())
+                    .Throws<DivideByZeroException>();
+
+                await this.processor.HandleRequestAsync(this.simpleMatch, _ => this.request);
+
+                await this.processor.Received().WriteResponseAsync(this.request, ResponseGenerator.InternalError);
             }
 
             [Fact]
@@ -153,6 +168,26 @@
             }
 
             [Fact]
+            public async Task ShouldProvideANonInvokableMethodToOverrideMatches()
+            {
+                var capturedMatch = default(RequestProcessor.MatchResult);
+                var callback = new Func<RequestProcessor.MatchResult, IRequestData>(match =>
+                {
+                    capturedMatch = match;
+                    return null;
+                });
+
+                await this.processor.HandleRequestAsync(
+                    new RequestProcessor.MatchResult((r, c) => Task.FromResult<IResponseData>(null)),
+                    callback);
+
+                capturedMatch.IsOverride.Should().BeFalse();
+                capturedMatch.Method.Invoking(m => m.Invoke(null, null))
+                             .ShouldThrow<TargetInvocationException>()
+                             .WithInnerException<InvalidOperationException>();
+            }
+
+            [Fact]
             public async Task ShouldReturnNonNullValuesFromOnBeforeRequest()
             {
                 IResponseData response = Substitute.For<IResponseData>();
@@ -165,66 +200,21 @@
             }
 
             [Fact]
-            public async Task ShouldCatchExceptionsFromInvokeHandler()
+            public async Task ShouldReturnNotAcceptableIfNoConverter()
             {
-                IResponseData response = Substitute.For<IResponseData>();
-                Exception exception = new DivideByZeroException();
-                this.processor.InvokeHandlerAsync(Arg.Is(this.request), Arg.Any<IContentConverter>()).Throws(exception);
-                this.processor.OnErrorAsync(Arg.Is(this.request), exception).Returns(response);
+                this.converterFactory.GetConverter(null)
+                    .ReturnsForAnyArgs((IContentConverter)null);
+                IRequestData request = Substitute.For<IRequestData>();
 
-                await this.processor.HandleRequestAsync(this.simpleMatch, _ => this.request);
+                await this.processor.HandleRequestAsync(this.simpleMatch, r => request);
 
-                await this.processor.Received().WriteResponseAsync(this.request, response);
-            }
-
-            [Fact]
-            public async Task ShouldCatchExceptionsFromTheErrorHandler()
-            {
-                Exception exception = new DivideByZeroException();
-                this.processor.InvokeHandlerAsync(Arg.Is(this.request), Arg.Any<IContentConverter>())
-                    .Throws<ArgumentNullException>();
-                this.processor.OnErrorAsync(Arg.Is(this.request), Arg.Any<Exception>())
-                    .Throws(exception);
-
-                await this.processor.HandleRequestAsync(this.simpleMatch, _ => this.request);
-
-                await this.responseGenerator.Received().InternalErrorAsync(exception);
-            }
-
-            [Fact]
-            public async Task ShouldCatchExceptionsFromTheInternalErrorHandler()
-            {
-                this.processor.InvokeHandlerAsync(Arg.Is(this.request), Arg.Any<IContentConverter>())
-                    .Throws<DivideByZeroException>();
-                this.processor.OnErrorAsync(Arg.Is(this.request), Arg.Any<Exception>())
-                    .Throws<DivideByZeroException>();
-                this.responseGenerator.InternalErrorAsync(Arg.Any<Exception>())
-                    .Throws<DivideByZeroException>();
-
-                await this.processor.HandleRequestAsync(this.simpleMatch, _ => this.request);
-
-                await this.processor.Received().WriteResponseAsync(this.request, ResponseGenerator.InternalError);
-            }
-
-            public void FakeMethod()
-            {
+                await this.responseGenerator.Received().NotAcceptableAsync(request);
             }
         }
 
         public sealed class InvokeHandlerAsync : RequestProcessorTests
         {
             private readonly IContentConverter converter = Substitute.For<IContentConverter>();
-
-            [Fact]
-            public async Task ShouldReturnOKStatusCode()
-            {
-                this.mapper.GetAdapter(this.request.Handler)
-                           .Returns(_ => Task.FromResult<object>("Response"));
-
-                IResponseData result = await this.processor.InvokeHandlerAsync(this.request, this.converter);
-
-                result.StatusCode.Should().Be(200);
-            }
 
             [Fact]
             public void ShouldCheckTheHandlerIsFound()
@@ -234,21 +224,6 @@
 
                 new Func<Task>(async () => await this.processor.InvokeHandlerAsync(this.request, this.converter))
                     .ShouldThrow<InvalidOperationException>();
-            }
-
-            [Fact]
-            public async Task ShouldSerializeTheResult()
-            {
-                this.mapper.GetAdapter(this.request.Handler)
-                           .Returns(_ => Task.FromResult<object>("Response"));
-
-                using (var stream = new MemoryStream())
-                {
-                    IResponseData response = await this.processor.InvokeHandlerAsync(this.request, this.converter);
-                    await response.WriteBody(stream);
-                }
-
-                this.converter.Received().WriteTo(Arg.Any<Stream>(), "Response");
             }
 
             [Fact]
@@ -272,6 +247,32 @@
 
                 await this.responseGenerator.ReceivedWithAnyArgs().NotFoundAsync(null, null);
             }
+
+            [Fact]
+            public async Task ShouldReturnOKStatusCode()
+            {
+                this.mapper.GetAdapter(this.request.Handler)
+                           .Returns(_ => Task.FromResult<object>("Response"));
+
+                IResponseData result = await this.processor.InvokeHandlerAsync(this.request, this.converter);
+
+                result.StatusCode.Should().Be(200);
+            }
+
+            [Fact]
+            public async Task ShouldSerializeTheResult()
+            {
+                this.mapper.GetAdapter(this.request.Handler)
+                           .Returns(_ => Task.FromResult<object>("Response"));
+
+                using (var stream = new MemoryStream())
+                {
+                    IResponseData response = await this.processor.InvokeHandlerAsync(this.request, this.converter);
+                    await response.WriteBody(stream);
+                }
+
+                this.converter.Received().WriteTo(Arg.Any<Stream>(), "Response");
+            }
         }
 
         public sealed class Match : RequestProcessorTests
@@ -279,8 +280,8 @@
             [Fact]
             public void ShouldReturnAnOverrideIfNoMethodMatches()
             {
-                IReadOnlyDictionary<string, object> notUsed;
-                this.mapper.Match(null, null, null, out notUsed).ReturnsForAnyArgs((MethodInfo)null);
+                this.mapper.FindOverride(null, null).ReturnsNullForAnyArgs();
+                this.mapper.Match(null, null, null, out _).ReturnsForAnyArgs((MethodInfo)null);
 
                 RequestProcessor.MatchResult result =
                     this.processor.Match("", "", Substitute.For<ILookup<string, string>>());
@@ -292,11 +293,27 @@
             }
 
             [Fact]
+            public void ShouldReturnDirectRoutes()
+            {
+                OverrideMethod method = (r, c) => Task.FromResult<IResponseData>(null);
+                this.mapper.FindOverride("GET", "/route").Returns(method);
+
+                RequestProcessor.MatchResult result =
+                    this.processor.Match("GET", "/route", Substitute.For<ILookup<string, string>>());
+
+                result.IsOverride.Should().BeTrue();
+                result.Override.Should().BeSameAs(method);
+                this.mapper.DidNotReceiveWithAnyArgs().Match(null, null, null, out _);
+            }
+
+            [Fact]
             public void ShouldReturnTheMatchedInformation()
             {
                 MethodInfo method = Substitute.For<MethodInfo>();
                 IReadOnlyDictionary<string, object> parameters = new Dictionary<string, object>();
                 ILookup<string, string> query = Substitute.For<ILookup<string, string>>();
+
+                this.mapper.FindOverride("GET", "/route").ReturnsNull();
 
                 // We need to call the Arg.XXX calls in the same order as the method
                 // for NSubstitute to handle them and we need to use the specifier
@@ -395,6 +412,19 @@
         public sealed class OnErrorAsync : RequestProcessorTests
         {
             [Fact]
+            public async Task ShouldInvokeProcessIfCanHandleReturnsTrue()
+            {
+                Exception exception = new DivideByZeroException();
+                IErrorHandlerPlugin plugin = CreateErrorHandlerPlugin(1);
+                plugin.CanHandle(exception).Returns(true);
+                this.serviceLocator.GetErrorHandlers().Returns(new[] { plugin });
+
+                await this.processor.OnErrorAsync(this.request, exception);
+
+                await plugin.Received().ProcessAsync(this.request, exception);
+            }
+
+            [Fact]
             public async Task ShouldInvokeThePluginsInTheCorrectOrder()
             {
                 Exception exception = new DivideByZeroException();
@@ -411,19 +441,6 @@
                     two.CanHandle(exception);
                     three.CanHandle(exception);
                 });
-            }
-
-            [Fact]
-            public async Task ShouldInvokeProcessIfCanHandleReturnsTrue()
-            {
-                Exception exception = new DivideByZeroException();
-                IErrorHandlerPlugin plugin = CreateErrorHandlerPlugin(1);
-                plugin.CanHandle(exception).Returns(true);
-                this.serviceLocator.GetErrorHandlers().Returns(new[] { plugin });
-
-                await this.processor.OnErrorAsync(this.request, exception);
-
-                await plugin.Received().ProcessAsync(this.request, exception);
             }
 
             private static IErrorHandlerPlugin CreateErrorHandlerPlugin(int order)

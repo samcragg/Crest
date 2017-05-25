@@ -13,6 +13,7 @@
     using FluentAssertions;
     using Microsoft.AspNetCore.Http;
     using NSubstitute;
+    using NSubstitute.ReturnsExtensions;
     using Xunit;
 
     public class HttpContextProcessorTests
@@ -26,6 +27,7 @@
         {
             this.converter = Substitute.For<IContentConverter>();
             this.mapper = Substitute.For<IRouteMapper>();
+            this.mapper.FindOverride(null, null).ReturnsNullForAnyArgs();
 
             IContentConverterFactory factory = Substitute.For<IContentConverterFactory>();
             factory.GetConverter(null).ReturnsForAnyArgs(this.converter);
