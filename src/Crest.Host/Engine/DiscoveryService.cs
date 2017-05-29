@@ -12,7 +12,7 @@ namespace Crest.Host.Engine
     using System.Runtime.CompilerServices;
     using System.Threading;
     using Crest.Core;
-    using Microsoft.Extensions.DependencyModel;
+    using Crest.Host.Diagnostics;
 
     /// <summary>
     /// Uses the DependencyModel package to find dependencies at runtime.
@@ -29,26 +29,20 @@ namespace Crest.Host.Engine
                 "System"
             }, StringComparer.Ordinal);
 
-        private readonly DependencyContext context;
+        private readonly ExecutingAssembly assemblyInfo;
         private readonly Lazy<IReadOnlyList<Type>> loadedTypes;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="DiscoveryService"/> class.
         /// </summary>
-        /// <param name="entryAssembly">
-        /// The assembly to load the dependency context of.
+        /// <param name="assemblyInfo">
+        /// Contains information about the current assembly.
         /// </param>
-        public DiscoveryService(Assembly entryAssembly = null)
+        public DiscoveryService(ExecutingAssembly assemblyInfo)
         {
-            this.context = DependencyContext.Load(entryAssembly ?? Assembly.GetEntryAssembly());
+            this.assemblyInfo = assemblyInfo;
             this.loadedTypes = new Lazy<IReadOnlyList<Type>>(this.LoadTypes, LazyThreadSafetyMode.None);
         }
-
-        /// <summary>
-        /// Gets or sets the function to load an assembly.
-        /// </summary>
-        /// <remarks>Exposed for unit testing.</remarks>
-        internal Func<AssemblyName, Assembly> AssemblyLoad { get; set; } = Assembly.Load;
 
         /// <inheritdoc />
         public IEnumerable<ITypeFactory> GetCustomFactories()
@@ -160,24 +154,11 @@ namespace Crest.Host.Engine
             }
         }
 
-        private IEnumerable<TypeInfo> GetAssemblyTypes(string name)
-        {
-            try
-            {
-                Assembly assembly = this.AssemblyLoad(new AssemblyName(name));
-                return assembly.DefinedTypes;
-            }
-            catch
-            {
-                return Enumerable.Empty<TypeInfo>();
-            }
-        }
-
         private IReadOnlyList<Type> LoadTypes()
         {
             IEnumerable<Type> types =
-                from library in this.context.CompileLibraries
-                from typeInfo in this.GetAssemblyTypes(library.Name)
+                from assembly in this.assemblyInfo.LoadCompileLibraries()
+                from typeInfo in assembly.DefinedTypes
                 where IncludeType(typeInfo)
                 select typeInfo.AsType();
 

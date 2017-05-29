@@ -6,13 +6,25 @@
     using System.Reflection;
     using System.Threading.Tasks;
     using Crest.Core;
+    using Crest.Host.Diagnostics;
     using Crest.Host.Engine;
     using FluentAssertions;
+    using NSubstitute;
     using Xunit;
 
     public class DiscoveryServiceTests
     {
-        private readonly DiscoveryService service = new DiscoveryService(typeof(DiscoveryServiceTests).GetTypeInfo().Assembly);
+        private readonly ExecutingAssembly executingAssembly;
+        private readonly DiscoveryService service;
+
+        public DiscoveryServiceTests()
+        {
+            this.executingAssembly = Substitute.For<ExecutingAssembly>();
+            this.executingAssembly.LoadCompileLibraries()
+                .Returns(new[] { typeof(DiscoveryServiceTests).GetTypeInfo().Assembly });
+
+            this.service = new DiscoveryService(this.executingAssembly);
+        }
 
         public class FakeTypeFactory : ITypeFactory
         {
@@ -41,15 +53,14 @@
         public sealed class GetDiscoveredTypes : DiscoveryServiceTests
         {
             [Fact]
-            public void ShouldHandleExceptionsWhenLoadingAssemblies()
+            public void ShouldExcludeDryIocTypes()
             {
-                this.service.AssemblyLoad = _ => { throw new BadImageFormatException(); };
+                this.executingAssembly.LoadCompileLibraries()
+                    .Returns(new[] { typeof(DryIoc.Container).GetTypeInfo().Assembly });
 
-                // Use ToList to force evaluation (just in case it changes to lazy
-                // evaluation later on)
-                List<Type> result = this.service.GetDiscoveredTypes().ToList();
+                IEnumerable<Type> types = this.service.GetDiscoveredTypes();
 
-                result.Should().BeEmpty();
+                types.Should().NotContain(typeof(DryIoc.Container));
             }
 
             [Fact]
@@ -58,6 +69,22 @@
                 IEnumerable<Type> types = this.service.GetDiscoveredTypes();
 
                 types.Should().Contain(typeof(ExampleInternalClass));
+            }
+
+            [Fact]
+            public void ShouldIncludeTypesWithNoNamespace()
+            {
+                IEnumerable<Type> types = this.service.GetDiscoveredTypes();
+
+                types.Should().Contain(typeof(ClassWithNoNameSpace));
+            }
+
+            [Fact]
+            public void ShouldIncludeTypesWithSingleNamespace()
+            {
+                IEnumerable<Type> types = this.service.GetDiscoveredTypes();
+
+                types.Should().Contain(typeof(SingleNamespace.ClassWithSingleNamespace));
             }
 
             internal class ExampleInternalClass
@@ -178,4 +205,15 @@
             }
         }
     }
+}
+
+namespace SingleNamespace
+{
+    internal class ClassWithSingleNamespace
+    {
+    }
+}
+
+internal class ClassWithNoNameSpace
+{
 }

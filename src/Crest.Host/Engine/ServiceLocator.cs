@@ -10,6 +10,7 @@ namespace Crest.Host.Engine
     using System.Linq;
     using System.Reflection;
     using Crest.Host.Conversion;
+    using Crest.Host.Diagnostics;
     using DryIoc;
 
     /// <summary>
@@ -35,6 +36,7 @@ namespace Crest.Host.Engine
         internal ServiceLocator(IContainer container)
         {
             this.container = container;
+            this.RegisterSingleInstance(typeof(ExecutingAssembly), typeof(ExecutingAssembly));
         }
 
         /// <summary>
