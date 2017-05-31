@@ -2,7 +2,7 @@
   "iisSettings": {
     "anonymousAuthentication": true,
     "iisExpress": {
-      "applicationUrl": "http://localhost:55497/"
+      "applicationUrl": "http://localhost:55000/"
     },
     "windowsAuthentication": false
   },
@@ -11,12 +11,13 @@
     "Console": {
       "commandName": "Project",
       "launchBrowser": true,
-      "launchUrl": "http://localhost:5000"
+      "launchUrl": "http://localhost:5000/health"
     },
 
     "IIS Express": {
       "commandName": "IISExpress",
-      "launchBrowser": true
+      "launchBrowser": true,
+      "launchUrl": "http://localhost:55000/health"
     }
   }
 }
