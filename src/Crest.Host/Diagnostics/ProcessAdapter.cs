@@ -43,9 +43,9 @@ namespace Crest.Host.Diagnostics
         public virtual TimeSpan ApplicationCpuTime => this.process.UserProcessorTime;
 
         /// <summary>
-        /// Gets the name of the computer the associated process is running on.
+        /// Gets the amount of the private memory allocated for the process.
         /// </summary>
-        public virtual string MachineName => this.process.MachineName;
+        public virtual long PrivateMemory => this.process.PrivateMemorySize64;
 
         /// <summary>
         /// Gets the total amount of CPU time spent in the OS for the process.
@@ -61,11 +61,6 @@ namespace Crest.Host.Diagnostics
         /// Gets the amount of physical memory allocated for the process.
         /// </summary>
         public virtual long WorkingMemory => this.process.WorkingSet64;
-
-        /// <summary>
-        /// Gets the amount of the virtual memory allocated for the process.
-        /// </summary>
-        public virtual long VirtualMemory => this.process.VirtualMemorySize64;
 
         /// <summary>
         /// Clears any cached values retained by the underlying component.

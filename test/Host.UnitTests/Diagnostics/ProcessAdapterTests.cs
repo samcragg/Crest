@@ -29,12 +29,12 @@
             }
         }
 
-        public sealed class MachineName : ProcessAdapterTests
+        public sealed class PrivateMemory : ProcessAdapterTests
         {
             [Fact]
-            public void ShouldReturnTheMachineName()
+            public void ShouldReturnTheVirtualMemorySize64()
             {
-                this.adapter.MachineName.Should().Be(this.process.MachineName);
+                this.adapter.PrivateMemory.Should().Be(this.process.PrivateMemorySize64);
             }
         }
 
@@ -78,15 +78,6 @@
                 TimeSpan amount = DateTime.UtcNow - this.process.StartTime.ToUniversalTime();
 
                 this.adapter.UpTime.Should().BeCloseTo(amount, 32);
-            }
-        }
-
-        public sealed class VirtualMemory : ProcessAdapterTests
-        {
-            [Fact]
-            public void ShouldReturnTheVirtualMemorySize64()
-            {
-                this.adapter.VirtualMemory.Should().Be(this.process.VirtualMemorySize64);
             }
         }
 

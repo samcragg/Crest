@@ -58,7 +58,9 @@ namespace Crest.Host.Diagnostics
         /// <returns>A sequence of assembly informations.</returns>
         public virtual IEnumerable<AssemblyInfo> GetCompileLibraries()
         {
-            return this.context.CompileLibraries.Select(x => new AssemblyInfo(x));
+            return this.context.CompileLibraries
+                       .OrderBy(x => x.Name, StringComparer.OrdinalIgnoreCase)
+                       .Select(x => new AssemblyInfo(x));
         }
 
         /// <summary>
@@ -116,9 +118,19 @@ namespace Crest.Host.Diagnostics
             /// </summary>
             /// <param name="library">Contains the assembly information.</param>
             internal AssemblyInfo(CompilationLibrary library)
+                : this(library.Name, library.Version)
             {
-                this.Name = library.Name;
-                this.Version = library.Version;
+            }
+
+            /// <summary>
+            /// Initializes a new instance of the <see cref="AssemblyInfo"/> struct.
+            /// </summary>
+            /// <param name="name">The name of the assembly.</param>
+            /// <param name="version">The version of the assembly.</param>
+            internal AssemblyInfo(string name, string version)
+            {
+                this.Name = name;
+                this.Version = version;
             }
 
             /// <summary>

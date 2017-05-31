@@ -9,6 +9,7 @@ namespace Crest.Host
     using System.Collections.Generic;
     using System.Diagnostics;
     using System.Linq;
+    using System.Threading.Tasks;
     using Crest.Host.Diagnostics;
     using Crest.Host.Engine;
     using Crest.Host.Routing;
@@ -113,7 +114,14 @@ namespace Crest.Host
         /// <returns>A sequence of route metadata.</returns>
         protected virtual IEnumerable<DirectRouteMetadata> GetDirectRoutes()
         {
-            return Enumerable.Empty<DirectRouteMetadata>();
+            // TODO: Only enable this if we're in debug mode
+            OverrideMethod health = (request, _) =>
+            {
+                var page = (HealthPage)this.ServiceLocator.GetService(typeof(HealthPage));
+                return Task.FromResult<IResponseData>(new ResponseData("text/html", 200, page.WriteTo));
+            };
+
+            yield return new DirectRouteMetadata { Method = health, RouteUrl = "/health", Verb = "GET" };
         }
 
         /// <summary>
