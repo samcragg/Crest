@@ -1,13 +1,9 @@
 ﻿namespace Host.UnitTests
 {
     using System;
-    using System.Collections.Generic;
-    using System.IO;
-    using System.Linq;
     using System.Reflection;
     using System.Threading.Tasks;
     using Crest.Host;
-    using Crest.Host.Conversion;
     using Crest.Host.Diagnostics;
     using Crest.Host.Engine;
     using FluentAssertions;
@@ -62,37 +58,6 @@
                 this.bootstrapper.Dispose();
 
                 this.bootstrapper.IsDisposed.Should().BeTrue();
-            }
-        }
-
-        public sealed class GetDirectRoutes : BootstrapperTests
-        {
-            [Fact]
-            public void ShouldReturnTheHealthPageInformation()
-            {
-                IEnumerable<DirectRouteMetadata> metadata = this.bootstrapper.GetDirectRoutes();
-
-                metadata.Should().ContainSingle(m => m.RouteUrl == "/health")
-                        .Which.Verb.Should().Be("GET");
-            }
-
-            [Fact]
-            public async Task ShouldWriteTheHealthPageInformation()
-            {
-                IRequestData request = Substitute.For<IRequestData>();
-                IContentConverter converter = Substitute.For<IContentConverter>();
-                Stream stream = Substitute.For<Stream>();
-                HealthPage page = Substitute.For<HealthPage>();
-                this.serviceRegister.GetService(typeof(HealthPage))
-                    .Returns(page);
-
-                DirectRouteMetadata metadata =
-                    this.bootstrapper.GetDirectRoutes().Single(d => d.RouteUrl == "/health");
-
-                IResponseData response = await metadata.Method(request, converter);
-                await response.WriteBody(stream);
-
-                await page.Received().WriteTo(stream);
             }
         }
 
@@ -170,6 +135,18 @@
                 this.bootstrapper.Initialize();
 
                 factory.Received().Create(typeof(IFakeInterface), this.serviceRegister);
+            }
+
+            [Fact]
+            public void ShouldRegisterDirectRoutes()
+            {
+                IDirectRouteProvider direct = Substitute.For<IDirectRouteProvider>();
+                this.serviceRegister.GetDirectRouteProviders()
+                    .Returns(new[] { direct });
+
+                this.bootstrapper.Initialize();
+
+                direct.Received().GetDirectRoutes();
             }
 
             [Fact]
@@ -291,11 +268,6 @@
             }
 
             internal new bool IsDisposed => base.IsDisposed;
-
-            internal new IEnumerable<DirectRouteMetadata> GetDirectRoutes()
-            {
-                return base.GetDirectRoutes();
-            }
 
             internal new void Initialize()
             {

@@ -9,7 +9,6 @@ namespace Crest.Host
     using System.Collections.Generic;
     using System.Diagnostics;
     using System.Linq;
-    using System.Threading.Tasks;
     using Crest.Host.Diagnostics;
     using Crest.Host.Engine;
     using Crest.Host.Routing;
@@ -109,22 +108,6 @@ namespace Crest.Host
         }
 
         /// <summary>
-        /// Gets routes which should bypass the normal processing pipeline.
-        /// </summary>
-        /// <returns>A sequence of route metadata.</returns>
-        protected virtual IEnumerable<DirectRouteMetadata> GetDirectRoutes()
-        {
-            // TODO: Only enable this if we're in debug mode
-            OverrideMethod health = (request, _) =>
-            {
-                var page = (HealthPage)this.ServiceLocator.GetService(typeof(HealthPage));
-                return Task.FromResult<IResponseData>(new ResponseData("text/html", 200, page.WriteTo));
-            };
-
-            yield return new DirectRouteMetadata { Method = health, RouteUrl = "/health", Verb = "GET" };
-        }
-
-        /// <summary>
         /// Initializes the container and routes.
         /// </summary>
         protected void Initialize()
@@ -155,6 +138,12 @@ namespace Crest.Host
             {
                 throw new ObjectDisposedException(this.GetType().Name);
             }
+        }
+
+        private IEnumerable<DirectRouteMetadata> GetDirectRoutes()
+        {
+            return this.ServiceLocator.GetDirectRouteProviders()
+                       .SelectMany(d => d.GetDirectRoutes());
         }
 
         private Func<object> GetFactory(ITypeFactory[] factories, Type type)

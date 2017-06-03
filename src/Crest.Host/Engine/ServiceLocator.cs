@@ -86,7 +86,9 @@ namespace Crest.Host.Engine
         {
             this.ThrowIfDisposed();
 
-            var providers = this.Resolve<IEnumerable<IConfigurationProvider>>();
+            IEnumerable<IConfigurationProvider> providers =
+                this.Resolve<IEnumerable<IConfigurationProvider>>();
+
             return new ConfigurationService(providers);
         }
 
@@ -96,6 +98,14 @@ namespace Crest.Host.Engine
             this.ThrowIfDisposed();
 
             return this.TryResolve<IContentConverterFactory, ContentConverterFactory>();
+        }
+
+        /// <inheritdoc />
+        public IDirectRouteProvider[] GetDirectRouteProviders()
+        {
+            this.ThrowIfDisposed();
+
+            return this.Resolve<IDirectRouteProvider[]>();
         }
 
         /// <inheritdoc />
@@ -286,7 +296,7 @@ namespace Crest.Host.Engine
 
         private void RegisterMany(Type[] services, Type implementation, bool isSingleInstance)
         {
-            var register = isSingleInstance ?
+            Action<Type, Type> register = isSingleInstance ?
                 new Action<Type, Type>(this.RegisterSingleInstance) : this.RegisterTransient;
 
             for (int i = 0; i < services.Length; i++)

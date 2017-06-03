@@ -140,7 +140,7 @@
             [Fact]
             public async Task ShouldGetTheProvidersFromTheContainer()
             {
-                var configurationProvider = Substitute.For<IConfigurationProvider>();
+                IConfigurationProvider configurationProvider = Substitute.For<IConfigurationProvider>();
                 this.container.Resolve(typeof(IEnumerable<IConfigurationProvider>))
                     .Returns(new[] { configurationProvider });
 
@@ -148,6 +148,31 @@
                 await result.InitializeProviders(new Type[0]);
 
                 await configurationProvider.ReceivedWithAnyArgs().Initialize(null);
+            }
+        }
+
+        public sealed class GetDirectRouteProviders : ServiceLocatorTests
+        {
+            [Fact]
+            public void ShouldCheckForDisposed()
+            {
+                this.locator.Dispose();
+
+                Action action = () => this.locator.GetDirectRouteProviders();
+
+                action.ShouldThrow<ObjectDisposedException>();
+            }
+
+            [Fact]
+            public void ShouldReturnTheValueFromTheContainer()
+            {
+                var providers = new IDirectRouteProvider[0];
+                this.container.Resolve(typeof(IDirectRouteProvider[]))
+                    .Returns(providers);
+
+                IDirectRouteProvider[] result = this.locator.GetDirectRouteProviders();
+
+                result.Should().BeSameAs(providers);
             }
         }
 

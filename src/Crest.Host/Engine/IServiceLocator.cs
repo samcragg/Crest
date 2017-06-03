@@ -38,6 +38,12 @@ namespace Crest.Host.Engine
         IContentConverterFactory GetContentConverterFactory();
 
         /// <summary>
+        /// Gets the registered plugins to call to obtain direct routes.
+        /// </summary>
+        /// <returns>A sequence of registered plugins.</returns>
+        IDirectRouteProvider[] GetDirectRouteProviders();
+
+        /// <summary>
         /// Gets the service to use for discovering assemblies and types.
         /// </summary>
         /// <returns>An object implementing <see cref="IDiscoveryService"/>.</returns>
