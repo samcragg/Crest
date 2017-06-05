@@ -3,7 +3,7 @@
 // changes will need to set the generate XML option to true in the project
 // properties and move the contents to ExampleClass.xml
 //
-namespace OpenApi.UnitTests
+namespace OpenApi.Generator.UnitTests
 {
     /// <summary>
     /// Summary for the class.

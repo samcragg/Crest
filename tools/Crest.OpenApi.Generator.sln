@@ -3,11 +3,11 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.26430.12
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Crest.OpenApi", "Crest.OpenApi\Crest.OpenApi.csproj", "{00900894-01B4-418B-BDCB-8325F29F9BA5}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Crest.OpenApi.Generator", "Crest.OpenApi.Generator\Crest.OpenApi.Generator.csproj", "{00900894-01B4-418B-BDCB-8325F29F9BA5}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Crest.Core", "..\src\Crest.Core\Crest.Core.csproj", "{CEA16F04-F6AC-4055-9E25-A6FFFF397108}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenApi.UnitTests", "OpenApi.UnitTests\OpenApi.UnitTests.csproj", "{FF8F59F7-2DFF-4A2E-A62B-FD09806DDA6C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenApi.UnitTests", "OpenApi.Generator.UnitTests\OpenApi.Generator.UnitTests.csproj", "{FF8F59F7-2DFF-4A2E-A62B-FD09806DDA6C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

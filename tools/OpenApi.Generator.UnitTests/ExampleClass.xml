@@ -1,10 +1,10 @@
 <?xml version="1.0"?>
 <doc>
     <assembly>
-        <name>OpenApi.UnitTests</name>
+        <name>OpenApi.Generator.UnitTests</name>
     </assembly>
     <members>
-        <member name="T:OpenApi.UnitTests.ExampleClass">
+        <member name="T:OpenApi.Generator.UnitTests.ExampleClass">
             <summary>
             Summary for the class.
             </summary>
@@ -12,22 +12,22 @@
             Remarks for the class.
             </remarks>
         </member>
-        <member name="P:OpenApi.UnitTests.ExampleClass.GetProperty">
+        <member name="P:OpenApi.Generator.UnitTests.ExampleClass.GetProperty">
             <summary>
             Gets the summary for the property.
             </summary>
         </member>
-        <member name="P:OpenApi.UnitTests.ExampleClass.GetSetProperty">
+        <member name="P:OpenApi.Generator.UnitTests.ExampleClass.GetSetProperty">
             <summary>
             Gets or sets the summary for the property.
             </summary>
         </member>
-        <member name="P:OpenApi.UnitTests.ExampleClass.Property">
+        <member name="P:OpenApi.Generator.UnitTests.ExampleClass.Property">
             <summary>
             The summary for the property.
             </summary>
         </member>
-        <member name="M:OpenApi.UnitTests.ExampleClass.Method(System.Int32)">
+        <member name="M:OpenApi.Generator.UnitTests.ExampleClass.Method(System.Int32)">
             <summary>
             Summary for the method.
             </summary>
@@ -39,7 +39,7 @@
             Remarks for the method.
             </remarks>
         </member>
-        <member name="M:OpenApi.UnitTests.ExampleClass.MethodWithoutParameter">
+        <member name="M:OpenApi.Generator.UnitTests.ExampleClass.MethodWithoutParameter">
             <summary>
             Summary for the method.
             </summary>

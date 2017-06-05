@@ -8,4 +8,4 @@ using System.Runtime.InteropServices;
 
 [assembly: ComVisible(false)]
 [assembly: InternalsVisibleTo("DynamicProxyGenAssembly2")] // NSubstitute
-[assembly: InternalsVisibleTo("OpenApi.UnitTests")]
+[assembly: InternalsVisibleTo("OpenApi.Generator.UnitTests")]

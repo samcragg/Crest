@@ -2,16 +2,19 @@
 
   <PropertyGroup>
     <TargetFramework>netcoreapp1.0</TargetFramework>
-    <AssemblyName>OpenApi.UnitTests</AssemblyName>
-    <PackageId>OpenApi.UnitTests</PackageId>
+    <PackageId>OpenApi.Generator.UnitTests</PackageId>
     <GenerateRuntimeConfigurationFiles>true</GenerateRuntimeConfigurationFiles>
     <RuntimeFrameworkVersion>1.0.4</RuntimeFrameworkVersion>
     <Authors>Samuel Cragg</Authors>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <DocumentationFile></DocumentationFile>
+  </PropertyGroup>
+
   <ItemGroup>
     <ProjectReference Include="..\..\src\Crest.Core\Crest.Core.csproj" />
-    <ProjectReference Include="..\Crest.OpenApi\Crest.OpenApi.csproj" />
+    <ProjectReference Include="..\Crest.OpenApi.Generator\Crest.OpenApi.Generator.csproj" />
   </ItemGroup>
 
   <ItemGroup>

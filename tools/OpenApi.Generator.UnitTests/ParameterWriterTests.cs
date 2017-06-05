@@ -1,9 +1,9 @@
-﻿namespace OpenApi.UnitTests
+﻿namespace OpenApi.Generator.UnitTests
 {
     using System;
     using System.IO;
     using System.Reflection;
-    using Crest.OpenApi;
+    using Crest.OpenApi.Generator;
     using FluentAssertions;
     using Newtonsoft.Json;
     using NSubstitute;

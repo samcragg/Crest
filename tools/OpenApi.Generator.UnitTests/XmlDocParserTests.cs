@@ -1,7 +1,7 @@
-﻿namespace OpenApi.UnitTests
+﻿namespace OpenApi.Generator.UnitTests
 {
     using System.Reflection;
-    using Crest.OpenApi;
+    using Crest.OpenApi.Generator;
     using FluentAssertions;
     using Xunit;
 
@@ -12,7 +12,7 @@
         public XmlDocParserTests()
         {
             Assembly assembly = typeof(XmlDocParserTests).GetTypeInfo().Assembly;
-            this.parser = new XmlDocParser(assembly.GetManifestResourceStream("OpenApi.UnitTests.ExampleClass.xml"));
+            this.parser = new XmlDocParser(assembly.GetManifestResourceStream("OpenApi.Generator.UnitTests.ExampleClass.xml"));
         }
 
         public string Property { get; set; }

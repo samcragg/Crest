@@ -1,11 +1,11 @@
-﻿namespace OpenApi.UnitTests
+﻿namespace OpenApi.Generator.UnitTests
 {
     using System;
     using System.Collections.Generic;
     using System.Linq;
     using System.Reflection;
     using Crest.Core;
-    using Crest.OpenApi;
+    using Crest.OpenApi.Generator;
     using FluentAssertions;
     using NSubstitute;
     using Xunit;
