@@ -2,148 +2,156 @@
 {
     using System.Reflection;
     using Crest.OpenApi;
-    using NUnit.Framework;
+    using FluentAssertions;
+    using Xunit;
 
-    [TestFixture]
-    public sealed class XmlDocParserTests
+    public class XmlDocParserTests
     {
-        private XmlDocParser parser;
+        private readonly XmlDocParser parser;
 
-        public string Property { get; set; }
-
-        [SetUp]
-        public void SetUp()
+        public XmlDocParserTests()
         {
             Assembly assembly = typeof(XmlDocParserTests).GetTypeInfo().Assembly;
             this.parser = new XmlDocParser(assembly.GetManifestResourceStream("OpenApi.UnitTests.ExampleClass.xml"));
         }
 
-        [Test]
-        public void GetClassDescriptionShouldReturnEmptyForUnknownTypes()
-        {
-            ClassDescription result = this.parser.GetClassDescription(typeof(XmlDocParserTests));
+        public string Property { get; set; }
 
-            Assert.That(result, Is.Not.Null);
-            Assert.That(result.Remarks, Is.Null);
-            Assert.That(result.Summary, Is.Null);
+        public sealed class GetClassDescription : XmlDocParserTests
+        {
+            [Fact]
+            public void ShouldReturnEmptyForUnknownTypes()
+            {
+                ClassDescription result = this.parser.GetClassDescription(typeof(XmlDocParserTests));
+
+                result.Should().NotBeNull();
+                result.Remarks.Should().BeNull();
+                result.Summary.Should().BeNull();
+            }
+
+            [Fact]
+            public void ShouldReturnTheRemarks()
+            {
+                ClassDescription result = this.parser.GetClassDescription(typeof(ExampleClass));
+
+                result.Remarks.Should().Be("Remarks for the class.");
+            }
+
+            [Fact]
+            public void ShouldReturnTheSummmary()
+            {
+                ClassDescription result = this.parser.GetClassDescription(typeof(ExampleClass));
+
+                result.Summary.Should().Be("Summary for the class.");
+            }
         }
 
-        [Test]
-        public void GetClassDescriptionShouldReturnTheRemarks()
+        public sealed class GetDescription : XmlDocParserTests
         {
-            ClassDescription result = this.parser.GetClassDescription(typeof(ExampleClass));
+            [Fact]
+            public void ShouldGetThePropertySummary()
+            {
+                PropertyInfo property = typeof(ExampleClass).GetProperty(nameof(ExampleClass.Property));
 
-            Assert.That(result.Remarks, Is.EqualTo("Remarks for the class."));
+                string description = this.parser.GetDescription(property);
+
+                description.Should().Be("The summary for the property.");
+            }
+
+            [Fact]
+            public void ShouldRemoveGetsFromTheSummary()
+            {
+                PropertyInfo property = typeof(ExampleClass).GetProperty(nameof(ExampleClass.GetProperty));
+
+                string description = this.parser.GetDescription(property);
+
+                description.Should().Be("The summary for the property.");
+            }
+
+            [Fact]
+            public void ShouldRemoveGetsOrSetsFromTheSummary()
+            {
+                PropertyInfo property = typeof(ExampleClass).GetProperty(nameof(ExampleClass.GetSetProperty));
+
+                string description = this.parser.GetDescription(property);
+
+                description.Should().Be("The summary for the property.");
+            }
+
+            [Fact]
+            public void ShouldReturnNullForUnknownProperties()
+            {
+                PropertyInfo property = typeof(XmlDocParserTests).GetProperty(nameof(XmlDocParserTests.Property));
+
+                string description = this.parser.GetDescription(property);
+
+                description.Should().BeNull();
+            }
         }
 
-        [Test]
-        public void GetClassDescriptionShouldReturnTheSummmary()
+        public sealed class GetMethodDescription : XmlDocParserTests
         {
-            ClassDescription result = this.parser.GetClassDescription(typeof(ExampleClass));
+            [Fact]
+            public void ShouldHandleParameterlessMethods()
+            {
+                MethodInfo method = typeof(ExampleClass).GetMethod(nameof(ExampleClass.MethodWithoutParameter));
 
-            Assert.That(result.Summary, Is.EqualTo("Summary for the class."));
-        }
+                MethodDescription result = this.parser.GetMethodDescription(method);
 
-        [Test]
-        public void GetDescriptionShouldReturnNullForUnknownProperties()
-        {
-            PropertyInfo property = typeof(XmlDocParserTests).GetProperty(nameof(XmlDocParserTests.Property));
+                result.Summary.Should().Be("Summary for the method.");
+                result.Parameters.Should().BeEmpty();
+            }
 
-            string description = this.parser.GetDescription(property);
+            [Fact]
+            public void ShouldReturnEmptyForUnknownTypes()
+            {
+                ClassDescription result = this.parser.GetClassDescription(typeof(XmlDocParserTests));
 
-            Assert.That(description, Is.Null);
-        }
+                result.Should().NotBeNull();
+                result.Remarks.Should().BeNull();
+                result.Summary.Should().BeNull();
+            }
 
-        [Test]
-        public void GetDescriptionShouldGetThePropertySummary()
-        {
-            PropertyInfo property = typeof(ExampleClass).GetProperty(nameof(ExampleClass.Property));
+            [Fact]
+            public void ShouldReturnTheParameters()
+            {
+                MethodInfo method = typeof(ExampleClass).GetMethod(nameof(ExampleClass.Method));
 
-            string description = this.parser.GetDescription(property);
+                MethodDescription result = this.parser.GetMethodDescription(method);
 
-            Assert.That(description, Is.EqualTo("The summary for the property."));
-        }
+                result.Parameters.Should().HaveCount(1);
+                result.Parameters["parameter"].Should().Be("Parameter description.");
+            }
 
-        [Test]
-        public void GetDescriptionShouldRemoveGetsFromTheSummary()
-        {
-            PropertyInfo property = typeof(ExampleClass).GetProperty(nameof(ExampleClass.GetProperty));
+            [Fact]
+            public void ShouldReturnTheRemarks()
+            {
+                MethodInfo method = typeof(ExampleClass).GetMethod(nameof(ExampleClass.Method));
 
-            string description = this.parser.GetDescription(property);
+                MethodDescription result = this.parser.GetMethodDescription(method);
 
-            Assert.That(description, Is.EqualTo("The summary for the property."));
-        }
+                result.Remarks.Should().Be("Remarks for the method.");
+            }
 
-        [Test]
-        public void GetDescriptionShouldRemoveGetsOrSetsFromTheSummary()
-        {
-            PropertyInfo property = typeof(ExampleClass).GetProperty(nameof(ExampleClass.GetSetProperty));
+            [Fact]
+            public void ShouldReturnTheReturns()
+            {
+                MethodInfo method = typeof(ExampleClass).GetMethod(nameof(ExampleClass.Method));
 
-            string description = this.parser.GetDescription(property);
+                MethodDescription result = this.parser.GetMethodDescription(method);
 
-            Assert.That(description, Is.EqualTo("The summary for the property."));
-        }
+                result.Returns.Should().Be("Return description for the method.");
+            }
 
-        [Test]
-        public void GetMethodDescriptionShouldReturnEmptyForUnknownTypes()
-        {
-            ClassDescription result = this.parser.GetClassDescription(typeof(XmlDocParserTests));
+            [Fact]
+            public void ShouldReturnTheSummmary()
+            {
+                MethodInfo method = typeof(ExampleClass).GetMethod(nameof(ExampleClass.Method));
 
-            Assert.That(result, Is.Not.Null);
-            Assert.That(result.Remarks, Is.Null);
-            Assert.That(result.Summary, Is.Null);
-        }
+                MethodDescription result = this.parser.GetMethodDescription(method);
 
-        [Test]
-        public void GetMethodDescriptionShouldReturnTheParameters()
-        {
-            MethodInfo method = typeof(ExampleClass).GetMethod(nameof(ExampleClass.Method));
-
-            MethodDescription result = this.parser.GetMethodDescription(method);
-
-            Assert.That(result.Parameters, Has.Count.EqualTo(1));
-            Assert.That(result.Parameters["parameter"], Is.EqualTo("Parameter description."));
-        }
-
-        [Test]
-        public void GetMethodDescriptionShouldReturnTheRemarks()
-        {
-            MethodInfo method = typeof(ExampleClass).GetMethod(nameof(ExampleClass.Method));
-
-            MethodDescription result = this.parser.GetMethodDescription(method);
-
-            Assert.That(result.Remarks, Is.EqualTo("Remarks for the method."));
-        }
-
-        [Test]
-        public void GetMethodDescriptionShouldReturnTheReturns()
-        {
-            MethodInfo method = typeof(ExampleClass).GetMethod(nameof(ExampleClass.Method));
-
-            MethodDescription result = this.parser.GetMethodDescription(method);
-
-            Assert.That(result.Returns, Is.EqualTo("Return description for the method."));
-        }
-
-        [Test]
-        public void GetMethodDescriptionShouldReturnTheSummmary()
-        {
-            MethodInfo method = typeof(ExampleClass).GetMethod(nameof(ExampleClass.Method));
-
-            MethodDescription result = this.parser.GetMethodDescription(method);
-
-            Assert.That(result.Summary, Is.EqualTo("Summary for the method."));
-        }
-
-        [Test]
-        public void GetMethodDescriptionShouldHandleParameterlessMethods()
-        {
-            MethodInfo method = typeof(ExampleClass).GetMethod(nameof(ExampleClass.MethodWithoutParameter));
-
-            MethodDescription result = this.parser.GetMethodDescription(method);
-
-            Assert.That(result.Summary, Is.EqualTo("Summary for the method."));
-            Assert.That(result.Parameters, Is.Empty);
+                result.Summary.Should().Be("Summary for the method.");
+            }
         }
     }
 }

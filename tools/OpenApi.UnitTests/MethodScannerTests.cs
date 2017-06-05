@@ -6,128 +6,137 @@
     using System.Reflection;
     using Crest.Core;
     using Crest.OpenApi;
+    using FluentAssertions;
     using NSubstitute;
-    using NUnit.Framework;
+    using Xunit;
 
-    [TestFixture]
-    public sealed class MethodScannerTests
+    public class MethodScannerTests
     {
-        [Test]
-        public void MaximumVersionShouldReturnTheMaximumVersionSpecified()
-        {
-            Assembly assembly = this.CreateAssembly(typeof(VersionTests));
-            var scanner = new MethodScanner(assembly);
-
-            Assert.That(scanner.MaximumVersion, Is.EqualTo(4));
-        }
-
-        [Test]
-        public void MinimumVersionShouldReturnTheMinimumVersionOfAllTheRoutes()
-        {
-            Assembly assembly = this.CreateAssembly(typeof(VersionTests));
-            var scanner = new MethodScanner(assembly);
-
-            Assert.That(scanner.MinimumVersion, Is.EqualTo(2));
-        }
-
-        [Test]
-        public void RoutesShouldIncludeDeleteAttributes()
-        {
-            Assembly assembly = this.CreateAssembly(typeof(RouteTypesTests));
-            var scanner = new MethodScanner(assembly);
-
-            RouteInformation route = scanner.Routes.Single(r => r.Verb == "delete");
-
-            Assert.That(route.Method.Name, Is.EqualTo(nameof(RouteTypesTests.Delete)));
-            Assert.That(route.Route, Is.EqualTo("delete_route"));
-        }
-
-        [Test]
-        public void RoutesShouldIncludeGetAttributes()
-        {
-            Assembly assembly = this.CreateAssembly(typeof(RouteTypesTests));
-            var scanner = new MethodScanner(assembly);
-
-            RouteInformation route = scanner.Routes.Single(r => r.Verb == "get");
-
-            Assert.That(route.Method.Name, Is.EqualTo(nameof(RouteTypesTests.Get)));
-            Assert.That(route.Route, Is.EqualTo("get_route"));
-        }
-
-        [Test]
-        public void RoutesShouldIncludePostAttributes()
-        {
-            Assembly assembly = this.CreateAssembly(typeof(RouteTypesTests));
-            var scanner = new MethodScanner(assembly);
-
-            RouteInformation route = scanner.Routes.Single(r => r.Verb == "post");
-
-            Assert.That(route.Method.Name, Is.EqualTo(nameof(RouteTypesTests.Post)));
-            Assert.That(route.Route, Is.EqualTo("post_route"));
-        }
-
-        [Test]
-        public void RoutesShouldIncludePutAttributes()
-        {
-            Assembly assembly = this.CreateAssembly(typeof(RouteTypesTests));
-            var scanner = new MethodScanner(assembly);
-
-            RouteInformation route = scanner.Routes.Single(r => r.Verb == "put");
-
-            Assert.That(route.Method.Name, Is.EqualTo(nameof(RouteTypesTests.Put)));
-            Assert.That(route.Route, Is.EqualTo("put_route"));
-        }
-
-        [Test]
-        public void RoutesShouldIncludeAllTheRouteAttributesOnAMethod()
-        {
-            Assembly assembly = this.CreateAssembly(typeof(MultipleRoutes));
-            var scanner = new MethodScanner(assembly);
-
-            List<string> routes = scanner.Routes.Select(r => r.Route).ToList();
-
-            Assert.That(routes, Has.Count.EqualTo(2));
-            Assert.That(routes, Is.EquivalentTo(new[] { "route1", "route2" }));
-        }
-
-        [Test]
-        public void RouteShouldIncludeTheVerbIfTheVerbIsNotTheLastAttribute()
-        {
-            Assembly assembly = this.CreateAssembly(typeof(VersionTests));
-            var scanner = new MethodScanner(assembly);
-
-            RouteInformation route = scanner.Routes.First();
-
-            Assert.That(route.Verb, Is.EqualTo("get"));
-        }
-
         private Assembly CreateAssembly(params Type[] types)
         {
-            var assembly = Substitute.For<Assembly>();
+            Assembly assembly = Substitute.For<Assembly>();
             assembly.ExportedTypes.Returns(types);
             return assembly;
         }
 
-        private class MultipleRoutes
+        public sealed class MaximumVersion : MethodScannerTests
         {
-            [Get("route1")]
-            [Get("route2")]
-            public void MultipleGets() { }
+            [Fact]
+            public void ShouldReturnTheMaximumVersionSpecified()
+            {
+                Assembly assembly = this.CreateAssembly(typeof(VersionTests));
+                var scanner = new MethodScanner(assembly);
+
+                scanner.MaximumVersion.Should().Be(4);
+            }
         }
 
-        private class RouteTypesTests
+        public sealed class MinimumVersion : MethodScannerTests
         {
-            [Delete("delete_route")]
-            public void Delete() { }
+            [Fact]
+            public void ShouldReturnTheMinimumVersionOfAllTheRoutes()
+            {
+                Assembly assembly = this.CreateAssembly(typeof(VersionTests));
+                var scanner = new MethodScanner(assembly);
 
-            [Get("get_route")]
-            public void Get() { }
+                scanner.MinimumVersion.Should().Be(2);
+            }
+        }
 
-            [Post("post_route")]
-            public void Post() { }
+        public sealed class Routes : MethodScannerTests
+        {
+            [Fact]
+            public void ShouldIncludeAllTheRouteAttributesOnAMethod()
+            {
+                Assembly assembly = this.CreateAssembly(typeof(MultipleRoutes));
+                var scanner = new MethodScanner(assembly);
 
-            [Put("put_route")]
-            public void Put() { }
+                List<string> routes = scanner.Routes.Select(r => r.Route).ToList();
+
+                routes.Should().HaveCount(2);
+                routes.Should().BeEquivalentTo("route1", "route2");
+            }
+
+            [Fact]
+            public void ShouldIncludeDeleteAttributes()
+            {
+                Assembly assembly = this.CreateAssembly(typeof(RouteTypesTests));
+                var scanner = new MethodScanner(assembly);
+
+                RouteInformation route = scanner.Routes.Single(r => r.Verb == "delete");
+
+                route.Method.Name.Should().Be(nameof(RouteTypesTests.Delete));
+                route.Route.Should().Be("delete_route");
+            }
+
+            [Fact]
+            public void ShouldIncludeGetAttributes()
+            {
+                Assembly assembly = this.CreateAssembly(typeof(RouteTypesTests));
+                var scanner = new MethodScanner(assembly);
+
+                RouteInformation route = scanner.Routes.Single(r => r.Verb == "get");
+
+                route.Method.Name.Should().Be(nameof(RouteTypesTests.Get));
+                route.Route.Should().Be("get_route");
+            }
+
+            [Fact]
+            public void ShouldIncludePostAttributes()
+            {
+                Assembly assembly = this.CreateAssembly(typeof(RouteTypesTests));
+                var scanner = new MethodScanner(assembly);
+
+                RouteInformation route = scanner.Routes.Single(r => r.Verb == "post");
+
+                route.Method.Name.Should().Be(nameof(RouteTypesTests.Post));
+                route.Route.Should().Be("post_route");
+            }
+
+            [Fact]
+            public void ShouldIncludePutAttributes()
+            {
+                Assembly assembly = this.CreateAssembly(typeof(RouteTypesTests));
+                var scanner = new MethodScanner(assembly);
+
+                RouteInformation route = scanner.Routes.Single(r => r.Verb == "put");
+
+                route.Method.Name.Should().Be(nameof(RouteTypesTests.Put));
+                route.Route.Should().Be("put_route");
+            }
+
+            [Fact]
+            public void ShouldIncludeTheVerbIfTheVerbIsNotTheLastAttribute()
+            {
+                Assembly assembly = this.CreateAssembly(typeof(VersionTests));
+                var scanner = new MethodScanner(assembly);
+
+                RouteInformation route = scanner.Routes.First();
+
+                route.Verb.Should().Be("get");
+            }
+
+            private class MultipleRoutes
+            {
+                [Get("route1")]
+                [Get("route2")]
+                public void MultipleGets() { }
+            }
+
+            private class RouteTypesTests
+            {
+                [Delete("delete_route")]
+                public void Delete() { }
+
+                [Get("get_route")]
+                public void Get() { }
+
+                [Post("post_route")]
+                public void Post() { }
+
+                [Put("put_route")]
+                public void Put() { }
+            }
         }
 
         private class VersionTests

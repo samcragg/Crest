@@ -2,83 +2,89 @@
 {
     using System.IO;
     using Crest.OpenApi;
-    using NUnit.Framework;
+    using FluentAssertions;
+    using Xunit;
 
-    [TestFixture]
-    public sealed class JsonWriterTests
+    public class JsonWriterTests
     {
-        private FakeJsonWriter writer;
+        private readonly FakeJsonWriter writer = new FakeJsonWriter();
 
-        [SetUp]
-        public void SetUp()
+        public sealed class Write : JsonWriterTests
         {
-            this.writer = new FakeJsonWriter();
+            [Fact]
+            public void ShouldEscapeTheData()
+            {
+                this.writer.Write(@"\");
+
+                this.writer.Output.Should().Be(@"\\");
+            }
+
+            [Fact]
+            public void WriteShouldWriteTheCharacter()
+            {
+                this.writer.Write('"');
+
+                this.writer.Output.Should().Be("\"");
+            }
         }
 
-        [Test]
-        public void WriteShouldWriteTheCharacter()
+        public sealed class WriteRaw : JsonWriterTests
         {
-            this.writer.Write('"');
+            [Fact]
+            public void ShouldNotEscapeTheData()
+            {
+                this.writer.WriteRaw(@"\");
 
-            Assert.That(this.writer.Output, Is.EqualTo("\""));
+                this.writer.Output.Should().Be(@"\");
+            }
         }
 
-        [Test]
-        public void WriteShouldEscapeTheData()
+        public sealed class WriteString : JsonWriterTests
         {
-            this.writer.Write(@"\");
+            [Fact]
+            public void ShouldEscapeTheData()
+            {
+                this.writer.WriteString(@"\");
 
-            Assert.That(this.writer.Output, Is.EqualTo(@"\\"));
+                this.writer.Output.Should().Be(@"""\\""");
+            }
         }
 
-        [Test]
-        public void WriteRawShouldNotEscapeTheData()
+        public sealed class WriteValue : JsonWriterTests
         {
-            this.writer.WriteRaw(@"\");
+            [Fact]
+            public void ShouldWriteBooleanValues()
+            {
+                this.writer.WriteValue(false);
+                this.writer.Write(' ');
+                this.writer.WriteValue(true);
 
-            Assert.That(this.writer.Output, Is.EqualTo(@"\"));
-        }
+                this.writer.Output.Should().Be("false true");
+            }
 
-        [Test]
-        public void WriteStringShouldEscapeTheData()
-        {
-            this.writer.WriteString(@"\");
+            [Fact]
+            public void ShouldWriteNullValues()
+            {
+                this.writer.WriteValue(null);
 
-            Assert.That(this.writer.Output, Is.EqualTo(@"""\\"""));
-        }
+                this.writer.Output.Should().Be("null");
+            }
 
-        [Test]
-        public void WriteValueShouldWriteNullValues()
-        {
-            this.writer.WriteValue(null);
+            [Fact]
+            public void ShouldWriteNumbers()
+            {
+                this.writer.WriteValue(123);
 
-            Assert.That(this.writer.Output, Is.EqualTo("null"));
-        }
+                this.writer.Output.Should().Be("123");
+            }
 
-        [Test]
-        public void WriteValueShouldWriteBooleanValues()
-        {
-            this.writer.WriteValue(false);
-            this.writer.Write(' ');
-            this.writer.WriteValue(true);
+            [Fact]
+            public void ShouldWriteStrings()
+            {
+                this.writer.WriteValue(@"test\");
 
-            Assert.That(this.writer.Output, Is.EqualTo("false true"));
-        }
-
-        [Test]
-        public void WriteValueShouldWriteNumbers()
-        {
-            this.writer.WriteValue(123);
-
-            Assert.That(this.writer.Output, Is.EqualTo("123"));
-        }
-
-        [Test]
-        public void WriteValueShouldWriteStrings()
-        {
-            this.writer.WriteValue(@"test\");
-
-            Assert.That(this.writer.Output, Is.EqualTo(@"""test\\"""));
+                this.writer.Output.Should().Be(@"""test\\""");
+            }
         }
 
         private class FakeJsonWriter : JsonWriter
@@ -96,10 +102,7 @@
                 this.writer = writer;
             }
 
-            internal string Output
-            {
-                get { return this.writer.ToString(); }
-            }
+            internal string Output => this.writer.ToString();
 
             internal new void Write(char value)
             {

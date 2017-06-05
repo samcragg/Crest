@@ -7,106 +7,109 @@
     using System.Reflection;
     using System.Reflection.Emit;
     using Crest.OpenApi;
+    using FluentAssertions;
     using Newtonsoft.Json;
-    using NUnit.Framework;
+    using Xunit;
 
-    [TestFixture]
-    public sealed class InfoObjectWriterTests
+    public class InfoObjectWriterTests
     {
         private const string GeneratedAssemblyName = "AssemblyName";
 
-        [Test]
-        public void ShouldOutputTheAssemblyNameIfThereIsNoTitleAttribute()
+        public sealed class WriteInformation : InfoObjectWriterTests
         {
-            dynamic result = this.GetInformation(1, CreateAssembly());
-
-            Assert.That((string)result.title, Is.EqualTo(GeneratedAssemblyName));
-        }
-
-        [Test]
-        public void ShouldOutputTheVersion()
-        {
-            dynamic result = this.GetInformation(2, CreateAssembly());
-
-            Assert.That((string)result.version, Is.EqualTo("2"));
-        }
-
-        [Test]
-        public void ShouldOutputTheAssemblyDescriptionAttribute()
-        {
-            var assembly = CreateAssembly(() => new AssemblyDescriptionAttribute("Assembly description"));
-
-            dynamic result = this.GetInformation(1, assembly);
-
-            Assert.That((string)result.description, Is.EqualTo("Assembly description"));
-        }
-
-        [Test]
-        public void ShouldOutputTheAssemblyTitleAttribute()
-        {
-            var assembly = CreateAssembly(() => new AssemblyTitleAttribute("Assembly Title"));
-
-            dynamic result = this.GetInformation(1, assembly);
-
-            Assert.That((string)result.title, Is.EqualTo("Assembly Title"));
-        }
-
-        [Test]
-        public void ShouldOutputTheLicenseName()
-        {
-            var assembly = CreateAssembly(() => new AssemblyMetadataAttribute("License", "License name"));
-
-            dynamic result = this.GetInformation(1, assembly);
-
-            Assert.That((string)result.license.name, Is.EqualTo("License name"));
-        }
-
-        [Test]
-        public void ShouldOutputTheLicenseUrl()
-        {
-            var assembly = CreateAssembly(
-                () => new AssemblyMetadataAttribute("License", "License name"),
-                () => new AssemblyMetadataAttribute("LicenseUrl", "http://www.example.com"));
-
-            dynamic result = this.GetInformation(1, assembly);
-
-            Assert.That((string)result.license.url, Is.EqualTo("http://www.example.com"));
-        }
-
-        [Test]
-        public void ShouldNotOutputTheLicenseUrlIfTheLicenseNameIsMissing()
-        {
-            var assembly = CreateAssembly(() => new AssemblyMetadataAttribute("LicenseUrl", "http://www.example.com"));
-
-            dynamic result = this.GetInformation(1, assembly);
-
-            Assert.That(result.license, Is.Null);
-        }
-
-        private Assembly CreateAssembly(params Expression<Func<Attribute>>[] attributes)
-        {
-            AssemblyBuilder builder = AssemblyBuilder.DefineDynamicAssembly(new AssemblyName(GeneratedAssemblyName), AssemblyBuilderAccess.Run);
-            foreach (Expression<Func<Attribute>> attribute in attributes)
+            [Fact]
+            public void ShouldNotOutputTheLicenseUrlIfTheLicenseNameIsMissing()
             {
-                var constructorCall = attribute.Body as NewExpression;
-                ConstructorInfo constructor = constructorCall.Constructor;
-                object[] arguments = constructorCall.Arguments
-                                                    .Select(a => ((ConstantExpression)a).Value)
-                                                    .ToArray();
+                Assembly assembly = CreateAssembly(() => new AssemblyMetadataAttribute("LicenseUrl", "http://www.example.com"));
 
-                builder.SetCustomAttribute(new CustomAttributeBuilder(constructor, arguments));
+                dynamic result = this.GetInformation(1, assembly);
+
+                ((object)result.license).Should().BeNull();
             }
 
-            return builder;
-        }
-
-        private dynamic GetInformation(int version, Assembly assembly)
-        {
-            using (var stringWriter = new StringWriter())
+            [Fact]
+            public void ShouldOutputTheAssemblyDescriptionAttribute()
             {
-                var infoObjectWriter = new InfoObjectWriter(stringWriter);
-                infoObjectWriter.WriteInformation(version, assembly);
-                return JsonConvert.DeserializeObject("{" + stringWriter.ToString() + "}");
+                Assembly assembly = CreateAssembly(() => new AssemblyDescriptionAttribute("Assembly description"));
+
+                dynamic result = this.GetInformation(1, assembly);
+
+                ((string)result.description).Should().Be("Assembly description");
+            }
+
+            [Fact]
+            public void ShouldOutputTheAssemblyNameIfThereIsNoTitleAttribute()
+            {
+                dynamic result = this.GetInformation(1, CreateAssembly());
+
+                ((string)result.title).Should().Be(GeneratedAssemblyName);
+            }
+
+            [Fact]
+            public void ShouldOutputTheAssemblyTitleAttribute()
+            {
+                Assembly assembly = CreateAssembly(() => new AssemblyTitleAttribute("Assembly Title"));
+
+                dynamic result = this.GetInformation(1, assembly);
+
+                ((string)result.title).Should().Be("Assembly Title");
+            }
+
+            [Fact]
+            public void ShouldOutputTheLicenseName()
+            {
+                Assembly assembly = CreateAssembly(() => new AssemblyMetadataAttribute("License", "License name"));
+
+                dynamic result = this.GetInformation(1, assembly);
+
+                ((string)result.license.name).Should().Be("License name");
+            }
+
+            [Fact]
+            public void ShouldOutputTheLicenseUrl()
+            {
+                Assembly assembly = CreateAssembly(
+                    () => new AssemblyMetadataAttribute("License", "License name"),
+                    () => new AssemblyMetadataAttribute("LicenseUrl", "http://www.example.com"));
+
+                dynamic result = this.GetInformation(1, assembly);
+
+                ((string)result.license.url).Should().Be("http://www.example.com");
+            }
+
+            [Fact]
+            public void ShouldOutputTheVersion()
+            {
+                dynamic result = this.GetInformation(2, CreateAssembly());
+
+                ((string)result.version).Should().Be("2");
+            }
+
+            private Assembly CreateAssembly(params Expression<Func<Attribute>>[] attributes)
+            {
+                var builder = AssemblyBuilder.DefineDynamicAssembly(new AssemblyName(GeneratedAssemblyName), AssemblyBuilderAccess.Run);
+                foreach (Expression<Func<Attribute>> attribute in attributes)
+                {
+                    var constructorCall = attribute.Body as NewExpression;
+                    ConstructorInfo constructor = constructorCall.Constructor;
+                    object[] arguments = constructorCall.Arguments
+                                                        .Select(a => ((ConstantExpression)a).Value)
+                                                        .ToArray();
+
+                    builder.SetCustomAttribute(new CustomAttributeBuilder(constructor, arguments));
+                }
+
+                return builder;
+            }
+
+            private dynamic GetInformation(int version, Assembly assembly)
+            {
+                using (var stringWriter = new StringWriter())
+                {
+                    var infoObjectWriter = new InfoObjectWriter(stringWriter);
+                    infoObjectWriter.WriteInformation(version, assembly);
+                    return JsonConvert.DeserializeObject("{" + stringWriter.ToString() + "}");
+                }
             }
         }
     }

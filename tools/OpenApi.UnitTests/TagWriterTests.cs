@@ -1,82 +1,83 @@
 ﻿namespace OpenApi.UnitTests
 {
+    using System.Collections;
+    using System.ComponentModel;
     using System.IO;
     using Crest.OpenApi;
+    using FluentAssertions;
     using Newtonsoft.Json;
     using NSubstitute;
-    using NUnit.Framework;
-    using DescriptionAttribute = System.ComponentModel.DescriptionAttribute;
+    using Xunit;
 
-    [TestFixture]
-    public sealed class TagWriterTests
+    public class TagWriterTests
     {
-        private XmlDocParser xmlDoc;
-
-        [SetUp]
-        public void SetUp()
-        {
-            this.xmlDoc = Substitute.For<XmlDocParser>();
-        }
-
-        [Test]
-        public void CreateTagShouldUseTheDescriptionAttributeForTheTagName()
-        {
-            var writer = new TagWriter(this.xmlDoc, null);
-
-            string result = writer.CreateTag(typeof(IWithDescription));
-
-            Assert.That(result, Is.EqualTo("DescriptionText"));
-        }
-
-        [Test]
-        public void CreateTagShouldUseTheeInterfaceName()
-        {
-            var writer = new TagWriter(this.xmlDoc, null);
-
-            string result = writer.CreateTag(typeof(IFakeInterface));
-
-            Assert.That(result, Is.EqualTo("FakeInterface"));
-        }
-
-        [Test]
-        public void WriteTagsShouldOutputTheTagName()
-        {
-            dynamic result = this.GetOutput<IFakeInterface>();
-
-            Assert.That(result, Has.Count.EqualTo(1));
-            Assert.That((string)result[0].name, Is.EqualTo("FakeInterface"));
-        }
-
-        [Test]
-        public void WriteTagsShouldOutputTheInterfaceSummaryWithoutTrailingFullstop()
-        {
-            this.xmlDoc.GetClassDescription(typeof(IFakeInterface))
-                .Returns(new ClassDescription { Summary = "Summary information." });
-
-            dynamic result = this.GetOutput<IFakeInterface>();
-
-            Assert.That((string)result[0].description, Is.EqualTo("Summary information"));
-        }
-
-        private dynamic GetOutput<T>()
-        {
-            using (var stringWriter = new StringWriter())
-            {
-                var tagWriter = new TagWriter(this.xmlDoc, stringWriter);
-                tagWriter.CreateTag(typeof(T));
-                tagWriter.WriteTags();
-
-                return JsonConvert.DeserializeObject(stringWriter.ToString());
-            }
-        }
+        private readonly XmlDocParser xmlDoc = Substitute.For<XmlDocParser>();
 
         private interface IFakeInterface
         {
         }
 
-        [Description("DescriptionText")]
-        private interface IWithDescription
+        public sealed class CreateTag : TagWriterTests
         {
+            [Description("DescriptionText")]
+            private interface IWithDescription
+            {
+            }
+
+            [Fact]
+            public void ShouldUseTheDescriptionAttributeForTheTagName()
+            {
+                var writer = new TagWriter(this.xmlDoc, null);
+
+                string result = writer.CreateTag(typeof(IWithDescription));
+
+                result.Should().Be("DescriptionText");
+            }
+
+            [Fact]
+            public void ShouldUseTheeInterfaceName()
+            {
+                var writer = new TagWriter(this.xmlDoc, null);
+
+                string result = writer.CreateTag(typeof(IFakeInterface));
+
+                result.Should().Be("FakeInterface");
+            }
+        }
+
+        public sealed class WriteTags : TagWriterTests
+        {
+            [Fact]
+            public void ShouldOutputTheInterfaceSummaryWithoutTrailingFullstop()
+            {
+                this.xmlDoc.GetClassDescription(typeof(IFakeInterface))
+                    .Returns(new ClassDescription { Summary = "Summary information." });
+
+                dynamic result = this.GetOutput<IFakeInterface>();
+
+                ((string)result[0].description).Should().Be("Summary information");
+            }
+
+            [Fact]
+            public void WriteTagsShouldOutputTheTagName()
+            {
+                dynamic result = this.GetOutput<IFakeInterface>();
+
+                ((IEnumerable)result).Should().HaveCount(1);
+                ((string)result[0].name).Should().Be("FakeInterface");
+            }
+
+            private dynamic GetOutput<T>()
+            {
+                using (var stringWriter = new StringWriter())
+                {
+                    var tagWriter = new TagWriter(this.xmlDoc, stringWriter);
+                    tagWriter.CreateTag(typeof(T));
+                    tagWriter.WriteTags();
+
+                    return JsonConvert.DeserializeObject(stringWriter.ToString());
+                }
+            }
         }
     }
 }
