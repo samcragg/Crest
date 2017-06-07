@@ -5,7 +5,7 @@ dotnet restore /nologo
 Write-Host "Building projects..."
 foreach ($project in (dir .\src -Name -Recurse *.csproj))
 {
-	dotnet build -c Release src\$project /nologo --version-suffix=$env:APPVEYOR_BUILD_NUMBER
+	dotnet build -c Release src\$project /nologo
 }
 
 Write-Host "Building unit tests..."
