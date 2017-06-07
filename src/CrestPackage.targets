@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <!-- Package properties -->
+  <PropertyGroup>
+    <Authors>Samuel Cragg</Authors>
+    <VersionPrefix>0.1.0</VersionPrefix>
+  </PropertyGroup>
+
+  <!-- This is required so that OpenCover can analyse the output -->
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <DebugType>full</DebugType>
+    <DebugSymbols>True</DebugSymbols>
+  </PropertyGroup>
+
+  <!-- Code analysis files -->
+  <ItemGroup>
+    <AdditionalFiles Include="..\stylecop.json" />
+    <Compile Include="..\GlobalSuppressions.cs" />
+  </ItemGroup>
+</Project>
