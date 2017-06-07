@@ -1,14 +1,21 @@
-# Get all the NuGet packages
-dotnet restore
+Write-Host "Restoring packages..."
+dotnet restore /nologo
 
-# Build the project in src as release
+
+Write-Host "Building projects..."
 foreach ($project in (dir .\src -Name -Recurse *.csproj))
 {
-	dotnet build -c Release src\$project
+	dotnet build -c Release src\$project /nologo --version-suffix=$env:APPVEYOR_BUILD_NUMBER
 }
 
-# Build the projects in test
+Write-Host "Building unit tests..."
 foreach ($project in (dir .\test -Name -Recurse *.csproj))
 {
-	dotnet build test\$project
+	dotnet build -c Debug test\$project /nologo
+}
+
+Write-Host "Creating NuGet packages..."
+foreach ($project in (dir .\src -Name -Recurse *.csproj))
+{
+	dotnet pack -c Release src\$project /nologo --no-build --version-suffix=$env:APPVEYOR_BUILD_NUMBER
 }
