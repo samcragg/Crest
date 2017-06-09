@@ -3,7 +3,7 @@
 // Licensed under the MIT license. See LICENSE file in the project root for
 // full license information.
 
-namespace Crest.Host.Engine
+namespace Crest.Abstractions
 {
     using System.Collections.Generic;
     using System.Threading.Tasks;
@@ -14,8 +14,7 @@ namespace Crest.Host.Engine
     /// <param name="parameters">The parameters extracted from the request.</param>
     /// <returns>
     /// A task that represents the asynchronous operation. The value of the
-    /// <c>TResult</c> parameter contains the object to reply with, or
-    /// <see cref="NoContent.Value"/> if the handler does not return a value.
+    /// <c>TResult</c> parameter contains the object to reply with.
     /// </returns>
     public delegate Task<object> RouteMethod(IReadOnlyDictionary<string, object> parameters);
 }

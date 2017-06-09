@@ -3,10 +3,9 @@
 // Licensed under the MIT license. See LICENSE file in the project root for
 // full license information.
 
-namespace Crest.Host.Engine
+namespace Crest.Abstractions
 {
     using System.Threading.Tasks;
-    using Crest.Host.Conversion;
 
     /// <summary>
     /// Allows direct processing of a request without going through the

@@ -3,11 +3,10 @@
 // Licensed under the MIT license. See LICENSE file in the project root for
 // full license information.
 
-namespace Crest.Host.Conversion
+namespace Crest.Abstractions
 {
     using System.Collections.Generic;
     using System.IO;
-    using System.Threading.Tasks;
 
     /// <summary>
     /// Allows the conversion of an object to/from a specific format.

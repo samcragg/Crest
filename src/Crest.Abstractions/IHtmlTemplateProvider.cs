@@ -3,7 +3,7 @@
 // Licensed under the MIT license. See LICENSE file in the project root for
 // full license information.
 
-namespace Crest.Host
+namespace Crest.Abstractions
 {
     /// <summary>
     /// Allows the specification of the HTML page template when returning HTML

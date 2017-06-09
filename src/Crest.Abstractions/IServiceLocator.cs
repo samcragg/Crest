@@ -3,10 +3,9 @@
 // Licensed under the MIT license. See LICENSE file in the project root for
 // full license information.
 
-namespace Crest.Host.Engine
+namespace Crest.Abstractions
 {
     using System;
-    using Crest.Host.Conversion;
 
     /// <summary>
     /// Creates the instances of interfaces required during initialization.
@@ -28,8 +27,8 @@ namespace Crest.Host.Engine
         /// <summary>
         /// Gets the service to use for providing configuration data.
         /// </summary>
-        /// <returns>An object based on <see cref="ConfigurationService"/>.</returns>
-        ConfigurationService GetConfigurationService();
+        /// <returns>An object implementing <see cref="IConfigurationService"/>.</returns>
+        IConfigurationService GetConfigurationService();
 
         /// <summary>
         /// Gets the service to use for providing content converters for requests.

@@ -1,0 +1,17 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>netstandard1.6</TargetFramework>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <PackageId>Crest.Abstractions</PackageId>
+  </PropertyGroup>
+
+  <Import Project="..\CrestPackage.targets" />
+
+  <ItemGroup>
+    <!--
+    <PackageReference Include="StyleCop.Analyzers" Version="1.0.2" PrivateAssets="All" />
+    -->
+    <PackageReference Include="System.ComponentModel" Version="4.3.0" />
+  </ItemGroup>
+</Project>
