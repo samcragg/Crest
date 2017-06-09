@@ -1,12 +1,13 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.26403.0
+VisualStudioVersion = 15.0.26430.12
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{B7B95706-43F7-43F9-A7EA-59C07B27D655}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{1998089F-4AB0-4758-99E0-BC12293438CA}"
 	ProjectSection(SolutionItems) = preProject
+		src\CrestPackage.targets = src\CrestPackage.targets
 		src\GlobalSuppressions.cs = src\GlobalSuppressions.cs
 		src\stylecop.json = src\stylecop.json
 	EndProjectSection
@@ -24,6 +25,12 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Host.AspNetCore.UnitTests", "test\Host.AspNetCore.UnitTests\Host.AspNetCore.UnitTests.csproj", "{003EA640-FBC7-44E5-BE20-02880A32B456}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Host.UnitTests", "test\Host.UnitTests\Host.UnitTests.csproj", "{174F6E63-4DC4-4CC0-AB44-2F41386DD038}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Crest.OpenApi", "src\Crest.OpenApi\Crest.OpenApi.csproj", "{2A115F39-7B36-4814-99F3-6CEBE2EF653E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Crest.Abstractions", "src\Crest.Abstractions\Crest.Abstractions.csproj", "{C0198222-279A-4BE2-A63C-68D19240594B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenApi.UnitTests", "test\OpenApi.UnitTests\OpenApi.UnitTests.csproj", "{80D0C7D9-2B07-44C1-9312-98C77331301E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -55,6 +62,18 @@ Global
 		{174F6E63-4DC4-4CC0-AB44-2F41386DD038}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{174F6E63-4DC4-4CC0-AB44-2F41386DD038}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{174F6E63-4DC4-4CC0-AB44-2F41386DD038}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2A115F39-7B36-4814-99F3-6CEBE2EF653E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2A115F39-7B36-4814-99F3-6CEBE2EF653E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2A115F39-7B36-4814-99F3-6CEBE2EF653E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2A115F39-7B36-4814-99F3-6CEBE2EF653E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C0198222-279A-4BE2-A63C-68D19240594B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C0198222-279A-4BE2-A63C-68D19240594B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C0198222-279A-4BE2-A63C-68D19240594B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C0198222-279A-4BE2-A63C-68D19240594B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{80D0C7D9-2B07-44C1-9312-98C77331301E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{80D0C7D9-2B07-44C1-9312-98C77331301E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{80D0C7D9-2B07-44C1-9312-98C77331301E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{80D0C7D9-2B07-44C1-9312-98C77331301E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -66,5 +85,8 @@ Global
 		{330F52E7-AD27-42FB-AC85-A7A14F5BCB53} = {4AC83345-188A-4923-8909-57700B269054}
 		{003EA640-FBC7-44E5-BE20-02880A32B456} = {4AC83345-188A-4923-8909-57700B269054}
 		{174F6E63-4DC4-4CC0-AB44-2F41386DD038} = {4AC83345-188A-4923-8909-57700B269054}
+		{2A115F39-7B36-4814-99F3-6CEBE2EF653E} = {B7B95706-43F7-43F9-A7EA-59C07B27D655}
+		{C0198222-279A-4BE2-A63C-68D19240594B} = {B7B95706-43F7-43F9-A7EA-59C07B27D655}
+		{80D0C7D9-2B07-44C1-9312-98C77331301E} = {4AC83345-188A-4923-8909-57700B269054}
 	EndGlobalSection
 EndGlobal
