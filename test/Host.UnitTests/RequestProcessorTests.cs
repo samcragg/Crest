@@ -6,8 +6,8 @@
     using System.Linq;
     using System.Reflection;
     using System.Threading.Tasks;
+    using Crest.Abstractions;
     using Crest.Host;
-    using Crest.Host.Conversion;
     using Crest.Host.Engine;
     using FluentAssertions;
     using NSubstitute;

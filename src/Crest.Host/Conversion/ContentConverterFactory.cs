@@ -7,6 +7,7 @@ namespace Crest.Host.Conversion
 {
     using System.Collections.Generic;
     using System.Linq;
+    using Crest.Abstractions;
 
     /// <summary>
     /// Creates a <see cref="IContentConverter"/> based on the request information.

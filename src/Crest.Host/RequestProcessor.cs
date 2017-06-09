@@ -12,6 +12,7 @@ namespace Crest.Host
     using System.Net;
     using System.Reflection;
     using System.Threading.Tasks;
+    using Crest.Abstractions;
     using Crest.Host.Conversion;
     using Crest.Host.Diagnostics;
     using Crest.Host.Engine;
@@ -23,6 +24,7 @@ namespace Crest.Host
     public abstract partial class RequestProcessor
     {
         private static readonly Task<IResponseData> EmptyResponse = Task.FromResult<IResponseData>(null);
+
         private static readonly MatchResult NoMatch = new MatchResult(
             typeof(RequestProcessor).GetMethod(nameof(OverrideMethodAdapter), BindingFlags.NonPublic | BindingFlags.Static),
             new Dictionary<string, object>());

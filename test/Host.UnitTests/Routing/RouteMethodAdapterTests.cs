@@ -6,8 +6,8 @@
     using System.Runtime.InteropServices;
     using System.Threading;
     using System.Threading.Tasks;
+    using Crest.Abstractions;
     using Crest.Host;
-    using Crest.Host.Engine;
     using Crest.Host.Routing;
     using FluentAssertions;
     using NSubstitute;

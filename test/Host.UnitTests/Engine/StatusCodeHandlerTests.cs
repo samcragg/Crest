@@ -1,7 +1,7 @@
 ﻿namespace Host.UnitTests.Engine
 {
     using System.Threading.Tasks;
-    using Crest.Host;
+    using Crest.Abstractions;
     using Crest.Host.Engine;
     using FluentAssertions;
     using Xunit;
@@ -60,10 +60,7 @@
 
         private class FakeStatusCodeHandler : StatusCodeHandler
         {
-            public override int Order
-            {
-                get { return 0; }
-            }
+            public override int Order => 0;
         }
     }
 }

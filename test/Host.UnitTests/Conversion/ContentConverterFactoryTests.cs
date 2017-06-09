@@ -1,5 +1,6 @@
 ﻿namespace Host.UnitTests.Conversion
 {
+    using Crest.Abstractions;
     using Crest.Host.Conversion;
     using FluentAssertions;
     using NSubstitute;

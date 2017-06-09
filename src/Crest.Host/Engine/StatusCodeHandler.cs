@@ -7,7 +7,7 @@ namespace Crest.Host.Engine
 {
     using System;
     using System.Threading.Tasks;
-    using Crest.Host.Conversion;
+    using Crest.Abstractions;
 
     /// <summary>
     /// Allows the interception of specific status codes when sending a reply

@@ -8,6 +8,7 @@ namespace Crest.Host.Conversion
     using System.Collections.Generic;
     using System.IO;
     using System.Text;
+    using Crest.Abstractions;
 
     /// <summary>
     /// Converts between .NET objects and HTML
@@ -29,10 +30,7 @@ namespace Crest.Host.Conversion
         }
 
         /// <inheritdoc />
-        public string ContentType
-        {
-            get { return HtmlMimeType; }
-        }
+        public string ContentType => HtmlMimeType;
 
         /// <inheritdoc />
         public IEnumerable<string> Formats
@@ -45,10 +43,7 @@ namespace Crest.Host.Conversion
         }
 
         /// <inheritdoc />
-        public int Priority
-        {
-            get { return 500; }
-        }
+        public int Priority => 500;
 
         /// <inheritdoc />
         public void WriteTo(Stream stream, object obj)

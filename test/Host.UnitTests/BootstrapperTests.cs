@@ -3,6 +3,7 @@
     using System;
     using System.Reflection;
     using System.Threading.Tasks;
+    using Crest.Abstractions;
     using Crest.Host;
     using Crest.Host.Diagnostics;
     using Crest.Host.Engine;
@@ -89,7 +90,7 @@
             [Fact]
             public void ShouldInitializeClassesWithTheConfigurationService()
             {
-                ConfigurationService configurationService = Substitute.For<ConfigurationService>();
+                IConfigurationService configurationService = Substitute.For<IConfigurationService>();
                 this.serviceRegister.GetConfigurationService()
                     .Returns(configurationService);
 
@@ -108,7 +109,7 @@
             [Fact]
             public void ShouldInitializeTheConfigurationService()
             {
-                ConfigurationService configurationService = Substitute.For<ConfigurationService>();
+                IConfigurationService configurationService = Substitute.For<IConfigurationService>();
                 this.serviceRegister.GetConfigurationService()
                     .Returns(configurationService);
 

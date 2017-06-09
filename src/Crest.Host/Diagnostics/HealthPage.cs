@@ -10,6 +10,7 @@ namespace Crest.Host.Diagnostics
     using System.IO;
     using System.Net;
     using System.Threading.Tasks;
+    using Crest.Abstractions;
 
     /// <summary>
     /// Displays the health of the service when requested.

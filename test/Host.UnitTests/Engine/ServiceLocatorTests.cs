@@ -6,7 +6,7 @@
     using System.Linq;
     using System.Reflection;
     using System.Threading.Tasks;
-    using Crest.Host;
+    using Crest.Abstractions;
     using Crest.Host.Engine;
     using DryIoc;
     using FluentAssertions;
@@ -144,7 +144,7 @@
                 this.container.Resolve(typeof(IEnumerable<IConfigurationProvider>))
                     .Returns(new[] { configurationProvider });
 
-                ConfigurationService result = this.locator.GetConfigurationService();
+                IConfigurationService result = this.locator.GetConfigurationService();
                 await result.InitializeProviders(new Type[0]);
 
                 await configurationProvider.ReceivedWithAnyArgs().Initialize(null);
@@ -471,10 +471,7 @@
             {
             }
 
-            internal new bool IsDisposed
-            {
-                get { return base.IsDisposed; }
-            }
+            internal new bool IsDisposed => base.IsDisposed;
 
             internal new void ThrowIfDisposed()
             {

@@ -11,6 +11,7 @@ namespace Crest.Host.Engine
     using System.Linq.Expressions;
     using System.Reflection;
     using System.Threading.Tasks;
+    using Crest.Abstractions;
 
     /// <summary>
     /// Provides the default value for the properties in a configuration class.
@@ -21,10 +22,7 @@ namespace Crest.Host.Engine
             new Dictionary<Type, Action<object>>();
 
         /// <inheritdoc />
-        public int Order
-        {
-            get { return 100; }
-        }
+        public int Order => 100;
 
         /// <inheritdoc />
         public Task Initialize(IEnumerable<Type> knownTypes)
@@ -45,8 +43,7 @@ namespace Crest.Host.Engine
         /// <inheritdoc />
         public void Inject(object instance)
         {
-            Action<object> initialize;
-            if (this.initialize.TryGetValue(instance.GetType(), out initialize))
+            if (this.initialize.TryGetValue(instance.GetType(), out Action<object> initialize))
             {
                 initialize(instance);
             }
@@ -61,7 +58,7 @@ namespace Crest.Host.Engine
                 return null;
             }
 
-            var parameter = Expression.Parameter(typeof(object));
+            ParameterExpression parameter = Expression.Parameter(typeof(object));
             Expression body = Expression.Block(
                 new[] { instance },
                 Expression.Assign(instance, Expression.Convert(parameter, type)),

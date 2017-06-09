@@ -4,10 +4,8 @@
     using System.IO;
     using System.Linq;
     using System.Threading.Tasks;
-    using Crest.Host;
-    using Crest.Host.Conversion;
+    using Crest.Abstractions;
     using Crest.Host.Diagnostics;
-    using Crest.Host.Engine;
     using Crest.Host.Routing;
     using FluentAssertions;
     using NSubstitute;

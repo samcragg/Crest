@@ -5,7 +5,7 @@
     using System.Linq;
     using System.Reflection;
     using System.Threading.Tasks;
-    using Crest.Host.Engine;
+    using Crest.Abstractions;
     using Crest.Host.Routing;
     using FluentAssertions;
     using NSubstitute;
@@ -88,17 +88,6 @@
         public sealed class FindOverride : RouteMapperTests
         {
             [Fact]
-            public void ShouldReturnNullIfNoOverrideExists()
-            {
-                RouteMetadata[] routes = new[] { CreateRoute("GET", "/normal_route") };
-                var mapper = new RouteMapper(routes, this.noDirectRoutes);
-
-                OverrideMethod result = mapper.FindOverride("GET", "/normal_route");
-
-                result.Should().BeNull();
-            }
-
-            [Fact]
             public void ShouldMatchTheRoute()
             {
                 OverrideMethod method = Substitute.For<OverrideMethod>();
@@ -124,6 +113,17 @@
                 var mapper = new RouteMapper(this.noRoutes, overrides);
 
                 OverrideMethod result = mapper.FindOverride("GET", "/route");
+
+                result.Should().BeNull();
+            }
+
+            [Fact]
+            public void ShouldReturnNullIfNoOverrideExists()
+            {
+                RouteMetadata[] routes = new[] { CreateRoute("GET", "/normal_route") };
+                var mapper = new RouteMapper(routes, this.noDirectRoutes);
+
+                OverrideMethod result = mapper.FindOverride("GET", "/normal_route");
 
                 result.Should().BeNull();
             }

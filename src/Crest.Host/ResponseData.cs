@@ -8,6 +8,7 @@ namespace Crest.Host
     using System;
     using System.IO;
     using System.Threading.Tasks;
+    using Crest.Abstractions;
 
     /// <summary>
     /// Contains the response to a request.

@@ -2,7 +2,7 @@
 {
     using System.IO;
     using System.Text;
-    using Crest.Host;
+    using Crest.Abstractions;
     using Crest.Host.Conversion;
     using FluentAssertions;
     using NSubstitute;

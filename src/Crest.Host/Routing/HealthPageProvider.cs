@@ -5,11 +5,10 @@
 
 namespace Crest.Host.Routing
 {
-    using System;
     using System.Collections.Generic;
     using System.Threading.Tasks;
+    using Crest.Abstractions;
     using Crest.Host.Diagnostics;
-    using Crest.Host.Engine;
 
     /// <summary>
     /// Allows the routing to the health page.

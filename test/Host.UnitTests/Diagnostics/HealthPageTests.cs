@@ -4,7 +4,7 @@
     using System.IO;
     using System.Text;
     using System.Threading.Tasks;
-    using Crest.Host;
+    using Crest.Abstractions;
     using Crest.Host.Diagnostics;
     using FluentAssertions;
     using NSubstitute;

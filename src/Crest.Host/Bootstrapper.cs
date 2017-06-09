@@ -9,6 +9,7 @@ namespace Crest.Host
     using System.Collections.Generic;
     using System.Diagnostics;
     using System.Linq;
+    using Crest.Abstractions;
     using Crest.Host.Diagnostics;
     using Crest.Host.Engine;
     using Crest.Host.Routing;
@@ -121,7 +122,7 @@ namespace Crest.Host
                 types.SelectMany(t => this.GetRoutes(discovery, t)).ToList();
             this.RouteMapper = new RouteMapper(routes, this.GetDirectRoutes());
 
-            ConfigurationService configuration = this.ServiceLocator.GetConfigurationService();
+            IConfigurationService configuration = this.ServiceLocator.GetConfigurationService();
             configuration.InitializeProviders(types).Wait();
             this.serviceRegister.RegisterInitializer(
                 configuration.CanConfigure,

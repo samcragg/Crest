@@ -5,7 +5,7 @@
 
 namespace Crest.Host.Routing
 {
-    using Crest.Host.Engine;
+    using Crest.Abstractions;
 
     /// <content>
     /// Contains the nested <see cref="Routes"/> class.

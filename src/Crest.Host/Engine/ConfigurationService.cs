@@ -10,12 +10,13 @@ namespace Crest.Host.Engine
     using System.Linq;
     using System.Reflection;
     using System.Threading.Tasks;
+    using Crest.Abstractions;
     using Crest.Core;
 
     /// <summary>
     /// Provides instances of classes that have been marked as configuration.
     /// </summary>
-    public class ConfigurationService
+    internal sealed class ConfigurationService : IConfigurationService
     {
         private readonly IConfigurationProvider[] providers;
 
@@ -28,36 +29,14 @@ namespace Crest.Host.Engine
             this.providers = providers.OrderBy(p => p.Order).ToArray();
         }
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="ConfigurationService"/> class.
-        /// </summary>
-        protected ConfigurationService()
-        {
-            this.providers = new IConfigurationProvider[0];
-        }
-
-        /// <summary>
-        /// Determines whether the specified type can be initialized with this
-        /// service or not.
-        /// </summary>
-        /// <param name="type">The type information.</param>
-        /// <returns>
-        /// <c>true</c> if new instances of the specified type should be passed
-        /// to <see cref="InitializeInstance(object, IServiceProvider)"/>;
-        /// otherwise, <c>false</c>.
-        /// </returns>
-        public virtual bool CanConfigure(Type type)
+        /// <inheritdoc />
+        public bool CanConfigure(Type type)
         {
             return type.GetTypeInfo().IsDefined(typeof(ConfigurationAttribute), inherit: false);
         }
 
-        /// <summary>
-        /// Initializes the specified object by setting configuration options
-        /// on its properties.
-        /// </summary>
-        /// <param name="instance">The object to initialize.</param>
-        /// <param name="serviceProvider">Provides services at runtime.</param>
-        public virtual void InitializeInstance(object instance, IServiceProvider serviceProvider)
+        /// <inheritdoc />
+        public void InitializeInstance(object instance, IServiceProvider serviceProvider)
         {
             for (int i = 0; i < this.providers.Length; i++)
             {
@@ -65,14 +44,8 @@ namespace Crest.Host.Engine
             }
         }
 
-        /// <summary>
-        /// Allows the providers to be initialized.
-        /// </summary>
-        /// <param name="discoveredTypes">
-        /// All the types that have been discovered at runtime.
-        /// </param>
-        /// <returns>The result of the asynchronous operation.</returns>
-        public virtual Task InitializeProviders(IEnumerable<Type> discoveredTypes)
+        /// <inheritdoc />
+        public Task InitializeProviders(IEnumerable<Type> discoveredTypes)
         {
             List<Type> knownTypes =
                 discoveredTypes.Where(this.CanConfigure).ToList();

@@ -8,7 +8,7 @@ namespace Crest.Host.Conversion
     using System.Collections.Generic;
     using System.IO;
     using System.Text;
-    using System.Threading.Tasks;
+    using Crest.Abstractions;
     using Newtonsoft.Json;
     using Newtonsoft.Json.Serialization;
 
@@ -20,10 +20,7 @@ namespace Crest.Host.Conversion
         private const string JsonMimeType = @"application/json";
 
         /// <inheritdoc />
-        public string ContentType
-        {
-            get { return JsonMimeType; }
-        }
+        public string ContentType => JsonMimeType;
 
         /// <inheritdoc />
         public IEnumerable<string> Formats
@@ -35,17 +32,14 @@ namespace Crest.Host.Conversion
         }
 
         /// <inheritdoc />
-        public int Priority
-        {
-            get { return 500; }
-        }
+        public int Priority => 500;
 
         /// <inheritdoc />
         public void WriteTo(Stream stream, object obj)
         {
             using (var writer = new StreamWriter(stream, Encoding.UTF8, 4096, leaveOpen: true))
             {
-                JsonSerializer serializer = JsonSerializer.CreateDefault();
+                var serializer = JsonSerializer.CreateDefault();
                 serializer.ContractResolver = new CamelCasePropertyNamesContractResolver();
                 serializer.Serialize(writer, obj);
             }

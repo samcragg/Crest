@@ -5,12 +5,15 @@
 
 namespace Crest.Host.Conversion
 {
+    using Crest.Abstractions;
+
     /// <summary>
     /// Provides the default template for HTML pages.
     /// </summary>
     internal sealed class HtmlTemplateProvider : IHtmlTemplateProvider
     {
         private const string Hint = "<p>You are seeing this page because you either requested HTML or no <code>Accept</code> header was specified. To return the object in another format, specify the <code>Accept</code> header with its MIME media type (for example, to return a JSON representation of the object, specify <code>Accept: application/json</code>).</p>";
+
         private const string Html = "<!doctype html>\n" +
 "<html><head>\n" +
 "<meta charset=utf-8>\n" +
@@ -30,21 +33,12 @@ namespace Crest.Host.Conversion
 "</body></html>";
 
         /// <inheritdoc />
-        public int ContentLocation
-        {
-            get { return 381; } // Just after the <body> tag
-        }
+        public int ContentLocation => 381;  // Just after the <body> tag
 
         /// <inheritdoc />
-        public string HintText
-        {
-            get { return Hint; }
-        }
+        public string HintText => Hint;
 
         /// <inheritdoc />
-        public string Template
-        {
-            get { return Html; }
-        }
+        public string Template => Html;
     }
 }

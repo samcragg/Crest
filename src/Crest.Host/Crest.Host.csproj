@@ -9,6 +9,7 @@
   <Import Project="..\CrestPackage.targets" />
   
   <ItemGroup>
+    <ProjectReference Include="..\Crest.Abstractions\Crest.Abstractions.csproj" />
     <ProjectReference Include="..\Crest.Core\Crest.Core.csproj" />
     <PackageReference Include="DryIoc.Internal" Version="2.10.7" PrivateAssets="All" />
     <PackageReference Include="Microsoft.Extensions.DependencyModel" Version="1.1.2" />

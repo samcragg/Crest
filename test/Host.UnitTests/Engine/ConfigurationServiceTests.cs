@@ -3,6 +3,7 @@
     using System;
     using System.Collections.Generic;
     using System.Threading.Tasks;
+    using Crest.Abstractions;
     using Crest.Core;
     using Crest.Host.Engine;
     using FluentAssertions;
@@ -44,9 +45,9 @@
             [Fact]
             public void ShouldInvokeTheProvidersInOrder()
             {
-                var provider1 = Substitute.For<IConfigurationProvider>();
+                IConfigurationProvider provider1 = Substitute.For<IConfigurationProvider>();
                 provider1.Order.Returns(1);
-                var provider2 = Substitute.For<IConfigurationProvider>();
+                IConfigurationProvider provider2 = Substitute.For<IConfigurationProvider>();
                 provider2.Order.Returns(2);
                 var service = new ConfigurationService(new[] { provider2, provider1 });
 

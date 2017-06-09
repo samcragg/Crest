@@ -10,6 +10,7 @@ namespace Crest.Host.Engine
     using System.Linq;
     using System.Net;
     using System.Threading.Tasks;
+    using Crest.Abstractions;
     using Crest.Host.Conversion;
 
     /// <summary>

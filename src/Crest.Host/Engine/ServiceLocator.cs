@@ -9,6 +9,7 @@ namespace Crest.Host.Engine
     using System.Collections.Generic;
     using System.Linq;
     using System.Reflection;
+    using Crest.Abstractions;
     using Crest.Host.Conversion;
     using Crest.Host.Diagnostics;
     using DryIoc;
@@ -82,7 +83,7 @@ namespace Crest.Host.Engine
         }
 
         /// <inheritdoc />
-        public ConfigurationService GetConfigurationService()
+        public IConfigurationService GetConfigurationService()
         {
             this.ThrowIfDisposed();
 

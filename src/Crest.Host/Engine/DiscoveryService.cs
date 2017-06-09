@@ -11,6 +11,7 @@ namespace Crest.Host.Engine
     using System.Reflection;
     using System.Runtime.CompilerServices;
     using System.Threading;
+    using Crest.Abstractions;
     using Crest.Core;
     using Crest.Host.Diagnostics;
 

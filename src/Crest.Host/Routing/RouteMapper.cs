@@ -9,7 +9,7 @@ namespace Crest.Host.Routing
     using System.Globalization;
     using System.Linq;
     using System.Reflection;
-    using Crest.Host.Engine;
+    using Crest.Abstractions;
 
     /// <summary>
     /// Allows the matching of routes to their method.
