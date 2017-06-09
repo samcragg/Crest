@@ -6,8 +6,8 @@
 namespace Crest.Host.AspNetCore
 {
     using System;
+    using Crest.Abstractions;
     using Crest.Host;
-    using Crest.Host.Engine;
     using Microsoft.AspNetCore.Builder;
     using Microsoft.AspNetCore.Hosting;
     using Microsoft.Extensions.DependencyInjection;

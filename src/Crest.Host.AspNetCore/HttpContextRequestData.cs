@@ -8,7 +8,7 @@ namespace Crest.Host.AspNetCore
     using System;
     using System.Collections.Generic;
     using System.Reflection;
-    using Crest.Host;
+    using Crest.Abstractions;
     using Microsoft.AspNetCore.Http;
 
     /// <summary>

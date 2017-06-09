@@ -6,6 +6,7 @@
 namespace Crest.Host.AspNetCore
 {
     using System.Threading.Tasks;
+    using Crest.Abstractions;
     using Crest.Host;
     using Microsoft.AspNetCore.Http;
 

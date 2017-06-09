@@ -6,10 +6,9 @@
     using System.Linq;
     using System.Reflection;
     using System.Threading.Tasks;
+    using Crest.Abstractions;
     using Crest.Host;
     using Crest.Host.AspNetCore;
-    using Crest.Host.Conversion;
-    using Crest.Host.Engine;
     using FluentAssertions;
     using Microsoft.AspNetCore.Http;
     using NSubstitute;
@@ -77,8 +76,7 @@
                 // Write to the passed in stream so it will get copied to the out response
                 this.converter.WriteTo(Arg.Do<Stream>(s => s.WriteByte(1)), methodReturn);
 
-                IReadOnlyDictionary<string, object> notUsed;
-                this.mapper.Match(null, null, null, out notUsed)
+                this.mapper.Match(null, null, null, out _)
                     .ReturnsForAnyArgs(ci =>
                     {
                         ci[3] = new Dictionary<string, object>();
@@ -92,7 +90,7 @@
 
             private static HttpContext CreateContext(string urlString)
             {
-                Uri url = new Uri(urlString);
+                var url = new Uri(urlString);
 
                 HttpContext context = Substitute.For<HttpContext>();
                 context.Request.Host = new HostString(url.Host, url.Port);

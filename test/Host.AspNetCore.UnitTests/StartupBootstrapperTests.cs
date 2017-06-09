@@ -1,8 +1,8 @@
 ﻿namespace Host.AspNetCore.UnitTests
 {
     using System;
+    using Crest.Abstractions;
     using Crest.Host.AspNetCore;
-    using Crest.Host.Engine;
     using FluentAssertions;
     using Microsoft.AspNetCore.Builder;
     using Microsoft.Extensions.DependencyInjection;
@@ -19,7 +19,7 @@
             [Fact]
             public void ShouldRegisterARequestHandler()
             {
-                var builder = Substitute.For<IApplicationBuilder>();
+                IApplicationBuilder builder = Substitute.For<IApplicationBuilder>();
 
                 this.startup.Configure(builder);
 

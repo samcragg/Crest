@@ -9,6 +9,7 @@
   <Import Project="..\CrestPackage.targets" />
 
   <ItemGroup>
+    <ProjectReference Include="..\Crest.Abstractions\Crest.Abstractions.csproj" />
     <ProjectReference Include="..\Crest.Host\Crest.Host.csproj" />
     <PackageReference Include="Microsoft.AspNetCore.Hosting" Version="1.1.2" />
     <!--
