@@ -5,6 +5,7 @@
 
 namespace Crest.Host.AspNetCore
 {
+    using System.Collections.Generic;
     using System.Threading.Tasks;
     using Crest.Abstractions;
     using Crest.Host;
@@ -48,6 +49,12 @@ namespace Crest.Host.AspNetCore
             HttpContext context = ((HttpContextRequestData)request).Context;
             context.Response.ContentType = response.ContentType;
             context.Response.StatusCode = response.StatusCode;
+
+            foreach (KeyValuePair<string, string> kvp in response.Headers)
+            {
+                context.Response.Headers.Add(kvp.Key, kvp.Value);
+            }
+
             return response.WriteBody(context.Response.Body);
         }
     }

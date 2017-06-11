@@ -6,6 +6,7 @@
 namespace Crest.Host
 {
     using System;
+    using System.Collections.Generic;
     using System.IO;
     using System.Threading.Tasks;
     using Crest.Abstractions;
@@ -15,6 +16,8 @@ namespace Crest.Host
     /// </summary>
     internal sealed class ResponseData : IResponseData
     {
+        private readonly StringDictionary<string> headers = new StringDictionary<string>();
+
         /// <summary>
         /// Initializes a new instance of the <see cref="ResponseData"/> class.
         /// </summary>
@@ -29,22 +32,21 @@ namespace Crest.Host
         }
 
         /// <inheritdoc />
-        public string ContentType
-        {
-            get;
-        }
+        public string ContentType { get; }
 
         /// <inheritdoc />
-        public int StatusCode
-        {
-            get;
-        }
+        public int StatusCode { get; }
 
         /// <inheritdoc />
-        public Func<Stream, Task> WriteBody
-        {
-            get;
-        }
+        public Func<Stream, Task> WriteBody { get; }
+
+        /// <inheritdoc />
+        IReadOnlyDictionary<string, string> IResponseData.Headers => this.headers;
+
+        /// <summary>
+        /// Gets the headers to send with the response.
+        /// </summary>
+        internal IDictionary<string, string> Headers => this.headers;
 
         private static Task EmptyWriteBody(Stream stream)
         {

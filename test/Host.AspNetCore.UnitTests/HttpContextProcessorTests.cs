@@ -88,6 +88,30 @@
                 context.Response.Body.Length.Should().Be(1);
             }
 
+            [Fact]
+            public async Task ShouldWriteTheHeadersToTheResponse()
+            {
+                HttpContext context = CreateContext("http://localhost/route");
+                OverrideMethod method = (r, c) =>
+                {
+                    IResponseData response = Substitute.For<IResponseData>();
+                    response.Headers.Returns(new Dictionary<string, string>
+                    {
+                        { "Header", "Value" }
+                    });
+
+                    return Task.FromResult(response);
+                };
+
+                this.mapper.FindOverride("GET", "/route")
+                    .Returns(method);
+
+                await this.processor.HandleRequest(context);
+
+                context.Response.Headers["Header"].ToString()
+                       .Should().Be("Value");
+            }
+
             private static HttpContext CreateContext(string urlString)
             {
                 var url = new Uri(urlString);
@@ -99,6 +123,7 @@
                 context.Request.QueryString = new QueryString(url.Query);
                 context.Request.Scheme = url.Scheme;
                 context.Response.Body = new MemoryStream();
+                context.Response.Headers.Returns(new HeaderDictionary());
                 return context;
             }
         }

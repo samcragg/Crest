@@ -2,6 +2,7 @@
 {
     using System.IO;
     using System.Threading.Tasks;
+    using Crest.Abstractions;
     using Crest.Host;
     using FluentAssertions;
     using NSubstitute;
@@ -9,6 +10,28 @@
 
     public class ResponseDataTests
     {
+        public sealed class Headers : ResponseDataTests
+        {
+            private readonly ResponseData data = new ResponseData("", 0, null);
+
+            [Fact]
+            public void ExplicitInterfaceShouldReturnTheSameValues()
+            {
+                this.data.Headers.Add("Key", "Value");
+
+                IResponseData responseData = this.data;
+                responseData.Headers["Key"].Should().Be("Value");
+            }
+
+            [Fact]
+            public void ShouldReturnAMutableDictionary()
+            {
+                this.data.Headers.Add("Key", "Value");
+
+                this.data.Headers["Key"].Should().Be("Value");
+            }
+        }
+
         public sealed class WriteBody : ResponseDataTests
         {
             [Fact]
@@ -23,7 +46,7 @@
             public void ShouldReturnACompletedTask()
             {
                 var data = new ResponseData("", 0, body: null);
-                var stream = Substitute.For<Stream>();
+                Stream stream = Substitute.For<Stream>();
 
                 Task write = data.WriteBody(stream);
 

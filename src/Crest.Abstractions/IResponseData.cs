@@ -6,6 +6,7 @@
 namespace Crest.Abstractions
 {
     using System;
+    using System.Collections.Generic;
     using System.IO;
     using System.Threading.Tasks;
 
@@ -18,6 +19,11 @@ namespace Crest.Abstractions
         /// Gets the content type of the returned data.
         /// </summary>
         string ContentType { get; }
+
+        /// <summary>
+        /// Gets addtional headers to send with the response.
+        /// </summary>
+        IReadOnlyDictionary<string, string> Headers { get; }
 
         /// <summary>
         /// Gets the HTTP status code.
