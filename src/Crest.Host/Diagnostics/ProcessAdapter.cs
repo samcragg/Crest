@@ -19,21 +19,19 @@ namespace Crest.Host.Diagnostics
         /// <summary>
         /// Initializes a new instance of the <see cref="ProcessAdapter"/> class.
         /// </summary>
-        /// <param name="process">The process to wrap.</param>
-        internal ProcessAdapter(Process process)
+        public ProcessAdapter()
+            : this(Process.GetCurrentProcess())
         {
-            this.process = process;
-            this.startTime = this.process.StartTime.ToUniversalTime();
         }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ProcessAdapter"/> class.
         /// </summary>
-        /// <remarks>
-        /// Only used to allow mock classes for unit testing.
-        /// </remarks>
-        protected ProcessAdapter()
+        /// <param name="process">The process to wrap.</param>
+        internal ProcessAdapter(Process process)
         {
+            this.process = process;
+            this.startTime = this.process.StartTime.ToUniversalTime();
         }
 
         /// <summary>

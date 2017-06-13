@@ -11,7 +11,6 @@ namespace Crest.Host.Engine
     using System.Reflection;
     using Crest.Abstractions;
     using Crest.Host.Conversion;
-    using Crest.Host.Diagnostics;
     using DryIoc;
 
     /// <summary>
@@ -37,7 +36,6 @@ namespace Crest.Host.Engine
         internal ServiceLocator(IContainer container)
         {
             this.container = container;
-            this.RegisterSingleInstance(typeof(ExecutingAssembly), typeof(ExecutingAssembly));
         }
 
         /// <summary>
@@ -252,7 +250,7 @@ namespace Crest.Host.Engine
                 service,
                 implementation,
                 Reuse.Transient,
-                ifAlreadyRegistered: IfAlreadyRegistered.Keep,
+                ifAlreadyRegistered: IfAlreadyRegistered.AppendNewImplementation,
                 made: FactoryMethod.ConstructorWithResolvableArguments,
                 setup: Setup.With(trackDisposableTransient: true));
         }

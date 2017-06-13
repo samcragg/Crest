@@ -9,13 +9,14 @@ namespace Crest.Host.Diagnostics
     using System.Collections.Generic;
     using System.Linq;
     using System.Reflection;
+    using System.Threading;
     using Microsoft.Extensions.DependencyModel;
 
     /// <summary>
     /// Provides functionality for getting information about the executing
     /// assembly.
     /// </summary>
-    internal class ExecutingAssembly
+    internal partial class ExecutingAssembly
     {
         private static readonly ISet<string> ExcludedAssemblies = new HashSet<string>(
             new[]
@@ -25,7 +26,14 @@ namespace Crest.Host.Diagnostics
                 "system"
             }, StringComparer.Ordinal);
 
-        private readonly DependencyContext context;
+        private static Lazy<DependencyContext> dependencyContext;
+
+        static ExecutingAssembly()
+        {
+            dependencyContext = new Lazy<DependencyContext>(
+                () => DependencyContext.Default,
+                LazyThreadSafetyMode.None);
+        }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ExecutingAssembly"/> class.
@@ -43,7 +51,9 @@ namespace Crest.Host.Diagnostics
         /// </param>
         public ExecutingAssembly(Assembly entryAssembly)
         {
-            this.context = DependencyContext.Load(entryAssembly);
+            dependencyContext = new Lazy<DependencyContext>(
+                () => DependencyContext.Load(entryAssembly),
+                LazyThreadSafetyMode.None);
         }
 
         /// <summary>
@@ -58,9 +68,10 @@ namespace Crest.Host.Diagnostics
         /// <returns>A sequence of assembly informations.</returns>
         public virtual IEnumerable<AssemblyInfo> GetCompileLibraries()
         {
-            return this.context.CompileLibraries
-                       .OrderBy(x => x.Name, StringComparer.OrdinalIgnoreCase)
-                       .Select(x => new AssemblyInfo(x));
+            return dependencyContext.Value
+                .CompileLibraries
+                .OrderBy(x => x.Name, StringComparer.OrdinalIgnoreCase)
+                .Select(x => new AssemblyInfo(x));
         }
 
         /// <summary>
@@ -69,7 +80,7 @@ namespace Crest.Host.Diagnostics
         /// <returns>The loaded assemblies.</returns>
         public virtual IEnumerable<Assembly> LoadCompileLibraries()
         {
-            foreach (CompilationLibrary library in this.context.CompileLibraries)
+            foreach (CompilationLibrary library in dependencyContext.Value.CompileLibraries)
             {
                 string prefix = GetAssemblyPrefix(library.Name);
                 if (!ExcludedAssemblies.Contains(prefix))
@@ -106,42 +117,6 @@ namespace Crest.Host.Diagnostics
             {
                 return null;
             }
-        }
-
-        /// <summary>
-        /// Contains basic information about an assembly.
-        /// </summary>
-        internal struct AssemblyInfo
-        {
-            /// <summary>
-            /// Initializes a new instance of the <see cref="AssemblyInfo"/> struct.
-            /// </summary>
-            /// <param name="library">Contains the assembly information.</param>
-            internal AssemblyInfo(CompilationLibrary library)
-                : this(library.Name, library.Version)
-            {
-            }
-
-            /// <summary>
-            /// Initializes a new instance of the <see cref="AssemblyInfo"/> struct.
-            /// </summary>
-            /// <param name="name">The name of the assembly.</param>
-            /// <param name="version">The version of the assembly.</param>
-            internal AssemblyInfo(string name, string version)
-            {
-                this.Name = name;
-                this.Version = version;
-            }
-
-            /// <summary>
-            /// Gets the name of the assembly.
-            /// </summary>
-            public string Name { get; }
-
-            /// <summary>
-            /// Gets the version of the assembly.
-            /// </summary>
-            public string Version { get; }
         }
     }
 }

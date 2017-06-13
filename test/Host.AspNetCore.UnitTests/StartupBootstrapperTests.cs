@@ -5,6 +5,7 @@
     using Crest.Host.AspNetCore;
     using FluentAssertions;
     using Microsoft.AspNetCore.Builder;
+    using Microsoft.AspNetCore.Http;
     using Microsoft.Extensions.DependencyInjection;
     using NSubstitute;
     using Xunit;
@@ -19,11 +20,14 @@
             [Fact]
             public void ShouldRegisterARequestHandler()
             {
+                Func<RequestDelegate, RequestDelegate> useParameter = null;
                 IApplicationBuilder builder = Substitute.For<IApplicationBuilder>();
+                builder.Use(Arg.Do<Func<RequestDelegate, RequestDelegate>>(p => useParameter = p));
 
                 this.startup.Configure(builder);
+                RequestDelegate result = useParameter(Substitute.For<RequestDelegate>());
 
-                builder.ReceivedWithAnyArgs().Use(null);
+                result.Should().NotBeNull();
             }
         }
 

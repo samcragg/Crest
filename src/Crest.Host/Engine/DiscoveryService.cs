@@ -24,6 +24,7 @@ namespace Crest.Host.Engine
             new[]
             {
                 "DryIoc",
+                "ImTools",
                 "Microsoft",
                 "MS",
                 "Newtonsoft",
@@ -36,10 +37,22 @@ namespace Crest.Host.Engine
         /// <summary>
         /// Initializes a new instance of the <see cref="DiscoveryService"/> class.
         /// </summary>
+        public DiscoveryService()
+            : this(new ExecutingAssembly())
+        {
+            // Note the poor mans dependency injection. Since this class is used
+            // to find the types to register in the IoC container, we can't
+            // have parameters injected into us, hence the above which allows us
+            // to unit test the class but also be created at runtime.
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="DiscoveryService"/> class.
+        /// </summary>
         /// <param name="assemblyInfo">
         /// Contains information about the current assembly.
         /// </param>
-        public DiscoveryService(ExecutingAssembly assemblyInfo)
+        internal DiscoveryService(ExecutingAssembly assemblyInfo)
         {
             this.assemblyInfo = assemblyInfo;
             this.loadedTypes = new Lazy<IReadOnlyList<Type>>(this.LoadTypes, LazyThreadSafetyMode.None);

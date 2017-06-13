@@ -113,8 +113,6 @@ namespace Crest.Host
         /// </summary>
         protected void Initialize()
         {
-            this.RegisterKnownTypes();
-
             IDiscoveryService discovery = this.ServiceLocator.GetDiscoveryService();
             IReadOnlyCollection<Type> types = this.RegisterTypes(discovery);
 
@@ -169,13 +167,6 @@ namespace Crest.Host
                 route.Factory = route.Factory ?? (() => this.serviceRegister.GetService(type));
                 yield return route;
             }
-        }
-
-        private void RegisterKnownTypes()
-        {
-            this.serviceRegister.RegisterFactory(
-                typeof(ProcessAdapter),
-                () => new ProcessAdapter(Process.GetCurrentProcess()));
         }
 
         private IReadOnlyCollection<Type> RegisterTypes(IDiscoveryService discovery)

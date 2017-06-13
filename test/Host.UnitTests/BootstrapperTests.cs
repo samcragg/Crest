@@ -167,20 +167,6 @@
             }
 
             [Fact]
-            public void ShouldRegisterTheProcessAdapter()
-            {
-                Func<object> factoryMethod = null;
-                this.serviceRegister.RegisterFactory(
-                    typeof(ProcessAdapter),
-                    Arg.Do<Func<object>>(x => factoryMethod = x));
-
-                this.bootstrapper.Initialize();
-                object instance = factoryMethod();
-
-                instance.Should().BeOfType<ProcessAdapter>();
-            }
-
-            [Fact]
             public void ShouldSetTheRouteMapper()
             {
                 this.bootstrapper.RouteMapper.Should().BeNull();
