@@ -12,6 +12,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Crest.Host.AspNetCore\Crest.Host.AspNetCore.csproj" />
+    <ProjectReference Include="..\..\src\Crest.OpenApi\Crest.OpenApi.csproj" />
   </ItemGroup>
 
   <ItemGroup>
