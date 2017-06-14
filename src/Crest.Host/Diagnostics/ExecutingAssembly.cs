@@ -9,7 +9,6 @@ namespace Crest.Host.Diagnostics
     using System.Collections.Generic;
     using System.Linq;
     using System.Reflection;
-    using System.Threading;
     using Microsoft.Extensions.DependencyModel;
 
     /// <summary>
@@ -26,20 +25,12 @@ namespace Crest.Host.Diagnostics
                 "system"
             }, StringComparer.Ordinal);
 
-        private static Lazy<DependencyContext> dependencyContext;
-
-        static ExecutingAssembly()
-        {
-            dependencyContext = new Lazy<DependencyContext>(
-                () => DependencyContext.Default,
-                LazyThreadSafetyMode.None);
-        }
+        private readonly DependencyContext overrideContext;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ExecutingAssembly"/> class.
         /// </summary>
         public ExecutingAssembly()
-            : this(Assembly.GetEntryAssembly())
         {
         }
 
@@ -51,9 +42,7 @@ namespace Crest.Host.Diagnostics
         /// </param>
         public ExecutingAssembly(Assembly entryAssembly)
         {
-            dependencyContext = new Lazy<DependencyContext>(
-                () => DependencyContext.Load(entryAssembly),
-                LazyThreadSafetyMode.None);
+            this.overrideContext = DependencyContext.Load(entryAssembly);
         }
 
         /// <summary>
@@ -63,12 +52,18 @@ namespace Crest.Host.Diagnostics
         internal Func<AssemblyName, Assembly> AssemblyLoad { get; set; } = Assembly.Load;
 
         /// <summary>
+        /// Gets the loaded DependencyContext.
+        /// </summary>
+        /// <remarks>Internal for unit testing.</remarks>
+        internal DependencyContext DependencyContext => this.overrideContext ?? DependencyContext.Default;
+
+        /// <summary>
         /// Gets the libraries that were compiled against the current assembly.
         /// </summary>
         /// <returns>A sequence of assembly informations.</returns>
         public virtual IEnumerable<AssemblyInfo> GetCompileLibraries()
         {
-            return dependencyContext.Value
+            return this.DependencyContext
                 .CompileLibraries
                 .OrderBy(x => x.Name, StringComparer.OrdinalIgnoreCase)
                 .Select(x => new AssemblyInfo(x));
@@ -80,7 +75,7 @@ namespace Crest.Host.Diagnostics
         /// <returns>The loaded assemblies.</returns>
         public virtual IEnumerable<Assembly> LoadCompileLibraries()
         {
-            foreach (CompilationLibrary library in dependencyContext.Value.CompileLibraries)
+            foreach (CompilationLibrary library in this.DependencyContext.CompileLibraries)
             {
                 string prefix = GetAssemblyPrefix(library.Name);
                 if (!ExcludedAssemblies.Contains(prefix))
