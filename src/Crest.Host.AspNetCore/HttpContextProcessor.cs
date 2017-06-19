@@ -44,7 +44,7 @@ namespace Crest.Host.AspNetCore
         }
 
         /// <inheritdoc />
-        protected override Task WriteResponseAsync(IRequestData request, IResponseData response)
+        protected override async Task WriteResponseAsync(IRequestData request, IResponseData response)
         {
             HttpContext context = ((HttpContextRequestData)request).Context;
             context.Response.ContentType = response.ContentType;
@@ -55,7 +55,8 @@ namespace Crest.Host.AspNetCore
                 context.Response.Headers.Add(kvp.Key, kvp.Value);
             }
 
-            return response.WriteBody(context.Response.Body);
+            await response.WriteBody(context.Response.Body).ConfigureAwait(false);
+            await context.Response.Body.FlushAsync();
         }
     }
 }
