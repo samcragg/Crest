@@ -17,5 +17,5 @@ foreach ($project in (dir .\test -Name -Recurse *.csproj))
 Write-Host "Creating NuGet packages..."
 foreach ($project in (dir .\src -Name -Recurse *.csproj))
 {
-	dotnet pack -c Release src\$project /nologo --no-build --version-suffix=$env:APPVEYOR_BUILD_NUMBER
+	dotnet pack -c Release src\$project /nologo --no-build --version-suffix=$env:APPVEYOR_BUILD_NUMBER /p:NoPackageAnalysis=true
 }
