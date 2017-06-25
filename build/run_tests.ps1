@@ -23,7 +23,7 @@ if (!$useAppVeyor)
 }
 
 # dotnet-xunit is a tool package, so we can't install it :(
-wget 'https://www.nuget.org/api/v2/package/dotnet-xunit/2.3.0-beta3-build3705' -OutFile .\build\tools\dotnet-xunit.zip
+wget 'https://www.nuget.org/api/v2/package/dotnet-xunit/2.3.0-beta1-build3642' -OutFile .\build\tools\dotnet-xunit.zip
 Expand-Archive .\build\tools\dotnet-xunit.zip .\build\tools\dotnet-xunit -Force
 
 # Setup our variables relative to the current directory
@@ -33,7 +33,7 @@ $dotnetexe = (Get-Command dotnet).Definition
 $openCover = Join-Path $pwd build\tools\OpenCover.4.6.519\tools\OpenCover.Console.exe
 $reportDir = Join-Path $pwd build\report
 $xunit = Join-Path $pwd build\tools\dotnet-xunit\lib\netcoreapp1.0\dotnet-xunit.dll
-$runXunit = $xunit + " --no-build -nologo -configuration Release" + $useAppVeyor
+$runXunit = $xunit + " -nologo -configuration Release" + $useAppVeyor
 
 # Clean the old results (for local builds)
 del $coverResult -ErrorAction Ignore
