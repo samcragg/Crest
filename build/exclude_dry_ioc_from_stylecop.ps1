@@ -2,7 +2,7 @@ $files = "Container.cs", "ImTools.cs", "Ported-net.cs"
 
 foreach ($file in $files)
 {
-    $dir = Join-Path $env:userprofile ".nuget/packages/DryIoc.Internal/2.10.7/contentFiles/cs/any"
+    $dir = Join-Path $env:userprofile ".nuget/packages/DryIoc.Internal/2.11.3/contentFiles/cs/any"
     $path = Join-Path $dir $file
 	$backupName = Join-Path $dir ("../" + $file + ".original")
     if (!(Test-Path $backupName))
