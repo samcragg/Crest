@@ -8,24 +8,17 @@
     <OutputType>Exe</OutputType>
     <PackageId>Crest.OpenApi.Generator</PackageId>
     <PackageType>DotNetCliTool</PackageType>
-    <Authors>Samuel Cragg</Authors>
     <RuntimeFrameworkVersion>1.0.4</RuntimeFrameworkVersion>
-    <GenerateAssemblyVersionAttribute>false</GenerateAssemblyVersionAttribute>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <DebugType>full</DebugType>
-    <DebugSymbols>True</DebugSymbols>
-  </PropertyGroup>
-
-  <ItemGroup>
-    <AdditionalFiles Include="..\..\src\stylecop.json" />
-  </ItemGroup>
+  <Import Project="..\..\src\CrestPackage.targets" />
 
   <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.CommandLineUtils" Version="1.1.1" />
     <PackageReference Include="Microsoft.Extensions.DependencyModel" Version="1.1.2" />
+    <!--
     <PackageReference Include="StyleCop.Analyzers" Version="1.0.2" PrivateAssets="All" />
+    -->
     <PackageReference Include="System.ComponentModel.Primitives" Version="4.3.0" />
     <PackageReference Include="System.Runtime.Loader" Version="4.3.0" />
   </ItemGroup>

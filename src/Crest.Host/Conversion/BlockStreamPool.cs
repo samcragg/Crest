@@ -7,7 +7,6 @@ namespace Crest.Host.Conversion
 {
     using System.Collections.Generic;
     using System.Collections.Immutable;
-    using System.Diagnostics;
     using System.IO;
     using System.Threading;
     using static System.Diagnostics.Debug;
@@ -45,8 +44,7 @@ namespace Crest.Host.Conversion
         /// <returns>A byte array.</returns>
         internal byte[] GetBlock()
         {
-            byte[] block;
-            if (ImmutableInterlocked.TryPop(ref this.pool, out block))
+            if (ImmutableInterlocked.TryPop(ref this.pool, out byte[] block))
             {
                 Interlocked.Add(ref this.availableBytes, -DefaultBlockSize);
             }
@@ -66,7 +64,13 @@ namespace Crest.Host.Conversion
         /// <param name="blocks">The byte arrays returned from this instance.</param>
         internal void ReturnBlocks(IReadOnlyCollection<byte[]> blocks)
         {
-            CheckReturnedBlocks(blocks);
+#if DEBUG
+            // Be paranoid in debug builds - verify the block looks like on of ours...
+            foreach (byte[] block in blocks)
+            {
+                Assert(block.Length == DefaultBlockSize, "Collection contains buffers that were not created by this instance.");
+            }
+#endif
 
             foreach (byte[] block in blocks)
             {
@@ -77,15 +81,6 @@ namespace Crest.Host.Conversion
 
                 Interlocked.Add(ref this.availableBytes, DefaultBlockSize);
                 ImmutableInterlocked.Push(ref this.pool, block);
-            }
-        }
-
-        [Conditional("DEBUG")]
-        private static void CheckReturnedBlocks(IReadOnlyCollection<byte[]> blocks)
-        {
-            foreach (byte[] block in blocks)
-            {
-                Assert(block.Length == DefaultBlockSize, "Collection contains buffers that were not created by this instance.");
             }
         }
     }

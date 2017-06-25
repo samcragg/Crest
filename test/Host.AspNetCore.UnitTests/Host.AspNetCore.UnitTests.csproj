@@ -1,18 +1,17 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>netcoreapp1.0</TargetFramework>
-    <AssemblyName>Host.AspNetCore.UnitTests</AssemblyName>
-    <PackageId>Host.AspNetCore.UnitTests</PackageId>
-    <GenerateRuntimeConfigurationFiles>true</GenerateRuntimeConfigurationFiles>
     <RuntimeFrameworkVersion>1.0.4</RuntimeFrameworkVersion>
-    <Authors>Samuel Cragg</Authors>
+  </PropertyGroup>
+
+  <!-- This is required so that OpenCover can analyse the output -->
+  <PropertyGroup>
+    <DebugType>full</DebugType>
+    <DebugSymbols>True</DebugSymbols>
   </PropertyGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Crest.Host.AspNetCore\Crest.Host.AspNetCore.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
     <PackageReference Include="FluentAssertions" Version="4.19.2" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.0.0" />
     <PackageReference Include="NSubstitute" Version="2.0.3" />

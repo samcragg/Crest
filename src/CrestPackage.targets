@@ -7,14 +7,14 @@
   </PropertyGroup>
 
   <!-- This is required so that OpenCover can analyse the output -->
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+  <PropertyGroup>
     <DebugType>full</DebugType>
     <DebugSymbols>True</DebugSymbols>
   </PropertyGroup>
 
   <!-- Code analysis files -->
   <ItemGroup>
-    <AdditionalFiles Include="..\stylecop.json" />
-    <Compile Include="..\GlobalSuppressions.cs" />
+    <AdditionalFiles Include="$(MSBuildThisFileDirectory)\stylecop.json" />
+    <Compile Include="$(MSBuildThisFileDirectory)\GlobalSuppressions.cs" />
   </ItemGroup>
 </Project>
