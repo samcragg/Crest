@@ -84,6 +84,8 @@ artifacts/
 Generated_Code/
 
 
-# Test coverage script output
+# Test coverage tools and output
 CoverResult.xml
+NuGet.exe
 build/tools/*
+build/report/*

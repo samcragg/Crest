@@ -1,21 +1,34 @@
-Write-Host "Restoring packages..."
-dotnet restore /nologo
-
-
-Write-Host "Building projects..."
-foreach ($project in (dir .\src -Name -Recurse *.csproj))
+$version = "local"
+if (Test-Path env:\APPVEYOR_BUILD_NUMBER)
 {
-	dotnet build -c Release src\$project /nologo
+    $version = $env:APPVEYOR_BUILD_NUMBER
 }
 
-Write-Host "Building unit tests..."
-foreach ($project in (dir .\test -Name -Recurse *.csproj))
+$solutions = @(
+    ".\Crest.sln",
+    ".\tools\Crest.OpenApi.Generator.sln"
+)
+foreach ($solution in $solutions)
 {
-	dotnet build -c Debug test\$project /nologo
+    Write-Host ("Building " + $solution)
+
+    Write-Host "Restoring packages..."
+    dotnet restore $solution /nologo -v q
+
+    Write-Host "Building..."
+    dotnet build -c Release $solution /nologo
 }
 
 Write-Host "Creating NuGet packages..."
-foreach ($project in (dir .\src -Name -Recurse *.csproj))
+$projects = @(
+    ".\src\Crest.Abstractions\Crest.Abstractions.csproj",
+    ".\src\Crest.Core\Crest.Core.csproj",
+    ".\src\Crest.Host\Crest.Host.csproj",
+    ".\src\Crest.Host.AspNetCore\Crest.Host.AspNetCore.csproj",
+    ".\src\Crest.OpenApi\Crest.OpenApi.csproj",
+    ".\tools\Crest.OpenApi.Generator\Crest.OpenApi.Generator.csproj"
+)
+foreach ($project in $projects)
 {
-	dotnet pack -c Release src\$project /nologo --no-build --version-suffix=$env:APPVEYOR_BUILD_NUMBER /p:NoPackageAnalysis=true
+    dotnet pack -c Release $project /nologo --no-build --version-suffix=$version /p:NoPackageAnalysis=true
 }
