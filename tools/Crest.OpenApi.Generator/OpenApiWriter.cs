@@ -62,7 +62,8 @@ namespace Crest.OpenApi.Generator
         {
             this.WriteRaw("{\"swagger\":\"2.0\",\"info\":{");
             this.info.WriteInformation(this.version, assembly);
-            this.Write('}');
+            this.WriteRaw("},\"basePath\":");
+            this.WriteString("/v" + this.version);
         }
 
         /// <summary>

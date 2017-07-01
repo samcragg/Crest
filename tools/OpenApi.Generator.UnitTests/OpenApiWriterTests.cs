@@ -63,6 +63,14 @@
             }
 
             [Fact]
+            public void ShouldWriteTheBasePath()
+            {
+                dynamic result = this.GetResult();
+
+                ((string)result.basePath).Should().Be("/v" + ApiVersion);
+            }
+
+            [Fact]
             public void ShouldWriteTheInfoSection()
             {
                 dynamic result = this.GetResult();

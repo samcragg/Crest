@@ -14,12 +14,15 @@ namespace Crest.OpenApi.Generator
     /// </summary>
     public sealed class Program
     {
-        private CommandArgument assemblyName;
-        private CommandOption outputName;
-        private CommandOption xmlDocName;
+        private readonly CommandLineApplication application;
+        private readonly CommandArgument assemblyName;
+        private readonly CommandOption outputName;
+        private readonly CommandOption xmlDocName;
 
         private Program(CommandLineApplication application)
         {
+            this.application = application;
+
             this.assemblyName = application.Argument(
                 "assembly",
                 "The assembly to scan for routes.");
@@ -42,15 +45,17 @@ namespace Crest.OpenApi.Generator
         /// <returns>The code to return to the console.</returns>
         public static int Main(string[] args)
         {
-            var application = new CommandLineApplication(throwOnUnexpectedArg: false);
-            application.Name = "crest_open_api";
-            application.FullName = "Crest OpenAPI documentation generator.";
-            application.Description = "Generates OpenAPI JSON documentation for the Crest routes inside an assembly using information from the XML comments.";
-            application.HelpOption("-?|-h|--help");
+            var application = new CommandLineApplication(throwOnUnexpectedArg: false)
+            {
+                Name = "crest_open_api",
+                FullName = "Crest OpenAPI documentation generator.",
+                Description = "Generates OpenAPI JSON documentation for the Crest routes inside an assembly using information from the XML comments."
+            };
 
             var program = new Program(application);
-            application.OnExecute(new Func<int>(program.OnExecute));
 
+            application.HelpOption("-?|-h|--help");
+            application.OnExecute(new Func<int>(program.OnExecute));
             return application.Execute(args);
         }
 
@@ -59,7 +64,9 @@ namespace Crest.OpenApi.Generator
             string path = this.outputName.Value();
             if (string.IsNullOrWhiteSpace(path))
             {
-                return "doc";
+                return Path.Combine(
+                    Path.GetDirectoryName(this.assemblyName.Value),
+                    "docs");
             }
             else
             {
@@ -69,16 +76,16 @@ namespace Crest.OpenApi.Generator
 
         private XmlDocParser LoadDocumentation()
         {
-            string path = this.xmlDocName.Value();
-            if (string.IsNullOrWhiteSpace(path))
+            string xmlDoc = this.xmlDocName.Value();
+            if (string.IsNullOrWhiteSpace(xmlDoc))
             {
                 string assemblyPath = this.assemblyName.Value;
-                path = Path.Combine(
+                xmlDoc = Path.Combine(
                     Path.GetDirectoryName(assemblyPath),
                     Path.GetFileNameWithoutExtension(assemblyPath) + ".xml");
             }
 
-            using (Stream file = File.OpenRead(path))
+            using (Stream file = File.OpenRead(xmlDoc))
             {
                 return new XmlDocParser(file);
             }
@@ -88,6 +95,12 @@ namespace Crest.OpenApi.Generator
         {
             try
             {
+                if (string.IsNullOrWhiteSpace(this.assemblyName.Value))
+                {
+                    this.application.ShowHelp();
+                    return 0;
+                }
+
                 XmlDocParser xmlDoc = this.LoadDocumentation();
                 using (var loader = new AssemblyLoader(this.assemblyName.Value))
                 {

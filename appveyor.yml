@@ -17,4 +17,5 @@ test_script:
   - ps: .\build\run_tests.ps1
 
 artifacts:
-   path: 'src\**\*.nupkg'
+  - path: 'src\**\*.nupkg'
+  - path: 'tools\**\*.nupkg'
