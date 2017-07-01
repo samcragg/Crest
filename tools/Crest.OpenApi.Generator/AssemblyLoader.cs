@@ -6,11 +6,13 @@
 namespace Crest.OpenApi.Generator
 {
     using System;
+    using System.Collections.Generic;
     using System.IO;
     using System.Linq;
     using System.Reflection;
     using System.Runtime.Loader;
     using Microsoft.Extensions.DependencyModel;
+    using Microsoft.Extensions.DependencyModel.Resolution;
 
     /// <summary>
     /// Helper class to load an assembly and it's dependencies.
@@ -22,7 +24,7 @@ namespace Crest.OpenApi.Generator
     {
         private readonly AssemblyLoadContext assemblyContext;
         private readonly DependencyContext dependencyContext;
-        private readonly string assemblyDirectory;
+        private readonly ICompilationAssemblyResolver resolver;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="AssemblyLoader"/> class.
@@ -32,8 +34,15 @@ namespace Crest.OpenApi.Generator
         {
             this.assemblyContext = AssemblyLoadContext.Default;
             this.Assembly = this.assemblyContext.LoadFromAssemblyPath(path);
-            this.assemblyDirectory = Path.GetDirectoryName(path);
             this.dependencyContext = DependencyContext.Load(this.Assembly);
+
+            string assemblyDirectory = Path.GetDirectoryName(path);
+            this.resolver = new CompositeCompilationAssemblyResolver(new ICompilationAssemblyResolver[]
+            {
+                new AppBaseCompilationAssemblyResolver(assemblyDirectory),
+                new ReferenceAssemblyPathResolver(),
+                new PackageCompilationAssemblyResolver()
+            });
 
             // Do this after we have assigned all the variables
             this.assemblyContext.Resolving += this.OnAssemblyContextResolving;
@@ -52,21 +61,34 @@ namespace Crest.OpenApi.Generator
             this.assemblyContext.Resolving -= this.OnAssemblyContextResolving;
         }
 
+        private static CompilationLibrary ConvertLibrary(RuntimeLibrary library)
+        {
+            return new CompilationLibrary(
+                    library.Type,
+                    library.Name,
+                    library.Version,
+                    library.Hash,
+                    library.RuntimeAssemblyGroups.SelectMany(g => g.AssetPaths),
+                    library.Dependencies,
+                    library.Serviceable);
+        }
+
         private Assembly OnAssemblyContextResolving(AssemblyLoadContext context, AssemblyName name)
         {
-            CompilationLibrary library =
-                this.dependencyContext.CompileLibraries
-                    .FirstOrDefault(rl => string.Equals(rl.Name, name.Name, StringComparison.Ordinal));
+            RuntimeLibrary library =
+                this.dependencyContext.RuntimeLibraries
+                    .FirstOrDefault(lib => string.Equals(lib.Name, name.Name, StringComparison.OrdinalIgnoreCase));
 
             if (library != null)
             {
-                foreach (string assembly in library.Assemblies)
+                // Although TryResolveAssemblyPaths returns false on error, it
+                // also returns true if no assemblies were resolved, hence the
+                // check for the count instead
+                var assemblies = new List<string>();
+                this.resolver.TryResolveAssemblyPaths(ConvertLibrary(library), assemblies);
+                if (assemblies.Count > 0)
                 {
-                    string path = Path.Combine(this.assemblyDirectory, assembly);
-                    if (File.Exists(path))
-                    {
-                        return this.assemblyContext.LoadFromAssemblyPath(path);
-                    }
+                    return this.assemblyContext.LoadFromAssemblyPath(assemblies[0]);
                 }
             }
 
