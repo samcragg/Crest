@@ -5,6 +5,7 @@
 
 namespace Crest.OpenApi
 {
+    using System.Collections.Generic;
     using System.IO;
     using System.Reflection;
 
@@ -16,18 +17,33 @@ namespace Crest.OpenApi
         private readonly Assembly assembly = typeof(IOAdapter).GetTypeInfo().Assembly;
 
         /// <summary>
-        /// Loads the specified manifest resource from the current assembly.
+        /// Returns an enumerable collection of file names that match a search
+        /// pattern in a specified path and subdirectories.
         /// </summary>
-        /// <param name="name">
-        /// The case-sensitive name of the manifest resource being requested.
+        /// <param name="path">
+        /// The relative or absolute path to the directory to search.
+        /// </param>
+        /// <param name="searchPattern">
+        /// The search string to match against the names of files in path.
         /// </param>
         /// <returns>
-        /// The manifest resource or <c>null</c> if no resources were specified
-        /// during compilation.
+        /// An enumerable collection of the full names, including paths.
         /// </returns>
-        public virtual Stream OpenResource(string name)
+        public virtual IEnumerable<string> EnumerateFiles(string path, string searchPattern)
         {
-            return this.assembly.GetManifestResourceStream(name);
+            return Directory.EnumerateFiles(path, searchPattern, SearchOption.AllDirectories);
+        }
+
+        /// <summary>
+        /// Gets the current working directory of the application.
+        /// </summary>
+        /// <returns>
+        /// A string that contains the path of the current working directory
+        /// and does not end with a directory seperator.
+        /// </returns>
+        public virtual string GetCurrentDirectory()
+        {
+            return Directory.GetCurrentDirectory();
         }
 
         /// <summary>
@@ -47,6 +63,21 @@ namespace Crest.OpenApi
                 FileShare.Read,
                 DefaultBufferSize,
                 useAsync: true);
+        }
+
+        /// <summary>
+        /// Loads the specified manifest resource from the current assembly.
+        /// </summary>
+        /// <param name="name">
+        /// The case-sensitive name of the manifest resource being requested.
+        /// </param>
+        /// <returns>
+        /// The manifest resource or <c>null</c> if no resources were specified
+        /// during compilation.
+        /// </returns>
+        public virtual Stream OpenResource(string name)
+        {
+            return this.assembly.GetManifestResourceStream(name);
         }
     }
 }
