@@ -64,6 +64,29 @@ namespace Crest.OpenApi.Generator
         }
 
         /// <summary>
+        /// Writes a verbose message to the trace listeners.
+        /// </summary>
+        /// <param name="message">The message to write.</param>
+        [Conditional("TRACE")]
+        public static void Verbose(string message)
+        {
+            TraceSource.TraceEvent(TraceEventType.Verbose, 0, message, null);
+        }
+
+        /// <summary>
+        /// Writes a verbose message to the trace listeners.
+        /// </summary>
+        /// <param name="format">A composite format string to write.</param>
+        /// <param name="args">
+        /// An array containing zero or more objects to format.
+        /// </param>
+        [Conditional("TRACE")]
+        public static void Verbose(string format, params object[] args)
+        {
+            TraceSource.TraceEvent(TraceEventType.Verbose, 0, format, args);
+        }
+
+        /// <summary>
         /// Writes a warning message to the trace listeners.
         /// </summary>
         /// <param name="message">The message to write.</param>

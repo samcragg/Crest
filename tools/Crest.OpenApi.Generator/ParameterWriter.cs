@@ -102,8 +102,7 @@ namespace Crest.OpenApi.Generator
 
         private void WritePrimitiveType(Type type)
         {
-            string primitive;
-            this.definitions.TryGetPrimitive(type, out primitive);
+            this.definitions.TryGetPrimitive(type, out string primitive);
             this.WriteRaw(primitive ?? UnknownPrimitiveType);
         }
     }

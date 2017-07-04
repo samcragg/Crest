@@ -64,13 +64,13 @@ namespace Crest.OpenApi.Generator
         private static CompilationLibrary ConvertLibrary(RuntimeLibrary library)
         {
             return new CompilationLibrary(
-                    library.Type,
-                    library.Name,
-                    library.Version,
-                    library.Hash,
-                    library.RuntimeAssemblyGroups.SelectMany(g => g.AssetPaths),
-                    library.Dependencies,
-                    library.Serviceable);
+                library.Type,
+                library.Name,
+                library.Version,
+                library.Hash,
+                library.RuntimeAssemblyGroups.SelectMany(g => g.AssetPaths),
+                library.Dependencies,
+                library.Serviceable);
         }
 
         private Assembly OnAssemblyContextResolving(AssemblyLoadContext context, AssemblyName name)
@@ -92,6 +92,7 @@ namespace Crest.OpenApi.Generator
                 }
             }
 
+            Trace.Warning("Unable to resolve '{0}'", name.FullName);
             return null;
         }
     }

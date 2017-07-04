@@ -84,7 +84,8 @@ namespace Crest.OpenApi.Generator
 
         private static string GetTagName(Type type)
         {
-            var description = type.GetTypeInfo().GetCustomAttribute<DescriptionAttribute>();
+            DescriptionAttribute description =
+                type.GetTypeInfo().GetCustomAttribute<DescriptionAttribute>();
             if (description != null)
             {
                 return description.Description;

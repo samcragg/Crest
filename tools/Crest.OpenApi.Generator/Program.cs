@@ -59,6 +59,18 @@ namespace Crest.OpenApi.Generator
             return application.Execute(args);
         }
 
+        private void CreateFiles(XmlDocParser xmlDoc)
+        {
+            string assembly = this.assemblyName.Value;
+            Trace.Information("Loading assembly '{0}'", assembly);
+
+            using (var loader = new AssemblyLoader(assembly))
+            {
+                var generator = new DocGenerator(loader.Assembly, xmlDoc);
+                generator.CreateFiles(this.GetOutputDirectory());
+            }
+        }
+
         private string GetOutputDirectory()
         {
             string path = this.outputName.Value();
@@ -85,6 +97,7 @@ namespace Crest.OpenApi.Generator
                     Path.GetFileNameWithoutExtension(assemblyPath) + ".xml");
             }
 
+            Trace.Information("Parsing '{0}'", xmlDoc);
             using (Stream file = File.OpenRead(xmlDoc))
             {
                 return new XmlDocParser(file);
@@ -102,18 +115,14 @@ namespace Crest.OpenApi.Generator
                 }
 
                 XmlDocParser xmlDoc = this.LoadDocumentation();
-                using (var loader = new AssemblyLoader(this.assemblyName.Value))
-                {
-                    var generator = new DocGenerator(loader.Assembly, xmlDoc);
-                    generator.CreateFiles(this.GetOutputDirectory());
-                }
+                this.CreateFiles(xmlDoc);
 
                 return 0;
             }
             catch (Exception ex)
             {
-                Console.Error.WriteLine("An unexpected error has occurred:");
-                Console.Error.WriteLine("    " + ex.Message);
+                Trace.Error("An unexpected error has occurred:");
+                Trace.Error("    " + ex.Message);
                 return -1;
             }
         }

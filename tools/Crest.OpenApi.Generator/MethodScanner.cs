@@ -41,6 +41,7 @@ namespace Crest.OpenApi.Generator
             this.MaximumVersion = (maximum < minimum) ? minimum : maximum;
             this.MinimumVersion = minimum;
             this.Routes = routes;
+            Trace.Verbose("Version range {0} - {1}", this.MinimumVersion, this.MaximumVersion);
         }
 
         /// <summary>
@@ -107,6 +108,8 @@ namespace Crest.OpenApi.Generator
         {
             foreach (Type type in assembly.ExportedTypes)
             {
+                Trace.Verbose("Scanning '{0}' for routes...", type.FullName);
+
                 foreach (MethodInfo method in type.GetMethods())
                 {
                     int minimum = 1; // Default to version one
@@ -116,8 +119,7 @@ namespace Crest.OpenApi.Generator
 
                     foreach (CustomAttributeData attribute in method.CustomAttributes)
                     {
-                        string route;
-                        if (TryGetRoute(attribute, ref verb, out route))
+                        if (TryGetRoute(attribute, ref verb, out string route))
                         {
                             routes.Add(route);
                         }
@@ -129,6 +131,7 @@ namespace Crest.OpenApi.Generator
 
                     foreach (string route in routes)
                     {
+                        Trace.Verbose("Found '{0}' on method '{1}'", route, method.Name);
                         yield return new RouteInformation(verb, route, method, minimum, maximum);
                     }
                 }

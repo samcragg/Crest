@@ -119,8 +119,7 @@ namespace Crest.OpenApi.Generator
         {
             if (type.IsArray && (type != typeof(byte[])))
             {
-                string elementType;
-                if (this.TryGetPrimitive(type.GetElementType(), out elementType))
+                if (this.TryGetPrimitive(type.GetElementType(), out string elementType))
                 {
                     value = ArrayDeclarationStart + elementType + ArrayDeclarationEnd;
                     return true;
@@ -204,6 +203,8 @@ namespace Crest.OpenApi.Generator
 
         private void WriteProperty(string name, PropertyInfo property)
         {
+            Trace.Verbose("    Writing property '{0}' as '{1}'", property.Name, name);
+
             this.WriteString(name);
             this.WriteRaw(":{\"description\":");
             this.WriteString(this.xmlDoc.GetDescription(property));
@@ -279,8 +280,7 @@ namespace Crest.OpenApi.Generator
             }
             else
             {
-                string primitive;
-                if (this.TryGetPrimitive(type, out primitive))
+                if (this.TryGetPrimitive(type, out string primitive))
                 {
                     this.WriteRaw(primitive);
                 }
@@ -293,6 +293,8 @@ namespace Crest.OpenApi.Generator
 
         private void WriteType(Type type)
         {
+            Trace.Verbose("Writing '{0}'", type.FullName);
+
             var required = new SortedSet<string>();
             this.WriteString(type.Name);
             this.WriteRaw(":{\"type\":\"object\",\"description\":");

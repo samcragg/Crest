@@ -70,8 +70,7 @@ namespace Crest.OpenApi.Generator
         public virtual ClassDescription GetClassDescription(Type type)
         {
             string className = FormatTypeName(type);
-            ClassDescription summary;
-            this.types.TryGetValue(className, out summary);
+            this.types.TryGetValue(className, out ClassDescription summary);
             return summary ?? new ClassDescription();
         }
 
@@ -87,8 +86,7 @@ namespace Crest.OpenApi.Generator
         public virtual string GetDescription(PropertyInfo property)
         {
             string propertyName = FormatPropertyName(property);
-            string summary;
-            this.properties.TryGetValue(propertyName, out summary);
+            this.properties.TryGetValue(propertyName, out string summary);
             return summary;
         }
 
@@ -100,8 +98,7 @@ namespace Crest.OpenApi.Generator
         internal virtual MethodDescription GetMethodDescription(MethodInfo method)
         {
             string methodName = FormatMethodName(method);
-            MethodDescription value;
-            this.members.TryGetValue(methodName, out value);
+            this.members.TryGetValue(methodName, out MethodDescription value);
             return value ?? new MethodDescription();
         }
 
@@ -262,16 +259,19 @@ namespace Crest.OpenApi.Generator
             switch (member[0])
             {
                 case 'M':
+                    Trace.Verbose("Found method description for '{0}'", member);
                     MethodDescription methodDescription = ParseMethodDescription(reader.ReadSubtree());
                     this.members.Add(member, methodDescription);
                     break;
 
                 case 'P':
+                    Trace.Verbose("Found property description for '{0}'", member);
                     string summary = ParsePropertyDescription(ParseSummary(reader.ReadSubtree()));
                     this.properties.Add(member, summary);
                     break;
 
                 case 'T':
+                    Trace.Verbose("Found class description for '{0}'", member);
                     ClassDescription classDescription = ParseClassDocumentation(reader.ReadSubtree());
                     this.types.Add(member, classDescription);
                     break;

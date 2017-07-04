@@ -53,6 +53,10 @@ namespace Crest.OpenApi.Generator
                 this.WriteRaw(",\"description\":");
                 this.WriteString(converter.Description);
             }
+            else
+            {
+                Trace.Information("No asembly description attribute found.");
+            }
         }
 
         private void WriteLicense(AttributeConverter converter)
@@ -61,7 +65,7 @@ namespace Crest.OpenApi.Generator
             {
                 if (!string.IsNullOrWhiteSpace(converter.LicenseUrl))
                 {
-                    Console.WriteLine("LicenseUrl is being ignored as no license is specified.");
+                    Trace.Warning("LicenseUrl is being ignored as no license is specified.");
                 }
             }
             else
@@ -85,6 +89,7 @@ namespace Crest.OpenApi.Generator
 
             if (string.IsNullOrWhiteSpace(converter.Title))
             {
+                Trace.Information("No asembly title attribute found, falling back to assembly name.");
                 this.WriteString(assembly.GetName().Name);
             }
             else
@@ -111,26 +116,17 @@ namespace Crest.OpenApi.Generator
 
             public void ParseAttribute(Attribute attribute)
             {
-                var title = attribute as AssemblyTitleAttribute;
-                if (title != null)
+                if (attribute is AssemblyTitleAttribute title)
                 {
                     this.Title = title.Title;
                 }
-                else
+                else if (attribute is AssemblyDescriptionAttribute description)
                 {
-                    var description = attribute as AssemblyDescriptionAttribute;
-                    if (description != null)
-                    {
-                        this.Description = description.Description;
-                    }
-                    else
-                    {
-                        var metadata = attribute as AssemblyMetadataAttribute;
-                        if (metadata != null)
-                        {
-                            this.ParseMetadata(metadata.Key, metadata.Value);
-                        }
-                    }
+                    this.Description = description.Description;
+                }
+                else if (attribute is AssemblyMetadataAttribute metadata)
+                {
+                    this.ParseMetadata(metadata.Key, metadata.Value);
                 }
             }
 

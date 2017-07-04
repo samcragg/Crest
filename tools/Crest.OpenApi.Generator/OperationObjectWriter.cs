@@ -84,8 +84,7 @@ namespace Crest.OpenApi.Generator
         {
             string id = method.DeclaringType.Name + "." + method.Name;
 
-            int count;
-            if (this.ids.TryGetValue(id, out count))
+            if (this.ids.TryGetValue(id, out int count))
             {
                 this.ids[id] = count + 1;
                 id += count;
@@ -144,11 +143,9 @@ namespace Crest.OpenApi.Generator
                     this.Write(',');
                 }
 
-                string summary;
-                parameterSummaries.TryGetValue(parameter.Name, out summary);
+                parameterSummaries.TryGetValue(parameter.Name, out string summary);
 
-                string key;
-                if (queryParams.TryGetValue(parameter.Name, out key))
+                if (queryParams.TryGetValue(parameter.Name, out string key))
                 {
                     this.parameters.WriteQueryParameter(parameter, key, summary);
                 }
@@ -186,8 +183,7 @@ namespace Crest.OpenApi.Generator
 
         private void WriteSchema(Type type)
         {
-            string primitive;
-            if (this.definitions.TryGetPrimitive(type, out primitive))
+            if (this.definitions.TryGetPrimitive(type, out string primitive))
             {
                 this.WriteRaw(primitive);
             }
