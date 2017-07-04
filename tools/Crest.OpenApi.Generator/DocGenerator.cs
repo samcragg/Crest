@@ -6,6 +6,7 @@
 namespace Crest.OpenApi.Generator
 {
     using System.IO;
+    using System.IO.Compression;
     using System.Reflection;
     using System.Text;
 
@@ -46,13 +47,33 @@ namespace Crest.OpenApi.Generator
 
                 // Then the file
                 path = Path.Combine(path, OpenApiFileName);
-                using (var file = new StreamWriter(File.OpenWrite(path), this.defaultEncoding))
-                {
-                    var writer = new OpenApiWriter(this.xmlDoc, file, version);
-                    writer.WriteHeader(this.assembly);
-                    writer.WriteOperations(this.scanner.Routes);
-                    writer.WriteFooter();
-                }
+                this.CreateJsonFile(version, path);
+                this.CreateGZipFile(path);
+            }
+        }
+
+        private void CreateGZipFile(string path)
+        {
+            Trace.Information("Compressing '{0}'...", Path.GetFileName(path));
+
+            using (Stream source = File.OpenRead(path))
+            using (Stream destination = File.OpenWrite(path + ".gz"))
+            using (Stream compress = new GZipStream(destination, CompressionLevel.Optimal))
+            {
+                source.CopyTo(compress);
+            }
+        }
+
+        private void CreateJsonFile(int version, string path)
+        {
+            Trace.Information("Writing '{0}'", path);
+
+            using (var file = new StreamWriter(File.OpenWrite(path), this.defaultEncoding))
+            {
+                var writer = new OpenApiWriter(this.xmlDoc, file, version);
+                writer.WriteHeader(this.assembly);
+                writer.WriteOperations(this.scanner.Routes);
+                writer.WriteFooter();
             }
         }
     }
