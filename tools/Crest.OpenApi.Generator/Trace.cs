@@ -6,16 +6,14 @@
 namespace Crest.OpenApi.Generator
 {
     using System.Diagnostics;
+    using System.Linq;
 
     /// <summary>
     /// Allows the writing of output.
     /// </summary>
     internal static class Trace
     {
-        /// <summary>
-        /// Gets or sets where to trace to.
-        /// </summary>
-        internal static TraceSource TraceSource { get; set; }
+        private static TraceSource traceSource;
 
         /// <summary>
         /// Writes an error message to the trace listeners.
@@ -24,7 +22,7 @@ namespace Crest.OpenApi.Generator
         [Conditional("TRACE")]
         public static void Error(string message)
         {
-            TraceSource.TraceEvent(TraceEventType.Error, 0, message, null);
+            traceSource.TraceEvent(TraceEventType.Error, 0, message, null);
         }
 
         /// <summary>
@@ -37,7 +35,7 @@ namespace Crest.OpenApi.Generator
         [Conditional("TRACE")]
         public static void Error(string format, params object[] args)
         {
-            TraceSource.TraceEvent(TraceEventType.Error, 0, format, args);
+            traceSource.TraceEvent(TraceEventType.Error, 0, format, args);
         }
 
         /// <summary>
@@ -47,7 +45,7 @@ namespace Crest.OpenApi.Generator
         [Conditional("TRACE")]
         public static void Information(string message)
         {
-            TraceSource.TraceEvent(TraceEventType.Information, 0, message, null);
+            traceSource.TraceEvent(TraceEventType.Information, 0, message, null);
         }
 
         /// <summary>
@@ -60,7 +58,7 @@ namespace Crest.OpenApi.Generator
         [Conditional("TRACE")]
         public static void Information(string format, params object[] args)
         {
-            TraceSource.TraceEvent(TraceEventType.Information, 0, format, args);
+            traceSource.TraceEvent(TraceEventType.Information, 0, format, args);
         }
 
         /// <summary>
@@ -70,7 +68,7 @@ namespace Crest.OpenApi.Generator
         [Conditional("TRACE")]
         public static void Verbose(string message)
         {
-            TraceSource.TraceEvent(TraceEventType.Verbose, 0, message, null);
+            traceSource.TraceEvent(TraceEventType.Verbose, 0, message, null);
         }
 
         /// <summary>
@@ -83,7 +81,7 @@ namespace Crest.OpenApi.Generator
         [Conditional("TRACE")]
         public static void Verbose(string format, params object[] args)
         {
-            TraceSource.TraceEvent(TraceEventType.Verbose, 0, format, args);
+            traceSource.TraceEvent(TraceEventType.Verbose, 0, format, args);
         }
 
         /// <summary>
@@ -93,7 +91,7 @@ namespace Crest.OpenApi.Generator
         [Conditional("TRACE")]
         public static void Warning(string message)
         {
-            TraceSource.TraceEvent(TraceEventType.Warning, 0, message, null);
+            traceSource.TraceEvent(TraceEventType.Warning, 0, message, null);
         }
 
         /// <summary>
@@ -106,7 +104,39 @@ namespace Crest.OpenApi.Generator
         [Conditional("TRACE")]
         public static void Warning(string format, params object[] args)
         {
-            TraceSource.TraceEvent(TraceEventType.Warning, 0, format, args);
+            traceSource.TraceEvent(TraceEventType.Warning, 0, format, args);
+        }
+
+        /// <summary>
+        /// Sets up the tracing level.
+        /// </summary>
+        /// <param name="level">The level at which to trace.</param>
+        [Conditional("TRACE")]
+        internal static void SetUpTrace(string level)
+        {
+            traceSource = new TraceSource("Crest.OpenApi.Generator");
+            traceSource.Listeners.Add(new ConsoleTraceListener());
+            traceSource.Switch.Level = GetTraceLevel(level ?? string.Empty);
+        }
+
+        private static SourceLevels GetTraceLevel(string level)
+        {
+            switch (level.ToLowerInvariant().FirstOrDefault())
+            {
+                case 'q':
+                    return SourceLevels.Error;
+
+                case 'm':
+                    return SourceLevels.Warning;
+
+                case 'n':
+                    return SourceLevels.Information;
+
+                case 'd':
+                    return SourceLevels.Verbose;
+            }
+
+            return SourceLevels.Warning;
         }
     }
 }

@@ -17,6 +17,7 @@ namespace Crest.OpenApi.Generator
         private readonly CommandLineApplication application;
         private readonly CommandArgument assemblyName;
         private readonly CommandOption outputName;
+        private readonly CommandOption verbosity;
         private readonly CommandOption xmlDocName;
 
         private Program(CommandLineApplication application)
@@ -30,6 +31,11 @@ namespace Crest.OpenApi.Generator
             this.outputName = application.Option(
                 "-o|--output <doc>",
                 "The folder to write the output to.",
+                CommandOptionType.SingleValue);
+
+            this.verbosity = application.Option(
+                "-v|--verbosity <level>",
+                "Specifies the amount of information to display. The following verbosity levels are supported: q[uiet], m[inimal], n[ormal] and d[etailed].",
                 CommandOptionType.SingleValue);
 
             this.xmlDocName = application.Option(
@@ -108,6 +114,8 @@ namespace Crest.OpenApi.Generator
         {
             try
             {
+                Trace.SetUpTrace(this.verbosity.Value());
+
                 if (string.IsNullOrWhiteSpace(this.assemblyName.Value))
                 {
                     this.application.ShowHelp();
