@@ -83,9 +83,12 @@ artifacts/
 # RIA/Silverlight projects
 Generated_Code/
 
-
-# Test coverage tools and output
+# Build tools and output
 CoverResult.xml
 NuGet.exe
-build/tools/*
-build/report/*
+build/node_modules/
+build/report/
+build/tools/
+
+# Auto-generated files
+**/SwaggerUI/*.gz
