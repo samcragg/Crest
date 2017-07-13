@@ -5,6 +5,7 @@
 
 namespace Crest.OpenApi
 {
+    using System;
     using System.Collections.Generic;
     using System.IO;
     using System.Reflection;
@@ -35,15 +36,16 @@ namespace Crest.OpenApi
         }
 
         /// <summary>
-        /// Gets the current working directory of the application.
+        /// Gets the pathname of the base directory that the assembly resolver
+        /// uses to probe for assemblies.
         /// </summary>
         /// <returns>
-        /// A string that contains the path of the current working directory
-        /// and does not end with a directory seperator.
+        /// The pathname of the base directory that the assembly resolver uses
+        /// to probe for assemblies.
         /// </returns>
-        public virtual string GetCurrentDirectory()
+        public virtual string GetBaseDirectory()
         {
-            return Directory.GetCurrentDirectory();
+            return AppContext.BaseDirectory;
         }
 
         /// <summary>

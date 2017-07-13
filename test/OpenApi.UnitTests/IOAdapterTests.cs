@@ -1,5 +1,6 @@
 ﻿namespace OpenApi.UnitTests
 {
+    using System;
     using System.IO;
     using System.Linq;
     using System.Reflection;
@@ -61,14 +62,14 @@
             }
         }
 
-        public sealed class GetCurrentDirectory : IOAdapterTests
+        public sealed class GetBaseDirectory : IOAdapterTests
         {
             [Fact]
-            public void ShouldReturnTheWorkingDirectory()
+            public void ShouldReturnAppContextBaseDirectory()
             {
-                string current = Directory.GetCurrentDirectory();
+                string current = AppContext.BaseDirectory;
 
-                string result = this.adapter.GetCurrentDirectory();
+                string result = this.adapter.GetBaseDirectory();
 
                 result.Should().Be(current);
             }

@@ -14,7 +14,7 @@ namespace Crest.OpenApi
     /// Allows the locating of the OpenAPI JSON specification files for the
     /// various versions of the service.
     /// </summary>
-    internal sealed class SpecificationFileLocator
+    internal class SpecificationFileLocator
     {
         /// <summary>
         /// Represents the base directory, relative to the current directory,
@@ -29,27 +29,28 @@ namespace Crest.OpenApi
         public SpecificationFileLocator(IOAdapter io)
         {
             this.RelativePaths = FindFiles(io);
-            this.Latest =
-                this.RelativePaths
-                    .OrderByDescending(x => x, new StringVersionComparer())
-                    .FirstOrDefault();
         }
 
         /// <summary>
-        /// Gets the path of the highest version.
+        /// Initializes a new instance of the <see cref="SpecificationFileLocator"/> class.
         /// </summary>
-        public string Latest { get; }
+        /// <remarks>
+        /// This constructor is only used to allow the type to be mocked in unit tests.
+        /// </remarks>
+        protected SpecificationFileLocator()
+        {
+        }
 
         /// <summary>
         /// Gets the relative paths to documentation specification files.
         /// </summary>
-        public IReadOnlyList<string> RelativePaths { get; }
+        public virtual IReadOnlyList<string> RelativePaths { get; }
 
         private static string[] FindFiles(IOAdapter io)
         {
-            string currentDirectory = io.GetCurrentDirectory();
+            string currentDirectory = io.GetBaseDirectory();
             string searchDirectory = Path.Combine(currentDirectory, DocsDirectory);
-            var baseUri = new Uri(currentDirectory + "\\");
+            var baseUri = new Uri(currentDirectory + "\\" + DocsDirectory + "\\");
 
             string MakeRelative(string fullPath)
             {
@@ -58,7 +59,16 @@ namespace Crest.OpenApi
                 return Uri.UnescapeDataString(relative.ToString());
             }
 
+            // When enumerating the files, we should prefer json.gz to json so
+            // search for both file names (the Concat) and then group them by
+            // their directory name. For each grouping, the json.gz is longer
+            // so order it by the length (descending for longest first) and
+            // select the first one in the group (which will be json.gz if it's
+            // there, otherwise, the group will have the single json file)
             return io.EnumerateFiles(searchDirectory, "openapi.json")
+                     .Concat(io.EnumerateFiles(searchDirectory, "openapi.json.gz"))
+                     .GroupBy(path => Path.GetDirectoryName(path))
+                     .Select(group => group.OrderByDescending(p => p.Length).First())
                      .Select(MakeRelative)
                      .ToArray();
         }

@@ -12,66 +12,73 @@
 
     public class OpenApiProviderTests
     {
-        private readonly IOAdapter adapter = Substitute.For<IOAdapter>();
+        private readonly IndexHtmlGenerator generator = Substitute.For<IndexHtmlGenerator>();
+        private readonly IOAdapter io = Substitute.For<IOAdapter>();
         private readonly OpenApiProvider provider;
+        private readonly SpecificationFileLocator specFiles = Substitute.For<SpecificationFileLocator>();
 
         public OpenApiProviderTests()
         {
-            this.adapter.OpenRead(null).ReturnsForAnyArgs(Stream.Null);
-            this.adapter.OpenResource(null).ReturnsForAnyArgs(Stream.Null);
-            this.provider = new OpenApiProvider(this.adapter);
+            this.io.OpenRead(null).ReturnsForAnyArgs(Stream.Null);
+            this.io.OpenResource(null).ReturnsForAnyArgs(Stream.Null);
+            this.provider = new OpenApiProvider(this.io, this.specFiles, this.generator);
         }
 
         public sealed class GetDirectRoutes : OpenApiProviderTests
         {
+            private const string UrlBase = OpenApiProvider.DocumentationBaseRoute;
+
             [Theory]
-            [InlineData("index.html")]
             [InlineData("swagger-ui.css", ".gz")]
             [InlineData("swagger-ui-bundle.js", ".gz")]
             [InlineData("swagger-ui-standalone-preset.js", ".gz")]
-            public async Task ShouldIncludeEmbeddedResources(string file, string extension = "")
+            public async Task ShouldIncludeEmbeddedResources(string file, string extension)
             {
                 string expectedResource = "Crest.OpenApi.SwaggerUI." + file + extension;
                 CheckResourceExists(expectedResource);
 
                 DirectRouteMetadata route =
                     this.provider.GetDirectRoutes()
-                        .Single(x => x.RouteUrl == "/doc/" + file);
+                        .Single(x => x.RouteUrl == (UrlBase + "/" + file));
 
                 route.Verb.Should().Be("GET");
                 IResponseData response = await route.Method(Substitute.For<IRequestData>(), Substitute.For<IContentConverter>());
 
                 response.ContentType.Should().NotBeNullOrEmpty();
                 await response.WriteBody(Stream.Null);
-                this.adapter.Received().OpenResource(expectedResource);
-            }
-
-            [Fact]
-            public async Task ShouldIncludeRedirectUrl()
-            {
-                DirectRouteMetadata redirect =
-                    this.provider.GetDirectRoutes()
-                        .Single(x => x.RouteUrl == "/doc");
-
-                redirect.Verb.Should().Be("GET");
-                IResponseData response = await redirect.Method(null, null);
-
-                response.StatusCode.Should().Be(301);
-                response.Headers["Location"].Should().Be("/doc/index.html");
+                this.io.Received().OpenResource(expectedResource);
             }
 
             [Fact]
             public async Task ShouldIncludeTheOpenApiJsonFile()
             {
+                this.specFiles.RelativePaths.Returns(new[] { "v1/openapi.json.gz" });
+
                 DirectRouteMetadata openApi =
                     this.provider.GetDirectRoutes()
-                        .Single(x => x.RouteUrl == "/doc/openapi.json");
+                        .Single(x => x.RouteUrl == UrlBase + "/v1/openapi.json");
 
                 openApi.Verb.Should().Be("GET");
-                IResponseData response = await openApi.Method(null, null);
+                IResponseData response = await openApi.Method(
+                    Substitute.For<IRequestData>(),
+                    Substitute.For<IContentConverter>());
 
                 await response.WriteBody(Stream.Null);
-                this.adapter.Received().OpenRead("openapi.json");
+                this.io.Received().OpenRead(Arg.Is<string>(s => s.EndsWith("openapi.json.gz")));
+            }
+
+            [Fact]
+            public async Task ShouldRedirectToIndexHtml()
+            {
+                DirectRouteMetadata redirect =
+                    this.provider.GetDirectRoutes()
+                        .Single(x => x.RouteUrl == UrlBase);
+
+                redirect.Verb.Should().Be("GET");
+                IResponseData response = await redirect.Method(null, null);
+
+                response.StatusCode.Should().Be(301);
+                response.Headers["Location"].Should().Be(UrlBase + "/index.html");
             }
 
             [Fact]
@@ -82,11 +89,26 @@
 
                 DirectRouteMetadata route =
                     this.provider.GetDirectRoutes()
-                        .Single(x => x.RouteUrl == "/doc/index.html");
+                        .Single(x => x.RouteUrl == UrlBase + "/index.html");
 
                 IResponseData response = await route.Method(request, Substitute.For<IContentConverter>());
 
                 response.Headers.Should().BeEmpty();
+            }
+
+            [Fact]
+            public async Task ShouldTransformTheIndexHtml()
+            {
+                this.generator.GetPage().Returns(Stream.Null);
+
+                DirectRouteMetadata route =
+                    this.provider.GetDirectRoutes()
+                        .Single(x => x.RouteUrl == (UrlBase + "/index.html"));
+
+                IResponseData response = await route.Method(Substitute.For<IRequestData>(), Substitute.For<IContentConverter>());
+
+                await response.WriteBody(Stream.Null);
+                this.generator.Received().GetPage();
             }
 
             private void CheckResourceExists(string resourceName)
