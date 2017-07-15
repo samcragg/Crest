@@ -1,0 +1,17 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>netcoreapp1.1</TargetFramework>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="..\..\..\src\Crest.Host\StringDictionary.cs" Link="Crest.Host\StringDictionary.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="BenchmarkDotNet" Version="0.10.8" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Crest.Host\" />
+  </ItemGroup>
+</Project>

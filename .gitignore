@@ -89,6 +89,7 @@ NuGet.exe
 build/node_modules/
 build/report/
 build/tools/
+**/BenchmarkDotNet.Artifacts
 
 # Auto-generated files
 **/SwaggerUI/*.gz
