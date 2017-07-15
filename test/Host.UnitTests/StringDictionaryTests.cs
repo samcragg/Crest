@@ -72,6 +72,8 @@
             [Fact]
             public void ShouldReturnFalseIfTheKeyDoesNotExist()
             {
+                this.dictionary.Add("key", 123);
+
                 bool result = this.dictionary.ContainsKey("unknown");
 
                 result.Should().BeFalse();

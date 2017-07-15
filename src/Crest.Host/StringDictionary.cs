@@ -146,6 +146,40 @@ namespace Crest.Host
             throw new NotSupportedException();
         }
 
+        private static bool EqualsOrdinalIgnoreCase(string strA, string strB)
+        {
+            int length = strA.Length;
+            if (length != strB.Length)
+            {
+                return false;
+            }
+
+            for (int i = 0; i < length; i++)
+            {
+                // uppercase both chars - notice that we need just one compare per char
+                int charA = strA[i];
+                if ((uint)(charA - 'a') <= (uint)('z' - 'a'))
+                {
+                    charA -= 0x20;
+                }
+
+                int charB = strB[i];
+                if ((uint)(charB - 'a') <= (uint)('z' - 'a'))
+                {
+                    charB -= 0x20;
+                }
+
+                // Loops with return statements are slower (https://github.com/dotnet/coreclr/issues/9692)
+                if (charA != charB)
+                {
+                    length = -1;
+                    break;
+                }
+            }
+
+            return length >= 0;
+        }
+
         private void EnsureSpaceToAdd()
         {
             if (this.length == this.keys.Length)
@@ -157,11 +191,14 @@ namespace Crest.Host
 
         private int IndexOf(string key)
         {
-            for (int i = 0; i < this.length; i++)
+            if (!object.ReferenceEquals(key, null))
             {
-                if (string.Equals(this.keys[i], key, StringComparison.OrdinalIgnoreCase))
+                for (int i = 0; i < this.length; i++)
                 {
-                    return i;
+                    if (EqualsOrdinalIgnoreCase(this.keys[i], key))
+                    {
+                        return i;
+                    }
                 }
             }
 
