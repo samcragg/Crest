@@ -73,7 +73,7 @@ namespace Crest.Host.Routing
         }
 
         /// <summary>
-        /// Converts the query values into strongy typed values.
+        /// Converts the query values into strongly typed values.
         /// </summary>
         /// <param name="query">Contains the query key/values.</param>
         /// <param name="parameters">Used to store the converted value.</param>

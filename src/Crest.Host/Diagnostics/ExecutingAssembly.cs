@@ -70,7 +70,7 @@ namespace Crest.Host.Diagnostics
         }
 
         /// <summary>
-        /// Loads the assemblies that were compiled agains the current assembly.
+        /// Loads the assemblies that were compiled against the current assembly.
         /// </summary>
         /// <returns>The loaded assemblies.</returns>
         public virtual IEnumerable<Assembly> LoadCompileLibraries()

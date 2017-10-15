@@ -35,7 +35,7 @@ namespace Crest.Host.Diagnostics
         }
 
         /// <summary>
-        /// Gets the total amount of CPU time spent in applicaiton code of the
+        /// Gets the total amount of CPU time spent in application code of the
         /// process.
         /// </summary>
         public virtual TimeSpan ApplicationCpuTime => this.process.UserProcessorTime;

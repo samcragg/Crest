@@ -21,7 +21,7 @@ namespace Crest.Abstractions
         string ContentType { get; }
 
         /// <summary>
-        /// Gets addtional headers to send with the response.
+        /// Gets additional headers to send with the response.
         /// </summary>
         IReadOnlyDictionary<string, string> Headers { get; }
 

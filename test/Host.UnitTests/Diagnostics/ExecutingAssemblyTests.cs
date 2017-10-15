@@ -34,7 +34,7 @@
                 IEnumerable<ExecutingAssembly.AssemblyInfo> result = this.executingAssembly.GetCompileLibraries();
 
                 // Since we're using Fluent Assertions in our tests we know it
-                // must be a library the test assembly is compiled agains...
+                // must be a library the test assembly is compiled against...
                 result.Should().Contain(ai => string.Equals(nameof(FluentAssertions), ai.Name, StringComparison.OrdinalIgnoreCase))
                       .Which.Version.Should().NotBeNullOrEmpty();
             }

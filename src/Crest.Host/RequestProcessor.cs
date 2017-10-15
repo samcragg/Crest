@@ -272,7 +272,7 @@ namespace Crest.Host
             catch (Exception ex)
             {
                 TraceSources.Routing.TraceError(
-                    "An exception occured handling the request: {0}:{1}",
+                    "An exception occurred handling the request: {0}:{1}",
                     ex.GetType().Name,
                     ex.Message);
 
@@ -283,7 +283,7 @@ namespace Crest.Host
                 catch (Exception inner)
                 {
                     TraceSources.Routing.TraceError(
-                        "An exception occured handling an exception: {0}:{1}",
+                        "An exception occurred handling an exception: {0}:{1}",
                         inner.GetType().Name,
                         inner.Message);
                 }
@@ -312,7 +312,7 @@ namespace Crest.Host
                 {
                     converter.WriteTo(memory, value);
                     memory.Position = 0;
-                    await memory.CopyToAsync(dest);
+                    await memory.CopyToAsync(dest).ConfigureAwait(false);
                 }
             };
 
