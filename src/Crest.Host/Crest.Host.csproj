@@ -21,6 +21,7 @@
     <PackageReference Include="System.ComponentModel.TypeConverter" Version="4.3.0" />
     <PackageReference Include="System.Diagnostics.Process" Version="4.3.0" />
     <PackageReference Include="System.Diagnostics.TraceSource" Version="4.3.0" />
+    <PackageReference Include="System.Reflection.Emit" Version="4.3.0" />
   </ItemGroup>
 
   <ItemGroup>
@@ -56,6 +57,15 @@
     </Compile>
     <Compile Update="Routing/UrlParser.SegmentParser.cs">
       <DependentUpon>UrlParser.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Serialization/ClassSerializerGenerator.BaseMethods.cs">
+      <DependentUpon>ClassSerializerGenerator.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Serialization/ClassSerializerGenerator.WriteMethodEmitter.cs">
+      <DependentUpon>ClassSerializerGenerator.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Serialization/SerializerGenerator.SerializerInfo.cs">
+      <DependentUpon>SerializerGenerator.cs</DependentUpon>
     </Compile>
     <Compile Update="QueryLookup.Grouping.cs">
       <DependentUpon>QueryLookup.cs</DependentUpon>
