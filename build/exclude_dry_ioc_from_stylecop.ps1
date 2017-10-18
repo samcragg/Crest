@@ -1,10 +1,10 @@
-$files = "Container.cs", "ImTools.cs", "Ported-net.cs"
+$files = "Container.cs", "ImTools.cs", "FastExpressionCompiler.cs", "Ported-net.cs"
 
 foreach ($file in $files)
 {
-    $dir = Join-Path $env:userprofile ".nuget/packages/DryIoc.Internal/2.11.3/contentFiles/cs/any"
+    $dir = Join-Path $env:userprofile ".nuget/packages/DryIoc.Internal/2.12.3/contentFiles/cs/any"
     $path = Join-Path $dir $file
-	$backupName = Join-Path $dir ("../" + $file + ".original")
+    $backupName = Join-Path $dir ("../" + $file + ".original")
     if (!(Test-Path $backupName))
     {
         Copy-Item $path -Destination $backupName

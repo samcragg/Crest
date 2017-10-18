@@ -1,9 +1,9 @@
 ﻿namespace BasicExample.Logic
 {
-    using System;
     using System.Linq;
     using System.Threading.Tasks;
     using BasicExample.Api;
+    using TimeZoneInfo = System.TimeZoneInfo;
 
     internal sealed class Example : IExample
     {
@@ -50,7 +50,7 @@
             {
                 return TimeZoneInfo.FindSystemTimeZoneById(id);
             }
-            catch (Exception /* TimeZoneNotFoundException isn't in Core 1.0.1 */)
+            catch (System.TimeZoneNotFoundException)
             {
                 return null;
             }

@@ -74,14 +74,10 @@
         public sealed class HandleRequestAsync : RequestProcessorTests
         {
             private static readonly MethodInfo FakeMethodInfo =
-                typeof(HandleRequestAsync).GetMethod(nameof(FakeMethod));
+                typeof(HandleRequestAsync).GetMethod(nameof(FakeMethod), BindingFlags.NonPublic | BindingFlags.Static);
 
             private readonly RequestProcessor.MatchResult simpleMatch =
                 new RequestProcessor.MatchResult(FakeMethodInfo, new Dictionary<string, object>());
-
-            public void FakeMethod()
-            {
-            }
 
             [Fact]
             public async Task ShouldCatchExceptionsFromInvokeHandler()
@@ -209,6 +205,10 @@
                 await this.processor.HandleRequestAsync(this.simpleMatch, r => request);
 
                 await this.responseGenerator.Received().NotAcceptableAsync(request);
+            }
+
+            internal static void FakeMethod()
+            {
             }
         }
 
