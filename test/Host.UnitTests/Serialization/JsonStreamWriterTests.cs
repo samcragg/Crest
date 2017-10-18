@@ -96,7 +96,9 @@ namespace Host.UnitTests.Serialization
             [InlineData("79228162514264337593543950335")] // MaxValue
             public void ShouldWriteTheBounds(string value)
             {
-                string result = this.GetString(this.writer.WriteDecimal, decimal.Parse(value));
+                string result = this.GetString(
+                    this.writer.WriteDecimal,
+                    decimal.Parse(value, CultureInfo.InvariantCulture));
 
                 result.Should().BeEquivalentTo(value);
             }

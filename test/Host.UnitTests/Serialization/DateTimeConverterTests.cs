@@ -1,6 +1,7 @@
 ﻿namespace Host.UnitTests.Serialization
 {
     using System;
+    using System.Globalization;
     using System.Linq;
     using System.Text;
     using Crest.Host.Serialization;
@@ -18,7 +19,10 @@
             public void ShouldWriteAnIso8601DateTime(string value)
             {
                 byte[] buffer = new byte[DateTimeConverter.MaximumTextLength];
-                var dateTime = DateTime.Parse(value);
+                var dateTime = DateTime.Parse(
+                    value,
+                    DateTimeFormatInfo.InvariantInfo,
+                    DateTimeStyles.AdjustToUniversal);
 
                 int length = DateTimeConverter.WriteDateTime(buffer, 0, dateTime);
 
