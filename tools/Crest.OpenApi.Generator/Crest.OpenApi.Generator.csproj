@@ -1,14 +1,13 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netcoreapp1.0</TargetFramework>
+    <TargetFramework>netcoreapp2.0</TargetFramework>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <AssemblyName>dotnet-crest-openapi</AssemblyName>
     <OutputType>Exe</OutputType>
     <PackageId>Crest.OpenApi.Generator</PackageId>
     <PackageType>DotNetCliTool</PackageType>
-    <RuntimeFrameworkVersion>1.0.4</RuntimeFrameworkVersion>
   </PropertyGroup>
 
   <Import Project="..\..\src\CrestPackage.targets" />
