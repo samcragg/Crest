@@ -4,12 +4,8 @@
     using Xunit;
 
     [Trait("Category", "Integration")]
-    public class SerializerGeneratorWithXmlTests : SerializerGeneratorIntegrationTestBase
+    public class SerializerGeneratorWithXmlTests : SerializerGeneratorIntegrationTest<XmlSerializerBase>
     {
-        private SerializerGenerator generator = new SerializerGenerator(typeof(XmlSerializerBase));
-
-        internal override SerializerGenerator Generator => this.generator;
-
         protected override string StripNonEssentialInformation(string result)
         {
             // Strip the <?xml ... ?> part

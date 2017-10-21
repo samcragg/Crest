@@ -20,22 +20,22 @@ namespace Crest.Host.Serialization
     internal sealed partial class ClassSerializerGenerator : TypeSerializerGenerator
     {
         private readonly BaseMethods baseMethods;
-        private readonly SerializerGenerator generator;
+        private readonly Func<Type, Type> generateSerializer;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ClassSerializerGenerator"/> class.
         /// </summary>
-        /// <param name="generator">
+        /// <param name="generateSerializer">
         /// Used to get additional serializers for nested classes.
         /// </param>
         /// <param name="module">The dynamic module to output the types to.</param>
         /// <param name="baseClass">
         /// The type for the generated classes to inherit from.
         /// </param>
-        public ClassSerializerGenerator(SerializerGenerator generator, ModuleBuilder module, Type baseClass)
+        public ClassSerializerGenerator(Func<Type, Type> generateSerializer, ModuleBuilder module, Type baseClass)
             : base(module, baseClass)
         {
-            this.generator = generator;
+            this.generateSerializer = generateSerializer;
 
             Type classSerializerInterface = GetGenericInterfaceImplementation(
                 baseClass.GetTypeInfo(),

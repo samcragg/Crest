@@ -9,6 +9,7 @@
     using Crest.Core;
     using Crest.Host.Diagnostics;
     using Crest.Host.Engine;
+    using Crest.Host.Serialization;
     using FluentAssertions;
     using NSubstitute;
     using Xunit;
@@ -203,6 +204,14 @@
                 bool result = this.service.IsSingleInstance(typeof(DiscoveryServiceTests));
 
                 result.Should().BeFalse();
+            }
+
+            [Fact]
+            public void ShouldReturnTrueForSerializerGeneratorClasses()
+            {
+                bool result = this.service.IsSingleInstance(typeof(SerializerGenerator<>));
+
+                result.Should().BeTrue();
             }
         }
     }

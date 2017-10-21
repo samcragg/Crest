@@ -4,12 +4,8 @@
     using Xunit;
 
     [Trait("Category", "Integration")]
-    public class SerializerGeneratorWithJsonTests : SerializerGeneratorIntegrationTestBase
+    public class SerializerGeneratorWithJsonTests : SerializerGeneratorIntegrationTest<JsonSerializerBase>
     {
-        private SerializerGenerator generator = new SerializerGenerator(typeof(JsonSerializerBase));
-
-        internal override SerializerGenerator Generator => this.generator;
-
         public sealed class PlainOldDataClasses : SerializerGeneratorWithJsonTests
         {
             [Fact]

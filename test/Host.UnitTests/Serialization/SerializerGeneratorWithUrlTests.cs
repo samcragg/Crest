@@ -4,12 +4,8 @@
     using Xunit;
 
     [Trait("Category", "Integration")]
-    public class SerializerGeneratorWithUrlTests : SerializerGeneratorIntegrationTestBase
+    public class SerializerGeneratorWithUrlTests : SerializerGeneratorIntegrationTest<UrlEncodedSerializerBase>
     {
-        private SerializerGenerator generator = new SerializerGenerator(typeof(UrlEncodedSerializerBase));
-
-        internal override SerializerGenerator Generator => this.generator;
-
         public sealed class PlainOldDataClasses : SerializerGeneratorWithUrlTests
         {
             [Fact]

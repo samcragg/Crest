@@ -13,7 +13,7 @@
     public class ClassSerializerGeneratorTests
     {
         private readonly ModuleBuilder module;
-        private readonly SerializerGenerator serializerGenerator = Substitute.For<SerializerGenerator>();
+        private Type nestedSerializerType;
 
         protected ClassSerializerGeneratorTests()
         {
@@ -24,13 +24,18 @@
             this.module = assemblyBuilder.DefineDynamicModule("Module");
         }
 
+        private Type GenerateSerializer(Type type)
+        {
+            return this.nestedSerializerType;
+        }
+
         public sealed class Constructor : ClassSerializerGeneratorTests
         {
             [Fact]
             public void ShouldEnsureTheBaseClassHasTheStaticMethodGetMetadata()
             {
                 Action action = () => new ClassSerializerGenerator(
-                    this.serializerGenerator,
+                    this.GenerateSerializer,
                     this.module,
                     typeof(WithoutGetMetadata));
 
@@ -42,7 +47,7 @@
             public void ShouldEnsureTheBaseClassImplementIIClassSerializer()
             {
                 Action action = () => new ClassSerializerGenerator(
-                    this.serializerGenerator,
+                    this.GenerateSerializer,
                     this.module,
                     typeof(DoesNotImplementIClassSerializer));
 
@@ -143,7 +148,7 @@
             public GenerateFor()
             {
                 this.generator = new ClassSerializerGenerator(
-                    this.serializerGenerator,
+                    this.GenerateSerializer,
                     this.module,
                     typeof(FakeSerializerBase));
             }
@@ -268,8 +273,7 @@
                     Nested = new PrimitiveProperty { Value = 123 }
                 };
                 Type primitiveSerializer = this.generator.GenerateFor(typeof(PrimitiveProperty));
-                this.serializerGenerator.GetSerializerFor(typeof(PrimitiveProperty))
-                    .Returns(primitiveSerializer);
+                this.nestedSerializerType = primitiveSerializer;
 
                 FakeSerializerBase serializer = this.SerializeValue(value);
 

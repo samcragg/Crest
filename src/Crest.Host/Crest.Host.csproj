@@ -64,8 +64,8 @@
     <Compile Update="Serialization/ClassSerializerGenerator.WriteMethodEmitter.cs">
       <DependentUpon>ClassSerializerGenerator.cs</DependentUpon>
     </Compile>
-    <Compile Update="Serialization/SerializerGenerator.SerializerInfo.cs">
-      <DependentUpon>SerializerGenerator.cs</DependentUpon>
+    <Compile Update="Serialization/SerializerGenerator{TBase}.SerializerInfo.cs">
+      <DependentUpon>SerializerGenerator{TBase}.cs</DependentUpon>
     </Compile>
     <Compile Update="QueryLookup.Grouping.cs">
       <DependentUpon>QueryLookup.cs</DependentUpon>

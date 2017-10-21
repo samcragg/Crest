@@ -108,7 +108,9 @@ namespace Crest.Host.Engine
         /// <inheritdoc />
         public bool IsSingleInstance(Type type)
         {
-            return false;
+            // Because this type is a cache of generated classes, it needs to
+            // be single instance.
+            return type == typeof(Serialization.SerializerGenerator<>);
         }
 
         private static InvalidOperationException CreateException(MethodInfo method, string message)

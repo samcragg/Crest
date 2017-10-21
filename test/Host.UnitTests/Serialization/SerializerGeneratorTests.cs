@@ -16,8 +16,8 @@
     {
         // We need to use lazy so that we can change the value of the
         // OutputEnumNames before the constructor is called
-        private readonly Lazy<SerializerGenerator> generator = new Lazy<SerializerGenerator>(
-            () => new SerializerGenerator(typeof(_SerializerBase)));
+        private readonly Lazy<SerializerGenerator<_SerializerBase>> generator =
+            new Lazy<SerializerGenerator<_SerializerBase>>();
 
         protected SerializerGeneratorTests()
         {
@@ -138,13 +138,6 @@
             }
 
             [Fact]
-            public void ShouldEnsureThereAreNoCyclicDependencies()
-            {
-                this.generator.Value.Invoking(x => x.Serialize(Stream.Null, new CyclicReference()))
-                    .ShouldThrow<InvalidOperationException>();
-            }
-
-            [Fact]
             public void ShouldCacheTheGeneratedTypes()
             {
                 // We wont run in parallel with any other test that will touch
@@ -156,6 +149,13 @@
                 Type second = _SerializerBase.LastGeneratedType;
 
                 second.Should().Be(first);
+            }
+
+            [Fact]
+            public void ShouldEnsureThereAreNoCyclicDependencies()
+            {
+                this.generator.Value.Invoking(x => x.Serialize(Stream.Null, new CyclicReference()))
+                    .ShouldThrow<InvalidOperationException>();
             }
 
             [Fact]

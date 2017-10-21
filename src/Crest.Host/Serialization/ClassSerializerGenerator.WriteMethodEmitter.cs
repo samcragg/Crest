@@ -298,7 +298,7 @@ namespace Crest.Host.Serialization
             {
                 if (!this.nestedSerializersFields.TryGetValue(propertyType, out FieldBuilder field))
                 {
-                    Type serializerType = this.owner.generator.GetSerializerFor(propertyType);
+                    Type serializerType = this.owner.generateSerializer(propertyType);
                     field = this.typeBuilder.DefineField(
                         serializerType.Name,
                         serializerType,

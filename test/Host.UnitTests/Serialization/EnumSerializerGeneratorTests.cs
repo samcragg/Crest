@@ -12,7 +12,6 @@
     {
         private readonly EnumSerializerGenerator generator;
         private readonly ModuleBuilder module;
-        private readonly SerializerGenerator serializerGenerator = Substitute.For<SerializerGenerator>();
 
         protected EnumSerializerGeneratorTests()
         {
