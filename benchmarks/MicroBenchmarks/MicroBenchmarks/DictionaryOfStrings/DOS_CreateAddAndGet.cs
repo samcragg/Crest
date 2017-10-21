@@ -4,6 +4,7 @@
     using System.Collections.Generic;
     using BenchmarkDotNet.Attributes;
     using Crest.Host;
+
     // This test simulates how we create a dictionary to store the parsed
     // parameters for each request (we parse them into a dictionary then
     // immediately fetch them to put in the correct order that the method to

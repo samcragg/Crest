@@ -4,14 +4,37 @@
     <TargetFramework>netcoreapp1.1</TargetFramework>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="..\..\..\src\Crest.Host\Serialization\ArraySerializeEmitter.cs" Link="Crest.Host\Serialization\ArraySerializeEmitter.cs" />
+    <Compile Include="..\..\..\src\Crest.Host\Serialization\ClassSerializerGenerator.BaseMethods.cs" Link="Crest.Host\Serialization\ClassSerializerGenerator.BaseMethods.cs" />
+    <Compile Include="..\..\..\src\Crest.Host\Serialization\ClassSerializerGenerator.cs" Link="Crest.Host\Serialization\ClassSerializerGenerator.cs" />
+    <Compile Include="..\..\..\src\Crest.Host\Serialization\ClassSerializerGenerator.WriteMethodEmitter.cs" Link="Crest.Host\Serialization\ClassSerializerGenerator.WriteMethodEmitter.cs" />
+    <Compile Include="..\..\..\src\Crest.Host\Serialization\DateTimeConverter.cs" Link="Crest.Host\Serialization\DateTimeConverter.cs" />
+    <Compile Include="..\..\..\src\Crest.Host\Serialization\EnumSerializerGenerator.cs" Link="Crest.Host\Serialization\EnumSerializerGenerator.cs" />
+    <Compile Include="..\..\..\src\Crest.Host\Serialization\GuidConverter.cs" Link="Crest.Host\Serialization\GuidConverter.cs" />
+    <Compile Include="..\..\..\src\Crest.Host\Serialization\IArraySerializer.cs" Link="Crest.Host\Serialization\IArraySerializer.cs" />
+    <Compile Include="..\..\..\src\Crest.Host\Serialization\IClassSerializer.cs" Link="Crest.Host\Serialization\IClassSerializer.cs" />
+    <Compile Include="..\..\..\src\Crest.Host\Serialization\ILGeneratorExtensions.cs" Link="Crest.Host\Serialization\ILGeneratorExtensions.cs" />
+    <Compile Include="..\..\..\src\Crest.Host\Serialization\IntegerConverter.cs" Link="Crest.Host\Serialization\IntegerConverter.cs" />
+    <Compile Include="..\..\..\src\Crest.Host\Serialization\IPrimitiveSerializer.cs" Link="Crest.Host\Serialization\IPrimitiveSerializer.cs" />
+    <Compile Include="..\..\..\src\Crest.Host\Serialization\ISerializerGenerator.cs" Link="Crest.Host\Serialization\ISerializerGenerator.cs" />
+    <Compile Include="..\..\..\src\Crest.Host\Serialization\IStreamWriter.cs" Link="Crest.Host\Serialization\IStreamWriter.cs" />
+    <Compile Include="..\..\..\src\Crest.Host\Serialization\ITypeSerializer.cs" Link="Crest.Host\Serialization\ITypeSerializer.cs" />
+    <Compile Include="..\..\..\src\Crest.Host\Serialization\JsonSerializerBase.cs" Link="Crest.Host\Serialization\JsonSerializerBase.cs" />
+    <Compile Include="..\..\..\src\Crest.Host\Serialization\JsonStreamWriter.cs" Link="Crest.Host\Serialization\JsonStreamWriter.cs" />
+    <Compile Include="..\..\..\src\Crest.Host\Serialization\JsonStringEncoding.cs" Link="Crest.Host\Serialization\JsonStringEncoding.cs" />
+    <Compile Include="..\..\..\src\Crest.Host\Serialization\PrimitiveDigits.cs" Link="Crest.Host\Serialization\PrimitiveDigits.cs" />
+    <Compile Include="..\..\..\src\Crest.Host\Serialization\PrimitiveSerializerGenerator.cs" Link="Crest.Host\Serialization\PrimitiveSerializerGenerator.cs" />
+    <Compile Include="..\..\..\src\Crest.Host\Serialization\SerializerGenerator.cs" Link="Crest.Host\Serialization\SerializerGenerator.cs" />
+    <Compile Include="..\..\..\src\Crest.Host\Serialization\SerializerGenerator{TBase}.cs" Link="Crest.Host\Serialization\SerializerGenerator{TBase}.cs" />
+    <Compile Include="..\..\..\src\Crest.Host\Serialization\SerializerGenerator{TBase}.SerializerInfo.cs" Link="Crest.Host\Serialization\SerializerGenerator{TBase}.SerializerInfo.cs" />
+    <Compile Include="..\..\..\src\Crest.Host\Serialization\TimeSpanConverter.cs" Link="Crest.Host\Serialization\TimeSpanConverter.cs" />
+    <Compile Include="..\..\..\src\Crest.Host\Serialization\TypeSerializerGenerator.cs" Link="Crest.Host\Serialization\TypeSerializerGenerator.cs" />
     <Compile Include="..\..\..\src\Crest.Host\StringDictionary.cs" Link="Crest.Host\StringDictionary.cs" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="BenchmarkDotNet" Version="0.10.8" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Crest.Host\" />
+    <PackageReference Include="BenchmarkDotNet" Version="0.10.9" />
+    <PackageReference Include="Newtonsoft.Json" Version="10.0.3" />
+    <PackageReference Include="System.Reflection.Emit" Version="4.3.0" />
   </ItemGroup>
 </Project>
