@@ -14,7 +14,7 @@ namespace Crest.Host.Serialization
     /// <summary>
     /// Generates serializers at runtime for specific types.
     /// </summary>
-    internal partial class SerializerGenerator
+    internal sealed partial class SerializerGenerator<TBase> : ISerializerGenerator<TBase>
     {
         private readonly ClassSerializerGenerator classSerializer;
 
@@ -37,24 +37,17 @@ namespace Crest.Host.Serialization
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="SerializerGenerator"/> class.
+        /// Initializes a new instance of the <see cref="SerializerGenerator{TBase}"/> class.
         /// </summary>
-        /// <param name="baseType">The base class for the serializers.</param>
-        public SerializerGenerator(Type baseType)
+        public SerializerGenerator()
         {
-            this.classSerializer = new ClassSerializerGenerator(this, ModuleBuilder, baseType);
-            this.enumSerializers = GenerateEnumSerializers(baseType);
-            GeneratePrimitiveSerializers(this.knownTypes, baseType);
-        }
+            this.classSerializer = new ClassSerializerGenerator(
+                this.GetSerializerFor,
+                ModuleBuilder,
+                typeof(TBase));
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="SerializerGenerator"/> class.
-        /// </summary>
-        /// <remarks>
-        /// Used to allow the class to be mocked during unit testing.
-        /// </remarks>
-        protected SerializerGenerator()
-        {
+            this.enumSerializers = GenerateEnumSerializers();
+            GeneratePrimitiveSerializers(this.knownTypes, typeof(TBase));
         }
 
         /// <summary>
@@ -71,13 +64,8 @@ namespace Crest.Host.Serialization
         /// </remarks>
         internal static ModuleBuilder ModuleBuilder { get; set; }
 
-        /// <summary>
-        /// Gets a serializer for the specific type, generating a type if one
-        /// doesn't already exist.
-        /// </summary>
-        /// <param name="classType">The class to serialize.</param>
-        /// <returns>A type implementing <see cref="ITypeSerializer"/>.</returns>
-        public virtual Type GetSerializerFor(Type classType)
+        /// <inheritdoc />
+        public Type GetSerializerFor(Type classType)
         {
             if (this.GetSerializerInfo(ref classType, out _, out SerializerInfo info))
             {
@@ -103,12 +91,8 @@ namespace Crest.Host.Serialization
             return serializer;
         }
 
-        /// <summary>
-        /// Serializes the specified value to the stream.
-        /// </summary>
-        /// <param name="stream">The output for the serialized value.</param>
-        /// <param name="value">The value to serialize.</param>
-        public virtual void Serialize(Stream stream, object value)
+        /// <inheritdoc />
+        public void Serialize(Stream stream, object value)
         {
             Type type = value.GetType();
             if (!this.GetSerializerInfo(ref type, out bool isArray, out SerializerInfo info))
@@ -147,10 +131,10 @@ namespace Crest.Host.Serialization
             return (bool)outputEnumNames.GetValue(null);
         }
 
-        private static SerializerInfo[] GenerateEnumSerializers(Type baseType)
+        private static SerializerInfo[] GenerateEnumSerializers()
         {
-            var generator = new EnumSerializerGenerator(ModuleBuilder, baseType);
-            if (OutputEnumNames(baseType))
+            var generator = new EnumSerializerGenerator(ModuleBuilder, typeof(TBase));
+            if (OutputEnumNames(typeof(TBase)))
             {
                 return new[]
                 {

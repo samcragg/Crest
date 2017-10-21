@@ -13,7 +13,7 @@ namespace Crest.Host.Serialization
     /// <content>
     /// Contains the nested <see cref="SerializerInfo"/> struct.
     /// </content>
-    internal partial class SerializerGenerator
+    internal partial class SerializerGenerator<TBase>
     {
         private struct SerializerInfo
         {
