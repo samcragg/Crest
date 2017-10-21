@@ -1,5 +1,6 @@
 ﻿namespace Host.UnitTests.Conversion
 {
+    using System;
     using Crest.Abstractions;
     using Crest.Host.Conversion;
     using FluentAssertions;
@@ -13,8 +14,8 @@
             [Fact]
             public void ShouldDefaultToJsonIfAcceptIsEmpty()
             {
-                var json = CreateConverter("application/json", 100);
-                var text = CreateConverter("text/plain", 100);
+                IContentConverter json = CreateConverter("application/json", 100);
+                IContentConverter text = CreateConverter("text/plain", 100);
                 var factory = new ContentConverterFactory(new[] { json, text });
 
                 IContentConverter result = factory.GetConverter("");
@@ -25,8 +26,8 @@
             [Fact]
             public void ShouldMatchTheAcceptWithTheHighestQualityAvailable()
             {
-                var application = CreateConverter("application/test", 100);
-                var text = CreateConverter("text/plain", 100);
+                IContentConverter application = CreateConverter("application/test", 100);
+                IContentConverter text = CreateConverter("text/plain", 100);
                 var factory = new ContentConverterFactory(new[] { application, text });
 
                 IContentConverter result = factory.GetConverter("application/json, application/test;q=0.5, text/*;q=0.8");
@@ -47,7 +48,7 @@
             [Fact]
             public void ShouldReturnTheConverterThatMatchesTheAcceptExactly()
             {
-                var converter = CreateConverter("application/test", 100);
+                IContentConverter converter = CreateConverter("application/test", 100);
                 var factory = new ContentConverterFactory(new[] { converter });
 
                 IContentConverter result = factory.GetConverter("application/test");
@@ -58,8 +59,8 @@
             [Fact]
             public void ShouldReturnTheConverterWithTheBestQuality()
             {
-                var low = CreateConverter("application/test;q=0.5", 100);
-                var high = CreateConverter("application/test;q=0.8", 20);
+                IContentConverter low = CreateConverter("application/test;q=0.5", 100);
+                IContentConverter high = CreateConverter("application/test;q=0.8", 20);
                 var factory = new ContentConverterFactory(new[] { low, high });
 
                 IContentConverter result = factory.GetConverter("application/test");
@@ -70,8 +71,8 @@
             [Fact]
             public void ShouldReturnTheConverterWithTheHighestPriority()
             {
-                var low = CreateConverter("application/test", 5);
-                var high = CreateConverter("application/test", 10);
+                IContentConverter low = CreateConverter("application/test", 5);
+                IContentConverter high = CreateConverter("application/test", 10);
                 var factory = new ContentConverterFactory(new[] { low, high });
 
                 IContentConverter result = factory.GetConverter("application/test");
@@ -81,10 +82,40 @@
 
             private static IContentConverter CreateConverter(string mime, int priority)
             {
-                var converter = Substitute.For<IContentConverter>();
+                IContentConverter converter = Substitute.For<IContentConverter>();
                 converter.Formats.Returns(new[] { mime });
                 converter.Priority.Returns(priority);
                 return converter;
+            }
+        }
+
+        public sealed class PrimeConverters : ContentConverterFactoryTests
+        {
+            private readonly IContentConverter converter = Substitute.For<IContentConverter>();
+            private readonly ContentConverterFactory factory;
+
+            public PrimeConverters()
+            {
+                // The converters are stored against their formats so we need
+                // to return something for it to be stored in the factory
+                this.converter.Formats.Returns(new[] { "mime/type" });
+                this.factory = new ContentConverterFactory(new[] { this.converter });
+            }
+
+            [Fact]
+            public void ShouldCheckForNullArguments()
+            {
+                Action action = () => this.factory.PrimeConverters(null);
+
+                action.ShouldThrow<ArgumentNullException>();
+            }
+
+            [Fact]
+            public void ShouldPassTheTypeToTheConverters()
+            {
+                this.factory.PrimeConverters(typeof(int));
+
+                this.converter.Received().Prime(typeof(int));
             }
         }
     }

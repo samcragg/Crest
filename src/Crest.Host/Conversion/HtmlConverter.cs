@@ -5,6 +5,7 @@
 
 namespace Crest.Host.Conversion
 {
+    using System;
     using System.Collections.Generic;
     using System.IO;
     using System.Text;
@@ -44,6 +45,11 @@ namespace Crest.Host.Conversion
 
         /// <inheritdoc />
         public int Priority => 500;
+
+        /// <inheritdoc />
+        public void Prime(Type type)
+        {
+        }
 
         /// <inheritdoc />
         public void WriteTo(Stream stream, object obj)

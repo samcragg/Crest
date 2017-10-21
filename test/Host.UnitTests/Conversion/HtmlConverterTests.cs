@@ -1,5 +1,6 @@
 ﻿namespace Host.UnitTests.Conversion
 {
+    using System;
     using System.IO;
     using System.Text;
     using Crest.Abstractions;
@@ -40,6 +41,17 @@
             public void ShouldIncludeTheXHtmlMimeType()
             {
                 this.converter.Formats.Should().Contain("application/xhtml+xml");
+            }
+        }
+
+        public sealed class Prime : HtmlConverterTests
+        {
+            [Fact]
+            public void ShouldIgnoreTheParameter()
+            {
+                Action action = () => this.converter.Prime(null);
+
+                action.ShouldNotThrow();
             }
         }
 

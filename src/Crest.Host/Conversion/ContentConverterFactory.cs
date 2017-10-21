@@ -5,6 +5,7 @@
 
 namespace Crest.Host.Conversion
 {
+    using System;
     using System.Collections.Generic;
     using System.Linq;
     using Crest.Abstractions;
@@ -61,6 +62,18 @@ namespace Crest.Host.Conversion
             }
 
             return null;
+        }
+
+        /// <inheritdoc />
+        public void PrimeConverters(Type type)
+        {
+            Check.IsNotNull(type, nameof(type));
+
+            System.Diagnostics.Trace.TraceInformation("Generating serializers for '{0}'", type.FullName);
+            foreach (IContentConverter converter in this.converters)
+            {
+                converter.Prime(type);
+            }
         }
 
         private static List<MediaRange> ParseRanges(string accept)

@@ -5,6 +5,8 @@
 
 namespace Crest.Abstractions
 {
+    using System;
+
     /// <summary>
     /// Creates a <see cref="IContentConverter"/> based on the request information.
     /// </summary>
@@ -19,5 +21,11 @@ namespace Crest.Abstractions
         /// <c>null</c> if none was found.
         /// </returns>
         IContentConverter GetConverter(string accept);
+
+        /// <summary>
+        /// Notifies the converters of a type that is expected to be returned.
+        /// </summary>
+        /// <param name="type">The type of the return value.</param>
+        void PrimeConverters(Type type);
     }
 }

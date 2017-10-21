@@ -5,12 +5,11 @@
 
 namespace Crest.Host.Conversion
 {
+    using System;
     using System.Collections.Generic;
     using System.IO;
-    using System.Text;
     using Crest.Abstractions;
-    using Newtonsoft.Json;
-    using Newtonsoft.Json.Serialization;
+    using Crest.Host.Serialization;
 
     /// <summary>
     /// Converts between .NET objects and JSON
@@ -18,6 +17,16 @@ namespace Crest.Host.Conversion
     internal sealed class JsonConverter : IContentConverter
     {
         private const string JsonMimeType = @"application/json";
+        private readonly ISerializerGenerator<JsonSerializerBase> generator;
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="JsonConverter"/> class.
+        /// </summary>
+        /// <param name="generator">Used to generate the serializers.</param>
+        public JsonConverter(ISerializerGenerator<JsonSerializerBase> generator)
+        {
+            this.generator = generator;
+        }
 
         /// <inheritdoc />
         public string ContentType => JsonMimeType;
@@ -35,14 +44,15 @@ namespace Crest.Host.Conversion
         public int Priority => 500;
 
         /// <inheritdoc />
+        public void Prime(Type type)
+        {
+            this.generator.GetSerializerFor(type);
+        }
+
+        /// <inheritdoc />
         public void WriteTo(Stream stream, object obj)
         {
-            using (var writer = new StreamWriter(stream, Encoding.UTF8, 4096, leaveOpen: true))
-            {
-                var serializer = JsonSerializer.CreateDefault();
-                serializer.ContractResolver = new CamelCasePropertyNamesContractResolver();
-                serializer.Serialize(writer, obj);
-            }
+            this.generator.Serialize(stream, obj);
         }
     }
 }

@@ -4,13 +4,21 @@
     using System.IO;
     using System.Text;
     using Crest.Host.Conversion;
+    using Crest.Host.Serialization;
     using FluentAssertions;
     using NSubstitute;
     using Xunit;
 
     public class JsonConverterTests
     {
-        private readonly JsonConverter converter = new JsonConverter();
+        private readonly JsonConverter converter;
+        private readonly ISerializerGenerator<JsonSerializerBase> serializer =
+            Substitute.For<ISerializerGenerator<JsonSerializerBase>>();
+
+        private JsonConverterTests()
+        {
+            this.converter = new JsonConverter(this.serializer);
+        }
 
         public sealed class ContentType : JsonConverterTests
         {
@@ -41,6 +49,17 @@
             }
         }
 
+        public sealed class Prime : JsonConverterTests
+        {
+            [Fact]
+            public void ShouldPrimeTheSerializerGenerator()
+            {
+                this.converter.Prime(typeof(int));
+
+                this.serializer.Received().GetSerializerFor(typeof(int));
+            }
+        }
+
         public sealed class WriteTo : JsonConverterTests
         {
             [Fact]
@@ -55,39 +74,18 @@
             }
 
             [Fact]
-            public void ShouldEncodeWithUtf8()
+            public void ShouldSerializeTheValue()
             {
-                using (var stream = new MemoryStream())
-                {
-                    // ¶ (U+00B6) is a single UTF16 character but is encoded in
-                    // UTF-8 as 0xC2 0xB6
-                    this.converter.WriteTo(stream, new SimpleObject { StringProperty = "¶" });
+                var instance = new SimpleObject();
 
-                    byte[] bytes = stream.ToArray();
+                this.converter.WriteTo(Stream.Null, instance);
 
-                    int start = Array.IndexOf(bytes, (byte)0xc2);
-                    bytes[start + 1].Should().Be(0xB6);
-                }
-            }
-
-            [Fact]
-            public void ShouldUseCamelCaseForProperties()
-            {
-                using (var stream = new MemoryStream())
-                {
-                    this.converter.WriteTo(stream, new SimpleObject { IntegerProperty = 123 });
-
-                    string data = Encoding.UTF8.GetString(stream.ToArray());
-
-                    data.Should().Contain("integerProperty");
-                }
+                this.serializer.Received().Serialize(Stream.Null, instance);
             }
 
             private class SimpleObject
             {
                 public int IntegerProperty { get; set; }
-
-                public string StringProperty { get; set; }
             }
         }
     }

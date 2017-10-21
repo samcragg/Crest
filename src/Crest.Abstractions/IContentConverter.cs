@@ -5,6 +5,7 @@
 
 namespace Crest.Abstractions
 {
+    using System;
     using System.Collections.Generic;
     using System.IO;
 
@@ -38,6 +39,13 @@ namespace Crest.Abstractions
         /// converters that match with a lower priority (smaller value).
         /// </remarks>
         int Priority { get; }
+
+        /// <summary>
+        /// Allows optimizations to be performed during startup for a type that
+        /// is expected to be returned later.
+        /// </summary>
+        /// <param name="type">The type of the return value.</param>
+        void Prime(Type type);
 
         /// <summary>
         /// Writes the specified object to the stream.
