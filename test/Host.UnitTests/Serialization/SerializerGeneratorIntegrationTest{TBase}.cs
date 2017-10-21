@@ -15,15 +15,16 @@
     // due to the static ModuleBuilder property
     [Collection(nameof(SerializerGenerator.ModuleBuilder))]
     [Trait("Category", "Integration")]
-    public abstract class SerializerGeneratorIntegrationTestBase
+    public abstract class SerializerGeneratorIntegrationTest<TBase>
     {
-        protected SerializerGeneratorIntegrationTestBase()
+        protected SerializerGeneratorIntegrationTest()
         {
             var assemblyBuilder = AssemblyBuilder.DefineDynamicAssembly(
                 new AssemblyName("UnitTestDynamicAssembly"),
                 AssemblyBuilderAccess.RunAndCollect);
 
             SerializerGenerator.ModuleBuilder = assemblyBuilder.DefineDynamicModule("Integration");
+            this.Generator = new SerializerGenerator<TBase>();
         }
 
         public enum TestEnum
@@ -31,7 +32,7 @@
             Value = 1
         }
 
-        internal abstract SerializerGenerator Generator { get; }
+        internal ISerializerGenerator<TBase> Generator { get; }
 
         internal void ShouldSerializeAs<T>(T value, string expected)
         {
