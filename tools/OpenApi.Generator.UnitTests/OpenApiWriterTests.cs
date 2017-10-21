@@ -18,6 +18,11 @@
         private static readonly MethodInfo NoParameterMethod = typeof(FakeMethods).GetMethod(nameof(FakeMethods.NoParemeter));
         private readonly XmlDocParser xmlDoc = Substitute.For<XmlDocParser>();
 
+        private OpenApiWriterTests()
+        {
+            Trace.SetUpTrace("quiet");
+        }
+
         private dynamic GetResult(params RouteInformation[] routes)
         {
             // We can't fake out the extension methods so need to use a real one

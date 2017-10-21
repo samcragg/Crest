@@ -9,8 +9,9 @@
     {
         private readonly XmlDocParser parser;
 
-        public XmlDocParserTests()
+        private XmlDocParserTests()
         {
+            Trace.SetUpTrace("quiet");
             Assembly assembly = typeof(XmlDocParserTests).GetTypeInfo().Assembly;
             this.parser = new XmlDocParser(assembly.GetManifestResourceStream("OpenApi.Generator.UnitTests.ExampleClass.xml"));
         }

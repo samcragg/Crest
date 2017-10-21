@@ -15,6 +15,11 @@
     {
         private const string GeneratedAssemblyName = "AssemblyName";
 
+        private InfoObjectWriterTests()
+        {
+            Trace.SetUpTrace("quiet");
+        }
+
         public sealed class WriteInformation : InfoObjectWriterTests
         {
             [Fact]

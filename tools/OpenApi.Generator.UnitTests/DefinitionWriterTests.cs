@@ -15,6 +15,11 @@
     {
         private readonly XmlDocParser xmlDoc = Substitute.For<XmlDocParser>();
 
+        private DefinitionWriterTests()
+        {
+            Trace.SetUpTrace("quiet");
+        }
+
         private static dynamic ConvertJson(string value)
         {
             var settings = new JsonSerializerSettings

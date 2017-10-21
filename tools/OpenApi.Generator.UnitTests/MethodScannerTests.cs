@@ -12,6 +12,11 @@
 
     public class MethodScannerTests
     {
+        private MethodScannerTests()
+        {
+            Trace.SetUpTrace("quiet");
+        }
+
         private Assembly CreateAssembly(params Type[] types)
         {
             Assembly assembly = Substitute.For<Assembly>();
