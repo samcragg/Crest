@@ -50,6 +50,8 @@ namespace Crest.Host
             this.converterFactory = this.serviceLocator.GetContentConverterFactory();
             this.responseGenerator = this.serviceLocator.GetResponseStatusGenerator();
             this.notFound = new MatchResult(this.responseGenerator.NotFoundAsync);
+
+            this.PrimeConverterFactory();
         }
 
         // NOTE: The methods here should just be protected, however, they've
@@ -290,6 +292,30 @@ namespace Crest.Host
             }
 
             return response ?? ResponseGenerator.InternalError;
+        }
+
+        private void PrimeConverterFactory()
+        {
+            TraceSources.Routing.TraceInformation(
+                "Priming converter factory with known return types.");
+
+            bool ReturnsGenericTask(MethodInfo method)
+            {
+                TypeInfo returnType = method.ReturnType.GetTypeInfo();
+                return returnType.IsGenericType &&
+                      (returnType.GetGenericTypeDefinition() == typeof(Task<>));
+            }
+
+            IEnumerable<MethodInfo> methods =
+                this.mapper.GetKnownMethods()
+                    .Distinct()
+                    .Where(ReturnsGenericTask);
+
+            foreach (MethodInfo method in methods)
+            {
+                this.converterFactory.PrimeConverters(
+                    method.ReturnType.GetGenericArguments()[0]);
+            }
         }
 
         private async Task<IResponseData> ProcessRequestAsync(IRequestData request, IContentConverter converter)

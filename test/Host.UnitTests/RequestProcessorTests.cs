@@ -58,6 +58,32 @@
                     .ShouldThrow<ArgumentNullException>();
             }
 
+            [Fact]
+            public void ShouldPrimeTheConvertersFactoryWithKnownReturnTypes()
+            {
+                const BindingFlags PrivateMethods = BindingFlags.Instance | BindingFlags.NonPublic;
+                this.converterFactory.ClearReceivedCalls();
+                this.mapper.GetKnownMethods().Returns(new[]
+                {
+                    typeof(Constructor).GetMethod(nameof(MethodReturningTask), PrivateMethods),
+                    typeof(Constructor).GetMethod(nameof(MethodReturningTaskOfInt), PrivateMethods)
+                });
+
+                new FakeRequestProcessor(this.bootstrapper);
+
+                this.converterFactory.Received().PrimeConverters(typeof(int));
+            }
+
+            private Task MethodReturningTask()
+            {
+                return null;
+            }
+
+            private Task<int> MethodReturningTaskOfInt()
+            {
+                return null;
+            }
+
             private class FakeRequestProcessor : RequestProcessor
             {
                 public FakeRequestProcessor(Bootstrapper bootstrapper) : base(bootstrapper)
