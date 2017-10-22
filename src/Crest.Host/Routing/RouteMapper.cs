@@ -74,6 +74,16 @@ namespace Crest.Host.Routing
         }
 
         /// <inheritdoc />
+        public IEnumerable<MethodInfo> GetKnownMethods()
+        {
+            return this.verbs.Values
+                .SelectMany(r => r.Root.Flatten())
+                .Where(n => n.Value != null)
+                .SelectMany(n => n.Value.Targets)
+                .Select(t => t.Method);
+        }
+
+        /// <inheritdoc />
         public MethodInfo Match(string verb, string path, ILookup<string, string> query, out IReadOnlyDictionary<string, object> parameters)
         {
             if (this.verbs.TryGetValue(verb, out Routes routes))

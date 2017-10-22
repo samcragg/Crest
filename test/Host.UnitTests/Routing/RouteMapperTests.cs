@@ -152,6 +152,21 @@
             }
         }
 
+        public sealed class GetKnownMethods : RouteMapperTests
+        {
+            [Fact]
+            public void ShouldReturnAllTheMethodsAdded()
+            {
+                var mapper = new RouteMapper(
+                    new[] { CreateRoute("GET", "/route1"), CreateRoute("PUT", "/route2") },
+                    this.noDirectRoutes);
+
+                IEnumerable<MethodInfo> result = mapper.GetKnownMethods();
+
+                result.Should().Equal(ExampleMethodInfo, ExampleMethodInfo);
+            }
+        }
+
         public sealed class Match : RouteMapperTests
         {
             private readonly ILookup<string, string> query = Substitute.For<ILookup<string, string>>();

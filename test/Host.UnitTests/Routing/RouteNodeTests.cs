@@ -1,5 +1,6 @@
 ﻿namespace Host.UnitTests.Routing
 {
+    using System.Collections.Generic;
     using System.Linq;
     using Crest.Host;
     using Crest.Host.Routing;
@@ -35,8 +36,8 @@
                 this.node.Add(new[] { duplicate }, 0);
                 this.node.Match("/matcher_part/child_part");
 
-                child.ReceivedWithAnyArgs().Match(default(StringSegment));
-                duplicate.DidNotReceiveWithAnyArgs().Match(default(StringSegment));
+                child.ReceivedWithAnyArgs().Match(default);
+                duplicate.DidNotReceiveWithAnyArgs().Match(default);
             }
 
             [Fact]
@@ -53,6 +54,29 @@
             }
         }
 
+        public sealed class Flatten : RouteNodeTests
+        {
+            [Fact]
+            public void ShouldReturnChildren()
+            {
+                RouteNode<string> child = this.node.Add(
+                    new[] { Substitute.For<IMatchNode>() },
+                    0);
+
+                IEnumerable<RouteNode<string>> result = this.node.Flatten();
+
+                result.Should().Contain(child);
+            }
+
+            [Fact]
+            public void ShouldReturnItself()
+            {
+                IEnumerable<RouteNode<string>> result = this.node.Flatten();
+
+                result.Should().Contain(this.node);
+            }
+        }
+
         public sealed class Match : RouteNodeTests
         {
             [Fact]
@@ -64,20 +88,20 @@
 
                 IMatchNode important = Substitute.For<IMatchNode>();
                 important.Priority.Returns(200);
-                important.Match(default(StringSegment))
+                important.Match(default)
                          .ReturnsForAnyArgs(new NodeMatchResult(string.Empty, null));
                 this.node.Add(new[] { important }, 0);
 
                 this.node.Match("/matcher/part");
 
-                important.ReceivedWithAnyArgs().Match(default(StringSegment));
-                normal.DidNotReceiveWithAnyArgs().Match(default(StringSegment));
+                important.ReceivedWithAnyArgs().Match(default);
+                normal.DidNotReceiveWithAnyArgs().Match(default);
             }
 
             [Fact]
             public void ShouldReturnTheCapturedValues()
             {
-                this.matcher.Match(default(StringSegment))
+                this.matcher.Match(default)
                     .ReturnsForAnyArgs(new NodeMatchResult("parameter", 123));
 
                 RouteNode<string>.MatchResult result = this.node.Match("/route");

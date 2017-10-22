@@ -36,6 +36,12 @@ namespace Crest.Abstractions
         RouteMethod GetAdapter(MethodInfo method);
 
         /// <summary>
+        /// Gets the methods that have been mapped.
+        /// </summary>
+        /// <returns>A series of mapped methods.</returns>
+        IEnumerable<MethodInfo> GetKnownMethods();
+
+        /// <summary>
         /// Matches the request information to a handler.
         /// </summary>
         /// <param name="verb">The HTTP verb.</param>

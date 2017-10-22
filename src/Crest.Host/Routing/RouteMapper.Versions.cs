@@ -6,6 +6,7 @@
 namespace Crest.Host.Routing
 {
     using System;
+    using System.Collections.Generic;
 
     /// <content>
     /// Contains the nested <see cref="Versions"/> class.
@@ -16,6 +17,8 @@ namespace Crest.Host.Routing
         {
             private Target[] targets;
             private long[] versions;
+
+            internal IReadOnlyList<Target> Targets => this.targets;
 
             public void Add(Target target, int from, int to)
             {

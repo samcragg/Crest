@@ -79,6 +79,29 @@ namespace Crest.Host.Routing
         }
 
         /// <summary>
+        /// Gets this node and all the child nodes of the tree.
+        /// </summary>
+        /// <returns>A sequence of nodes.</returns>
+        public IEnumerable<RouteNode<T>> Flatten()
+        {
+            var stack = new Stack<RouteNode<T>>();
+            stack.Push(this);
+            while (stack.Count > 0)
+            {
+                RouteNode<T> node = stack.Pop();
+                if (node.children != null)
+                {
+                    foreach (RouteNode<T> child in node.children)
+                    {
+                        stack.Push(child);
+                    }
+                }
+
+                yield return node;
+            }
+        }
+
+        /// <summary>
         /// Determines whether the specified URL matches any added to this
         /// instance or not.
         /// </summary>
