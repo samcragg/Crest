@@ -18,12 +18,12 @@ Invoke-WebRequest $sourceNugetExe -OutFile $nugetExe
 
 if (!$useAppVeyor)
 {
-    & $nugetExe install ReportGenerator -OutputDirectory .\build\tools -version 2.5.8 -verbosity quiet
-    $reportGenerator = Join-Path $pwd build\tools\ReportGenerator.2.5.8\tools\ReportGenerator.exe
+    & $nugetExe install ReportGenerator -OutputDirectory .\build\tools -version 3.0.2 -verbosity quiet
+    $reportGenerator = Join-Path $pwd build\tools\ReportGenerator.3.0.2\tools\ReportGenerator.exe
 }
 
 # dotnet-xunit is a tool package, so we can't install it :(
-wget 'https://www.nuget.org/api/v2/package/dotnet-xunit/2.3.0-beta1-build3642' -OutFile .\build\tools\dotnet-xunit.zip
+wget 'https://www.nuget.org/api/v2/package/dotnet-xunit/2.3.0' -OutFile .\build\tools\dotnet-xunit.zip
 Expand-Archive .\build\tools\dotnet-xunit.zip .\build\tools\dotnet-xunit -Force
 
 # Setup our variables relative to the current directory
@@ -32,7 +32,7 @@ $coverResult = Join-Path $pwd CoverResult.xml
 $dotnetexe = (Get-Command dotnet).Definition
 $openCover = Join-Path $pwd build\tools\OpenCover.4.6.519\tools\OpenCover.Console.exe
 $reportDir = Join-Path $pwd build\report
-$xunit = Join-Path $pwd build\tools\dotnet-xunit\lib\netcoreapp1.0\dotnet-xunit.dll
+$xunit = Join-Path $pwd build\tools\dotnet-xunit\lib\netcoreapp2.0\dotnet-xunit.dll
 $runXunit = $xunit + " -nologo -configuration Release" + $useAppVeyor
 
 # Clean the old results (for local builds)
