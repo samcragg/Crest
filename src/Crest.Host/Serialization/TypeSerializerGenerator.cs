@@ -69,11 +69,6 @@ namespace Crest.Host.Serialization
         /// </summary>
         protected IReadOnlyDictionary<Type, MethodInfo> StreamWriterMethods { get; }
 
-        // /// <summary>
-        // /// Gets the optional field used to store the type metadata.
-        // /// </summary>
-        // protected FieldInfo TypeMetadataField { get; private set; }
-
         /// <summary>
         /// Gets the interface implemented by a specific type.
         /// </summary>
