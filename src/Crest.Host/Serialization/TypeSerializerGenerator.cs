@@ -27,7 +27,7 @@ namespace Crest.Host.Serialization
             MethodAttributes.Virtual;
         private const string MetadataSuffix = "<>Metadata";
         private readonly MethodInfo getTypeMetadataMethod;
-        private readonly ModuleBuilder moduleBuidler;
+        private readonly ModuleBuilder moduleBuilder;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="TypeSerializerGenerator"/> class.
@@ -38,7 +38,7 @@ namespace Crest.Host.Serialization
         /// </param>
         protected TypeSerializerGenerator(ModuleBuilder module, Type baseClass)
         {
-            this.moduleBuidler = module;
+            this.moduleBuilder = module;
             this.BaseClass = baseClass;
             this.StreamWriterMethods = GetStreamWriterPrimitiveMethods();
 
@@ -121,7 +121,7 @@ namespace Crest.Host.Serialization
                 TypeAttributes.Public |
                 TypeAttributes.Sealed;
 
-            TypeBuilder builder = this.moduleBuidler.DefineType(
+            TypeBuilder builder = this.moduleBuilder.DefineType(
                             this.BaseClass.Name + "<>" + name,
                             PublicSealedClass,
                             this.BaseClass);
