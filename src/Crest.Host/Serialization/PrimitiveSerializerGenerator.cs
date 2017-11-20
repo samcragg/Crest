@@ -158,7 +158,7 @@ namespace Crest.Host.Serialization
         private Type GenerateType(string name, Type type, MethodInfo writeMethod)
         {
             TypeBuilder builder = this.CreateType(name);
-            this.EmitConstructor(builder, typeof(Stream));
+            this.EmitConstructor(builder, null, typeof(Stream), typeof(SerializationMode));
             this.EmitWriteMethod(builder, writeMethod, type);
             this.EmitWriteArrayMethod(builder, writeMethod, type);
             return this.GenerateType(builder, type);

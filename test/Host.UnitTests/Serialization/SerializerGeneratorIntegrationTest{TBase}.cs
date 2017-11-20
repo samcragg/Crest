@@ -54,7 +54,7 @@
             Type serializerType = this.Generator.GetSerializerFor(typeof(T));
             using (var ms = new MemoryStream())
             {
-                var serializer = (ITypeSerializer)Activator.CreateInstance(serializerType, ms);
+                var serializer = (ITypeSerializer)Activator.CreateInstance(serializerType, ms, SerializationMode.Serialize);
 
                 if (typeof(T).IsArray)
                 {

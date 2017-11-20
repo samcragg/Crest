@@ -23,7 +23,8 @@ namespace Crest.Host.Serialization
         /// Initializes a new instance of the <see cref="JsonSerializerBase"/> class.
         /// </summary>
         /// <param name="stream">The stream to write to.</param>
-        protected JsonSerializerBase(Stream stream)
+        /// <param name="mode">The serialization mode.</param>
+        protected JsonSerializerBase(Stream stream, SerializationMode mode)
         {
             this.writer = new JsonStreamWriter(stream);
         }

@@ -32,8 +32,8 @@
         {
             internal static Type LastGeneratedType;
 
-            protected _SerializerBase(Stream stream)
-                : base(stream)
+            protected _SerializerBase(Stream stream, SerializationMode mode)
+                : base(stream, mode)
             {
                 StreamWriter = this.Writer;
                 LastGeneratedType = this.GetType();

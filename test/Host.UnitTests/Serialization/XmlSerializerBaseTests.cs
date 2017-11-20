@@ -16,7 +16,7 @@
 
         private XmlSerializerBaseTests()
         {
-            this.serializer = new FakeXmlSerializerBase(this.stream);
+            this.serializer = new FakeXmlSerializerBase(this.stream, SerializationMode.Serialize);
         }
 
         private XmlStreamWriter XmlStreamWriter => (XmlStreamWriter)this.serializer.Writer;
@@ -65,7 +65,7 @@
             [Fact]
             public void ShouldCreateAStreamWriter()
             {
-                var instance = new FakeXmlSerializerBase(Stream.Null);
+                var instance = new FakeXmlSerializerBase(Stream.Null, SerializationMode.Serialize);
 
                 instance.Writer.Should().NotBeNull();
             }
@@ -73,7 +73,7 @@
             [Fact]
             public void ShouldSetTheWriter()
             {
-                var parent = new FakeXmlSerializerBase(Stream.Null);
+                var parent = new FakeXmlSerializerBase(Stream.Null, SerializationMode.Serialize);
 
                 var instance = new FakeXmlSerializerBase(parent);
 
@@ -102,7 +102,7 @@
             public void ShouldFlushTheBuffers()
             {
                 Stream stream = Substitute.For<Stream>();
-                XmlSerializerBase serializer = new FakeXmlSerializerBase(stream);
+                XmlSerializerBase serializer = new FakeXmlSerializerBase(stream, SerializationMode.Serialize);
 
                 serializer.BeginWrite("root");
                 stream.DidNotReceiveWithAnyArgs().Write(null, 0, 0);
@@ -346,7 +346,7 @@
 
         private sealed class FakeXmlSerializerBase : XmlSerializerBase
         {
-            public FakeXmlSerializerBase(Stream stream) : base(stream)
+            public FakeXmlSerializerBase(Stream stream, SerializationMode mode) : base(stream, mode)
             {
             }
 

@@ -67,7 +67,7 @@ namespace Crest.Host.Serialization
         public Type GenerateStringSerializer()
         {
             TypeBuilder builder = this.CreateType(nameof(Enum));
-            this.EmitConstructor(builder, typeof(Stream));
+            this.EmitConstructor(builder, null, typeof(Stream), typeof(SerializationMode));
             this.EmitWriteStringValues(builder);
             return this.GenerateType(builder, typeof(Enum));
         }
@@ -81,7 +81,7 @@ namespace Crest.Host.Serialization
         public Type GenerateValueSerializer(Type underlyingType)
         {
             TypeBuilder builder = this.CreateType(nameof(Enum) + underlyingType.Name);
-            this.EmitConstructor(builder, typeof(Stream));
+            this.EmitConstructor(builder, null, typeof(Stream), typeof(SerializationMode));
             this.EmitWriteIntegerValues(builder, underlyingType);
             return this.GenerateType(builder, typeof(Enum));
         }

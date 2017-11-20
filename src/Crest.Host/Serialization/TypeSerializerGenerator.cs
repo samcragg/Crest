@@ -135,15 +135,15 @@ namespace Crest.Host.Serialization
         /// specified body.
         /// </summary>
         /// <param name="builder">The builder to emit the constructor to.</param>
-        /// <param name="parameter">The type of the parameter.</param>
         /// <param name="body">
-        /// Optional to write additional instructions after the base class
-        /// constructor has been called.
+        /// Used to write additional instructions after the base class
+        /// constructor has been called, can be <c>null</c>.
         /// </param>
+        /// <param name="parameters">The types of the parameter.</param>
         protected void EmitConstructor(
             TypeBuilder builder,
-            Type parameter,
-            Action<ILGenerator> body = null)
+            Action<ILGenerator> body,
+            params Type[] parameters)
         {
             const MethodAttributes PublicConstructor =
                 MethodAttributes.HideBySig |
@@ -151,18 +151,22 @@ namespace Crest.Host.Serialization
                 MethodAttributes.RTSpecialName |
                 MethodAttributes.SpecialName;
 
-            ConstructorInfo baseConstructor = FindConstructorWithParameter(this.BaseClass, parameter);
+            ConstructorInfo baseConstructor = FindConstructorWithParameters(this.BaseClass, parameters);
 
             ConstructorBuilder constructorBuilder = builder.DefineConstructor(
                 PublicConstructor,
                 CallingConventions.Standard,
-                new[] { parameter });
+                parameters);
 
             ILGenerator generator = constructorBuilder.GetILGenerator();
 
-            // base(arg)
+            // base(arg...)
             generator.EmitLoadArgument(0);
-            generator.EmitLoadArgument(1);
+            for (int i = 0; i < parameters.Length; i++)
+            {
+                generator.EmitLoadArgument(i + 1);
+            }
+
             generator.Emit(OpCodes.Call, baseConstructor);
 
             body?.Invoke(generator);
@@ -231,18 +235,24 @@ namespace Crest.Host.Serialization
             }
         }
 
-        private static ConstructorInfo FindConstructorWithParameter(Type classType, Type parameterType)
+        private static ConstructorInfo FindConstructorWithParameters(Type classType, Type[] parameterTypes)
         {
             bool HasMatchingParameters(ConstructorInfo constructor)
             {
                 ParameterInfo[] parameters = constructor.GetParameters();
-                return (parameters.Length == 1) &&
-                       (parameters[0].ParameterType == parameterType);
+                return parameters.Select(p => p.ParameterType).SequenceEqual(parameterTypes);
             }
 
             bool IsVisibleToDerivedTypes(ConstructorInfo constructor)
             {
                 return constructor.IsPublic || constructor.IsFamily;
+            }
+
+            string GetErrorMessage()
+            {
+                return classType.Name +
+                    " must contain a constructor accessible to a derived class that has a parameters of types " +
+                    string.Join(", ", parameterTypes.Select(p => p.Name));
             }
 
             ConstructorInfo[] constructors = classType.GetConstructors(
@@ -251,7 +261,7 @@ namespace Crest.Host.Serialization
             return constructors
                 .Where(IsVisibleToDerivedTypes)
                 .FirstOrDefault(HasMatchingParameters)
-                ?? throw new InvalidOperationException(classType.Name + " must contain a constructor accessible to a derived class that has a parameter of type " + parameterType.Name);
+                ?? throw new InvalidOperationException(GetErrorMessage());
         }
 
         private static IReadOnlyDictionary<Type, MethodInfo> GetStreamWriterPrimitiveMethods()

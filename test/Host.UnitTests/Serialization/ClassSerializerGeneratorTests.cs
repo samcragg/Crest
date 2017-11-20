@@ -114,30 +114,6 @@
                 {
                 }
             }
-
-            public class WithoutIStreamWriterConstructor : ClassSerializerMethods
-            {
-                protected WithoutIStreamWriterConstructor(Stream stream)
-                {
-                }
-
-                public static int GetMetadata(PropertyInfo property)
-                {
-                    return 0;
-                }
-            }
-
-            public class WithoutStreamConstructor : ClassSerializerMethods
-            {
-                protected WithoutStreamConstructor(IStreamWriter writer)
-                {
-                }
-
-                public static int GetMetadata(PropertyInfo property)
-                {
-                    return 0;
-                }
-            }
         }
 
         [Collection(nameof(FakeSerializerBase.OutputEnumNames))]
@@ -163,7 +139,7 @@
             {
                 Type type = this.generator.GenerateFor(typeof(PrimitiveProperty));
 
-                FakeSerializerBase parent = Substitute.For<FakeSerializerBase>(Stream.Null);
+                FakeSerializerBase parent = Substitute.For<FakeSerializerBase>(Stream.Null, SerializationMode.Serialize);
                 var instance = (FakeSerializerBase)Activator.CreateInstance(type, parent);
 
                 instance.Writer.Should().BeSameAs(parent.Writer);
@@ -175,7 +151,7 @@
                 Stream stream = Substitute.For<Stream>();
                 Type type = this.generator.GenerateFor(typeof(PrimitiveProperty));
 
-                var instance = (FakeSerializerBase)Activator.CreateInstance(type, stream);
+                var instance = (FakeSerializerBase)Activator.CreateInstance(type, stream, SerializationMode.Serialize);
 
                 instance.Stream.Should().BeSameAs(stream);
             }
@@ -198,7 +174,7 @@
             public void ShouldIncludeWriteArrayMethod()
             {
                 Type type = this.generator.GenerateFor(typeof(PrimitiveProperty));
-                var serializer = (FakeSerializerBase)Activator.CreateInstance(type, Stream.Null);
+                var serializer = (FakeSerializerBase)Activator.CreateInstance(type, Stream.Null, SerializationMode.Serialize);
 
                 ((ITypeSerializer)serializer).WriteArray(new[] { new PrimitiveProperty { Value = 1 } });
 
@@ -322,7 +298,7 @@
             private FakeSerializerBase SerializeValue<T>(T value)
             {
                 Type type = this.generator.GenerateFor(typeof(T));
-                object instance = Activator.CreateInstance(type, Stream.Null);
+                object instance = Activator.CreateInstance(type, Stream.Null, SerializationMode.Serialize);
 
                 ((ITypeSerializer)instance).Write(value);
                 return (FakeSerializerBase)instance;

@@ -16,7 +16,7 @@
 
         protected UrlEncodedSerializerBaseTests()
         {
-            this.serializer = new FakeUrlEncodedSerializerBase(this.stream);
+            this.serializer = new FakeUrlEncodedSerializerBase(this.stream, SerializationMode.Serialize);
         }
 
         protected byte[] GetWrittenData()
@@ -30,7 +30,7 @@
             [Fact]
             public void ShouldCreateAStreamWriter()
             {
-                var instance = new FakeUrlEncodedSerializerBase(Stream.Null);
+                var instance = new FakeUrlEncodedSerializerBase(Stream.Null, SerializationMode.Serialize);
 
                 instance.Writer.Should().NotBeNull();
             }
@@ -38,7 +38,7 @@
             [Fact]
             public void ShouldSetTheWriter()
             {
-                var parent = new FakeUrlEncodedSerializerBase(Stream.Null);
+                var parent = new FakeUrlEncodedSerializerBase(Stream.Null, SerializationMode.Serialize);
 
                 var instance = new FakeUrlEncodedSerializerBase(parent);
 
@@ -52,7 +52,7 @@
             public void ShouldFlushTheBuffers()
             {
                 Stream stream = Substitute.For<Stream>();
-                UrlEncodedSerializerBase serializer = new FakeUrlEncodedSerializerBase(stream);
+                UrlEncodedSerializerBase serializer = new FakeUrlEncodedSerializerBase(stream, SerializationMode.Serialize);
 
                 serializer.WriteBeginProperty(new byte[12]);
                 stream.DidNotReceiveWithAnyArgs().Write(null, 0, 0);
@@ -158,7 +158,7 @@
 
         private sealed class FakeUrlEncodedSerializerBase : UrlEncodedSerializerBase
         {
-            public FakeUrlEncodedSerializerBase(Stream stream) : base(stream)
+            public FakeUrlEncodedSerializerBase(Stream stream, SerializationMode mode) : base(stream, mode)
             {
             }
 

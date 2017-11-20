@@ -64,8 +64,16 @@ namespace Crest.Host.Serialization
             this.EmitWriteArray(builder, classType, writeMethod.GeneratedMethod);
 
             // Create the constructors
-            this.EmitConstructor(builder, this.BaseClass, writeMethod.NestedSerializerFields);
-            this.EmitConstructor(builder, typeof(Stream), writeMethod.NestedSerializerFields);
+            this.EmitConstructor(
+                builder,
+                writeMethod.NestedSerializerFields,
+                this.BaseClass);
+
+            this.EmitConstructor(
+                builder,
+                writeMethod.NestedSerializerFields,
+                typeof(Stream),
+                typeof(SerializationMode));
 
             // Build the type and set the static metadata
             TypeInfo generatedInfo = builder.CreateTypeInfo();
@@ -116,16 +124,19 @@ namespace Crest.Host.Serialization
 
         private void EmitConstructor(
             TypeBuilder builder,
-            Type parameter,
-            IEnumerable<FieldBuilder> nestedSerializers)
+            IEnumerable<FieldBuilder> nestedSerializers,
+            params Type[] parameters)
         {
-            this.EmitConstructor(builder, parameter, generator =>
-            {
-                foreach (FieldBuilder serializerField in nestedSerializers)
+            this.EmitConstructor(
+                builder,
+                generator =>
                 {
-                    this.EmitInitializeField(generator, serializerField);
-                }
-            });
+                    foreach (FieldBuilder serializerField in nestedSerializers)
+                    {
+                        this.EmitInitializeField(generator, serializerField);
+                    }
+                },
+                parameters);
         }
 
         private void EmitInitializeField(ILGenerator generator, FieldBuilder serializerField)

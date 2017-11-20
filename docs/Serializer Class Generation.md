@@ -55,7 +55,7 @@ A custom serializer can be created using the following template:
 ```C#
 public class MySerializer : IClassSerializer<MyMetadataType>
 {
-    protected MySerializer(Stream stream)
+    protected MySerializer(Stream stream, SerializationMode mode)
     {
         ...
     }

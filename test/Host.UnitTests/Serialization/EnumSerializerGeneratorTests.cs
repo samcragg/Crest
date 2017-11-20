@@ -28,6 +28,22 @@
             Value = 1
         }
 
+        private FakeSerializerBase SerializeArray(Array array, Type type)
+        {
+            object instance = Activator.CreateInstance(type, Stream.Null, SerializationMode.Serialize);
+
+            ((ITypeSerializer)instance).WriteArray(array);
+            return (FakeSerializerBase)instance;
+        }
+
+        private FakeSerializerBase SerializeValue(object value, Type type)
+        {
+            object instance = Activator.CreateInstance(type, Stream.Null, SerializationMode.Serialize);
+
+            ((ITypeSerializer)instance).Write(value);
+            return (FakeSerializerBase)instance;
+        }
+
         public sealed class GenerateStringSerializer : EnumSerializerGeneratorTests
         {
             [Fact]
@@ -71,20 +87,12 @@
 
             private FakeSerializerBase SerializeArray(Array array)
             {
-                Type type = this.generator.GenerateStringSerializer();
-                object instance = Activator.CreateInstance(type, Stream.Null);
-
-                ((ITypeSerializer)instance).WriteArray(array);
-                return (FakeSerializerBase)instance;
+                return this.SerializeArray(array, this.generator.GenerateStringSerializer());
             }
 
             private FakeSerializerBase SerializeValue(object value)
             {
-                Type type = this.generator.GenerateStringSerializer();
-                object instance = Activator.CreateInstance(type, Stream.Null);
-
-                ((ITypeSerializer)instance).Write(value);
-                return (FakeSerializerBase)instance;
+                return this.SerializeValue(value, this.generator.GenerateStringSerializer());
             }
         }
 
@@ -131,20 +139,12 @@
 
             private FakeSerializerBase SerializeArray(Array array)
             {
-                Type type = this.generator.GenerateValueSerializer(typeof(short));
-                object instance = Activator.CreateInstance(type, Stream.Null);
-
-                ((ITypeSerializer)instance).WriteArray(array);
-                return (FakeSerializerBase)instance;
+                return this.SerializeArray(array, this.generator.GenerateValueSerializer(typeof(short)));
             }
 
             private FakeSerializerBase SerializeValue(object value)
             {
-                Type type = this.generator.GenerateValueSerializer(typeof(short));
-                object instance = Activator.CreateInstance(type, Stream.Null);
-
-                ((ITypeSerializer)instance).Write(value);
-                return (FakeSerializerBase)instance;
+                return this.SerializeValue(value, this.generator.GenerateValueSerializer(typeof(short)));
             }
         }
     }

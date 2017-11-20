@@ -8,8 +8,9 @@
 
     public class FakeSerializerBase : IClassSerializer<string>, IArraySerializer
     {
-        protected FakeSerializerBase(Stream stream)
+        protected FakeSerializerBase(Stream stream, SerializationMode mode)
         {
+            this.Mode = mode;
             this.Stream = stream;
             this.Writer = Substitute.For<IStreamWriter>();
         }
@@ -30,6 +31,8 @@
         internal string BeginProperty { get; private set; }
 
         internal Stream Stream { get; }
+
+        internal SerializationMode Mode { get; }
 
         public static string GetMetadata(PropertyInfo property)
         {

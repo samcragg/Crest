@@ -24,7 +24,8 @@ namespace Crest.Host.Serialization
         /// Initializes a new instance of the <see cref="UrlEncodedSerializerBase"/> class.
         /// </summary>
         /// <param name="stream">The stream to write to.</param>
-        protected UrlEncodedSerializerBase(Stream stream)
+        /// <param name="mode">The serialization mode.</param>
+        protected UrlEncodedSerializerBase(Stream stream, SerializationMode mode)
         {
             this.writer = new UrlEncodedStreamWriter(stream);
         }

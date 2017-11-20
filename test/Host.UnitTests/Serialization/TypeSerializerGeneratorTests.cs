@@ -78,7 +78,7 @@
 
             public void EmitConstructor(TypeBuilder builder, Type parameter)
             {
-                base.EmitConstructor(builder, parameter);
+                base.EmitConstructor(builder, null, parameter);
             }
         }
     }

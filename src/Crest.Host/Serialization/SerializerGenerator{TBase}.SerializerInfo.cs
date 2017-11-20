@@ -26,44 +26,38 @@ namespace Crest.Host.Serialization
             public SerializerInfo(Type serializer)
             {
                 ConstructorInfo constructor =
-                    serializer.GetConstructor(new[] { typeof(Stream) });
+                    serializer.GetConstructor(new[] { typeof(Stream), typeof(SerializationMode) });
 
-                this.SerializeArrayMethod = CreateSerializeArrayMethod(constructor);
-                this.SerializeObjectMethod = CreateSerializeObjectMethod(constructor);
+                this.SerializeArrayMethod = CreateSerializeMethodCall(
+                    constructor,
+                    typeof(ITypeSerializer).GetMethod(nameof(ITypeSerializer.WriteArray)),
+                    value => Expression.Convert(value, typeof(Array)));
+
+                this.SerializeObjectMethod = CreateSerializeMethodCall(
+                    constructor,
+                    typeof(ITypeSerializer).GetMethod(nameof(ITypeSerializer.Write)),
+                    value => value);
+
                 this.SerializerType = serializer;
             }
 
-            private static Action<Stream, object> CreateSerializeArrayMethod(ConstructorInfo constructor)
+            private static Action<Stream, object> CreateSerializeMethodCall(
+                ConstructorInfo constructor,
+                MethodInfo method,
+                Func<ParameterExpression, Expression> loadValue)
             {
-                MethodInfo writeMethod =
-                    typeof(ITypeSerializer).GetMethod(nameof(ITypeSerializer.WriteArray));
-
                 ParameterExpression stream = Expression.Parameter(typeof(Stream));
+                ConstantExpression serialize = Expression.Constant(SerializationMode.Serialize);
                 ParameterExpression value = Expression.Parameter(typeof(object));
+
                 var lambda = Expression.Lambda<Action<Stream, object>>(
                     Expression.Call(
-                        Expression.New(constructor, stream),
-                        writeMethod,
-                        Expression.Convert(value, typeof(Array))),
+                        Expression.New(constructor, stream, serialize),
+                        method,
+                        loadValue(value)),
                     stream,
                     value);
-                return lambda.Compile();
-            }
 
-            private static Action<Stream, object> CreateSerializeObjectMethod(ConstructorInfo constructor)
-            {
-                MethodInfo writeMethod =
-                    typeof(ITypeSerializer).GetMethod(nameof(ITypeSerializer.Write));
-
-                ParameterExpression stream = Expression.Parameter(typeof(Stream));
-                ParameterExpression value = Expression.Parameter(typeof(object));
-                var lambda = Expression.Lambda<Action<Stream, object>>(
-                    Expression.Call(
-                        Expression.New(constructor, stream),
-                        writeMethod,
-                        value),
-                    stream,
-                    value);
                 return lambda.Compile();
             }
         }

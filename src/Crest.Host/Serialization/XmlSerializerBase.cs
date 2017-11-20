@@ -24,7 +24,8 @@ namespace Crest.Host.Serialization
         /// Initializes a new instance of the <see cref="XmlSerializerBase"/> class.
         /// </summary>
         /// <param name="stream">The stream to write to.</param>
-        protected XmlSerializerBase(Stream stream)
+        /// <param name="mode">The serialization mode.</param>
+        protected XmlSerializerBase(Stream stream, SerializationMode mode)
         {
             this.writer = new XmlStreamWriter(stream);
         }

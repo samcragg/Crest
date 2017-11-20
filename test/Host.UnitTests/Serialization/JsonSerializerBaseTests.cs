@@ -16,7 +16,7 @@
 
         protected JsonSerializerBaseTests()
         {
-            this.serializer = new FakeJsonSerializerBase(this.stream);
+            this.serializer = new FakeJsonSerializerBase(this.stream, SerializationMode.Serialize);
         }
 
         protected byte[] GetWrittenData()
@@ -30,7 +30,7 @@
             [Fact]
             public void ShouldCreateAStreamWriter()
             {
-                var instance = new FakeJsonSerializerBase(Stream.Null);
+                var instance = new FakeJsonSerializerBase(Stream.Null, SerializationMode.Serialize);
 
                 instance.Writer.Should().NotBeNull();
             }
@@ -38,7 +38,7 @@
             [Fact]
             public void ShouldSetTheWriter()
             {
-                var parent = new FakeJsonSerializerBase(Stream.Null);
+                var parent = new FakeJsonSerializerBase(Stream.Null, SerializationMode.Serialize);
 
                 var instance = new FakeJsonSerializerBase(parent);
 
@@ -52,7 +52,7 @@
             public void ShouldFlushTheBuffers()
             {
                 Stream stream = Substitute.For<Stream>();
-                JsonSerializerBase serializer = new FakeJsonSerializerBase(stream);
+                JsonSerializerBase serializer = new FakeJsonSerializerBase(stream, SerializationMode.Serialize);
 
                 serializer.WriteBeginClass(null);
                 stream.DidNotReceiveWithAnyArgs().Write(null, 0, 0);
@@ -206,7 +206,7 @@
 
         private sealed class FakeJsonSerializerBase : JsonSerializerBase
         {
-            public FakeJsonSerializerBase(Stream stream) : base(stream)
+            public FakeJsonSerializerBase(Stream stream, SerializationMode mode) : base(stream, mode)
             {
             }
 

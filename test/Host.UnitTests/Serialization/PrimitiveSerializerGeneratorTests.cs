@@ -29,7 +29,7 @@
         // Must be public for the generated classes to inherit from
         public class _FakeBaseClass : IPrimitiveSerializer<string>, IArraySerializer
         {
-            protected _FakeBaseClass(Stream stream)
+            protected _FakeBaseClass(Stream stream, SerializationMode mode)
             {
             }
 
@@ -175,7 +175,7 @@
                         .Select(kvp => kvp.Value)
                         .Single();
 
-                return Activator.CreateInstance(serializerType, Stream.Null);
+                return Activator.CreateInstance(serializerType, Stream.Null, SerializationMode.Serialize);
             }
         }
     }
