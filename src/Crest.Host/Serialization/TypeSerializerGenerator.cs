@@ -6,7 +6,6 @@
 namespace Crest.Host.Serialization
 {
     using System;
-    using System.Collections.Generic;
     using System.Linq;
     using System.Reflection;
     using System.Reflection.Emit;
@@ -25,8 +24,8 @@ namespace Crest.Host.Serialization
             MethodAttributes.NewSlot |
             MethodAttributes.Public |
             MethodAttributes.Virtual;
+
         private const string MetadataSuffix = "<>Metadata";
-        private readonly MethodInfo getTypeMetadataMethod;
         private readonly ModuleBuilder moduleBuilder;
 
         /// <summary>
@@ -40,12 +39,7 @@ namespace Crest.Host.Serialization
         {
             this.moduleBuilder = module;
             this.BaseClass = baseClass;
-            this.StreamWriterMethods = GetStreamWriterPrimitiveMethods();
-
-            // Can be null as it's optional
-            this.getTypeMetadataMethod = baseClass.GetMethod(
-                "GetTypeMetadata",
-                BindingFlags.Public | BindingFlags.Static);
+            this.Methods = new Methods(baseClass);
 
             Type primitiveSerializer = GetGenericInterfaceImplementation(
                 baseClass.GetTypeInfo(),
@@ -64,10 +58,10 @@ namespace Crest.Host.Serialization
         protected Type MetadataType { get; }
 
         /// <summary>
-        /// Gets the methods on the <see cref="IStreamWriter"/> that can be
-        /// used to write a value to the output stream.
+        /// Gets the method metadata for commonly used methods called by the
+        /// generated code.
         /// </summary>
-        protected IReadOnlyDictionary<Type, MethodInfo> StreamWriterMethods { get; }
+        protected Methods Methods { get; }
 
         /// <summary>
         /// Gets the interface implemented by a specific type.
@@ -75,7 +69,7 @@ namespace Crest.Host.Serialization
         /// <param name="typeInfo">The type implementing the interface.</param>
         /// <param name="interfaceType">The open-generic interface.</param>
         /// <returns>The closed generic implemented interface.</returns>
-        protected static Type GetGenericInterfaceImplementation(TypeInfo typeInfo, Type interfaceType)
+        internal static Type GetGenericInterfaceImplementation(TypeInfo typeInfo, Type interfaceType)
         {
             bool FindConverterWriter(Type type, object state)
             {
@@ -189,7 +183,7 @@ namespace Crest.Host.Serialization
         {
             generator.EmitLoadArgument(0);
 
-            if (this.getTypeMetadataMethod == null)
+            if (this.Methods.BaseClass.GetTypeMetadata == null)
             {
                 generator.Emit(OpCodes.Ldnull);
             }
@@ -224,9 +218,9 @@ namespace Crest.Host.Serialization
         /// <param name="type">The type being serialized.</param>
         protected void InitializeTypeMetadata(Type generatedType, Type type)
         {
-            if (this.getTypeMetadataMethod != null)
+            if (this.Methods.BaseClass.GetTypeMetadata != null)
             {
-                object metadata = this.getTypeMetadataMethod.Invoke(
+                object metadata = this.Methods.BaseClass.GetTypeMetadata.Invoke(
                     null,
                     new object[] { type });
 
@@ -262,15 +256,6 @@ namespace Crest.Host.Serialization
                 .Where(IsVisibleToDerivedTypes)
                 .FirstOrDefault(HasMatchingParameters)
                 ?? throw new InvalidOperationException(GetErrorMessage());
-        }
-
-        private static IReadOnlyDictionary<Type, MethodInfo> GetStreamWriterPrimitiveMethods()
-        {
-            return typeof(IStreamWriter).GetTypeInfo()
-                .DeclaredMethods
-                .Where(m => m.Name.StartsWith("Write", StringComparison.Ordinal))
-                .Where(m => m.Name != nameof(IStreamWriter.WriteObject) && m.Name != nameof(IStreamWriter.WriteNull))
-                .ToDictionary(m => m.GetParameters().Single().ParameterType);
         }
     }
 }

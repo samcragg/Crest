@@ -51,19 +51,52 @@
                 }
             }
 
-            private abstract class PrimitiveSerializer : IPrimitiveSerializer<object>
+            private abstract class PrimitiveSerializer : IClassSerializer<string>
             {
-                IStreamWriter IPrimitiveSerializer<object>.Writer => null;
+                public IStreamWriter Writer => null;
 
-                void IPrimitiveSerializer<object>.BeginWrite(object metadata)
+                public static string GetMetadata()
+                {
+                    return null;
+                }
+
+                void IPrimitiveSerializer<string>.BeginWrite(string metadata)
                 {
                 }
 
-                void IPrimitiveSerializer<object>.EndWrite()
+                void IPrimitiveSerializer<string>.EndWrite()
                 {
                 }
 
-                void IPrimitiveSerializer<object>.Flush()
+                void IPrimitiveSerializer<string>.Flush()
+                {
+                }
+
+                void IArraySerializer.WriteBeginArray(Type elementType, int size)
+                {
+                }
+
+                void IClassSerializer<string>.WriteBeginClass(string metadata)
+                {
+                }
+
+                void IClassSerializer<string>.WriteBeginProperty(string propertyMetadata)
+                {
+                }
+
+                void IArraySerializer.WriteElementSeparator()
+                {
+                }
+
+                void IArraySerializer.WriteEndArray()
+                {
+                }
+
+                void IClassSerializer<string>.WriteEndClass()
+                {
+                }
+
+                void IClassSerializer<string>.WriteEndProperty()
                 {
                 }
             }

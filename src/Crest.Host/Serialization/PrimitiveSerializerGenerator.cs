@@ -17,10 +17,6 @@ namespace Crest.Host.Serialization
     /// </summary>
     internal sealed class PrimitiveSerializerGenerator : TypeSerializerGenerator
     {
-        private readonly MethodInfo beginWriteMethod;
-        private readonly MethodInfo endWriteMethod;
-        private readonly MethodInfo getWriterMethod;
-
         /// <summary>
         /// Initializes a new instance of the <see cref="PrimitiveSerializerGenerator"/> class.
         /// </summary>
@@ -31,19 +27,6 @@ namespace Crest.Host.Serialization
         public PrimitiveSerializerGenerator(ModuleBuilder module, Type baseClass)
             : base(module, baseClass)
         {
-            Type primitiveSerializer = GetGenericInterfaceImplementation(
-                baseClass.GetTypeInfo(),
-                typeof(IPrimitiveSerializer<>));
-
-            this.beginWriteMethod = primitiveSerializer
-                .GetMethod(nameof(IPrimitiveSerializer<object>.BeginWrite));
-
-            this.endWriteMethod = primitiveSerializer
-                .GetMethod(nameof(IPrimitiveSerializer<object>.EndWrite));
-
-            this.getWriterMethod = primitiveSerializer
-                .GetProperty(nameof(IPrimitiveSerializer<object>.Writer))
-                .GetGetMethod();
         }
 
         /// <summary>
@@ -57,7 +40,7 @@ namespace Crest.Host.Serialization
         /// </returns>
         public IEnumerable<KeyValuePair<Type, Type>> GetSerializers()
         {
-            foreach (KeyValuePair<Type, MethodInfo> kvp in this.StreamWriterMethods)
+            foreach (KeyValuePair<Type, MethodInfo> kvp in this.Methods.StreamWriter)
             {
                 // Create the class for writing the primitive type first
                 Type primitive = kvp.Key;
@@ -101,14 +84,14 @@ namespace Crest.Host.Serialization
             generator.Emit(OpCodes.Castclass, arrayType);
             generator.EmitStoreLocal(1);
 
-            var arrayEmitter = new ArraySerializeEmitter(generator, this.BaseClass)
+            var arrayEmitter = new ArraySerializeEmitter(generator, this.BaseClass, this.Methods)
             {
                 LoadArray = g => g.EmitLoadLocal(1),
                 LoopCounterLocalIndex = 0,
                 WriteValue = (_, loadElement) =>
                 {
                     generator.EmitLoadArgument(0);
-                    generator.EmitCall(this.BaseClass, this.getWriterMethod);
+                    generator.EmitCall(this.BaseClass, this.Methods.PrimitiveSerializer.GetWriter);
                     loadElement(generator); // This handles nullable types for us
                     generator.EmitCall(writeMethod.DeclaringType, writeMethod);
                 }
@@ -133,12 +116,12 @@ namespace Crest.Host.Serialization
             this.EmitWriteBeginTypeMetadata(
                 builder,
                 generator,
-                this.beginWriteMethod,
+                this.Methods.PrimitiveSerializer.BeginWrite,
                 type);
 
             // this.Writer.WriteXXX((XXX)parameter)
             generator.EmitLoadArgument(0);
-            generator.EmitCall(this.BaseClass, this.getWriterMethod);
+            generator.EmitCall(this.BaseClass, this.Methods.PrimitiveSerializer.GetWriter);
             generator.EmitLoadArgument(1); // 0 = this, 1 = object
 
             // No need to check if it's a value or reference type (it will be a
@@ -151,7 +134,7 @@ namespace Crest.Host.Serialization
 
             // this.EndWrite()
             generator.EmitLoadArgument(0);
-            generator.EmitCall(this.BaseClass, this.endWriteMethod);
+            generator.EmitCall(this.BaseClass, this.Methods.PrimitiveSerializer.EndWrite);
             generator.Emit(OpCodes.Ret);
         }
 

@@ -27,7 +27,7 @@
         }
 
         // Must be public for the generated classes to inherit from
-        public class _FakeBaseClass : IPrimitiveSerializer<string>, IArraySerializer
+        public class _FakeBaseClass : IClassSerializer<string>
         {
             protected _FakeBaseClass(Stream stream, SerializationMode mode)
             {
@@ -38,6 +38,11 @@
             internal string BeginWriteMetadata { get; private set; }
 
             internal int EndWriteCount { get; private set; }
+
+            public static string GetMetadata()
+            {
+                return null;
+            }
 
             public static string GetTypeMetadata(Type type)
             {
@@ -62,11 +67,27 @@
             {
             }
 
+            void IClassSerializer<string>.WriteBeginClass(string metadata)
+            {
+            }
+
+            void IClassSerializer<string>.WriteBeginProperty(string propertyMetadata)
+            {
+            }
+
             void IArraySerializer.WriteElementSeparator()
             {
             }
 
             void IArraySerializer.WriteEndArray()
+            {
+            }
+
+            void IClassSerializer<string>.WriteEndClass()
+            {
+            }
+
+            void IClassSerializer<string>.WriteEndProperty()
             {
             }
         }

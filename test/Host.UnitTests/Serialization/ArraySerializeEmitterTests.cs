@@ -12,8 +12,16 @@
 
     public class ArraySerializeEmitterTests
     {
+        private static ArraySerializeEmitter CreateArraySerializer<TBase>(ILGenerator generator)
+        {
+            return new ArraySerializeEmitter(
+                generator,
+                typeof(TBase),
+                new Methods(typeof(TBase)));
+        }
+
         // public so the dynamic code can inherit it
-        public abstract class _ArraySerializerBase<T> : IPrimitiveSerializer<string>, IArraySerializer
+        public abstract class _ArraySerializerBase<T> : IClassSerializer<string>
         {
             protected readonly List<T> values = new List<T>();
 
@@ -34,6 +42,11 @@
             internal int EndArrayCount { get; private set; }
 
             internal IReadOnlyList<T> Values => this.values;
+
+            public static string GetMetadata()
+            {
+                return null;
+            }
 
             public void WriteBeginArray(Type elementType, int size)
             {
@@ -60,6 +73,22 @@
             }
 
             void IPrimitiveSerializer<string>.Flush()
+            {
+            }
+
+            void IClassSerializer<string>.WriteBeginClass(string metadata)
+            {
+            }
+
+            void IClassSerializer<string>.WriteBeginProperty(string propertyMetadata)
+            {
+            }
+
+            void IClassSerializer<string>.WriteEndClass()
+            {
+            }
+
+            void IClassSerializer<string>.WriteEndProperty()
             {
             }
         }
@@ -104,21 +133,19 @@
                 // Create the method
                 ILGenerator generator = method.GetILGenerator();
                 generator.DeclareLocal(typeof(int)); // loop counter
-                var emitter = new ArraySerializeEmitter(generator, typeof(_ArraySerializerBase<int>))
+                ArraySerializeEmitter emitter = CreateArraySerializer<_ArraySerializerBase<int>>(generator);
+                emitter.LoadArray = g => g.EmitLoadArgument(1); // 0 = this, 1 = Array
+                emitter.LoadArrayElement = (g, _) => g.EmitCall(OpCodes.Callvirt, typeof(IList).GetProperty("Item").GetGetMethod(), null);
+                emitter.LoadArrayLength = g => g.EmitCall(OpCodes.Callvirt, typeof(Array).GetProperty(nameof(Array.Length)).GetGetMethod(), null);
+                emitter.LoopCounterLocalIndex = 0;
+                emitter.WriteValue = (_, loadElement) =>
                 {
-                    LoadArray = g => g.EmitLoadArgument(1), // 0 = this, 1 = Array
-                    LoadArrayElement = (g, _) => g.EmitCall(OpCodes.Callvirt, typeof(IList).GetProperty("Item").GetGetMethod(), null),
-                    LoadArrayLength = g => g.EmitCall(OpCodes.Callvirt, typeof(Array).GetProperty(nameof(Array.Length)).GetGetMethod(), null),
-                    LoopCounterLocalIndex = 0,
-                    WriteValue = (_, loadElement) =>
-                    {
-                        // this.values.Add(x);
-                        generator.Emit(OpCodes.Ldarg_0);
-                        generator.Emit(OpCodes.Ldfld, typeof(_ArraySerializerBase<int>).GetField("values", BindingFlags.Instance | BindingFlags.NonPublic));
-                        loadElement(generator);
-                        generator.Emit(OpCodes.Unbox_Any, typeof(int));
-                        generator.EmitCall(OpCodes.Callvirt, typeof(List<int>).GetMethod(nameof(List<int>.Add)), null);
-                    }
+                    // this.values.Add(x);
+                    generator.Emit(OpCodes.Ldarg_0);
+                    generator.Emit(OpCodes.Ldfld, typeof(_ArraySerializerBase<int>).GetField("values", BindingFlags.Instance | BindingFlags.NonPublic));
+                    loadElement(generator);
+                    generator.Emit(OpCodes.Unbox_Any, typeof(int));
+                    generator.EmitCall(OpCodes.Callvirt, typeof(List<int>).GetMethod(nameof(List<int>.Add)), null);
                 };
 
                 emitter.EmitWriteArray(typeof(int[]));
@@ -219,32 +246,30 @@
                 ILGenerator generator = method.GetILGenerator();
                 generator.DeclareLocal(typeof(int)); // loop counter
                 generator.DeclareLocal(typeof(T[])); // array variable
-                var emitter = new ArraySerializeEmitter(generator, typeof(_ArraySerializerBase<T>))
+                ArraySerializeEmitter emitter = CreateArraySerializer<_ArraySerializerBase<T>>(generator);
+                emitter.LoadArray = g => g.EmitLoadLocal(1);
+                emitter.LoopCounterLocalIndex = 0;
+                emitter.WriteValue = (_, loadElement) =>
                 {
-                    LoadArray = g => g.EmitLoadLocal(1),
-                    LoopCounterLocalIndex = 0,
-                    WriteValue = (_, loadElement) =>
+                    // this.values.Add(x);
+                    generator.Emit(OpCodes.Ldarg_0);
+                    generator.Emit(
+                        OpCodes.Ldfld,
+                        typeof(_ArraySerializerBase<T>).GetField("values", BindingFlags.Instance | BindingFlags.NonPublic));
+
+                    loadElement(generator);
+
+                    // If it's a nullable value then we would have been passed
+                    // the actual value, so convert it back to a nullable one
+                    // to store in the list.
+                    if (Nullable.GetUnderlyingType(typeof(T)) != null)
                     {
-                        // this.values.Add(x);
-                        generator.Emit(OpCodes.Ldarg_0);
                         generator.Emit(
-                            OpCodes.Ldfld,
-                            typeof(_ArraySerializerBase<T>).GetField("values", BindingFlags.Instance | BindingFlags.NonPublic));
-
-                        loadElement(generator);
-
-                        // If it's a nullable value then we would have been passed
-                        // the actual value, so convert it back to a nullable one
-                        // to store in the list.
-                        if (Nullable.GetUnderlyingType(typeof(T)) != null)
-                        {
-                            generator.Emit(
-                                OpCodes.Newobj,
-                                typeof(T).GetConstructor(new[] { Nullable.GetUnderlyingType(typeof(T)) }));
-                        }
-
-                        generator.EmitCall(OpCodes.Callvirt, typeof(List<T>).GetMethod(nameof(List<T>.Add)), null);
+                            OpCodes.Newobj,
+                            typeof(T).GetConstructor(new[] { Nullable.GetUnderlyingType(typeof(T)) }));
                     }
+
+                    generator.EmitCall(OpCodes.Callvirt, typeof(List<T>).GetMethod(nameof(List<T>.Add)), null);
                 };
 
                 // Generate the code

@@ -58,9 +58,6 @@
     <Compile Update="Routing/UrlParser.SegmentParser.cs">
       <DependentUpon>UrlParser.cs</DependentUpon>
     </Compile>
-    <Compile Update="Serialization/ClassSerializerGenerator.BaseMethods.cs">
-      <DependentUpon>ClassSerializerGenerator.cs</DependentUpon>
-    </Compile>
     <Compile Update="Serialization/ClassSerializerGenerator.WriteMethodEmitter.cs">
       <DependentUpon>ClassSerializerGenerator.cs</DependentUpon>
     </Compile>

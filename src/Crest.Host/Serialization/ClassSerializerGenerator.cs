@@ -19,7 +19,6 @@ namespace Crest.Host.Serialization
     /// </summary>
     internal sealed partial class ClassSerializerGenerator : TypeSerializerGenerator
     {
-        private readonly BaseMethods baseMethods;
         private readonly Func<Type, Type> generateSerializer;
 
         /// <summary>
@@ -40,8 +39,6 @@ namespace Crest.Host.Serialization
             Type classSerializerInterface = GetGenericInterfaceImplementation(
                 baseClass.GetTypeInfo(),
                 typeof(IClassSerializer<>));
-
-            this.baseMethods = new BaseMethods(baseClass, classSerializerInterface);
         }
 
         /// <summary>
@@ -170,7 +167,7 @@ namespace Crest.Host.Serialization
             generator.DeclareLocal(typeof(int)); // loop counter
             generator.DeclareLocal(arrayType);
 
-            var arrayEmitter = new ArraySerializeEmitter(generator, this.BaseClass)
+            var arrayEmitter = new ArraySerializeEmitter(generator, this.BaseClass, this.Methods)
             {
                 LoadArray = g => g.EmitLoadLocal(1),
                 LoopCounterLocalIndex = 0,
@@ -209,7 +206,7 @@ namespace Crest.Host.Serialization
                     metadataFields[property.Name].Name,
                     BindingFlags.Public | BindingFlags.Static);
 
-                object value = this.baseMethods.GetMetadata.Invoke(null, new[] { property });
+                object value = this.Methods.BaseClass.GetMetadata.Invoke(null, new[] { property });
                 field.SetValue(null, value);
             }
         }

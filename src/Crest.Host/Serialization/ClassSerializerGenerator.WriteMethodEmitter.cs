@@ -67,7 +67,7 @@ namespace Crest.Host.Serialization
                 this.owner.EmitWriteBeginTypeMetadata(
                     this.typeBuilder,
                     this.generator,
-                    this.owner.baseMethods.WriteBeginClass,
+                    this.owner.Methods.BaseClass.WriteBeginClass,
                     serializedType);
 
                 foreach (PropertyInfo property in properties)
@@ -77,7 +77,7 @@ namespace Crest.Host.Serialization
 
                 // base.WriteEndClass()
                 this.generator.EmitLoadArgument(0);
-                this.generator.EmitCall(this.owner.BaseClass, this.owner.baseMethods.WriteEndClass);
+                this.generator.EmitCall(this.owner.BaseClass, this.owner.Methods.BaseClass.WriteEndClass);
                 this.generator.Emit(OpCodes.Ret);
             }
 
@@ -123,7 +123,7 @@ namespace Crest.Host.Serialization
                     }
                 }
 
-                if (this.owner.StreamWriterMethods.TryGetValue(type, out MethodInfo method))
+                if (this.owner.Methods.StreamWriter.TryGetMethod(type, out MethodInfo method))
                 {
                     this.generator.EmitCall(typeof(IStreamWriter), method);
                 }
@@ -195,7 +195,7 @@ namespace Crest.Host.Serialization
             private void EmitWriteArray(PropertyInfo property)
             {
                 int localArrayIndex = this.GetOrAddLocal(property.PropertyType).LocalIndex;
-                var arrayEmitter = new ArraySerializeEmitter(this.generator, this.owner.BaseClass)
+                var arrayEmitter = new ArraySerializeEmitter(this.generator, this.owner.BaseClass, this.owner.Methods)
                 {
                     LoadArray = g => g.EmitLoadLocal(localArrayIndex),
                     LoopCounterLocalIndex = this.GetOrAddLocal(typeof(int)).LocalIndex,
@@ -215,7 +215,7 @@ namespace Crest.Host.Serialization
                 this.generator.Emit(OpCodes.Ldsfld, this.metadataFields[propertyName]);
                 this.generator.EmitCall(
                     this.owner.BaseClass,
-                    this.owner.baseMethods.WriteBeginProperty);
+                    this.owner.Methods.BaseClass.WriteBeginProperty);
             }
 
             private void EmitWriteProperty(PropertyInfo property)
@@ -248,7 +248,7 @@ namespace Crest.Host.Serialization
                 this.generator.EmitLoadArgument(0);
                 this.generator.EmitCall(
                     this.owner.BaseClass,
-                    this.owner.baseMethods.WriteEndProperty);
+                    this.owner.Methods.BaseClass.WriteEndProperty);
 
                 this.generator.MarkLabel(end);
             }
@@ -257,7 +257,7 @@ namespace Crest.Host.Serialization
             {
                 // this.Writer.WriteXXX(value)
                 this.generator.EmitLoadArgument(0);
-                this.generator.EmitCall(this.owner.BaseClass, this.owner.baseMethods.GetWriter);
+                this.generator.EmitCall(this.owner.BaseClass, this.owner.Methods.BaseClass.GetWriter);
                 loadValue(this.generator);
 
                 Type underlyingType = Nullable.GetUnderlyingType(type);

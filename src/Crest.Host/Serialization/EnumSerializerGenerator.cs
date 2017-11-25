@@ -6,7 +6,6 @@
 namespace Crest.Host.Serialization
 {
     using System;
-    using System.Collections;
     using System.IO;
     using System.Reflection;
     using System.Reflection.Emit;
@@ -17,13 +16,6 @@ namespace Crest.Host.Serialization
     /// </summary>
     internal sealed class EnumSerializerGenerator : TypeSerializerGenerator
     {
-        private readonly MethodInfo arrayGetLength;
-        private readonly MethodInfo beginWriteMethod;
-        private readonly MethodInfo endWriteMethod;
-        private readonly MethodInfo getWriterMethod;
-        private readonly MethodInfo iListGetItem;
-        private readonly MethodInfo objectToString;
-
         /// <summary>
         /// Initializes a new instance of the <see cref="EnumSerializerGenerator"/> class.
         /// </summary>
@@ -34,30 +26,6 @@ namespace Crest.Host.Serialization
         public EnumSerializerGenerator(ModuleBuilder module, Type baseClass)
             : base(module, baseClass)
         {
-            this.arrayGetLength = typeof(Array)
-                .GetProperty(nameof(Array.Length))
-                .GetGetMethod();
-
-            Type primitiveSerializer = GetGenericInterfaceImplementation(
-                baseClass.GetTypeInfo(),
-                typeof(IPrimitiveSerializer<>));
-
-            this.beginWriteMethod = primitiveSerializer
-                .GetMethod(nameof(IPrimitiveSerializer<object>.BeginWrite));
-
-            this.endWriteMethod = primitiveSerializer
-                .GetMethod(nameof(IPrimitiveSerializer<object>.EndWrite));
-
-            this.getWriterMethod = primitiveSerializer
-                .GetProperty(nameof(IPrimitiveSerializer<object>.Writer))
-                .GetGetMethod();
-
-            this.iListGetItem = typeof(IList)
-                .GetProperty("Item")
-                .GetGetMethod();
-
-            this.objectToString = typeof(object)
-                .GetMethod(nameof(object.ToString));
         }
 
         /// <summary>
@@ -97,16 +65,16 @@ namespace Crest.Host.Serialization
             ILGenerator generator = methodBuilder.GetILGenerator();
             generator.DeclareLocal(typeof(int));
 
-            var arrayEmitter = new ArraySerializeEmitter(generator, this.BaseClass)
+            var arrayEmitter = new ArraySerializeEmitter(generator, this.BaseClass, this.Methods)
             {
                 LoadArray = g => g.EmitLoadArgument(1),
-                LoadArrayElement = (g, _) => g.EmitCall(OpCodes.Callvirt, this.iListGetItem, null),
-                LoadArrayLength = g => g.EmitCall(OpCodes.Callvirt, this.arrayGetLength, null),
+                LoadArrayElement = (g, _) => g.EmitCall(OpCodes.Callvirt, this.Methods.List.GetItem, null),
+                LoadArrayLength = g => g.EmitCall(OpCodes.Callvirt, this.Methods.List.GetCount, null),
                 LoopCounterLocalIndex = 0,
                 WriteValue = (_, loadElement) =>
                 {
                     generator.EmitLoadArgument(0);
-                    generator.EmitCall(this.BaseClass, this.getWriterMethod);
+                    generator.EmitCall(this.BaseClass, this.Methods.PrimitiveSerializer.GetWriter);
                     loadElement(generator);
                     writeValue(generator);
                 }
@@ -120,7 +88,7 @@ namespace Crest.Host.Serialization
         {
             this.EmitWriteMethod(
                 builder,
-                this.StreamWriterMethods[underlyingType],
+                this.Methods.StreamWriter[underlyingType],
                 g =>
                 {
                     // Nullable values are boxed as their raw value if they
@@ -140,7 +108,7 @@ namespace Crest.Host.Serialization
                 g.Emit(OpCodes.Unbox_Any, underlyingType);
                 g.EmitCall(
                     typeof(IStreamWriter),
-                    this.StreamWriterMethods[underlyingType]);
+                    this.Methods.StreamWriter[underlyingType]);
             });
         }
 
@@ -161,18 +129,18 @@ namespace Crest.Host.Serialization
             this.EmitWriteBeginTypeMetadata(
                 builder,
                 generator,
-                this.beginWriteMethod,
+                this.Methods.PrimitiveSerializer.BeginWrite,
                 typeof(Enum));
 
             // this.Writer.WriteXXX((XXX)parameter)
             generator.EmitLoadArgument(0);
-            generator.EmitCall(this.BaseClass, this.getWriterMethod);
+            generator.EmitCall(this.BaseClass, this.Methods.PrimitiveSerializer.GetWriter);
             loadValue(generator);
             generator.EmitCall(writeMethod.DeclaringType, writeMethod);
 
             // thie.EndWrite()
             generator.EmitLoadArgument(0);
-            generator.EmitCall(this.BaseClass, this.endWriteMethod);
+            generator.EmitCall(this.BaseClass, this.Methods.PrimitiveSerializer.EndWrite);
             generator.Emit(OpCodes.Ret);
         }
 
@@ -180,7 +148,7 @@ namespace Crest.Host.Serialization
         {
             this.EmitWriteMethod(
                 builder,
-                this.StreamWriterMethods[typeof(string)],
+                this.Methods.StreamWriter[typeof(string)],
                 g =>
                 {
                     // No need for null checking as that's done higher up in the
@@ -188,15 +156,15 @@ namespace Crest.Host.Serialization
                     //
                     // arg.ToString();
                     g.EmitLoadArgument(1);
-                    g.EmitCall(OpCodes.Callvirt, this.objectToString, null);
+                    g.EmitCall(OpCodes.Callvirt, this.Methods.Object.ToString, null);
                 });
 
             this.EmitWriteArrayMethod(builder, g =>
             {
-                g.EmitCall(OpCodes.Callvirt, this.objectToString, null);
+                g.EmitCall(OpCodes.Callvirt, this.Methods.Object.ToString, null);
                 g.EmitCall(
                     typeof(IStreamWriter),
-                    this.StreamWriterMethods[typeof(string)]);
+                    this.Methods.StreamWriter[typeof(string)]);
             });
         }
     }

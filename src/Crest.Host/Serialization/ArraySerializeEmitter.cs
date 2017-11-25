@@ -44,38 +44,19 @@ namespace Crest.Host.Serialization
         //     this.WriteEndArray(typeof(T));
         private readonly Type baseClass;
         private readonly ILGenerator generator;
-        private readonly MethodInfo getWriter;
-        private readonly MethodInfo writeBeginArray;
-        private readonly MethodInfo writeElementSeparator;
-        private readonly MethodInfo writeEndArray;
-        private readonly MethodInfo writerWriteNull;
+        private readonly Methods methods;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ArraySerializeEmitter"/> class.
         /// </summary>
         /// <param name="generator">Where to emit the code to.</param>
         /// <param name="baseClass">The type of the base serializer class.</param>
-        public ArraySerializeEmitter(ILGenerator generator, Type baseClass)
+        /// <param name="methods">Contains method metadata.</param>
+        public ArraySerializeEmitter(ILGenerator generator, Type baseClass, Methods methods)
         {
             this.baseClass = baseClass;
             this.generator = generator;
-
-            this.getWriter =
-                typeof(IArraySerializer)
-                    .GetProperty(nameof(IArraySerializer.Writer))
-                    .GetGetMethod();
-
-            this.writeBeginArray = typeof(IArraySerializer).GetMethod(
-                nameof(IArraySerializer.WriteBeginArray));
-
-            this.writeEndArray = typeof(IArraySerializer).GetMethod(
-                nameof(IArraySerializer.WriteEndArray));
-
-            this.writeElementSeparator = typeof(IArraySerializer).GetMethod(
-                nameof(IArraySerializer.WriteElementSeparator));
-
-            this.writerWriteNull = typeof(IStreamWriter).GetMethod(
-                nameof(IStreamWriter.WriteNull));
+            this.methods = methods;
         }
 
         /// <summary>
@@ -131,7 +112,7 @@ namespace Crest.Host.Serialization
             // this.WriteEndArray();
             this.generator.MarkLabel(endIf);
             this.generator.EmitLoadArgument(0);
-            this.generator.EmitCall(this.baseClass, this.writeEndArray);
+            this.generator.EmitCall(this.baseClass, this.methods.ArraySerializer.WriteEndArray);
         }
 
         private void CallWriteBeginArray(Type elementType)
@@ -142,7 +123,7 @@ namespace Crest.Host.Serialization
             this.LoadArray(this.generator);
             this.LoadArrayLength(this.generator); // Could load a natural unsigned int
             this.generator.Emit(OpCodes.Conv_I4);
-            this.generator.EmitCall(this.baseClass, this.writeBeginArray);
+            this.generator.EmitCall(this.baseClass, this.methods.ArraySerializer.WriteBeginArray);
         }
 
         private void EmitForLoop(Type elementType)
@@ -162,7 +143,7 @@ namespace Crest.Host.Serialization
                 {
                     // this.WriteElementSeparator();
                     g.EmitLoadArgument(0);
-                    g.EmitCall(this.baseClass, this.writeElementSeparator);
+                    g.EmitCall(this.baseClass, this.methods.ArraySerializer.WriteElementSeparator);
 
                     // this.Writer.WriteXXX(local[i]);
                     this.EmitWriteElement(elementType, gen => gen.EmitLoadLocal(this.LoopCounterLocalIndex));
@@ -210,8 +191,8 @@ namespace Crest.Host.Serialization
         {
             // this.Writer.WriteNull()
             this.generator.EmitLoadArgument(0);
-            this.generator.EmitCall(this.baseClass, this.getWriter);
-            this.generator.EmitCall(typeof(IStreamWriter), this.writerWriteNull);
+            this.generator.EmitCall(this.baseClass, this.methods.ArraySerializer.GetWriter);
+            this.generator.EmitCall(typeof(IStreamWriter), this.methods.StreamWriter.WriteNull);
         }
 
         private void EmitWriteNullableElement(Type elementType, Type underlyingType, Action<ILGenerator> loadIndex)
