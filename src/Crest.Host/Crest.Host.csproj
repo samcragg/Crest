@@ -4,6 +4,7 @@
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <PackageId>Crest.Host</PackageId>
+    <LangVersion>latest</LangVersion>
   </PropertyGroup>
 
   <Import Project="..\CrestPackage.targets" />
@@ -11,16 +12,15 @@
   <ItemGroup>
     <ProjectReference Include="..\Crest.Abstractions\Crest.Abstractions.csproj" />
     <ProjectReference Include="..\Crest.Core\Crest.Core.csproj" />
-    <PackageReference Include="DryIoc.Internal" Version="2.12.3" PrivateAssets="All" />
-    <PackageReference Include="Microsoft.Extensions.DependencyModel" Version="2.0.0" />
+    <PackageReference Include="DryIoc.Internal" Version="2.12.7" PrivateAssets="All" />
+    <PackageReference Include="Microsoft.Extensions.DependencyModel" Version="2.0.4" />
     <PackageReference Include="Newtonsoft.Json" Version="10.0.3" />
-    <!--
     <PackageReference Include="StyleCop.Analyzers" Version="1.0.2" PrivateAssets="All" />
-    -->
     <PackageReference Include="System.Collections.Immutable" Version="1.4.0" />
     <PackageReference Include="System.ComponentModel.TypeConverter" Version="4.3.0" />
     <PackageReference Include="System.Diagnostics.Process" Version="4.3.0" />
     <PackageReference Include="System.Diagnostics.TraceSource" Version="4.3.0" />
+    <PackageReference Include="System.Memory" Version="4.4.0-preview1-25305-02" />
     <PackageReference Include="System.Reflection.Emit" Version="4.3.0" />
   </ItemGroup>
 
