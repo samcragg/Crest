@@ -6,6 +6,7 @@
 namespace Crest.Host.Serialization
 {
     using System;
+    using Crest.Host.Conversion;
 
     /// <summary>
     /// Converts an date time to/from a series of bytes in the ISO 8601 format.

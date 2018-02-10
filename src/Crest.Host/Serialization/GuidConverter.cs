@@ -7,6 +7,7 @@ namespace Crest.Host.Serialization
 {
     using System;
     using System.Runtime.InteropServices;
+    using Crest.Host.Conversion;
 
     /// <summary>
     /// Used to convert a <see cref="Guid"/> to/from a series of ASCII bytes.

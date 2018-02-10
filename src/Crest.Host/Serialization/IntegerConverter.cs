@@ -6,6 +6,7 @@
 namespace Crest.Host.Serialization
 {
     using System.Runtime.CompilerServices;
+    using Crest.Host.Conversion;
 
     /// <summary>
     /// Converts an integer to/from a series of ASCII bytes.

@@ -6,6 +6,7 @@
 namespace Crest.Host.Serialization
 {
     using System.Runtime.CompilerServices;
+    using Crest.Host.Conversion;
 
     /// <summary>
     /// Provides utility methods for writing JSON escaped strings.

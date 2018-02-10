@@ -11,6 +11,7 @@ namespace Crest.Host.Serialization
     using System.Globalization;
     using System.IO;
     using System.Runtime.CompilerServices;
+    using Crest.Host.Conversion;
 
     /// <summary>
     /// Used to output primitive values that are URL encoded.
