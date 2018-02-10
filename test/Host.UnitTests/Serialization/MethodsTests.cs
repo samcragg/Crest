@@ -1,10 +1,7 @@
 ﻿namespace Host.UnitTests.Serialization
 {
-    using System;
     using System.Collections;
-    using System.Collections.Generic;
     using System.Linq;
-    using System.Reflection;
     using Crest.Host.Serialization;
     using FluentAssertions;
     using Xunit;
@@ -28,9 +25,12 @@
             [Fact]
             public void ShouldProvideANonGenericEnumerateMethod()
             {
-                int count = ((IEnumerable)this.methods.StreamWriter)
-                    .Cast<KeyValuePair<Type, MethodInfo>>()
-                    .Count();
+                var enumerable = (IEnumerable)this.methods.StreamWriter;
+                int count = 0;
+                foreach (object x in enumerable)
+                {
+                    count++;
+                }
 
                 count.Should().Be(StreamWriterWriteMethods);
             }
