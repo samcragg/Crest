@@ -51,7 +51,7 @@
             {
                 Action action = () => this.converter.Prime(null);
 
-                action.ShouldNotThrow();
+                action.Should().NotThrow();
             }
         }
 

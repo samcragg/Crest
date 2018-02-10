@@ -30,8 +30,8 @@
             {
                 this.stream.Dispose();
 
-                this.stream.Invoking(s => { var _ = s.CanRead; })
-                    .ShouldThrow<ObjectDisposedException>();
+                this.stream.Invoking(s => { _ = s.CanRead; })
+                    .Should().Throw<ObjectDisposedException>();
             }
         }
 
@@ -48,8 +48,8 @@
             {
                 this.stream.Dispose();
 
-                this.stream.Invoking(s => { var _ = s.CanSeek; })
-                    .ShouldThrow<ObjectDisposedException>();
+                this.stream.Invoking(s => { _ = s.CanSeek; })
+                    .Should().Throw<ObjectDisposedException>();
             }
         }
 
@@ -66,8 +66,8 @@
             {
                 this.stream.Dispose();
 
-                this.stream.Invoking(s => { var _ = s.CanWrite; })
-                    .ShouldThrow<ObjectDisposedException>();
+                this.stream.Invoking(s => { _ = s.CanWrite; })
+                    .Should().Throw<ObjectDisposedException>();
             }
         }
 
@@ -94,7 +94,7 @@
             public void ShouldNotThrowAnException()
             {
                 this.stream.Invoking(s => s.Flush())
-                    .ShouldNotThrow();
+                    .Should().NotThrow();
             }
 
             [Fact]
@@ -103,7 +103,7 @@
                 this.stream.Dispose();
 
                 this.stream.Invoking(s => s.Flush())
-                    .ShouldThrow<ObjectDisposedException>();
+                    .Should().Throw<ObjectDisposedException>();
             }
         }
 
@@ -114,8 +114,8 @@
             {
                 this.stream.Dispose();
 
-                this.stream.Invoking(s => { var _ = s.Length; })
-                    .ShouldThrow<ObjectDisposedException>();
+                this.stream.Invoking(s => { _ = s.Length; })
+                    .Should().Throw<ObjectDisposedException>();
             }
         }
 
@@ -159,7 +159,7 @@
 
                 byte[] buffer = new byte[1];
                 this.stream.Invoking(s => s.Read(buffer, 0, 1))
-                    .ShouldThrow<ObjectDisposedException>();
+                    .Should().Throw<ObjectDisposedException>();
             }
         }
 
@@ -201,7 +201,7 @@
                 this.stream.Dispose();
 
                 this.stream.Invoking(s => s.Seek(0, SeekOrigin.Begin))
-                    .ShouldThrow<ObjectDisposedException>();
+                    .Should().Throw<ObjectDisposedException>();
             }
         }
 
@@ -223,7 +223,7 @@
                 this.stream.Dispose();
 
                 this.stream.Invoking(s => s.SetLength(0))
-                    .ShouldThrow<ObjectDisposedException>();
+                    .Should().Throw<ObjectDisposedException>();
             }
 
             [Fact]
@@ -231,7 +231,7 @@
             {
                 this.stream.SetLength(3);
 
-                stream.Length.Should().Be(3);
+                this.stream.Length.Should().Be(3);
             }
         }
 
@@ -244,7 +244,7 @@
 
                 byte[] buffer = new byte[1];
                 this.stream.Invoking(s => s.Write(buffer, 0, 1))
-                    .ShouldThrow<ObjectDisposedException>();
+                    .Should().Throw<ObjectDisposedException>();
             }
         }
     }

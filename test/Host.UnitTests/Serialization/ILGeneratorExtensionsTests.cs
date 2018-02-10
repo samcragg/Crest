@@ -216,7 +216,7 @@
 
                 MethodInfo method = this.GetGeneratedMethod();
                 method.Invoking(m => m.Invoke(null, null))
-                      .ShouldNotThrow<InvalidOperationException>();
+                      .Should().NotThrow<InvalidOperationException>();
             }
 
             [Fact]

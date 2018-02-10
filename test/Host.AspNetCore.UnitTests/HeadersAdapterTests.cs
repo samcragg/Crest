@@ -93,9 +93,9 @@
             [Fact]
             public void ShouldThrowAnExceptionIfTheHeaderDoesNotExist()
             {
-                Action action = () => { var x = this.adapter["unknown"]; };
+                Action action = () => { _ = this.adapter["unknown"]; };
 
-                action.ShouldThrow<KeyNotFoundException>();
+                action.Should().Throw<KeyNotFoundException>();
             }
         }
 
@@ -135,8 +135,7 @@
             [Fact]
             public void ShouldReturnFalseIfTheHeaderDoesNotExist()
             {
-                string value;
-                bool result = this.adapter.TryGetValue("unknown", out value);
+                bool result = this.adapter.TryGetValue("unknown", out string value);
 
                 result.Should().BeFalse();
                 value.Should().BeNull();
@@ -153,8 +152,7 @@
                         return true;
                     });
 
-                string value;
-                bool result = this.adapter.TryGetValue("key", out value);
+                bool result = this.adapter.TryGetValue("key", out string value);
 
                 result.Should().BeTrue();
                 value.Should().Be("value");

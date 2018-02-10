@@ -17,7 +17,7 @@
             {
                 var lookup = new QueryLookup(string.Empty);
 
-                lookup.Count.Should().Be(0);
+                lookup.Should().BeEmpty();
             }
 
             [Fact]
@@ -62,7 +62,7 @@
             {
                 Action action = () => new QueryLookup("?" + value);
 
-                action.ShouldThrow<UriFormatException>();
+                action.Should().Throw<UriFormatException>();
             }
         }
 
@@ -115,17 +115,17 @@
             public void ContainsShouldReturnWhetherTheValueIsPresentOrNot()
             {
                 var lookup = new QueryLookup("?key=value");
-                ICollection<string> group = (ICollection<string>)lookup.Single();
+                var group = (ICollection<string>)lookup.Single();
 
-                group.Contains("value").Should().BeTrue();
-                group.Contains("unknown").Should().BeFalse();
+                group.Should().Contain("value");
+                group.Should().NotContain("unknown");
             }
 
             [Fact]
             public void CopyToShouldCopyAllTheValues()
             {
                 var lookup = new QueryLookup("?key=1&key=2");
-                ICollection<string> group = (ICollection<string>)lookup.Single();
+                var group = (ICollection<string>)lookup.Single();
 
                 string[] target = new string[3];
                 group.CopyTo(target, 1);
@@ -151,13 +151,13 @@
             public void ShouldBeAReadOnlyCollection()
             {
                 var lookup = new QueryLookup("?key=value");
-                ICollection<string> group = (ICollection<string>)lookup.Single();
+                var group = (ICollection<string>)lookup.Single();
 
                 group.Count.Should().Be(1);
                 group.IsReadOnly.Should().BeTrue();
-                group.Invoking(g => g.Add("")).ShouldThrow<NotSupportedException>();
-                group.Invoking(g => g.Clear()).ShouldThrow<NotSupportedException>();
-                group.Invoking(g => g.Remove("")).ShouldThrow<NotSupportedException>();
+                group.Invoking(g => g.Add("")).Should().Throw<NotSupportedException>();
+                group.Invoking(g => g.Clear()).Should().Throw<NotSupportedException>();
+                group.Invoking(g => g.Remove("")).Should().Throw<NotSupportedException>();
             }
 
             [Fact]

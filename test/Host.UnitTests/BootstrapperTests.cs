@@ -40,7 +40,7 @@
             {
                 this.bootstrapper.Dispose();
 
-                this.bootstrapper.Invoking(b => b.Dispose()).ShouldNotThrow();
+                this.bootstrapper.Invoking(b => b.Dispose()).Should().NotThrow();
             }
 
             [Fact]
@@ -75,7 +75,7 @@
                 this.discoveryService.GetDiscoveredTypes().Returns(new[] { typeof(FakeDisposabe) });
 
                 this.bootstrapper.Invoking(b => b.Initialize())
-                    .ShouldNotThrow();
+                    .Should().NotThrow();
             }
 
             [Fact]
@@ -84,7 +84,7 @@
                 this.discoveryService.GetDiscoveredTypes().Returns(new[] { typeof(CannotInject) });
 
                 this.bootstrapper.Invoking(b => b.Initialize())
-                    .ShouldNotThrow();
+                    .Should().NotThrow();
             }
 
             [Fact]
@@ -226,7 +226,7 @@
                 this.bootstrapper.Dispose();
 
                 this.bootstrapper.Invoking(b => _ = b.ServiceLocator)
-                    .ShouldThrow<ObjectDisposedException>();
+                    .Should().Throw<ObjectDisposedException>();
             }
         }
 
@@ -238,7 +238,7 @@
                 this.bootstrapper.Dispose();
 
                 this.bootstrapper.Invoking(b => b.ThrowIfDisposed())
-                    .ShouldThrow<ObjectDisposedException>()
+                    .Should().Throw<ObjectDisposedException>()
                     .And.ObjectName.Should().Be(nameof(FakeBootstrapper));
             }
         }

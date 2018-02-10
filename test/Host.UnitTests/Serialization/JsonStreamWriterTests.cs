@@ -115,7 +115,7 @@ namespace Host.UnitTests.Serialization
                 // JSON numbers can't be all the valid values of our good old
                 // IEEE double precision floating point number :(
                 this.writer.Invoking(w => w.WriteDouble(value))
-                    .ShouldThrow<ArgumentOutOfRangeException>();
+                    .Should().Throw<ArgumentOutOfRangeException>();
             }
 
             [Theory]
@@ -256,7 +256,7 @@ namespace Host.UnitTests.Serialization
             {
                 // See remarks in WriteDouble tests
                 this.writer.Invoking(w => w.WriteSingle(value))
-                    .ShouldThrow<ArgumentOutOfRangeException>();
+                    .Should().Throw<ArgumentOutOfRangeException>();
             }
 
             [Theory]

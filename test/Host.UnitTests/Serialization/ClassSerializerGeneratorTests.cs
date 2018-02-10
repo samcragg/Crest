@@ -39,7 +39,7 @@
                     this.module,
                     typeof(WithoutGetMetadata));
 
-                action.ShouldThrow<InvalidOperationException>()
+                action.Should().Throw<InvalidOperationException>()
                       .WithMessage("*GetMetadata*");
             }
 
@@ -51,7 +51,7 @@
                     this.module,
                     typeof(DoesNotImplementIClassSerializer));
 
-                action.ShouldThrow<InvalidOperationException>()
+                action.Should().Throw<InvalidOperationException>()
                       .WithMessage("*IClassSerializer*");
             }
 

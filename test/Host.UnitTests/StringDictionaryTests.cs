@@ -19,7 +19,8 @@
                 ((ICollection<KeyValuePair<string, int>>)this.dictionary).Add(
                     new KeyValuePair<string, int>("key", 123));
 
-                this.dictionary["key"].Should().Be(123);
+                this.dictionary.Should().ContainKey("key")
+                    .WhichValue.Should().Be(123);
             }
 
             [Fact]
@@ -43,7 +44,7 @@
 
                 this.dictionary.Clear();
 
-                this.dictionary["key"].Should().Be(0);
+                this.dictionary.Should().BeEmpty();
             }
 
             [Fact]
@@ -62,8 +63,8 @@
             [Fact]
             public void ShouldThrowNotSupportedException()
             {
-                this.dictionary.Invoking<IDictionary<string, int>>(d => d.Contains(default(KeyValuePair<string, int>)))
-                    .ShouldThrow<NotSupportedException>();
+                this.dictionary.Invoking<IDictionary<string, int>>(d => d.Contains(default))
+                    .Should().Throw<NotSupportedException>();
             }
         }
 
@@ -96,7 +97,7 @@
             public void ShouldThrowNotSupportedException()
             {
                 this.dictionary.Invoking<IDictionary<string, int>>(d => d.CopyTo(null, 0))
-                    .ShouldThrow<NotSupportedException>();
+                    .Should().Throw<NotSupportedException>();
             }
         }
 
@@ -151,13 +152,16 @@
             {
                 this.dictionary.Add("one", 1);
 
-                this.dictionary["ONE"].Should().Be(1);
+                this.dictionary.Should().ContainKey("ONE")
+                    .WhichValue.Should().Be(1);
             }
 
             [Fact]
             public void ShouldReturnTheDefaultValueIfTheKeyDoesNotExist()
             {
-                this.dictionary["unknown"].Should().Be(0);
+                int value = this.dictionary["unknown"];
+
+                value.Should().Be(0);
             }
 
             [Fact]
@@ -166,14 +170,15 @@
                 this.dictionary.Add("one", 1);
                 this.dictionary.Add("two", 2);
 
-                this.dictionary["two"].Should().Be(2);
+                this.dictionary.Should().ContainKey("two")
+                    .WhichValue.Should().Be(2);
             }
 
             [Fact]
             public void ShouldThrowNotSupportedForSettingAValue()
             {
                 this.dictionary.Invoking(d => d["key"] = 123)
-                    .ShouldThrow<NotSupportedException>();
+                    .Should().Throw<NotSupportedException>();
             }
         }
 
@@ -219,14 +224,14 @@
             public void ShouldThrowNotSupportedException()
             {
                 this.dictionary.Invoking<IDictionary<string, int>>(d => d.Remove("key"))
-                    .ShouldThrow<NotSupportedException>();
+                    .Should().Throw<NotSupportedException>();
             }
 
             [Fact]
             public void ShouldThrowNotSupportedExceptionForKeyValuePairs()
             {
                 this.dictionary.Invoking<IDictionary<string, int>>(d => d.Remove(default(KeyValuePair<string, int>)))
-                    .ShouldThrow<NotSupportedException>();
+                    .Should().Throw<NotSupportedException>();
             }
         }
 

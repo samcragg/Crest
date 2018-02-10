@@ -78,7 +78,7 @@
             {
                 Action action = () => new MediaRange(new StringSegment("*/*;Q=2.0"));
 
-                action.ShouldThrow<ArgumentException>();
+                action.Should().Throw<ArgumentException>();
             }
 
             [Theory]
@@ -91,7 +91,7 @@
             {
                 Action action = () => new MediaRange(new StringSegment(input));
 
-                action.ShouldThrow<ArgumentException>();
+                action.Should().Throw<ArgumentException>();
             }
         }
 

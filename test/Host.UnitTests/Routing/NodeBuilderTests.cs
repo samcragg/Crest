@@ -41,7 +41,7 @@
 
                 // Not ambiguous as it's a different version
                 Action action = () => this.builder.Parse("2:2", "/{param2}/", new[] { param2 });
-                action.ShouldNotThrow();
+                action.Should().NotThrow();
             }
 
             [Fact]
@@ -53,7 +53,7 @@
                 this.builder.Parse("", "/{intParam}/", new[] { intParam });
 
                 Action action = () => this.builder.Parse("", "/{stringParam}/", new[] { stringParam });
-                action.ShouldNotThrow();
+                action.Should().NotThrow();
             }
 
             [Fact]
@@ -163,7 +163,7 @@
                 // so ambiguous
                 Action action = () => this.builder.Parse("", "/{param2}/", new[] { param2 });
 
-                action.ShouldThrow<InvalidOperationException>();
+                action.Should().Throw<InvalidOperationException>();
             }
 
             [Fact]
@@ -173,7 +173,7 @@
                 // just test that we don't silently ignore errors
                 Action action = () => this.builder.Parse("", "{missing brace", new ParameterInfo[0]);
 
-                action.ShouldThrow<FormatException>();
+                action.Should().Throw<FormatException>();
             }
 
             [Fact]
@@ -185,7 +185,7 @@
                 // just test that we don't silently ignore parameter errors
                 Action action = () => this.builder.Parse("", "/unused_parameter/", new[] { param });
 
-                action.ShouldThrow<FormatException>();
+                action.Should().Throw<FormatException>();
             }
 
             private static NodeMatchResult GetMatch(NodeBuilder.IParseResult result, string value)

@@ -54,8 +54,9 @@
             [Fact]
             public void ShouldCheckForNullArguments()
             {
-                new Action(() => new FakeRequestProcessor(null))
-                    .ShouldThrow<ArgumentNullException>();
+                Action action = () => new FakeRequestProcessor(null);
+
+                action.Should().Throw<ArgumentNullException>();
             }
 
             [Fact]
@@ -205,7 +206,7 @@
 
                 capturedMatch.IsOverride.Should().BeFalse();
                 capturedMatch.Method.Invoking(m => m.Invoke(null, null))
-                             .ShouldThrow<TargetInvocationException>()
+                             .Should().Throw<TargetInvocationException>()
                              .WithInnerException<InvalidOperationException>();
             }
 
@@ -249,7 +250,7 @@
                            .Returns((RouteMethod)null);
 
                 new Func<Task>(async () => await this.processor.InvokeHandlerAsync(this.request, this.converter))
-                    .ShouldThrow<InvalidOperationException>();
+                    .Should().Throw<InvalidOperationException>();
             }
 
             [Fact]

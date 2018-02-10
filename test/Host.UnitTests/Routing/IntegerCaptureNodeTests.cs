@@ -18,10 +18,10 @@
             public void ShouldThrowForInvalidIntegerTypes()
             {
                 Action action = () => new IntegerCaptureNode("", typeof(Guid));
-                action.ShouldThrow<ArgumentException>();
+                action.Should().Throw<ArgumentException>();
 
                 action = () => new IntegerCaptureNode("", typeof(IntegerCaptureNodeTests));
-                action.ShouldThrow<ArgumentException>();
+                action.Should().Throw<ArgumentException>();
             }
         }
 

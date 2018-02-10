@@ -139,7 +139,7 @@
                 // Use ToList to force evaluation
                 Action action = () => this.service.GetRoutes(typeof(IInvalidVersionRange)).ToList();
 
-                action.ShouldThrow<InvalidOperationException>();
+                action.Should().Throw<InvalidOperationException>();
             }
 
             [Fact]
@@ -148,7 +148,7 @@
                 // Use ToList to force evaluation
                 Action action = () => this.service.GetRoutes(typeof(IInvalidMixedAttributes)).ToList();
 
-                action.ShouldThrow<InvalidOperationException>();
+                action.Should().Throw<InvalidOperationException>();
             }
 
             [Fact]
@@ -157,7 +157,7 @@
                 // Use ToList to force evaluation
                 Action action = () => this.service.GetRoutes(typeof(IInvalidMissingVersion)).ToList();
 
-                action.ShouldThrow<InvalidOperationException>();
+                action.Should().Throw<InvalidOperationException>();
             }
 
             [Fact]

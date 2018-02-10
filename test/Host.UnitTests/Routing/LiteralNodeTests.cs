@@ -78,7 +78,7 @@
             public void ShouldThrowNotSupportedException()
             {
                 this.node.Invoking<IQueryValueConverter>(x => _ = x.ParameterName)
-                    .ShouldThrow<NotSupportedException>();
+                    .Should().Throw<NotSupportedException>();
             }
         }
 
@@ -96,8 +96,8 @@
             [Fact]
             public void ShouldThrowNotSupportedException()
             {
-                this.node.Invoking<IQueryValueConverter>(x => x.TryConvertValue(default(StringSegment), out _))
-                    .ShouldThrow<NotSupportedException>();
+                this.node.Invoking<IQueryValueConverter>(x => x.TryConvertValue(default, out _))
+                    .Should().Throw<NotSupportedException>();
             }
         }
     }

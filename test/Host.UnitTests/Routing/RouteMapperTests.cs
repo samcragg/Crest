@@ -67,7 +67,7 @@
 
                 Action action = () => new RouteMapper(routes, this.noDirectRoutes);
 
-                action.ShouldThrow<InvalidOperationException>();
+                action.Should().Throw<InvalidOperationException>();
             }
 
             [Fact]
@@ -81,7 +81,7 @@
 
                 Action action = () => new RouteMapper(routes, this.noDirectRoutes);
 
-                action.ShouldThrow<InvalidOperationException>();
+                action.Should().Throw<InvalidOperationException>();
             }
         }
 

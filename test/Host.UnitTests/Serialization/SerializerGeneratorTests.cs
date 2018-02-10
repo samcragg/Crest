@@ -58,14 +58,14 @@
             public void ShouldEnsureThereAreNoCyclicDependencies()
             {
                 this.generator.Value.Invoking(x => x.GetSerializerFor(typeof(CyclicReference)))
-                    .ShouldThrow<InvalidOperationException>();
+                    .Should().Throw<InvalidOperationException>();
             }
 
             [Fact]
             public void ShouldEnsureTheTypeIsAReferenceType()
             {
                 this.generator.Value.Invoking(x => x.GetSerializerFor(typeof(InvalidStruct)))
-                    .ShouldThrow<InvalidOperationException>();
+                    .Should().Throw<InvalidOperationException>();
             }
 
             [Fact]
@@ -116,7 +116,7 @@
             {
                 Action action = () => SerializerGenerator.OutputEnumNames(typeof(MissingProperty));
 
-                action.ShouldThrow<InvalidOperationException>()
+                action.Should().Throw<InvalidOperationException>()
                       .WithMessage("*MissingProperty*");
             }
 
@@ -155,7 +155,7 @@
             public void ShouldEnsureThereAreNoCyclicDependencies()
             {
                 this.generator.Value.Invoking(x => x.Serialize(Stream.Null, new CyclicReference()))
-                    .ShouldThrow<InvalidOperationException>();
+                    .Should().Throw<InvalidOperationException>();
             }
 
             [Fact]

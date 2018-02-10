@@ -16,7 +16,7 @@
             {
                 Action action = () => CrestWebHostBuilderExtensions.UseCrest(null);
 
-                action.ShouldThrow<ArgumentNullException>();
+                action.Should().Throw<ArgumentNullException>();
             }
 
             [Fact]

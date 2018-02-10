@@ -43,7 +43,7 @@
 
                 Action action = () => this.adapter.CreateMethod(() => null, nonTaskMethod);
 
-                action.ShouldThrow<ArgumentException>();
+                action.Should().Throw<ArgumentException>();
             }
 
             [Fact]

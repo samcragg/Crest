@@ -40,7 +40,7 @@
 
             Action action = () => this.locator.GetDiscoveryService();
 
-            action.ShouldThrow<InvalidOperationException>()
+            action.Should().Throw<InvalidOperationException>()
                   .WithMessage("*" + nameof(IDiscoveryService) + "*");
         }
 
@@ -53,7 +53,7 @@
 
                 Action action = () => this.locator.Dispose();
 
-                action.ShouldNotThrow();
+                action.Should().NotThrow();
             }
 
             [Fact]
@@ -84,7 +84,7 @@
 
                 Action action = () => this.locator.GetAfterRequestPlugins();
 
-                action.ShouldThrow<ObjectDisposedException>();
+                action.Should().Throw<ObjectDisposedException>();
             }
 
             [Fact]
@@ -109,7 +109,7 @@
 
                 Action action = () => this.locator.GetBeforeRequestPlugins();
 
-                action.ShouldThrow<ObjectDisposedException>();
+                action.Should().Throw<ObjectDisposedException>();
             }
 
             [Fact]
@@ -134,7 +134,7 @@
 
                 Action action = () => this.locator.GetConfigurationService();
 
-                action.ShouldThrow<ObjectDisposedException>();
+                action.Should().Throw<ObjectDisposedException>();
             }
 
             [Fact]
@@ -160,7 +160,7 @@
 
                 Action action = () => this.locator.GetDirectRouteProviders();
 
-                action.ShouldThrow<ObjectDisposedException>();
+                action.Should().Throw<ObjectDisposedException>();
             }
 
             [Fact]
@@ -185,7 +185,7 @@
 
                 Action action = () => this.locator.GetErrorHandlers();
 
-                action.ShouldThrow<ObjectDisposedException>();
+                action.Should().Throw<ObjectDisposedException>();
             }
 
             [Fact]
@@ -210,7 +210,7 @@
 
                 Action action = () => this.locator.GetService(typeof(string));
 
-                action.ShouldThrow<ObjectDisposedException>();
+                action.Should().Throw<ObjectDisposedException>();
             }
 
             [Fact]
@@ -218,7 +218,7 @@
             {
                 Action action = () => this.locator.GetService(null);
 
-                action.ShouldThrow<ArgumentNullException>();
+                action.Should().Throw<ArgumentNullException>();
             }
 
             [Fact]
@@ -247,7 +247,7 @@
 
                 this.locator.Dispose();
 
-                action.ShouldThrow<TargetInvocationException>()
+                action.Should().Throw<TargetInvocationException>()
                       .WithInnerException<ObjectDisposedException>();
             }
 
@@ -297,17 +297,17 @@
 
                 Action action = () => this.locator.RegisterFactory(typeof(string), () => string.Empty);
 
-                action.ShouldThrow<ObjectDisposedException>();
+                action.Should().Throw<ObjectDisposedException>();
             }
 
             [Fact]
             public void ShouldCheckForNulls()
             {
                 this.locator.Invoking(l => l.RegisterFactory(null, () => string.Empty))
-                    .ShouldThrow<ArgumentNullException>();
+                    .Should().Throw<ArgumentNullException>();
 
                 this.locator.Invoking(l => l.RegisterFactory(typeof(string), null))
-                    .ShouldThrow<ArgumentNullException>();
+                    .Should().Throw<ArgumentNullException>();
             }
 
             [Fact]
@@ -350,17 +350,17 @@
 
                 Action action = () => this.locator.RegisterInitializer(_ => false, _ => { });
 
-                action.ShouldThrow<ObjectDisposedException>();
+                action.Should().Throw<ObjectDisposedException>();
             }
 
             [Fact]
             public void ShouldCheckForNulls()
             {
                 this.locator.Invoking(l => l.RegisterInitializer(null, _ => { }))
-                    .ShouldThrow<ArgumentNullException>();
+                    .Should().Throw<ArgumentNullException>();
 
                 this.locator.Invoking(l => l.RegisterInitializer(_ => false, null))
-                    .ShouldThrow<ArgumentNullException>();
+                    .Should().Throw<ArgumentNullException>();
             }
         }
 
@@ -373,17 +373,17 @@
 
                 Action action = () => this.locator.RegisterMany(Enumerable.Empty<Type>(), _ => false);
 
-                action.ShouldThrow<ObjectDisposedException>();
+                action.Should().Throw<ObjectDisposedException>();
             }
 
             [Fact]
             public void ShouldCheckForNulls()
             {
                 this.locator.Invoking(l => l.RegisterMany(null, _ => false))
-                    .ShouldThrow<ArgumentNullException>();
+                    .Should().Throw<ArgumentNullException>();
 
                 this.locator.Invoking(l => l.RegisterMany(Enumerable.Empty<Type>(), null))
-                    .ShouldThrow<ArgumentNullException>();
+                    .Should().Throw<ArgumentNullException>();
             }
 
             [Fact]

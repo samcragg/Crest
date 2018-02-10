@@ -107,7 +107,7 @@
             {
                 Action action = () => this.factory.PrimeConverters(null);
 
-                action.ShouldThrow<ArgumentNullException>();
+                action.Should().Throw<ArgumentNullException>();
             }
 
             [Fact]

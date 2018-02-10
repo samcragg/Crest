@@ -18,7 +18,7 @@
                     typeof(ClassWithProtectedConstructors));
 
                 generator.Invoking(g => g.EmitConstructor(null, typeof(string)))
-                         .ShouldThrow<InvalidOperationException>()
+                         .Should().Throw<InvalidOperationException>()
                          .WithMessage("*String*"); // It should output the type of the parameter
             }
 
@@ -30,7 +30,7 @@
                     typeof(ClassWithPrivateConstructor));
 
                 generator.Invoking(g => g.EmitConstructor(null, typeof(int)))
-                         .ShouldThrow<InvalidOperationException>();
+                         .Should().Throw<InvalidOperationException>();
             }
 
             private class ClassWithPrivateConstructor : PrimitiveSerializer
