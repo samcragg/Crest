@@ -93,6 +93,7 @@
             [Theory]
             [InlineData("123", 0.123)]
             [InlineData("0000123", 0.0000123)]
+            [InlineData("00001234", 0.0000123)]
             public void ShouldReadFractionsOfSeconds(string fractions, double seconds)
             {
                 string date = "2000-01-01T00:00:00." + fractions;
@@ -123,11 +124,26 @@
             [InlineData("2010-10-12T01:02:03x1234")]
             [InlineData("2010-10-12T01:02:03+1")]
             [InlineData("2010-10-12T01:02:03+123")]
+            [InlineData("2000-01-01T00:00:00.")]
+            [InlineData("2000-01-01T00:00:00.x")]
             public void ShouldSetErrorToInvalidFormat(string value)
             {
                 ParseResult<DateTime> result = DateTimeConverter.TryReadDateTime(value.AsSpan());
 
                 result.Error.Should().MatchEquivalentOf("*format*");
+            }
+
+            [Theory]
+            [InlineData("1234-12-34")]
+            [InlineData("2010-10-12T12:34:60")]
+            public void ShouldSetErrorToOutOfRange(string value)
+            {
+                ParseResult<DateTime> result = DateTimeConverter.TryReadDateTime(value.AsSpan());
+
+                // This is the error message that DateTime uses:
+                //
+                //     parameters describe an un-representable DateTime.
+                result.Error.Should().MatchEquivalentOf("*un-representable*");
             }
         }
 
