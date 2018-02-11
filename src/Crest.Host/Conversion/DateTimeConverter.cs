@@ -20,7 +20,7 @@ namespace Crest.Host.Conversion
 
         private const string InvalidDateFormat = "Invalid date format, expected a format matching ISO 8601";
         private const int MaximumFractionPrecision = 7; // One tick == 0.0000001 seconds
-        private const string OutsideOfRange = "The value describe an un-representable date/time";
+        private const string OutsideOfRange = "The value describes an un-representable date/time";
 
         /// <summary>
         /// Reads a date and optional time from the specified value.
