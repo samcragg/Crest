@@ -81,6 +81,70 @@ namespace Crest.Host.Conversion
         }
 
         /// <summary>
+        /// Parses the exponent value in a string representing a floating-point
+        /// value (e.g. e-123)
+        /// </summary>
+        /// <param name="span">Contains the characters to parse.</param>
+        /// <param name="index">The index within the span to start parsing.</param>
+        /// <returns>The value of the exponent to raise the value by.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal static int ParseExponent(ReadOnlySpan<char> span, ref int index)
+        {
+            // Maximum exponent is 308, however, add a digit so we can detect
+            // overflow (i.e. 1234 is too big but if we stopped at three we'd
+            // get 123 which is OK)
+            const int MaximumExponentDigits = 4;
+
+            int originalIndex = index;
+            if (index < span.Length)
+            {
+                char c = span[index];
+                if ((c == 'e') || (c == 'E'))
+                {
+                    index++;
+                    int sign = ParseSign(span, ref index);
+                    if (ParseDigits(span, ref index, MaximumExponentDigits, out uint exponent) > 0)
+                    {
+                        return (int)exponent * sign;
+                    }
+                }
+            }
+
+            // We didn't parse a valid exponent, go back to the start
+            index = originalIndex;
+            return 0;
+        }
+
+        /// <summary>
+        /// Parses (and consumes) the leading sign, if any.
+        /// </summary>
+        /// <param name="span">Contains the characters to parse.</param>
+        /// <param name="index">The index within the span to start parsing.</param>
+        /// <returns>
+        /// A number that indicates the sign of value: -1 if the value should
+        /// be less than zero, otherwise, 1.
+        /// </returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal static int ParseSign(ReadOnlySpan<char> span, ref int index)
+        {
+            if (index < span.Length)
+            {
+                char c = span[index];
+                if (c == '-')
+                {
+                    index++;
+                    return -1;
+                }
+                else if (c == '+')
+                {
+                    index++;
+                }
+            }
+
+            return 1;
+        }
+
+        /// <summary>
         /// Raises the number 10 to the specified power.
         /// </summary>
         /// <param name="power">Specifies the power.</param>
@@ -96,6 +160,36 @@ namespace Crest.Host.Conversion
             {
                 return Math.Pow(10, power);
             }
+        }
+
+        private static int ParseDigits(ReadOnlySpan<char> span, ref int index, int maximumDigits, out uint value)
+        {
+            value = 0;
+            int digits = 0;
+            int originalIndex = index;
+            for (; index < span.Length; index++)
+            {
+                uint digit = (uint)(span[index] - '0');
+                if (digit > 9)
+                {
+                    break;
+                }
+
+                // Ignore leading zeros (in this case, digits would never be
+                // incremented so adding zero to it still equals zero)
+                if ((digits + digit) == 0)
+                {
+                    continue;
+                }
+
+                digits++;
+                if (digits <= maximumDigits)
+                {
+                    value = (value * 10) + digit;
+                }
+            }
+
+            return index - originalIndex;
         }
     }
 }
