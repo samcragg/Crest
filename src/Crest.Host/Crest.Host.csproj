@@ -25,11 +25,17 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Update="Conversion/HtmlConverter.ObjectWalker.cs">
-      <DependentUpon>HtmlConverter.cs</DependentUpon>
-    </Compile>
     <Compile Update="Conversion/DecimalConverter.NumberInfo.cs">
       <DependentUpon>DecimalConverter.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Conversion/DoubleConverter.INumericTokens.cs">
+      <DependentUpon>DoubleConverter.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Conversion/DoubleConverter.NumberInfo.cs">
+      <DependentUpon>DoubleConverter.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Conversion/HtmlConverter.ObjectWalker.cs">
+      <DependentUpon>HtmlConverter.cs</DependentUpon>
     </Compile>
     <Compile Update="Diagnostics/ExecutingAssembly.AssemblyInfo.cs">
       <DependentUpon>ExecutingAssembly.cs</DependentUpon>
