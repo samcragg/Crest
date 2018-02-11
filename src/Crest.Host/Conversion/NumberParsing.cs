@@ -5,6 +5,7 @@
 
 namespace Crest.Host.Conversion
 {
+    using System;
     using System.Runtime.CompilerServices;
 
     /// <summary>
@@ -12,6 +13,31 @@ namespace Crest.Host.Conversion
     /// </summary>
     internal static class NumberParsing
     {
+        // We use 18 as that's the maximum amount of significant digits for a
+        // double - if it's greater we'll fall back to Math.Pow
+        private static readonly double[] PowersOf10 =
+        {
+            1,
+            1e+1,
+            1e+2,
+            1e+3,
+            1e+4,
+            1e+5,
+            1e+6,
+            1e+7,
+            1e+8,
+            1e+9,
+            1e+10,
+            1e+11,
+            1e+12,
+            1e+13,
+            1e+14,
+            1e+15,
+            1e+16,
+            1e+17,
+            1e+18,
+        };
+
         /// <summary>
         /// Calculates the quotient of two 64-bit unsigned integers and also
         /// returns the remainder in an output parameter.
@@ -52,6 +78,24 @@ namespace Crest.Host.Conversion
             uint quotient = dividend / divisor;
             remainder = (int)(dividend - (quotient * divisor));
             return quotient;
+        }
+
+        /// <summary>
+        /// Raises the number 10 to the specified power.
+        /// </summary>
+        /// <param name="power">Specifies the power.</param>
+        /// <returns>The number 10 raised to the specified power.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal static double Pow10(int power)
+        {
+            if (power <= 18)
+            {
+                return PowersOf10[power];
+            }
+            else
+            {
+                return Math.Pow(10, power);
+            }
         }
     }
 }

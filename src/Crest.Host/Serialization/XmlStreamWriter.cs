@@ -6,12 +6,13 @@
 namespace Crest.Host.Serialization
 {
     using System;
-    using System.ComponentModel;
     using System.Globalization;
     using System.IO;
     using System.Runtime.CompilerServices;
     using System.Text;
     using System.Xml;
+    using Crest.Host.Conversion;
+    using SCM = System.ComponentModel;
 
     /// <summary>
     /// Used to output XML primitive values.
@@ -134,7 +135,7 @@ namespace Crest.Host.Serialization
         /// <inheritdoc />
         public void WriteObject(object value)
         {
-            TypeConverter converter = TypeDescriptor.GetConverter(value);
+            SCM.TypeConverter converter = SCM.TypeDescriptor.GetConverter(value);
             string converted = converter.ConvertToInvariantString(value);
             this.writer.WriteString(converted);
         }
