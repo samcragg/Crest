@@ -34,6 +34,9 @@
     <Compile Update="Conversion/DoubleConverter.NumberInfo.cs">
       <DependentUpon>DoubleConverter.cs</DependentUpon>
     </Compile>
+    <Compile Update="Conversion/GuidConverter.GuidBytes.cs">
+      <DependentUpon>GuidConverter.cs</DependentUpon>
+    </Compile>
     <Compile Update="Conversion/HtmlConverter.ObjectWalker.cs">
       <DependentUpon>HtmlConverter.cs</DependentUpon>
     </Compile>
