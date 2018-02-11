@@ -122,5 +122,15 @@ namespace Crest.Host
         {
             return this.GetEnumerator();
         }
+
+        /// <summary>
+        /// Gets a span that represents this instance.
+        /// </summary>
+        /// <returns>A span.</returns>
+        internal ReadOnlySpan<char> CreateSpan()
+        {
+            // TODO: Replace StringSegment with ReadOnlySpan<char>
+            return new ReadOnlySpan<char>(this.String.ToCharArray(), this.Start, this.Count);
+        }
     }
 }

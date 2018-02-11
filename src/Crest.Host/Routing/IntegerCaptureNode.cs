@@ -77,9 +77,14 @@ namespace Crest.Host.Routing
         /// <inheritdoc />
         public bool TryConvertValue(StringSegment value, out object result)
         {
-            if (IntegerConverter.ParseSignedValue(value, out long converted))
+            ParseResult<long> parseResult = IntegerConverter.TryReadSignedInt(
+                value.CreateSpan(),
+                long.MinValue,
+                long.MaxValue);
+
+            if (parseResult.IsSuccess)
             {
-                result = this.BoxInteger(converted);
+                result = this.BoxInteger(parseResult.Value);
                 return true;
             }
             else

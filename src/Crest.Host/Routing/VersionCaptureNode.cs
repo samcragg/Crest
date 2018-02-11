@@ -40,9 +40,14 @@ namespace Crest.Host.Routing
                 if ((v == 'v') || (v == 'V'))
                 {
                     segment = new StringSegment(segment.String, segment.Start + 1, segment.End);
-                    if (IntegerConverter.ParseIntegerValue(segment, out long value))
+                    ParseResult<long> result = IntegerConverter.TryReadSignedInt(
+                        segment.CreateSpan(),
+                        int.MinValue,
+                        int.MaxValue);
+
+                    if (result.IsSuccess)
                     {
-                        return new NodeMatchResult(KeyName, (int)value);
+                        return new NodeMatchResult(KeyName, (int)result.Value);
                     }
                 }
             }

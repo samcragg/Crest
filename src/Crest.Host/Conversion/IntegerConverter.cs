@@ -5,95 +5,264 @@
 
 namespace Crest.Host.Conversion
 {
+    using System;
+    using System.Runtime.CompilerServices;
+
     /// <summary>
-    /// Allows the quick conversion of integers to strings (and vice versa).
+    /// Converts an integer to/from a series of ASCII bytes.
     /// </summary>
     internal static class IntegerConverter
     {
         /// <summary>
-        /// Parses an integer number without a sign.
+        /// Represents the maximum number of characters a number needs to be
+        /// converted as text.
         /// </summary>
-        /// <param name="segment">The string to parse.</param>
-        /// <param name="result">Will contain the parsed value.</param>
-        /// <returns>
-        /// <c>true</c> if an integer was parsed; otherwise, <c>false</c>.
-        /// </returns>
-        internal static bool ParseIntegerValue(StringSegment segment, out long result)
+        public const int MaximumTextLength = 20; // long.MinValue = -9223372036854775808
+
+        private const string DigitExpected = "Digit expected";
+        private const string Overflow = "The value is outside the valid integer range";
+
+        /// <summary>
+        /// Reads a signed 64-bit integer from the buffer.
+        /// </summary>
+        /// <param name="span">Contains the characters to parse.</param>
+        /// <param name="min">
+        /// The minimum value that will fit in the target integer type.
+        /// </param>
+        /// <param name="max">
+        /// The maximum value that will fit in the target integer type.
+        /// </param>
+        /// <returns>The result of the parsing operation.</returns>
+        public static ParseResult<long> TryReadSignedInt(
+            ReadOnlySpan<char> span,
+            long min,
+            long max)
         {
-            ulong value = 0;
-            if (ParseInteger(segment, 0, ref value))
+            string error = null;
+            int index = 0;
+            bool negative = IsNegative(span, ref index);
+            ulong integer = TryReadUInt64(span, ref index, ref error);
+            if (error != null)
             {
-                result = (long)value;
-                return true;
+                return new ParseResult<long>(error);
+            }
+
+            if (negative)
+            {
+                if (integer > (ulong)(min * -1L))
+                {
+                    return new ParseResult<long>(Overflow);
+                }
+
+                return new ParseResult<long>((long)integer * -1L, index);
             }
             else
             {
-                // If it failed value will be garbage, hence the need to check
-                // instead of blindly trusting ParseInteger and unconditionally
-                // casting value and returning the result from ParseInteger
-                result = 0;
-                return false;
+                if (integer > (ulong)max)
+                {
+                    return new ParseResult<long>(Overflow);
+                }
+
+                return new ParseResult<long>((long)integer, index);
             }
         }
 
         /// <summary>
-        /// Parses an integer number that is optionally prefixed with a sign.
+        /// Reads an unsigned 64-bit integer from the buffer.
         /// </summary>
-        /// <param name="segment">The string to parse.</param>
-        /// <param name="result">Will contain the parsed value.</param>
-        /// <returns>
-        /// <c>true</c> if an integer was parsed; otherwise, <c>false</c>.
-        /// </returns>
-        internal static bool ParseSignedValue(StringSegment segment, out long result)
+        /// <param name="span">Contains the characters to parse.</param>
+        /// <param name="max">
+        /// The maximum value that will fit in the target integer type.
+        /// </param>
+        /// <returns>The result of the parsing operation.</returns>
+        public static ParseResult<ulong> TryReadUnsignedInt(ReadOnlySpan<char> span, ulong max)
         {
+            string error = null;
             int index = 0;
-            long sign = ParseSign(segment, ref index);
-            ulong integer = 0;
-            if (ParseInteger(segment, index, ref integer))
+            ulong integer = TryReadUInt64(span, ref index, ref error);
+            if (error != null)
             {
-                result = (long)integer * sign;
+                return new ParseResult<ulong>(error);
+            }
+
+            if (integer > max)
+            {
+                return new ParseResult<ulong>(Overflow);
+            }
+
+            return new ParseResult<ulong>(integer, index);
+        }
+
+        /// <summary>
+        /// Converts a signed 64-bit integer to human readable text.
+        /// </summary>
+        /// <param name="buffer">The byte array to output to.</param>
+        /// <param name="offset">The index of where to start writing from.</param>
+        /// <param name="value">The value to convert.</param>
+        /// <returns>The number of bytes written.</returns>
+        public static int WriteInt64(byte[] buffer, int offset, long value)
+        {
+            if (value < 0)
+            {
+                buffer[offset] = (byte)'-';
+                return WriteUInt64(buffer, offset + 1, (ulong)-value) + 1;
+            }
+            else
+            {
+                return WriteUInt64(buffer, offset, (ulong)value);
+            }
+        }
+
+        /// <summary>
+        /// Converts an unsigned 64-bit integer to human readable text.
+        /// </summary>
+        /// <param name="buffer">The byte array to output to.</param>
+        /// <param name="offset">The index of where to start writing from.</param>
+        /// <param name="value">The value to convert.</param>
+        /// <returns>The number of bytes written.</returns>
+        public static int WriteUInt64(byte[] buffer, int offset, ulong value)
+        {
+            if (value == 0)
+            {
+                buffer[offset] = (byte)'0';
+                return 1;
+            }
+            else
+            {
+                int digitCount = CountDigits(value);
+                int index = offset + digitCount;
+
+                // 32 bit arithmetic seems faster than 64 bit, even on a 64-bit CPU!?
+                while (value > uint.MaxValue)
+                {
+                    value = NumberParsing.DivRem(value, 100, out int digits);
+                    buffer[--index] = (byte)PrimitiveDigits.Units[digits];
+                    buffer[--index] = (byte)PrimitiveDigits.Tens[digits];
+                }
+
+                WriteUInt32(buffer, index, (uint)value);
+                return digitCount;
+            }
+        }
+
+        /// <summary>
+        /// Calculates the number of bytes required to represent the specified
+        /// value as text.
+        /// </summary>
+        /// <param name="value">The value to count the digits of.</param>
+        /// <returns>The number of ASCII digits to represent the value.</returns>
+        internal static int CountDigits(ulong value)
+        {
+            int digits = 0;
+
+            // 32 bit arithmetic is measurably faster than 64 bit (even running
+            // on a 64-bit CPU!?)
+            while (value > uint.MaxValue)
+            {
+                // uint.Max equals 4,294,967,295, hence divide by 1,000,000,000
+                // to reduce the amount of divisions
+                digits += 9;
+                value /= 1000000000;
+            }
+
+            return digits + CountDigits32((uint)value);
+        }
+
+        /// <summary>
+        /// Attempts to parse an unsigned 64-bit value.
+        /// </summary>
+        /// <param name="span">Contains the characters to parse.</param>
+        /// <param name="index">The index within the span to start parsing.</param>
+        /// <param name="error">Will contain any errors encountered.</param>
+        /// <returns>The parsed value.</returns>
+        internal static ulong TryReadUInt64(ReadOnlySpan<char> span, ref int index, ref string error)
+        {
+            // Start with a value over 9 in case we've got an empty span
+            ulong value = ulong.MaxValue;
+            if (index < span.Length)
+            {
+                value = (uint)(span[index++] - '0');
+            }
+
+            if (value > 9)
+            {
+                error = DigitExpected;
+                return 0;
+            }
+
+            for (; index < span.Length; index++)
+            {
+                uint digit = (uint)(span[index] - '0');
+                if (digit > 9)
+                {
+                    break;
+                }
+
+                // Check for overflow
+                ulong newValue = (value * 10u) + digit;
+                if (newValue < value)
+                {
+                    error = Overflow;
+                    return ulong.MaxValue;
+                }
+
+                value = newValue;
+            }
+
+            return value;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static int CountDigits32(uint value)
+        {
+            int pairs = 0;
+            while (value > 9)
+            {
+                pairs++;
+                value /= 100;
+            }
+
+            return (pairs * 2) + ((value > 0) ? 1 : 0);
+        }
+
+        private static bool IsNegative(ReadOnlySpan<char> span, ref int index)
+        {
+            char c = default;
+            if (index < span.Length)
+            {
+                c = span[index];
+            }
+
+            if (c == '-')
+            {
+                index++;
                 return true;
             }
             else
             {
-                result = 0;
+                if (c == '+')
+                {
+                    index++;
+                }
+
                 return false;
             }
         }
 
-        private static bool ParseInteger(StringSegment segment, int index, ref ulong value)
+        private static void WriteUInt32(byte[] buffer, int index, uint value)
         {
-            for (; index < segment.Count; index++)
+            // Do all the digit pairs
+            while (value > 9)
             {
-                char c = segment[index];
-                uint digit = (uint)(c - '0');
-                if (digit > 10)
-                {
-                    return false;
-                }
-
-                value = (value * 10u) + digit;
+                value = NumberParsing.DivRem(value, 100, out int digits);
+                buffer[--index] = (byte)PrimitiveDigits.Units[digits];
+                buffer[--index] = (byte)PrimitiveDigits.Tens[digits];
             }
 
-            return true;
-        }
-
-        private static long ParseSign(StringSegment segment, ref int index)
-        {
-            char c = segment[0];
-            if (c == '-')
+            // Any single digits we need to worry about?
+            if (value > 0)
             {
-                index = 1;
-                return -1L;
-            }
-            else if (c == '+')
-            {
-                index = 1;
-                return 1L;
-            }
-            else
-            {
-                return 1L;
+                buffer[--index] = (byte)PrimitiveDigits.Units[(int)value];
             }
         }
     }
