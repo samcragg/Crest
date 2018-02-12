@@ -81,6 +81,44 @@ namespace Crest.Host.Conversion
         }
 
         /// <summary>
+        /// Parses an integer.
+        /// </summary>
+        /// <param name="span">Contains the characters to parse.</param>
+        /// <param name="index">The index within the span to start parsing.</param>
+        /// <param name="maximumDigits">The maximum number of digits to parse.</param>
+        /// <param name="value">The parsed value.</param>
+        /// <returns>The number of parsed digits.</returns>
+        internal static int ParseDigits(ReadOnlySpan<char> span, ref int index, int maximumDigits, out uint value)
+        {
+            value = 0;
+            int digits = 0;
+            int originalIndex = index;
+            for (; index < span.Length; index++)
+            {
+                uint digit = (uint)(span[index] - '0');
+                if (digit > 9)
+                {
+                    break;
+                }
+
+                // Ignore leading zeros (in this case, digits would never be
+                // incremented so adding zero to it still equals zero)
+                if ((digits + digit) == 0)
+                {
+                    continue;
+                }
+
+                digits++;
+                if (digits <= maximumDigits)
+                {
+                    value = (value * 10) + digit;
+                }
+            }
+
+            return index - originalIndex;
+        }
+
+        /// <summary>
         /// Parses the exponent value in a string representing a floating-point
         /// value (e.g. e-123)
         /// </summary>
@@ -160,36 +198,6 @@ namespace Crest.Host.Conversion
             {
                 return Math.Pow(10, power);
             }
-        }
-
-        private static int ParseDigits(ReadOnlySpan<char> span, ref int index, int maximumDigits, out uint value)
-        {
-            value = 0;
-            int digits = 0;
-            int originalIndex = index;
-            for (; index < span.Length; index++)
-            {
-                uint digit = (uint)(span[index] - '0');
-                if (digit > 9)
-                {
-                    break;
-                }
-
-                // Ignore leading zeros (in this case, digits would never be
-                // incremented so adding zero to it still equals zero)
-                if ((digits + digit) == 0)
-                {
-                    continue;
-                }
-
-                digits++;
-                if (digits <= maximumDigits)
-                {
-                    value = (value * 10) + digit;
-                }
-            }
-
-            return index - originalIndex;
         }
     }
 }

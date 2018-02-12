@@ -40,6 +40,12 @@
     <Compile Update="Conversion/HtmlConverter.ObjectWalker.cs">
       <DependentUpon>HtmlConverter.cs</DependentUpon>
     </Compile>
+    <Compile Update="Conversion/TimeSpanConverter.DecimalSeparator.cs">
+      <DependentUpon>TimeSpanConverter.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Conversion/TimeSpanConverter.Triplet.cs">
+      <DependentUpon>TimeSpanConverter.cs</DependentUpon>
+    </Compile>
     <Compile Update="Diagnostics/ExecutingAssembly.AssemblyInfo.cs">
       <DependentUpon>ExecutingAssembly.cs</DependentUpon>
     </Compile>
