@@ -7,6 +7,7 @@ namespace Crest.Host.Serialization
 {
     using System;
     using System.IO;
+    using Crest.Host.Serialization.Internal;
 
     /// <summary>
     /// Generates serializers at runtime for specific types.

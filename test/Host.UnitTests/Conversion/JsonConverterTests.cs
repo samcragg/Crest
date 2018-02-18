@@ -1,10 +1,9 @@
 ﻿namespace Host.UnitTests.Conversion
 {
-    using System;
     using System.IO;
-    using System.Text;
     using Crest.Host.Conversion;
     using Crest.Host.Serialization;
+    using Crest.Host.Serialization.Internal;
     using FluentAssertions;
     using NSubstitute;
     using Xunit;
@@ -12,6 +11,7 @@
     public class JsonConverterTests
     {
         private readonly JsonConverter converter;
+
         private readonly ISerializerGenerator<JsonSerializerBase> serializer =
             Substitute.For<ISerializerGenerator<JsonSerializerBase>>();
 
@@ -40,15 +40,6 @@
             }
         }
 
-        public sealed class Priority : JsonConverterTests
-        {
-            [Fact]
-            public void ShouldReturnAPositiveNumber()
-            {
-                this.converter.Priority.Should().BePositive();
-            }
-        }
-
         public sealed class Prime : JsonConverterTests
         {
             [Fact]
@@ -57,6 +48,15 @@
                 this.converter.Prime(typeof(int));
 
                 this.serializer.Received().GetSerializerFor(typeof(int));
+            }
+        }
+
+        public sealed class Priority : JsonConverterTests
+        {
+            [Fact]
+            public void ShouldReturnAPositiveNumber()
+            {
+                this.converter.Priority.Should().BePositive();
             }
         }
 

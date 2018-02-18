@@ -9,6 +9,7 @@ namespace Crest.Host.Serialization
     using System.Linq;
     using System.Reflection;
     using System.Reflection.Emit;
+    using Crest.Host.Serialization.Internal;
 
     /// <summary>
     /// Generates a type for serializing data at runtime.

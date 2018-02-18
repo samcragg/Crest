@@ -9,6 +9,7 @@ namespace Crest.Host.Serialization
     using System.IO;
     using System.Reflection;
     using System.Reflection.Emit;
+    using Crest.Host.Serialization.Internal;
 
     /// <summary>
     /// Allows the generation of classes for serializing enumerations directly

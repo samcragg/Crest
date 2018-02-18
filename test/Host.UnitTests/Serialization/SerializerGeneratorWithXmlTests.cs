@@ -1,9 +1,8 @@
 ﻿namespace Host.UnitTests.Serialization
 {
-    using Crest.Host.Serialization;
+    using Crest.Host.Serialization.Internal;
     using Xunit;
 
-    [Trait("Category", "Integration")]
     public class SerializerGeneratorWithXmlTests : SerializerGeneratorIntegrationTest<XmlSerializerBase>
     {
         protected override string StripNonEssentialInformation(string result)

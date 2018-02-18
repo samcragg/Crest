@@ -13,6 +13,7 @@ namespace Crest.Host.Serialization
     using System.Reflection;
     using System.Reflection.Emit;
     using System.Runtime.Serialization;
+    using Crest.Host.Serialization.Internal;
 
     /// <summary>
     /// Generates a class that can serialize a specific type at runtime.

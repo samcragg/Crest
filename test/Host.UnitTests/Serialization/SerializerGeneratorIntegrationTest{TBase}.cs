@@ -8,6 +8,7 @@
     using System.Text;
     using System.Text.RegularExpressions;
     using Crest.Host.Serialization;
+    using Crest.Host.Serialization.Internal;
     using FluentAssertions;
     using Xunit;
 

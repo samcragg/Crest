@@ -1,9 +1,8 @@
 ﻿namespace Host.UnitTests.Serialization
 {
-    using Crest.Host.Serialization;
+    using Crest.Host.Serialization.Internal;
     using Xunit;
 
-    [Trait("Category", "Integration")]
     public class SerializerGeneratorWithUrlTests : SerializerGeneratorIntegrationTest<UrlEncodedSerializerBase>
     {
         public sealed class PlainOldDataClasses : SerializerGeneratorWithUrlTests

@@ -8,6 +8,7 @@ namespace Crest.Host.Serialization
     using System;
     using System.Reflection;
     using System.Reflection.Emit;
+    using Crest.Host.Serialization.Internal;
 
     /// <summary>
     /// Emits the code for serializing an array of items.

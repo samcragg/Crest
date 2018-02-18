@@ -11,6 +11,7 @@ namespace Crest.Host.Serialization
     using System.IO;
     using System.Runtime.CompilerServices;
     using Crest.Host.Conversion;
+    using Crest.Host.Serialization.Internal;
     using SCM = System.ComponentModel;
 
     /// <summary>

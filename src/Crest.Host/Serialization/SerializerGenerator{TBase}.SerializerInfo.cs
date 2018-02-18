@@ -9,6 +9,7 @@ namespace Crest.Host.Serialization
     using System.IO;
     using System.Linq.Expressions;
     using System.Reflection;
+    using Crest.Host.Serialization.Internal;
 
     /// <content>
     /// Contains the nested <see cref="SerializerInfo"/> struct.

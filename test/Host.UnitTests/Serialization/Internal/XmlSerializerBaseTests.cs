@@ -1,10 +1,11 @@
-﻿namespace Host.UnitTests.Serialization
+﻿namespace Host.UnitTests.Serialization.Internal
 {
     using System.ComponentModel;
     using System.IO;
     using System.Reflection;
     using System.Text;
     using Crest.Host.Serialization;
+    using Crest.Host.Serialization.Internal;
     using FluentAssertions;
     using NSubstitute;
     using Xunit;

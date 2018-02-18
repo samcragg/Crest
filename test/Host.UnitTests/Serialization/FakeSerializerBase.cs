@@ -3,7 +3,7 @@
     using System;
     using System.IO;
     using System.Reflection;
-    using Crest.Host.Serialization;
+    using Crest.Host.Serialization.Internal;
     using NSubstitute;
 
     public class FakeSerializerBase : IClassSerializer<string>, IArraySerializer

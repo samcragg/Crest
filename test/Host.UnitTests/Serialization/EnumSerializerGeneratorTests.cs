@@ -5,6 +5,7 @@
     using System.Reflection;
     using System.Reflection.Emit;
     using Crest.Host.Serialization;
+    using Crest.Host.Serialization.Internal;
     using NSubstitute;
     using Xunit;
 

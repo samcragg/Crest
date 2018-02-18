@@ -10,6 +10,7 @@ namespace Crest.Host.Serialization
     using System.Collections.Generic;
     using System.Linq;
     using System.Reflection;
+    using Crest.Host.Serialization.Internal;
 
     /// <summary>
     /// Helper class that contains the method metadata called by the generated

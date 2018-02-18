@@ -7,6 +7,7 @@
     using System.Reflection;
     using System.Reflection.Emit;
     using Crest.Host.Serialization;
+    using Crest.Host.Serialization.Internal;
     using FluentAssertions;
     using NSubstitute;
     using Xunit;

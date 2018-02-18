@@ -10,6 +10,7 @@ namespace Crest.Host.Conversion
     using System.IO;
     using Crest.Abstractions;
     using Crest.Host.Serialization;
+    using Crest.Host.Serialization.Internal;
 
     /// <summary>
     /// Converts between .NET objects and JSON

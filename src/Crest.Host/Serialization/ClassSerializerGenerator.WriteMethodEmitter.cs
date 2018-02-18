@@ -10,6 +10,7 @@ namespace Crest.Host.Serialization
     using System.ComponentModel;
     using System.Reflection;
     using System.Reflection.Emit;
+    using Crest.Host.Serialization.Internal;
 
     /// <content>
     /// Contains the nested <see cref="WriteMethodEmitter"/> class.
