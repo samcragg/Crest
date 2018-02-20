@@ -34,7 +34,7 @@
             {
             }
 
-            public IStreamWriter Writer { get; } = Substitute.For<IStreamWriter>();
+            public ValueWriter Writer { get; } = Substitute.For<ValueWriter>();
 
             internal string BeginWriteMetadata { get; private set; }
 
@@ -150,7 +150,7 @@
 
                 ((ITypeSerializer)serializer).WriteArray(new int?[] { 123, null });
 
-                IStreamWriter writer = ((_FakeBaseClass)serializer).Writer;
+                ValueWriter writer = ((_FakeBaseClass)serializer).Writer;
                 Received.InOrder(() =>
                 {
                     writer.WriteInt32(123);

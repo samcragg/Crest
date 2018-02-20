@@ -7,17 +7,15 @@ namespace Crest.Host.Serialization
 {
     using System;
     using System.Collections.Generic;
-    using System.Globalization;
     using System.IO;
     using System.Runtime.CompilerServices;
     using Crest.Host.Conversion;
     using Crest.Host.Serialization.Internal;
-    using SCM = System.ComponentModel;
 
     /// <summary>
     /// Used to output primitive values that are URL encoded.
     /// </summary>
-    internal sealed class UrlEncodedStreamWriter : IStreamWriter
+    internal sealed class UrlEncodedStreamWriter : ValueWriter
     {
         /// <summary>
         /// Represents the maximum number of bytes a single character will be
@@ -48,14 +46,14 @@ namespace Crest.Host.Serialization
         }
 
         /// <inheritdoc />
-        public void Flush()
+        public override void Flush()
         {
             this.stream.Write(this.buffer, 0, this.offset);
             this.offset = 0;
         }
 
         /// <inheritdoc />
-        public void WriteBoolean(bool value)
+        public override void WriteBoolean(bool value)
         {
             this.WriteCurrentProperty();
             this.EnsureBufferHasSpace(5); // The longest this method will write is "false"
@@ -73,13 +71,7 @@ namespace Crest.Host.Serialization
         }
 
         /// <inheritdoc />
-        public void WriteByte(byte value)
-        {
-            this.WriteUInt64(value);
-        }
-
-        /// <inheritdoc />
-        public void WriteChar(char value)
+        public override void WriteChar(char value)
         {
             this.WriteCurrentProperty();
             this.EnsureBufferHasSpace(MaxBytesPerCharacter);
@@ -95,64 +87,7 @@ namespace Crest.Host.Serialization
         }
 
         /// <inheritdoc />
-        public void WriteDateTime(DateTime value)
-        {
-            this.WriteCurrentProperty();
-            this.EnsureBufferHasSpace(DateTimeConverter.MaximumTextLength);
-
-            this.offset += DateTimeConverter.WriteDateTime(this.buffer, this.offset, value);
-        }
-
-        /// <inheritdoc />
-        public void WriteDecimal(decimal value)
-        {
-            this.WriteCurrentProperty();
-
-            string text = value.ToString("G", NumberFormatInfo.InvariantInfo);
-            this.AppendAscii(text);
-        }
-
-        /// <inheritdoc />
-        public void WriteDouble(double value)
-        {
-            this.WriteCurrentProperty();
-
-            string text = value.ToString("G", NumberFormatInfo.InvariantInfo);
-            this.AppendAscii(text);
-        }
-
-        /// <inheritdoc />
-        public void WriteGuid(Guid value)
-        {
-            this.WriteCurrentProperty();
-            this.EnsureBufferHasSpace(GuidConverter.MaximumTextLength);
-
-            this.offset += GuidConverter.WriteGuid(this.buffer, this.offset, value);
-        }
-
-        /// <inheritdoc />
-        public void WriteInt16(short value)
-        {
-            this.WriteInt64(value);
-        }
-
-        /// <inheritdoc />
-        public void WriteInt32(int value)
-        {
-            this.WriteInt64(value);
-        }
-
-        /// <inheritdoc />
-        public void WriteInt64(long value)
-        {
-            this.WriteCurrentProperty();
-            this.EnsureBufferHasSpace(IntegerConverter.MaximumTextLength);
-
-            this.offset += IntegerConverter.WriteInt64(this.buffer, this.offset, value);
-        }
-
-        /// <inheritdoc />
-        public void WriteNull()
+        public override void WriteNull()
         {
             this.WriteCurrentProperty();
             this.EnsureBufferHasSpace(4);
@@ -162,30 +97,7 @@ namespace Crest.Host.Serialization
         }
 
         /// <inheritdoc />
-        public void WriteObject(object value)
-        {
-            SCM.TypeConverter converter = SCM.TypeDescriptor.GetConverter(value);
-            string converted = converter.ConvertToInvariantString(value);
-            this.WriteString(converted);
-        }
-
-        /// <inheritdoc />
-        public void WriteSByte(sbyte value)
-        {
-            this.WriteInt64(value);
-        }
-
-        /// <inheritdoc />
-        public void WriteSingle(float value)
-        {
-            this.WriteCurrentProperty();
-
-            string text = value.ToString("G", NumberFormatInfo.InvariantInfo);
-            this.AppendAscii(text);
-        }
-
-        /// <inheritdoc />
-        public void WriteString(string value)
+        public override void WriteString(string value)
         {
             this.WriteCurrentProperty();
 
@@ -194,36 +106,6 @@ namespace Crest.Host.Serialization
                 this.EnsureBufferHasSpace(MaxBytesPerCharacter);
                 this.offset += AppendChar(value, ref i, this.buffer, this.offset);
             }
-        }
-
-        /// <inheritdoc />
-        public void WriteTimeSpan(TimeSpan value)
-        {
-            this.WriteCurrentProperty();
-            this.EnsureBufferHasSpace(TimeSpanConverter.MaximumTextLength);
-
-            this.offset += TimeSpanConverter.WriteTimeSpan(this.buffer, this.offset, value);
-        }
-
-        /// <inheritdoc />
-        public void WriteUInt16(ushort value)
-        {
-            this.WriteUInt64(value);
-        }
-
-        /// <inheritdoc />
-        public void WriteUInt32(uint value)
-        {
-            this.WriteUInt64(value);
-        }
-
-        /// <inheritdoc />
-        public void WriteUInt64(ulong value)
-        {
-            this.WriteCurrentProperty();
-            this.EnsureBufferHasSpace(IntegerConverter.MaximumTextLength);
-
-            this.offset += IntegerConverter.WriteUInt64(this.buffer, this.offset, value);
         }
 
         /// <summary>
@@ -297,6 +179,20 @@ namespace Crest.Host.Serialization
             this.keyLength += digits + 1;
         }
 
+        /// <inheritdoc />
+        protected override void CommitBuffer(int bytes)
+        {
+            this.offset += bytes;
+        }
+
+        /// <inheritdoc />
+        protected override ArraySegment<byte> RentBuffer(int maximumSize)
+        {
+            this.WriteCurrentProperty();
+            this.EnsureBufferHasSpace(DateTimeConverter.MaximumTextLength);
+            return new ArraySegment<byte>(this.buffer, this.offset, BufferLength - this.offset);
+        }
+
         private static int AppendUtf32(byte[] utf8Buffer, byte[] output, int offset, int utf32)
         {
             int bytes = JsonStringEncoding.AppendUtf32(utf32, utf8Buffer, 0);
@@ -354,17 +250,6 @@ namespace Crest.Host.Serialization
                         return false;
                 }
             }
-        }
-
-        private void AppendAscii(string text)
-        {
-            this.EnsureBufferHasSpace(text.Length);
-            for (int i = 0; i < text.Length; i++)
-            {
-                this.buffer[this.offset + i] = (byte)text[i];
-            }
-
-            this.offset += text.Length;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

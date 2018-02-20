@@ -11,14 +11,13 @@ namespace Crest.Host.Serialization.Internal
     /// Allows the serialization of a primitive type to the response stream.
     /// </summary>
     /// <typeparam name="T">The type of metadata to store about properties.</typeparam>
-    [CLSCompliant(false)]
     public interface IPrimitiveSerializer<T>
         where T : class
     {
         /// <summary>
         /// Gets the writer to output values to.
         /// </summary>
-        IStreamWriter Writer { get; }
+        ValueWriter Writer { get; }
 
         /// <summary>
         /// Called before writing the primitive value.

@@ -54,7 +54,7 @@
 
             private abstract class PrimitiveSerializer : IClassSerializer<string>
             {
-                public IStreamWriter Writer => null;
+                public ValueWriter Writer => null;
 
                 public static string GetMetadata()
                 {

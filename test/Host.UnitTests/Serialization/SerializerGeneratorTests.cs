@@ -50,7 +50,7 @@
             // in parallel
             public static new bool OutputEnumNames { get; set; }
 
-            internal static IStreamWriter StreamWriter { get; private set; }
+            internal static ValueWriter StreamWriter { get; private set; }
         }
 
         public sealed class GetSerializerFor : SerializerGeneratorTests

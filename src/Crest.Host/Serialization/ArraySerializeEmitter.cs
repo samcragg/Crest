@@ -193,7 +193,7 @@ namespace Crest.Host.Serialization
             // this.Writer.WriteNull()
             this.generator.EmitLoadArgument(0);
             this.generator.EmitCall(this.baseClass, this.methods.ArraySerializer.GetWriter);
-            this.generator.EmitCall(typeof(IStreamWriter), this.methods.StreamWriter.WriteNull);
+            this.generator.EmitCall(typeof(ValueWriter), this.methods.ValueWriter.WriteNull);
         }
 
         private void EmitWriteNullableElement(Type elementType, Type underlyingType, Action<ILGenerator> loadIndex)

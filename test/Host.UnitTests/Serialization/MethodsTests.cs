@@ -10,29 +10,29 @@
     {
         private readonly Methods methods = new Methods(typeof(FakeSerializerBase));
 
-        public sealed class StreamWriter : MethodsTests
+        public sealed class ValueWriter : MethodsTests
         {
-            private const int StreamWriterWriteMethods = 17;
+            private const int ValueWriterWriteMethods = 17;
 
             [Fact]
             public void ShouldEnumerateAllTheWriteMethods()
             {
-                int count = this.methods.StreamWriter.Count();
+                int count = this.methods.ValueWriter.Count();
 
-                count.Should().Be(StreamWriterWriteMethods);
+                count.Should().Be(ValueWriterWriteMethods);
             }
 
             [Fact]
             public void ShouldProvideANonGenericEnumerateMethod()
             {
-                var enumerable = (IEnumerable)this.methods.StreamWriter;
+                var enumerable = (IEnumerable)this.methods.ValueWriter;
                 int count = 0;
                 foreach (object x in enumerable)
                 {
                     count++;
                 }
 
-                count.Should().Be(StreamWriterWriteMethods);
+                count.Should().Be(ValueWriterWriteMethods);
             }
         }
     }

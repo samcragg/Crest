@@ -12,7 +12,7 @@
         {
             this.Mode = mode;
             this.Stream = stream;
-            this.Writer = Substitute.For<IStreamWriter>();
+            this.Writer = Substitute.For<ValueWriter>();
         }
 
         protected FakeSerializerBase(FakeSerializerBase parent)
@@ -22,7 +22,7 @@
 
         public static bool OutputEnumNames { get; set; }
 
-        public IStreamWriter Writer { get; }
+        public ValueWriter Writer { get; }
 
         internal string BeginClass { get; private set; }
 
@@ -30,9 +30,9 @@
 
         internal string BeginProperty { get; private set; }
 
-        internal Stream Stream { get; }
-
         internal SerializationMode Mode { get; }
+
+        internal Stream Stream { get; }
 
         public static string GetMetadata(PropertyInfo property)
         {

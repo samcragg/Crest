@@ -89,7 +89,7 @@ namespace Crest.Host.Serialization
         {
             this.EmitWriteMethod(
                 builder,
-                this.Methods.StreamWriter[underlyingType],
+                this.Methods.ValueWriter[underlyingType],
                 g =>
                 {
                     // Nullable values are boxed as their raw value if they
@@ -108,8 +108,8 @@ namespace Crest.Host.Serialization
                 // We've got an object on the stack (IList.get_Item) so unbox it
                 g.Emit(OpCodes.Unbox_Any, underlyingType);
                 g.EmitCall(
-                    typeof(IStreamWriter),
-                    this.Methods.StreamWriter[underlyingType]);
+                    typeof(ValueWriter),
+                    this.Methods.ValueWriter[underlyingType]);
             });
         }
 
@@ -149,7 +149,7 @@ namespace Crest.Host.Serialization
         {
             this.EmitWriteMethod(
                 builder,
-                this.Methods.StreamWriter[typeof(string)],
+                this.Methods.ValueWriter[typeof(string)],
                 g =>
                 {
                     // No need for null checking as that's done higher up in the
@@ -164,8 +164,8 @@ namespace Crest.Host.Serialization
             {
                 g.EmitCall(OpCodes.Callvirt, this.Methods.Object.ToString, null);
                 g.EmitCall(
-                    typeof(IStreamWriter),
-                    this.Methods.StreamWriter[typeof(string)]);
+                    typeof(ValueWriter),
+                    this.Methods.ValueWriter[typeof(string)]);
             });
         }
     }

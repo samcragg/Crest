@@ -32,7 +32,7 @@ namespace Crest.Host.Serialization
 
         /// <summary>
         /// Generates the serializers for the various built in types handled
-        /// by <see cref="IStreamWriter"/>.
+        /// by <see cref="ValueWriter"/>.
         /// </summary>
         /// <returns>
         /// A sequence of key value pairs, with the key representing the type
@@ -41,7 +41,7 @@ namespace Crest.Host.Serialization
         /// </returns>
         public IEnumerable<KeyValuePair<Type, Type>> GetSerializers()
         {
-            foreach (KeyValuePair<Type, MethodInfo> kvp in this.Methods.StreamWriter)
+            foreach (KeyValuePair<Type, MethodInfo> kvp in this.Methods.ValueWriter)
             {
                 // Create the class for writing the primitive type first
                 Type primitive = kvp.Key;

@@ -58,7 +58,7 @@
 
             public class ClassSerializerMethods : IClassSerializer<string>
             {
-                public IStreamWriter Writer => null;
+                public ValueWriter Writer => null;
 
                 public void WriteBeginClass(string metadata)
                 {
@@ -111,7 +111,7 @@
                 {
                 }
 
-                protected WithoutGetMetadata(IStreamWriter writer)
+                protected WithoutGetMetadata(ValueWriter writer)
                 {
                 }
             }

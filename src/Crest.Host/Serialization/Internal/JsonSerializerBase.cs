@@ -49,8 +49,7 @@ namespace Crest.Host.Serialization.Internal
         public static bool OutputEnumNames => false;
 
         /// <inheritdoc />
-        [CLSCompliant(false)]
-        public IStreamWriter Writer => this.writer;
+        public ValueWriter Writer => this.writer;
 
         /// <summary>
         /// Gets the metadata for the specified property.

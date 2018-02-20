@@ -29,8 +29,6 @@ namespace Crest.Host.Serialization
 
             private readonly ClassSerializerGenerator owner;
             private readonly bool writeEnumNames;
-            private readonly MethodInfo writerWriteNull;
-            private readonly MethodInfo writerWriteObject;
             private ILGenerator generator;
             private TypeBuilder typeBuilder;
 
@@ -40,8 +38,6 @@ namespace Crest.Host.Serialization
             {
                 this.owner = owner;
                 this.metadataFields = metadataFields;
-                this.writerWriteNull = typeof(IStreamWriter).GetMethod(nameof(IStreamWriter.WriteNull));
-                this.writerWriteObject = typeof(IStreamWriter).GetMethod(nameof(IStreamWriter.WriteObject));
                 this.writeEnumNames = SerializerGenerator.OutputEnumNames(owner.BaseClass);
             }
 
@@ -124,15 +120,15 @@ namespace Crest.Host.Serialization
                     }
                 }
 
-                if (this.owner.Methods.StreamWriter.TryGetMethod(type, out MethodInfo method))
+                if (this.owner.Methods.ValueWriter.TryGetMethod(type, out MethodInfo method))
                 {
-                    this.generator.EmitCall(typeof(IStreamWriter), method);
+                    this.generator.EmitCall(typeof(ValueWriter), method);
                 }
                 else
                 {
                     // Fall back to the generic object one
                     this.generator.EmitConvertToObject(type);
-                    this.generator.EmitCall(typeof(IStreamWriter), this.writerWriteObject);
+                    this.generator.EmitCall(typeof(ValueWriter), this.owner.Methods.ValueWriter.WriteObject);
                 }
             }
 

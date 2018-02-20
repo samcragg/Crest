@@ -28,11 +28,11 @@
 
             protected _ArraySerializerBase()
             {
-                this.Writer = Substitute.For<IStreamWriter>();
+                this.Writer = Substitute.For<ValueWriter>();
                 this.Writer.When(x => x.WriteNull()).Do(_ => this.values.Add(default));
             }
 
-            public IStreamWriter Writer { get; }
+            public ValueWriter Writer { get; }
 
             internal int BeginArraySize { get; private set; }
 

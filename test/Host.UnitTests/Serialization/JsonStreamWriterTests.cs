@@ -1,7 +1,6 @@
 namespace Host.UnitTests.Serialization
 {
     using System;
-    using System.ComponentModel;
     using System.Globalization;
     using System.IO;
     using System.Text;
@@ -37,30 +36,17 @@ namespace Host.UnitTests.Serialization
             [Fact]
             public void ShouldWriteFalse()
             {
-                string value = this.GetString(this.writer.WriteBoolean, false);
+                string result = this.GetString(this.writer.WriteBoolean, false);
 
-                value.Should().Be("false");
+                result.Should().Be("false");
             }
 
             [Fact]
             public void ShouldWriteTrue()
             {
-                string value = this.GetString(this.writer.WriteBoolean, true);
+                string result = this.GetString(this.writer.WriteBoolean, true);
 
-                value.Should().Be("true");
-            }
-        }
-
-        public sealed class WriteByte : JsonStreamWriterTests
-        {
-            [Theory]
-            [InlineData(0)]
-            [InlineData(byte.MaxValue)]
-            public void ShouldWriteIntegerLimits(byte value)
-            {
-                string stringValue = this.GetString(this.writer.WriteByte, value);
-
-                stringValue.Should().Be(value.ToString(CultureInfo.InvariantCulture));
+                result.Should().Be("true");
             }
         }
 
@@ -77,30 +63,29 @@ namespace Host.UnitTests.Serialization
 
         public sealed class WriteDateTime : JsonStreamWriterTests
         {
+            // This tests the methods required by the base method to rent/commit
+            // the buffer work. DateTime is chosen as it's simple and also
+            // writes a smaller value than the buffer size requested.
+
             [Fact]
-            public void ShouldWriteAnIso8601FormattedValue()
+            public void ShouldTheValue()
             {
-                var dateTime = new DateTime(2017, 1, 2, 13, 14, 15, 16, DateTimeKind.Utc);
+                var dateTime = new DateTime(2017, 1, 2, 13, 14, 15, DateTimeKind.Utc);
 
                 string result = this.GetString(this.writer.WriteDateTime, dateTime);
 
-                result.Should().Be("\"2017-01-02T13:14:15.0160000Z\"");
+                result.Should().Be("\"2017-01-02T13:14:15Z\"");
             }
         }
 
         public sealed class WriteDecimal : JsonStreamWriterTests
         {
-            [Theory]
-            [InlineData("0")]
-            [InlineData("-79228162514264337593543950335")] // MinValue
-            [InlineData("79228162514264337593543950335")] // MaxValue
-            public void ShouldWriteTheBounds(string value)
+            [Fact]
+            public void ShouldWriteTheNumber()
             {
-                string result = this.GetString(
-                    this.writer.WriteDecimal,
-                    decimal.Parse(value, CultureInfo.InvariantCulture));
+                string result = this.GetString(this.writer.WriteDecimal, 123.4m);
 
-                result.Should().BeEquivalentTo(value);
+                result.Should().BeEquivalentTo("123.4");
             }
         }
 
@@ -118,58 +103,12 @@ namespace Host.UnitTests.Serialization
                     .Should().Throw<ArgumentOutOfRangeException>();
             }
 
-            [Theory]
-            [InlineData(123e200)]
-            [InlineData(-123e200)]
-            [InlineData(123e-200)]
-            [InlineData(-123e-200)]
-            [InlineData(123.4)]
-            public void ShouldWriteTheNumber(double value)
-            {
-                string result = this.GetString(this.writer.WriteDouble, value);
-
-                result.Should().BeEquivalentTo(value.ToString(CultureInfo.InvariantCulture));
-            }
-        }
-
-        public sealed class WriteGuid : JsonStreamWriterTests
-        {
             [Fact]
-            public void ShouldWriteTheHyphenatedValue()
+            public void ShouldWriteTheNumber()
             {
-                const string GuidString = "F6CBC911-2025-4D99-A9CF-D86CF1CC809C";
+                string result = this.GetString(this.writer.WriteDouble, 123.4);
 
-                string value = this.GetString(this.writer.WriteGuid, new Guid(GuidString));
-
-                value.Should().BeEquivalentTo("\"" + GuidString + "\"");
-            }
-        }
-
-        public sealed class WriteInt16 : JsonStreamWriterTests
-        {
-            [Theory]
-            [InlineData(short.MinValue)]
-            [InlineData(0)]
-            [InlineData(short.MaxValue)]
-            public void ShouldWriteIntegerLimits(short value)
-            {
-                string stringValue = this.GetString(this.writer.WriteInt16, value);
-
-                stringValue.Should().Be(value.ToString(CultureInfo.InvariantCulture));
-            }
-        }
-
-        public sealed class WriteInt32 : JsonStreamWriterTests
-        {
-            [Theory]
-            [InlineData(int.MinValue)]
-            [InlineData(0)]
-            [InlineData(int.MaxValue)]
-            public void ShouldWriteIntegerLimits(int value)
-            {
-                string stringValue = this.GetString(this.writer.WriteInt32, value);
-
-                stringValue.Should().Be(value.ToString(CultureInfo.InvariantCulture));
+                result.Should().BeEquivalentTo("123.4");
             }
         }
 
@@ -181,9 +120,9 @@ namespace Host.UnitTests.Serialization
             [InlineData(long.MaxValue)]
             public void ShouldWriteIntegerLimits(long value)
             {
-                string stringValue = this.GetString(this.writer.WriteInt64, value);
+                string result = this.GetString(this.writer.WriteInt64, value);
 
-                stringValue.Should().Be(value.ToString(CultureInfo.InvariantCulture));
+                result.Should().Be(value.ToString(CultureInfo.InvariantCulture));
             }
         }
 
@@ -194,55 +133,9 @@ namespace Host.UnitTests.Serialization
             {
                 this.writer.WriteNull();
                 this.writer.Flush();
-                string value = Encoding.UTF8.GetString(this.stream.ToArray());
+                string result = Encoding.UTF8.GetString(this.stream.ToArray());
 
-                value.Should().Be("null");
-            }
-        }
-
-        public sealed class WriteObject : JsonStreamWriterTests
-        {
-            [Fact]
-            public void ShouldUseCustomTypeConverters()
-            {
-                object testValue = new CustomValue("Example Text");
-
-                string result = this.GetString(this.writer.WriteObject, testValue);
-
-                result.Should().Be("\"Example Text\"");
-            }
-
-            [TypeConverter(typeof(CustomValueConverter))]
-            private class CustomValue
-            {
-                public CustomValue(string value)
-                {
-                    this.Value = value;
-                }
-
-                public string Value { get; }
-            }
-
-            private class CustomValueConverter : TypeConverter
-            {
-                public override object ConvertTo(ITypeDescriptorContext context, CultureInfo culture, object value, Type destinationType)
-                {
-                    return ((CustomValue)value).Value;
-                }
-            }
-        }
-
-        public sealed class WriteSByte : JsonStreamWriterTests
-        {
-            [Theory]
-            [InlineData(sbyte.MinValue)]
-            [InlineData(0)]
-            [InlineData(sbyte.MaxValue)]
-            public void ShouldWriteIntegerLimits(sbyte value)
-            {
-                string stringValue = this.GetString(this.writer.WriteSByte, value);
-
-                stringValue.Should().Be(value.ToString(CultureInfo.InvariantCulture));
+                result.Should().Be("null");
             }
         }
 
@@ -259,17 +152,12 @@ namespace Host.UnitTests.Serialization
                     .Should().Throw<ArgumentOutOfRangeException>();
             }
 
-            [Theory]
-            [InlineData(123e21f)]
-            [InlineData(-123e21f)]
-            [InlineData(123e-21f)]
-            [InlineData(-123e-21f)]
-            [InlineData(123.4f)]
-            public void ShouldWriteTheNumber(float value)
+            [Fact]
+            public void ShouldWriteTheNumber()
             {
-                string result = this.GetString(this.writer.WriteSingle, value);
+                string result = this.GetString(this.writer.WriteSingle, 123.4f);
 
-                result.Should().BeEquivalentTo(value.ToString(CultureInfo.InvariantCulture));
+                result.Should().BeEquivalentTo("123.4");
             }
         }
 
@@ -294,45 +182,6 @@ namespace Host.UnitTests.Serialization
                 string result = this.GetString(this.writer.WriteString, @"Test\Data");
 
                 result.Should().Be(@"""Test\\Data""");
-            }
-        }
-
-        public sealed class WriteTimeSpan : JsonStreamWriterTests
-        {
-            [Fact]
-            public void ShouldWriteAnIso8601FormattedValue()
-            {
-                var time = new TimeSpan(12, 3, 4, 5);
-
-                string result = this.GetString(this.writer.WriteTimeSpan, time);
-
-                result.Should().BeEquivalentTo("\"P12DT3H4M5S\"");
-            }
-        }
-
-        public sealed class WriteUInt16 : JsonStreamWriterTests
-        {
-            [Theory]
-            [InlineData(0)]
-            [InlineData(ushort.MaxValue)]
-            public void ShouldWriteIntegerLimits(ushort value)
-            {
-                string stringValue = this.GetString(this.writer.WriteUInt16, value);
-
-                stringValue.Should().Be(value.ToString(CultureInfo.InvariantCulture));
-            }
-        }
-
-        public sealed class WriteUInt32 : JsonStreamWriterTests
-        {
-            [Theory]
-            [InlineData(0)]
-            [InlineData(uint.MaxValue)]
-            public void ShouldWriteIntegerLimits(uint value)
-            {
-                string stringValue = this.GetString(this.writer.WriteUInt32, value);
-
-                stringValue.Should().Be(value.ToString(CultureInfo.InvariantCulture));
             }
         }
 

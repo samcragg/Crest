@@ -6,19 +6,16 @@
 namespace Crest.Host.Serialization
 {
     using System;
-    using System.Globalization;
     using System.IO;
     using System.Runtime.CompilerServices;
     using System.Text;
     using System.Xml;
-    using Crest.Host.Conversion;
     using Crest.Host.Serialization.Internal;
-    using SCM = System.ComponentModel;
 
     /// <summary>
     /// Used to output XML primitive values.
     /// </summary>
-    internal sealed partial class XmlStreamWriter : IStreamWriter
+    internal sealed partial class XmlStreamWriter : ValueWriter
     {
         private const int PrimitiveBufferLength = 64;
         private const string XmlSchemaNamespace = "http://www.w3.org/2001/XMLSchema-instance";
@@ -45,88 +42,26 @@ namespace Crest.Host.Serialization
         public int Depth => this.depth;
 
         /// <inheritdoc />
-        public void Flush()
+        public override void Flush()
         {
             this.writer.Flush();
         }
 
         /// <inheritdoc />
-        public void WriteBoolean(bool value)
+        public override void WriteBoolean(bool value)
         {
             this.writer.WriteRaw(value ? "true" : "false");
         }
 
         /// <inheritdoc />
-        public void WriteByte(byte value)
-        {
-            this.WriteUInt64(value);
-        }
-
-        /// <inheritdoc />
-        public void WriteChar(char value)
+        public override void WriteChar(char value)
         {
             this.charBuffer[0] = value;
             this.writer.WriteChars(this.charBuffer, 0, 1);
         }
 
         /// <inheritdoc />
-        public void WriteDateTime(DateTime value)
-        {
-            int length = DateTimeConverter.WriteDateTime(this.byteBuffer, 0, value);
-            this.WriteByteBuffer(length);
-        }
-
-        /// <inheritdoc />
-        public void WriteDecimal(decimal value)
-        {
-            string text = value.ToString("G", NumberFormatInfo.InvariantInfo);
-            this.writer.WriteRaw(text);
-        }
-
-        /// <inheritdoc />
-        public void WriteDouble(double value)
-        {
-            string text = value.ToString("G", NumberFormatInfo.InvariantInfo);
-            this.writer.WriteRaw(text);
-        }
-
-        /// <summary>
-        /// Closes one element and pops the corresponding namespace scope.
-        /// </summary>
-        public void WriteEndElement()
-        {
-            this.writer.WriteEndElement();
-            this.depth--;
-        }
-
-        /// <inheritdoc />
-        public void WriteGuid(Guid value)
-        {
-            int length = GuidConverter.WriteGuid(this.byteBuffer, 0, value);
-            this.WriteByteBuffer(length);
-        }
-
-        /// <inheritdoc />
-        public void WriteInt16(short value)
-        {
-            this.WriteInt64(value);
-        }
-
-        /// <inheritdoc />
-        public void WriteInt32(int value)
-        {
-            this.WriteInt64(value);
-        }
-
-        /// <inheritdoc />
-        public void WriteInt64(long value)
-        {
-            int length = IntegerConverter.WriteInt64(this.byteBuffer, 0, value);
-            this.WriteByteBuffer(length);
-        }
-
-        /// <inheritdoc />
-        public void WriteNull()
+        public override void WriteNull()
         {
             this.writer.WriteStartAttribute("i", "nil", XmlSchemaNamespace);
             this.writer.WriteRaw("true");
@@ -134,31 +69,25 @@ namespace Crest.Host.Serialization
         }
 
         /// <inheritdoc />
-        public void WriteObject(object value)
+        public override void WriteString(string value)
         {
-            SCM.TypeConverter converter = SCM.TypeDescriptor.GetConverter(value);
-            string converted = converter.ConvertToInvariantString(value);
-            this.writer.WriteString(converted);
+            this.writer.WriteString(value);
         }
 
-        /// <inheritdoc />
-        public void WriteSByte(sbyte value)
+        /// <summary>
+        /// Closes one element and pops the corresponding namespace scope.
+        /// </summary>
+        internal void WriteEndElement()
         {
-            this.WriteInt64(value);
-        }
-
-        /// <inheritdoc />
-        public void WriteSingle(float value)
-        {
-            string text = value.ToString("G", NumberFormatInfo.InvariantInfo);
-            this.writer.WriteRaw(text);
+            this.writer.WriteEndElement();
+            this.depth--;
         }
 
         /// <summary>
         /// Writes out a start tag with the specified local name.
         /// </summary>
         /// <param name="name">The local name of the element.</param>
-        public void WriteStartElement(string name)
+        internal void WriteStartElement(string name)
         {
             this.writer.WriteStartElement(null, name, null);
 
@@ -173,35 +102,15 @@ namespace Crest.Host.Serialization
         }
 
         /// <inheritdoc />
-        public void WriteString(string value)
+        protected override void CommitBuffer(int bytes)
         {
-            this.writer.WriteString(value);
+            this.WriteByteBuffer(bytes);
         }
 
         /// <inheritdoc />
-        public void WriteTimeSpan(TimeSpan value)
+        protected override ArraySegment<byte> RentBuffer(int maximumSize)
         {
-            int length = TimeSpanConverter.WriteTimeSpan(this.byteBuffer, 0, value);
-            this.WriteByteBuffer(length);
-        }
-
-        /// <inheritdoc />
-        public void WriteUInt16(ushort value)
-        {
-            this.WriteUInt64(value);
-        }
-
-        /// <inheritdoc />
-        public void WriteUInt32(uint value)
-        {
-            this.WriteUInt64(value);
-        }
-
-        /// <inheritdoc />
-        public void WriteUInt64(ulong value)
-        {
-            int length = IntegerConverter.WriteUInt64(this.byteBuffer, 0, value);
-            this.WriteByteBuffer(length);
+            return new ArraySegment<byte>(this.byteBuffer);
         }
 
         private static XmlWriterSettings CreateXmlWriterSettings()

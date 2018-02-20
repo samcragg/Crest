@@ -10,13 +10,12 @@ namespace Crest.Host.Serialization.Internal
     /// <summary>
     /// Allows the serialization of arrays to the response stream.
     /// </summary>
-    [CLSCompliant(false)]
     public interface IArraySerializer
     {
         /// <summary>
         /// Gets the writer to output values to.
         /// </summary>
-        IStreamWriter Writer { get; }
+        ValueWriter Writer { get; }
 
         /// <summary>
         /// Called before writing an array value.

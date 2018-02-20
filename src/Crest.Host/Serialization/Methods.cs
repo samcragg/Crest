@@ -56,9 +56,9 @@ namespace Crest.Host.Serialization
         internal PrimitiveSerializerMethods PrimitiveSerializer { get; }
 
         /// <summary>
-        /// Gets the methods for the <see cref="IStreamWriter"/> interface.
+        /// Gets the methods for the <see cref="Internal.ValueWriter"/> interface.
         /// </summary>
-        internal StreamWriterMethods StreamWriter { get; } = new StreamWriterMethods();
+        internal ValueWriterMethods ValueWriter { get; } = new ValueWriterMethods();
 
         /// <summary>
         /// Contains the methods of the <see cref="IArraySerializer"/> interface.
@@ -284,24 +284,24 @@ namespace Crest.Host.Serialization
         }
 
         /// <summary>
-        /// Contains the methods of the <see cref="IStreamWriter"/> interface.
+        /// Contains the methods of the <see cref="Internal.ValueWriter"/> interface.
         /// </summary>
-        internal class StreamWriterMethods : IEnumerable<KeyValuePair<Type, MethodInfo>>
+        internal class ValueWriterMethods : IEnumerable<KeyValuePair<Type, MethodInfo>>
         {
             private readonly Dictionary<Type, MethodInfo> methods;
 
             /// <summary>
-            /// Initializes a new instance of the <see cref="StreamWriterMethods"/> class.
+            /// Initializes a new instance of the <see cref="ValueWriterMethods"/> class.
             /// </summary>
-            public StreamWriterMethods()
+            public ValueWriterMethods()
             {
-                this.WriteNull = typeof(IStreamWriter).GetMethod(
-                    nameof(IStreamWriter.WriteNull));
+                this.WriteNull = typeof(ValueWriter).GetMethod(
+                    nameof(Internal.ValueWriter.WriteNull));
 
-                this.WriteObject = typeof(IStreamWriter).GetMethod(
-                    nameof(IStreamWriter.WriteObject));
+                this.WriteObject = typeof(ValueWriter).GetMethod(
+                    nameof(Internal.ValueWriter.WriteObject));
 
-                this.methods = typeof(IStreamWriter).GetTypeInfo()
+                this.methods = typeof(ValueWriter).GetTypeInfo()
                     .DeclaredMethods
                     .Where(m => m.Name.StartsWith("Write", StringComparison.Ordinal))
                     .Where(m => (m != this.WriteNull) && (m != this.WriteObject))
@@ -309,12 +309,12 @@ namespace Crest.Host.Serialization
             }
 
             /// <summary>
-            /// Gets the metadata for the <see cref="IStreamWriter.WriteNull"/> method.
+            /// Gets the metadata for the <see cref="ValueWriter.WriteNull"/> method.
             /// </summary>
             public MethodInfo WriteNull { get; }
 
             /// <summary>
-            /// Gets the metadata for the <see cref="IStreamWriter.WriteObject(object)"/> method.
+            /// Gets the metadata for the <see cref="ValueWriter.WriteObject(object)"/> method.
             /// </summary>
             public MethodInfo WriteObject { get; }
 
