@@ -151,13 +151,13 @@ namespace Crest.Host.Conversion
             {
                 char c = span[i];
                 uint digit = (uint)(c - '0');
-                if (digit > 10)
+                if (digit > 9)
                 {
                     digit = (uint)(c - 'a');
-                    if (digit > 6)
+                    if (digit > 5)
                     {
                         digit = (uint)(c - 'A');
-                        if (digit > 6)
+                        if (digit > 5)
                         {
                             return false;
                         }

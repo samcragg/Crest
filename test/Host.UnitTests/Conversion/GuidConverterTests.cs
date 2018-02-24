@@ -27,11 +27,15 @@
                 result.IsSuccess.Should().BeFalse();
             }
 
-            [Fact]
-            public void ShouldNotReadInvalidHexValues()
+            // The first character is invalid and represent the next ASCII
+            // character above the valid range for a digit
+            [Theory]
+            [InlineData(":2345678-1234-1234-1234-123456789012")]
+            [InlineData("G2345678-1234-1234-1234-123456789012")]
+            [InlineData("g2345678-1234-1234-1234-123456789012")]
+            public void ShouldNotReadInvalidHexValues(string value)
             {
-                ParseResult<Guid> result = GuidConverter.TryReadGuid(
-                    "ABCDEFGH-ijkl-MNOP-qrst-uvwxyz123456".AsSpan());
+                ParseResult<Guid> result = GuidConverter.TryReadGuid(value.AsSpan());
 
                 result.IsSuccess.Should().BeFalse();
                 result.Error.Should().MatchEquivalentOf("*hex*");
