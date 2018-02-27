@@ -153,6 +153,11 @@ namespace Crest.Host.Conversion
         /// <returns>The number of ASCII digits to represent the value.</returns>
         internal static int CountDigits(ulong value)
         {
+            if (value == 0)
+            {
+                return 1;
+            }
+
             int digits = 0;
 
             // 32 bit arithmetic is measurably faster than 64 bit (even running
@@ -162,7 +167,7 @@ namespace Crest.Host.Conversion
                 // uint.Max equals 4,294,967,295, hence divide by 1,000,000,000
                 // to reduce the amount of divisions
                 digits += 9;
-                value /= 1000000000;
+                value /= (ulong)1e9;
             }
 
             return digits + CountDigits32((uint)value);

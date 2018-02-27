@@ -169,9 +169,7 @@ namespace Crest.Host.Serialization
         /// <param name="arrayIndex">The index of the current array item.</param>
         internal void PushKeyPart(int arrayIndex)
         {
-            // CountDigits can't handle zero (there's a special case for it
-            // in the WriteUInt64 method)
-            int digits = (arrayIndex == 0) ? 1 : IntegerConverter.CountDigits((uint)arrayIndex);
+            int digits = IntegerConverter.CountDigits((uint)arrayIndex);
             byte[] text = new byte[digits];
             IntegerConverter.WriteUInt64(text, 0, (uint)arrayIndex);
 

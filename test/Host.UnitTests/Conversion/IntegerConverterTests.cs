@@ -10,6 +10,30 @@
 
     public class IntegerConverterTests
     {
+        public sealed class CountDigits : IntegerConverterTests
+        {
+            [Fact]
+            public void ShouldReturnOneDigitsForZero()
+            {
+                int result = IntegerConverter.CountDigits(0);
+
+                // 0 as a string is "0", so one digit
+                result.Should().Be(1);
+            }
+
+            [Theory]
+            [InlineData(123)]
+            [InlineData(ulong.MaxValue)]
+            public void ShouldReturnTheNumberOfDigitsInTheString(ulong value)
+            {
+                string valueAsString = value.ToString(CultureInfo.InvariantCulture);
+
+                int result = IntegerConverter.CountDigits(value);
+
+                result.Should().Be(valueAsString.Length);
+            }
+        }
+
         public sealed class ReadUnsignedInt : IntegerConverterTests
         {
             [Fact]
