@@ -1,10 +1,11 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>netstandard1.6</TargetFramework>
-    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <PackageId>Crest.Host</PackageId>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <LangVersion>latest</LangVersion>
+    <PackageId>Crest.Host</PackageId>
   </PropertyGroup>
 
   <Import Project="..\CrestPackage.targets" />
@@ -16,6 +17,7 @@
     <PackageReference Include="Microsoft.Extensions.DependencyModel" Version="2.0.4" />
     <PackageReference Include="Newtonsoft.Json" Version="10.0.3" />
     <PackageReference Include="StyleCop.Analyzers" Version="1.0.2" PrivateAssets="All" />
+    <PackageReference Include="System.Buffers" Version="4.4.0" />
     <PackageReference Include="System.Collections.Immutable" Version="1.4.0" />
     <PackageReference Include="System.ComponentModel.TypeConverter" Version="4.3.0" />
     <PackageReference Include="System.Diagnostics.Process" Version="4.3.0" />
@@ -78,6 +80,9 @@
     </Compile>
     <Compile Update="Serialization/ClassSerializerGenerator.WriteMethodEmitter.cs">
       <DependentUpon>ClassSerializerGenerator.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Serialization/JumpTableGenerator.Mapping.cs">
+      <DependentUpon>JumpTableGenerator.cs</DependentUpon>
     </Compile>
     <Compile Update="Serialization/SerializerGenerator{TBase}.SerializerInfo.cs">
       <DependentUpon>SerializerGenerator{TBase}.cs</DependentUpon>

@@ -277,6 +277,36 @@
             }
         }
 
+        public sealed class EmitLoadConstant : ILGeneratorExtensionsTests
+        {
+            [Theory]
+            [InlineData(0)]
+            [InlineData(1)]
+            [InlineData(2)]
+            [InlineData(3)]
+            [InlineData(4)]
+            [InlineData(5)]
+            [InlineData(6)]
+            [InlineData(7)]
+            [InlineData(8)]
+            [InlineData((int)sbyte.MinValue)]
+            [InlineData((int)sbyte.MaxValue)]
+            [InlineData(int.MaxValue)]
+            public void ShouldLoadTheSpecifiedConstant(int value)
+            {
+                this.methodBuilder.SetReturnType(typeof(int));
+                ILGenerator generator = this.methodBuilder.GetILGenerator();
+
+                ILGeneratorExtensions.EmitLoadConstant(generator, value);
+                generator.Emit(OpCodes.Ret);
+
+                MethodInfo method = this.GetGeneratedMethod();
+                object result = method.Invoke(null, null);
+
+                result.Should().Be(value);
+            }
+        }
+
         public sealed class EmitLoadElement : ILGeneratorExtensionsTests
         {
             [Theory]

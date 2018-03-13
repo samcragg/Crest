@@ -141,6 +141,62 @@ namespace Crest.Host.Serialization
         }
 
         /// <summary>
+        /// Loads the integer constant onto the evaluation stack.
+        /// </summary>
+        /// <param name="generator">The generator to emit the instruction to.</param>
+        /// <param name="value">The constant load.</param>
+        public static void EmitLoadConstant(this ILGenerator generator, int value)
+        {
+            switch (value)
+            {
+                case 0:
+                    generator.Emit(OpCodes.Ldc_I4_0);
+                    return;
+
+                case 1:
+                    generator.Emit(OpCodes.Ldc_I4_1);
+                    return;
+
+                case 2:
+                    generator.Emit(OpCodes.Ldc_I4_2);
+                    return;
+
+                case 3:
+                    generator.Emit(OpCodes.Ldc_I4_3);
+                    return;
+
+                case 4:
+                    generator.Emit(OpCodes.Ldc_I4_4);
+                    return;
+
+                case 5:
+                    generator.Emit(OpCodes.Ldc_I4_5);
+                    return;
+
+                case 6:
+                    generator.Emit(OpCodes.Ldc_I4_6);
+                    return;
+
+                case 7:
+                    generator.Emit(OpCodes.Ldc_I4_7);
+                    return;
+
+                case 8:
+                    generator.Emit(OpCodes.Ldc_I4_8);
+                    return;
+            }
+
+            if ((value >= sbyte.MinValue) && (value <= sbyte.MaxValue))
+            {
+                generator.Emit(OpCodes.Ldc_I4_S, (byte)value);
+            }
+            else
+            {
+                generator.Emit(OpCodes.Ldc_I4, value);
+            }
+        }
+
+        /// <summary>
         /// Loads the element of the array onto the evaluation stack.
         /// </summary>
         /// <param name="generator">The generator to emit the instruction to.</param>
