@@ -1,6 +1,7 @@
 ﻿namespace Host.UnitTests.Serialization
 {
     using System;
+    using System.Collections;
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
@@ -195,6 +196,28 @@
 
                 span.Length.Should().Be(1);
                 span[0].Should().Be('b');
+            }
+        }
+
+        public sealed class IEnumeratorMethods : StreamIteratorTests
+        {
+            [Fact]
+            public void CurrentShouldReturnTheCurrentValue()
+            {
+                this.SetStreamRead(new[] { (byte)'A' });
+
+                this.Iterator.MoveNext();
+                object result = ((IEnumerator)this.Iterator).Current;
+
+                result.Should().Be('A');
+            }
+
+            [Fact]
+            public void ResetShouldThrowNotSupportedException()
+            {
+                Action action = () => ((IEnumerator)this.Iterator).Reset();
+
+                action.Should().Throw<NotSupportedException>();
             }
         }
 

@@ -139,14 +139,12 @@ namespace Crest.Host.Serialization
         /// </summary>
         public void Dispose()
         {
-            if (this.buffer == null)
+            if (this.buffer != null)
             {
-                return;
+                Pool.Return(this.buffer);
+                this.buffer = null;
+                this.previous?.Dispose();
             }
-
-            Pool.Return(this.buffer);
-            this.buffer = null;
-            this.previous?.Dispose();
         }
 
         /// <summary>

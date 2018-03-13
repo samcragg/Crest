@@ -158,6 +158,19 @@
             }
         }
 
+        public sealed class Length : StringBufferTests
+        {
+            [Fact]
+            public void ShouldReturnTheTotalAmountAdded()
+            {
+                this.AppendMultiple('X', 123);
+
+                int result = this.buffer.Length;
+
+                result.Should().Be(123);
+            }
+        }
+
         public sealed new class ToString : StringBufferTests
         {
             [Fact]

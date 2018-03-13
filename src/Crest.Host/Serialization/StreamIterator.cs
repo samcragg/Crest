@@ -182,6 +182,7 @@ namespace Crest.Host.Serialization
         /// <inheritdoc />
         void IEnumerator.Reset()
         {
+            throw new NotSupportedException();
         }
 
         private static Encoding DetectEncoding(byte[] bytes, out int skip)
