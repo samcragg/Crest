@@ -1,5 +1,8 @@
 ﻿namespace Host.UnitTests.Serialization
 {
+    using System;
+    using System.IO;
+    using System.Text;
     using Crest.Host.Serialization;
     using FluentAssertions;
     using Xunit;
@@ -17,12 +20,12 @@
                 JsonStringEncoding.AppendChar('\x12', this.buffer, ref this.offset);
 
                 this.offset.Should().Be(6);
-                this.buffer[0].Should().Be((byte)'\\');
-                this.buffer[1].Should().Be((byte)'u');
-                this.buffer[2].Should().Be((byte)'0');
-                this.buffer[3].Should().Be((byte)'0');
-                this.buffer[4].Should().Be((byte)'1');
-                this.buffer[5].Should().Be((byte)'2');
+                this.buffer.Should().HaveElementAt(0, (byte)'\\');
+                this.buffer.Should().HaveElementAt(1, (byte)'u');
+                this.buffer.Should().HaveElementAt(2, (byte)'0');
+                this.buffer.Should().HaveElementAt(3, (byte)'0');
+                this.buffer.Should().HaveElementAt(4, (byte)'1');
+                this.buffer.Should().HaveElementAt(5, (byte)'2');
             }
 
             // Examples taken from http://json.org/
@@ -39,8 +42,8 @@
                 JsonStringEncoding.AppendChar(value, this.buffer, ref this.offset);
 
                 this.offset.Should().Be(2);
-                this.buffer[0].Should().Be((byte)escaped[0]);
-                this.buffer[1].Should().Be((byte)escaped[1]);
+                this.buffer.Should().HaveElementAt(0, (byte)escaped[0]);
+                this.buffer.Should().HaveElementAt(1, (byte)escaped[1]);
             }
 
             [Fact]
@@ -49,7 +52,7 @@
                 JsonStringEncoding.AppendChar('T', this.buffer, ref this.offset);
 
                 this.offset.Should().Be(1);
-                this.buffer[0].Should().Be((byte)'T');
+                this.buffer.Should().HaveElementAt(0, (byte)'T');
             }
         }
 
@@ -71,6 +74,89 @@
 
                 this.offset.Should().Be(bytes.Length);
                 this.buffer.Should().StartWith(bytes);
+            }
+        }
+
+        public sealed class DecodeChar : JsonStringEncodingTests
+        {
+            [Theory]
+            [InlineData(@"\""", '\"')]
+            [InlineData(@"\\", '\\')]
+            [InlineData(@"\/", '/')]
+            [InlineData(@"\b", '\b')]
+            [InlineData(@"\f", '\f')]
+            [InlineData(@"\n", '\n')]
+            [InlineData(@"\r", '\r')]
+            [InlineData(@"\t", '\t')]
+            public void ShouldDecodeEscapeSequences(string input, char expected)
+            {
+                char result = JsonStringEncoding.DecodeChar(CreateStreamIterator(input));
+
+                result.Should().Be(expected);
+            }
+
+            [Theory]
+            [InlineData(@"\u005C", '\\')]
+            [InlineData(@"\u26aB", '⚫')]
+            public void ShouldDecodeHexCharacters(string input, char expected)
+            {
+                char result = JsonStringEncoding.DecodeChar(CreateStreamIterator(input));
+
+                result.Should().Be(expected);
+            }
+
+            [Fact]
+            public void ShouldRejectInvalidEscapeSequences()
+            {
+                // Check the position is included, which is the position of the
+                // start of the sequence (*0*)
+                ExpectFormatException(@"\X", "*escape*0*");
+            }
+
+            [Fact]
+            public void ShouldRejectInvalidHexidecimalValues()
+            {
+                // Check the position is included, which is the position of
+                // the invalid hex character (*3*)
+                ExpectFormatException(@"\uXXXX", "*hex*3*");
+            }
+
+            [Fact]
+            public void ShouldRejectMissingEscapeSequences()
+            {
+                ExpectFormatException(@"\", "*end*");
+            }
+
+            [Fact]
+            public void ShouldRejectMissingHexidecimalValues()
+            {
+                ExpectFormatException(@"\u123", "*end*");
+            }
+
+            [Fact]
+            public void ShouldReturnUnescapedCharacters()
+            {
+                char result = JsonStringEncoding.DecodeChar(CreateStreamIterator("x"));
+
+                result.Should().Be('x');
+            }
+
+            private static StreamIterator CreateStreamIterator(string input)
+            {
+                byte[] bytes = Encoding.UTF8.GetBytes(input);
+                var iterator = new StreamIterator(new MemoryStream(bytes, writable: false));
+
+                // The iterator has to point to the position we want to start
+                // decoding
+                iterator.MoveNext();
+                return iterator;
+            }
+
+            private static void ExpectFormatException(string input, string message)
+            {
+                Action action = () => JsonStringEncoding.DecodeChar(CreateStreamIterator(input));
+
+                action.Should().Throw<FormatException>().WithMessage(message);
             }
         }
     }

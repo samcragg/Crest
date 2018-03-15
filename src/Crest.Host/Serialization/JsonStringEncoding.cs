@@ -5,6 +5,7 @@
 
 namespace Crest.Host.Serialization
 {
+    using System;
     using System.Runtime.CompilerServices;
     using Crest.Host.Conversion;
 
@@ -79,6 +80,33 @@ namespace Crest.Host.Serialization
         }
 
         /// <summary>
+        /// Decodes a character from the sequence, starting at the current
+        /// position.
+        /// </summary>
+        /// <param name="source">The sequence of UTF-16 characters.</param>
+        /// <returns>
+        /// The character read from the stream, unescaped as required.
+        /// </returns>
+        /// <remarks>
+        /// This method does not advance the stream if there is nothing to
+        /// unescape (i.e. will not initially call
+        /// <see cref="StreamIterator.MoveNext"/> on <c>source</c> if it
+        /// contains an unescaped character).
+        /// </remarks>
+        public static char DecodeChar(StreamIterator source)
+        {
+            char c = source.Current;
+            if (c == '\\')
+            {
+                return Unescape(source);
+            }
+            else
+            {
+                return c;
+            }
+        }
+
+        /// <summary>
         /// Appends the specified UTF-32 code point as UTF-8 bytes
         /// </summary>
         /// <param name="utf32">The code point to encode.</param>
@@ -113,6 +141,11 @@ namespace Crest.Host.Serialization
                 buffer[offset + 3] = (byte)(0x80 | (utf32 & 0x3f));
                 return 4;
             }
+        }
+
+        private static Exception CreateUnexpectedEndOfStream()
+        {
+            return new FormatException("Unexpected end of stream.");
         }
 
         private static void EscapeChar(int ch, byte[] buffer, ref int offset)
@@ -164,11 +197,95 @@ namespace Crest.Host.Serialization
             offset += 2;
         }
 
+        private static int GetHexChar(StreamIterator source)
+        {
+            if (!source.MoveNext())
+            {
+                throw CreateUnexpectedEndOfStream();
+            }
+
+            uint c = source.Current;
+            uint digit = c - '0';
+            if (digit <= ('9' - '0'))
+            {
+                return (int)digit;
+            }
+
+            digit = c - 'a';
+            if (digit <= ('f' - 'a'))
+            {
+                return (int)(digit + 10);
+            }
+
+            digit = c - 'A';
+            if (digit <= ('F' - 'A'))
+            {
+                return (int)(digit + 10);
+            }
+
+            throw new FormatException(
+                $"Invalid hexadecimal character '{source.Current}' at position {source.Position}.");
+        }
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static bool NeedToEscape(int ch)
         {
             // Is it a control character or one that we always need to escape?
             return (ch < 32) || (ch == '"') || (ch == '\\');
+        }
+
+        private static char Unescape(StreamIterator source)
+        {
+            if (!source.MoveNext())
+            {
+                throw CreateUnexpectedEndOfStream();
+            }
+
+            switch (source.Current)
+            {
+                case '"':
+                    return '"';
+
+                case '\\':
+                    return '\\';
+
+                case '/':
+                    return '/';
+
+                case 'b':
+                    return '\b';
+
+                case 'f':
+                    return '\f';
+
+                case 'n':
+                    return '\n';
+
+                case 'r':
+                    return '\r';
+
+                case 't':
+                    return '\t';
+
+                case 'u':
+                    return UnescapeHexSequence(source);
+
+                default:
+                    // -2 from the position to point to the start of the
+                    // sequence (we've read \? so far)
+                    throw new FormatException(
+                        $"Unrecognized escape character '{source.Current}' at position {source.Position - 2}.");
+            }
+        }
+
+        private static char UnescapeHexSequence(StreamIterator source)
+        {
+            int h1 = GetHexChar(source) << 12;
+            int h2 = GetHexChar(source) << 8;
+            int h3 = GetHexChar(source) << 4;
+            int h4 = GetHexChar(source);
+
+            return (char)(h1 | h2 | h3 | h4);
         }
     }
 }
