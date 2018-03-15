@@ -70,10 +70,6 @@ namespace Crest.Host.Serialization
             /// </summary>
             public ArraySerializerMethods()
             {
-                this.GetWriter = typeof(IArraySerializer)
-                    .GetProperty(nameof(IArraySerializer.Writer))
-                    .GetGetMethod();
-
                 this.WriteBeginArray = typeof(IArraySerializer)
                     .GetMethod(nameof(IArraySerializer.WriteBeginArray));
 
@@ -83,11 +79,6 @@ namespace Crest.Host.Serialization
                 this.WriteEndArray = typeof(IArraySerializer)
                     .GetMethod(nameof(IArraySerializer.WriteEndArray));
             }
-
-            /// <summary>
-            /// Gets the metadata for the <see cref="IArraySerializer.Writer"/> property.
-            /// </summary>
-            public MethodInfo GetWriter { get; }
 
             /// <summary>
             /// Gets the metadata for the <see cref="IArraySerializer.WriteBeginArray(Type, int)"/> method.
@@ -125,6 +116,10 @@ namespace Crest.Host.Serialization
                     baseClass.GetTypeInfo(),
                     typeof(IClassSerializer<>));
 
+                Type primitiveSerializerInterface = TypeSerializerGenerator.GetGenericInterfaceImplementation(
+                    baseClass.GetTypeInfo(),
+                    typeof(IPrimitiveSerializer<>));
+
                 const BindingFlags PublicStatic = BindingFlags.FlattenHierarchy | BindingFlags.Public | BindingFlags.Static;
 
                 this.GetMetadata =
@@ -136,8 +131,8 @@ namespace Crest.Host.Serialization
                     TypeMetadataMethodName,
                     BindingFlags.Public | BindingFlags.Static);
 
-                this.GetWriter = typeof(IArraySerializer)
-                    .GetProperty(nameof(IArraySerializer.Writer))
+                this.GetWriter = primitiveSerializerInterface
+                    .GetProperty(nameof(IPrimitiveSerializer<object>.Writer))
                     .GetGetMethod();
 
                 this.WriteBeginClass = classSerializerInterface.GetMethod(

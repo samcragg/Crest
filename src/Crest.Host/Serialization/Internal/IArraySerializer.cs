@@ -13,11 +13,6 @@ namespace Crest.Host.Serialization.Internal
     public interface IArraySerializer
     {
         /// <summary>
-        /// Gets the writer to output values to.
-        /// </summary>
-        ValueWriter Writer { get; }
-
-        /// <summary>
         /// Called before writing an array value.
         /// </summary>
         /// <param name="elementType">The type of the array element.</param>
