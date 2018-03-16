@@ -2,21 +2,20 @@
 {
     using System.ComponentModel;
     using System.IO;
-    using System.Reflection;
     using System.Text;
     using Crest.Host.Serialization.Internal;
     using FluentAssertions;
     using NSubstitute;
     using Xunit;
 
-    public class UrlEncodedSerializerBaseTests
+    public class UrlEncodedSerializerBaseSerializeTests
     {
         private readonly UrlEncodedSerializerBase serializer;
         private readonly MemoryStream stream = new MemoryStream();
 
-        protected UrlEncodedSerializerBaseTests()
+        protected UrlEncodedSerializerBaseSerializeTests()
         {
-            this.serializer = new FakeUrlEncodedSerializerBase(this.stream, SerializationMode.Serialize);
+            this.serializer = new FakeUrlEncodedSerializerBase(this.stream);
         }
 
         protected byte[] GetWrittenData()
@@ -25,12 +24,12 @@
             return this.stream.ToArray();
         }
 
-        public sealed class Constructor : UrlEncodedSerializerBaseTests
+        public sealed class Constructor : UrlEncodedSerializerBaseSerializeTests
         {
             [Fact]
             public void ShouldCreateAStreamWriter()
             {
-                var instance = new FakeUrlEncodedSerializerBase(Stream.Null, SerializationMode.Serialize);
+                var instance = new FakeUrlEncodedSerializerBase(Stream.Null);
 
                 instance.Writer.Should().NotBeNull();
             }
@@ -38,7 +37,7 @@
             [Fact]
             public void ShouldSetTheWriter()
             {
-                var parent = new FakeUrlEncodedSerializerBase(Stream.Null, SerializationMode.Serialize);
+                var parent = new FakeUrlEncodedSerializerBase(Stream.Null);
 
                 var instance = new FakeUrlEncodedSerializerBase(parent);
 
@@ -46,13 +45,13 @@
             }
         }
 
-        public sealed class Flush : UrlEncodedSerializerBaseTests
+        public sealed class Flush : UrlEncodedSerializerBaseSerializeTests
         {
             [Fact]
             public void ShouldFlushTheBuffers()
             {
                 Stream stream = Substitute.For<Stream>();
-                UrlEncodedSerializerBase serializer = new FakeUrlEncodedSerializerBase(stream, SerializationMode.Serialize);
+                UrlEncodedSerializerBase serializer = new FakeUrlEncodedSerializerBase(stream);
 
                 serializer.WriteBeginProperty(new byte[12]);
                 stream.DidNotReceiveWithAnyArgs().Write(null, 0, 0);
@@ -62,7 +61,7 @@
             }
         }
 
-        public sealed class GetMetadata : UrlEncodedSerializerBaseTests
+        public sealed class GetMetadata : UrlEncodedSerializerBaseSerializeTests
         {
             [Fact]
             public void ShouldEscapeCharactersFromTheDisplayName()
@@ -108,7 +107,7 @@
             }
         }
 
-        public sealed class OutputEnumNames : UrlEncodedSerializerBaseTests
+        public sealed class OutputEnumNames : UrlEncodedSerializerBaseSerializeTests
         {
             [Fact]
             public void ShouldReturnTrue()
@@ -118,7 +117,7 @@
             }
         }
 
-        public sealed class WriteBeginArray : UrlEncodedSerializerBaseTests
+        public sealed class WriteBeginArray : UrlEncodedSerializerBaseSerializeTests
         {
             [Fact]
             public void ShouldWriteTheZeroIndex()
@@ -130,7 +129,7 @@
             }
         }
 
-        public sealed class WriteBeginProperty : UrlEncodedSerializerBaseTests
+        public sealed class WriteBeginProperty : UrlEncodedSerializerBaseSerializeTests
         {
             [Fact]
             public void ShouldWriteTheMetadata()
@@ -142,7 +141,7 @@
             }
         }
 
-        public sealed class WriteElementSeparator : UrlEncodedSerializerBaseTests
+        public sealed class WriteElementSeparator : UrlEncodedSerializerBaseSerializeTests
         {
             [Fact]
             public void ShouldIncreaseTheIndex()
@@ -158,7 +157,7 @@
 
         private sealed class FakeUrlEncodedSerializerBase : UrlEncodedSerializerBase
         {
-            public FakeUrlEncodedSerializerBase(Stream stream, SerializationMode mode) : base(stream, mode)
+            public FakeUrlEncodedSerializerBase(Stream stream) : base(stream, SerializationMode.Serialize)
             {
             }
 

@@ -17,6 +17,7 @@ namespace Crest.Host.Serialization.Internal
     public abstract class UrlEncodedSerializerBase : IClassSerializer<byte[]>
     {
         private readonly UrlEncodedSerializerBase parent;
+        private readonly UrlEncodedStreamReader reader;
         private readonly UrlEncodedStreamWriter writer;
         private int currentIndex;
 
@@ -27,7 +28,14 @@ namespace Crest.Host.Serialization.Internal
         /// <param name="mode">The serialization mode.</param>
         protected UrlEncodedSerializerBase(Stream stream, SerializationMode mode)
         {
-            this.writer = new UrlEncodedStreamWriter(stream);
+            if (mode == SerializationMode.Deserialize)
+            {
+                this.reader = new UrlEncodedStreamReader(stream);
+            }
+            else
+            {
+                this.writer = new UrlEncodedStreamWriter(stream);
+            }
         }
 
         /// <summary>
@@ -37,6 +45,7 @@ namespace Crest.Host.Serialization.Internal
         protected UrlEncodedSerializerBase(UrlEncodedSerializerBase parent)
         {
             this.parent = parent;
+            this.reader = parent.reader;
             this.writer = parent.writer;
         }
 
@@ -49,6 +58,9 @@ namespace Crest.Host.Serialization.Internal
         /// names for the enumeration values.
         /// </remarks>
         public static bool OutputEnumNames => true;
+
+        /// <inheritdoc />
+        public ValueReader Reader => this.reader;
 
         /// <inheritdoc />
         public ValueWriter Writer => this.writer;
@@ -81,6 +93,40 @@ namespace Crest.Host.Serialization.Internal
         public void Flush()
         {
             this.writer.Flush();
+        }
+
+        /// <inheritdoc />
+        public bool ReadBeginArray(Type elementType)
+        {
+            if (this.reader.CurrentArrayIndex < 0)
+            {
+                return false;
+            }
+            else
+            {
+                this.reader.MoveToChildren();
+                return true;
+            }
+        }
+
+        /// <inheritdoc />
+        public bool ReadElementSeparator()
+        {
+            this.reader.MoveToParent();
+            if (this.reader.MoveToNextSibling())
+            {
+                this.reader.MoveToChildren();
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+
+        /// <inheritdoc />
+        public void ReadEndArray()
+        {
         }
 
         /// <inheritdoc />
