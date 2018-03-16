@@ -84,8 +84,14 @@
     <Compile Update="Serialization/JumpTableGenerator.Mapping.cs">
       <DependentUpon>JumpTableGenerator.cs</DependentUpon>
     </Compile>
-    <Compile Update="Serialization/SerializerGenerator{TBase}.SerializerInfo.cs">
-      <DependentUpon>SerializerGenerator{TBase}.cs</DependentUpon>
+    <Compile Update="Serialization/JumpTableGenerator.Mapping.cs">
+      <DependentUpon>JumpTableGenerator.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Serialization/UrlEncodedStreamReader.FormParser.cs">
+      <DependentUpon>UrlEncodedStreamReader.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Serialization/UrlEncodedStreamReader.Pair.cs">
+      <DependentUpon>UrlEncodedStreamReader.cs</DependentUpon>
     </Compile>
     <Compile Update="QueryLookup.Grouping.cs">
       <DependentUpon>QueryLookup.cs</DependentUpon>
