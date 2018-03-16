@@ -34,6 +34,8 @@
             {
             }
 
+            public ValueReader Reader { get; } = Substitute.For<ValueReader>();
+
             public ValueWriter Writer { get; } = Substitute.For<ValueWriter>();
 
             internal string BeginWriteMetadata { get; private set; }
@@ -61,6 +63,20 @@
             }
 
             public void Flush()
+            {
+            }
+
+            bool IArraySerializer.ReadBeginArray(Type elementType)
+            {
+                return false;
+            }
+
+            bool IArraySerializer.ReadElementSeparator()
+            {
+                return false;
+            }
+
+            void IArraySerializer.ReadEndArray()
             {
             }
 

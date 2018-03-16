@@ -54,6 +54,8 @@
 
             private abstract class PrimitiveSerializer : IClassSerializer<string>
             {
+                public ValueReader Reader => null;
+
                 public ValueWriter Writer => null;
 
                 public static string GetMetadata()
@@ -70,6 +72,20 @@
                 }
 
                 void IPrimitiveSerializer<string>.Flush()
+                {
+                }
+
+                bool IArraySerializer.ReadBeginArray(Type elementType)
+                {
+                    return false;
+                }
+
+                bool IArraySerializer.ReadElementSeparator()
+                {
+                    return false;
+                }
+
+                void IArraySerializer.ReadEndArray()
                 {
                 }
 

@@ -12,6 +12,7 @@
         {
             this.Mode = mode;
             this.Stream = stream;
+            this.Reader = Substitute.For<ValueReader>();
             this.Writer = Substitute.For<ValueWriter>();
         }
 
@@ -21,6 +22,8 @@
         }
 
         public static bool OutputEnumNames { get; set; }
+
+        public ValueReader Reader { get; }
 
         public ValueWriter Writer { get; }
 
@@ -72,6 +75,20 @@
         }
 
         public void WriteEndProperty()
+        {
+        }
+
+        bool IArraySerializer.ReadBeginArray(Type elementType)
+        {
+            return false;
+        }
+
+        bool IArraySerializer.ReadElementSeparator()
+        {
+            return false;
+        }
+
+        void IArraySerializer.ReadEndArray()
         {
         }
 
