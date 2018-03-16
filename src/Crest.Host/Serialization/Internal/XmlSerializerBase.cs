@@ -14,8 +14,9 @@ namespace Crest.Host.Serialization.Internal
     /// <summary>
     /// The base class for runtime serializers that output XML.
     /// </summary>
-    public abstract class XmlSerializerBase : IClassSerializer<string>
+    public abstract class XmlSerializerBase : IClassSerializer<string>, IDisposable
     {
+        private readonly XmlStreamReader reader;
         private readonly XmlStreamWriter writer;
         private string arrayElementName;
         private bool hasRootArrayElement;
@@ -27,7 +28,14 @@ namespace Crest.Host.Serialization.Internal
         /// <param name="mode">The serialization mode.</param>
         protected XmlSerializerBase(Stream stream, SerializationMode mode)
         {
-            this.writer = new XmlStreamWriter(stream);
+            if (mode == SerializationMode.Deserialize)
+            {
+                this.reader = new XmlStreamReader(stream);
+            }
+            else
+            {
+                this.writer = new XmlStreamWriter(stream);
+            }
         }
 
         /// <summary>
@@ -36,6 +44,7 @@ namespace Crest.Host.Serialization.Internal
         /// <param name="parent">The serializer this instance belongs to.</param>
         protected XmlSerializerBase(XmlSerializerBase parent)
         {
+            this.reader = parent.reader;
             this.writer = parent.writer;
         }
 
@@ -48,6 +57,9 @@ namespace Crest.Host.Serialization.Internal
         /// names for the enumeration values.
         /// </remarks>
         public static bool OutputEnumNames => true;
+
+        /// <inheritdoc />
+        public ValueReader Reader => this.reader;
 
         /// <inheritdoc />
         public ValueWriter Writer => this.writer;
@@ -83,6 +95,12 @@ namespace Crest.Host.Serialization.Internal
         }
 
         /// <inheritdoc />
+        public void Dispose()
+        {
+            this.reader.Dispose();
+        }
+
+        /// <inheritdoc />
         public void EndWrite()
         {
             this.writer.WriteEndElement();
@@ -92,6 +110,74 @@ namespace Crest.Host.Serialization.Internal
         public void Flush()
         {
             this.writer.Flush();
+        }
+
+        /// <inheritdoc />
+        public bool ReadBeginArray(Type elementType)
+        {
+            string name =
+                GetPrimitiveName(elementType) ??
+                XmlConvert.EncodeName(elementType.Name);
+
+            // Are we just reading an array?
+            if (this.reader.Depth == 0)
+            {
+                this.ExpectStartElement("ArrayOf" + name);
+                this.hasRootArrayElement = true;
+            }
+
+            if (this.reader.CanReadStartElement())
+            {
+                this.ExpectStartElement(name);
+                this.arrayElementName = name;
+                return true;
+            }
+            else
+            {
+                this.hasRootArrayElement = false;
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// Temporary code to make unit test work.
+        /// </summary>
+        /// <returns>Nothing interesting.</returns>
+        public string ReadBeginProperty()
+        {
+            if (!this.reader.CanReadStartElement())
+            {
+                return null;
+            }
+            else
+            {
+                return this.reader.ReadStartElement();
+            }
+        }
+
+        /// <inheritdoc />
+        public bool ReadElementSeparator()
+        {
+            this.reader.ReadEndElement();
+            if (this.reader.CanReadStartElement())
+            {
+                this.ExpectStartElement(this.arrayElementName);
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+
+        /// <inheritdoc />
+        public void ReadEndArray()
+        {
+            if ((this.reader.Depth == 0) && this.hasRootArrayElement)
+            {
+                this.reader.ReadEndElement();
+                this.hasRootArrayElement = false;
+            }
         }
 
         /// <inheritdoc />
@@ -213,6 +299,16 @@ namespace Crest.Host.Serialization.Internal
 
                 default:
                     return null;
+            }
+        }
+
+        private void ExpectStartElement(string name)
+        {
+            string element = this.reader.ReadStartElement();
+            if (!string.Equals(element, name, StringComparison.OrdinalIgnoreCase))
+            {
+                throw new FormatException(
+                    $"Expected start element to be {name} at {this.reader.GetCurrentPosition()}");
             }
         }
     }

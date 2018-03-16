@@ -2,7 +2,6 @@
 {
     using System.ComponentModel;
     using System.IO;
-    using System.Reflection;
     using System.Text;
     using Crest.Host.Serialization;
     using Crest.Host.Serialization.Internal;
@@ -10,14 +9,14 @@
     using NSubstitute;
     using Xunit;
 
-    public class XmlSerializerBaseTests
+    public class XmlSerializerBaseSerializeTests
     {
         private readonly XmlSerializerBase serializer;
         private readonly MemoryStream stream = new MemoryStream();
 
-        private XmlSerializerBaseTests()
+        private XmlSerializerBaseSerializeTests()
         {
-            this.serializer = new FakeXmlSerializerBase(this.stream, SerializationMode.Serialize);
+            this.serializer = new FakeXmlSerializerBase(this.stream);
         }
 
         private XmlStreamWriter XmlStreamWriter => (XmlStreamWriter)this.serializer.Writer;
@@ -49,7 +48,7 @@
             return xml;
         }
 
-        public sealed class BeginWrite : XmlSerializerBaseTests
+        public sealed class BeginWrite : XmlSerializerBaseSerializeTests
         {
             [Fact]
             public void ShouldChangeWriteTheStartElement()
@@ -61,12 +60,12 @@
             }
         }
 
-        public sealed class Constructor : XmlSerializerBaseTests
+        public sealed class Constructor : XmlSerializerBaseSerializeTests
         {
             [Fact]
             public void ShouldCreateAStreamWriter()
             {
-                var instance = new FakeXmlSerializerBase(Stream.Null, SerializationMode.Serialize);
+                var instance = new FakeXmlSerializerBase(Stream.Null);
 
                 instance.Writer.Should().NotBeNull();
             }
@@ -74,7 +73,7 @@
             [Fact]
             public void ShouldSetTheWriter()
             {
-                var parent = new FakeXmlSerializerBase(Stream.Null, SerializationMode.Serialize);
+                var parent = new FakeXmlSerializerBase(Stream.Null);
 
                 var instance = new FakeXmlSerializerBase(parent);
 
@@ -82,7 +81,7 @@
             }
         }
 
-        public sealed class EndWrite : XmlSerializerBaseTests
+        public sealed class EndWrite : XmlSerializerBaseSerializeTests
         {
             [Fact]
             public void ShouldCloseTheXmlElement()
@@ -97,13 +96,13 @@
             }
         }
 
-        public sealed class Flush : XmlSerializerBaseTests
+        public sealed class Flush : XmlSerializerBaseSerializeTests
         {
             [Fact]
             public void ShouldFlushTheBuffers()
             {
                 Stream stream = Substitute.For<Stream>();
-                XmlSerializerBase serializer = new FakeXmlSerializerBase(stream, SerializationMode.Serialize);
+                XmlSerializerBase serializer = new FakeXmlSerializerBase(stream);
 
                 serializer.BeginWrite("root");
                 stream.DidNotReceiveWithAnyArgs().Write(null, 0, 0);
@@ -113,7 +112,7 @@
             }
         }
 
-        public sealed class GetMetadata : XmlSerializerBaseTests
+        public sealed class GetMetadata : XmlSerializerBaseSerializeTests
         {
             [Fact]
             public void ShouldEscapeCharactersFromTheDisplayName()
@@ -157,7 +156,7 @@
             }
         }
 
-        public sealed class GetTypeMetadata : XmlSerializerBaseTests
+        public sealed class GetTypeMetadata : XmlSerializerBaseSerializeTests
         {
             [Fact]
             public void ShouldEscapeCharactersFromTheDisplayName()
@@ -174,7 +173,7 @@
             }
         }
 
-        public sealed class OutputEnumNames : XmlSerializerBaseTests
+        public sealed class OutputEnumNames : XmlSerializerBaseSerializeTests
         {
             [Fact]
             public void ShouldReturnTrue()
@@ -184,7 +183,7 @@
             }
         }
 
-        public sealed class WriteBeginArray : XmlSerializerBaseTests
+        public sealed class WriteBeginArray : XmlSerializerBaseSerializeTests
         {
             [Fact]
             public void ShouldTransformPrimitiveElements()
@@ -207,7 +206,7 @@
             }
         }
 
-        public sealed class WriteBeginClass : XmlSerializerBaseTests
+        public sealed class WriteBeginClass : XmlSerializerBaseSerializeTests
         {
             [Fact]
             public void ShouldNotWriteTheOpeningElementForNestedClasses()
@@ -230,7 +229,7 @@
             }
         }
 
-        public sealed class WriteBeginProperty : XmlSerializerBaseTests
+        public sealed class WriteBeginProperty : XmlSerializerBaseSerializeTests
         {
             [Fact]
             public void ShouldWriteTheOpeningElement()
@@ -242,7 +241,7 @@
             }
         }
 
-        public sealed class WriteElementSeparator : XmlSerializerBaseTests
+        public sealed class WriteElementSeparator : XmlSerializerBaseSerializeTests
         {
             [Fact]
             public void ShouldWriteANewElement()
@@ -258,7 +257,7 @@
             }
         }
 
-        public sealed class WriteEndArray : XmlSerializerBaseTests
+        public sealed class WriteEndArray : XmlSerializerBaseSerializeTests
         {
             [Fact]
             public void ShouldCloseRootArrayTags()
@@ -298,7 +297,7 @@
             }
         }
 
-        public sealed class WriteEndClass : XmlSerializerBaseTests
+        public sealed class WriteEndClass : XmlSerializerBaseSerializeTests
         {
             [Fact]
             public void ShouldCloseTheRootClassXmlElement()
@@ -326,7 +325,7 @@
             }
         }
 
-        public sealed class WriteEndProperty : XmlSerializerBaseTests
+        public sealed class WriteEndProperty : XmlSerializerBaseSerializeTests
         {
             [Fact]
             public void ShouldCloseTheCurrentXmlElement()
@@ -347,7 +346,7 @@
 
         private sealed class FakeXmlSerializerBase : XmlSerializerBase
         {
-            public FakeXmlSerializerBase(Stream stream, SerializationMode mode) : base(stream, mode)
+            public FakeXmlSerializerBase(Stream stream) : base(stream, SerializationMode.Serialize)
             {
             }
 
