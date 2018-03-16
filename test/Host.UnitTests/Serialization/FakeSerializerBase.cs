@@ -6,19 +6,25 @@
     using Crest.Host.Serialization.Internal;
     using NSubstitute;
 
-    public class FakeSerializerBase : IClassSerializer<string>, IArraySerializer
+    public class FakeSerializerBase : IClassSerializer<string>
     {
         protected FakeSerializerBase(Stream stream, SerializationMode mode)
+            : this()
         {
             this.Mode = mode;
             this.Stream = stream;
-            this.Reader = Substitute.For<ValueReader>();
-            this.Writer = Substitute.For<ValueWriter>();
         }
 
         protected FakeSerializerBase(FakeSerializerBase parent)
         {
+            this.Reader = parent.Reader;
             this.Writer = parent.Writer;
+        }
+
+        protected FakeSerializerBase()
+        {
+            this.Reader = Substitute.For<ValueReader>();
+            this.Writer = Substitute.For<ValueWriter>();
         }
 
         public static bool OutputEnumNames { get; set; }
@@ -47,60 +53,60 @@
             return type.Name;
         }
 
-        public void BeginWrite(string metadata)
+        public virtual void BeginWrite(string metadata)
         {
             this.BeginPrimitive = metadata;
         }
 
-        public void EndWrite()
+        public virtual void EndWrite()
         {
         }
 
-        public void Flush()
+        public virtual void Flush()
         {
         }
 
-        public void WriteBeginClass(string metadata)
+        public virtual bool ReadBeginArray(Type elementType)
+        {
+            return false;
+        }
+
+        public virtual bool ReadElementSeparator()
+        {
+            return false;
+        }
+
+        public virtual void ReadEndArray()
+        {
+        }
+
+        public virtual void WriteBeginArray(Type elementType, int size)
+        {
+        }
+
+        public virtual void WriteBeginClass(string metadata)
         {
             this.BeginClass = metadata;
         }
 
-        public void WriteBeginProperty(string propertyMetadata)
+        public virtual void WriteBeginProperty(string propertyMetadata)
         {
             this.BeginProperty = propertyMetadata;
         }
 
-        public void WriteEndClass()
+        public virtual void WriteElementSeparator()
         {
         }
 
-        public void WriteEndProperty()
+        public virtual void WriteEndArray()
         {
         }
 
-        bool IArraySerializer.ReadBeginArray(Type elementType)
-        {
-            return false;
-        }
-
-        bool IArraySerializer.ReadElementSeparator()
-        {
-            return false;
-        }
-
-        void IArraySerializer.ReadEndArray()
+        public virtual void WriteEndClass()
         {
         }
 
-        void IArraySerializer.WriteBeginArray(Type elementType, int size)
-        {
-        }
-
-        void IArraySerializer.WriteElementSeparator()
-        {
-        }
-
-        void IArraySerializer.WriteEndArray()
+        public virtual void WriteEndProperty()
         {
         }
     }

@@ -6,7 +6,6 @@
     using System.Reflection;
     using System.Reflection.Emit;
     using Crest.Host.Serialization;
-    using Crest.Host.Serialization.Internal;
     using FluentAssertions;
     using NSubstitute;
     using Xunit;
@@ -22,21 +21,14 @@
         }
 
         // public so the dynamic code can inherit it
-        public abstract class _ArraySerializerBase<T> : IClassSerializer<string>
+        public abstract class _ArraySerializerBase<T> : FakeSerializerBase
         {
             protected readonly List<T> values = new List<T>();
-            private int index;
 
             protected _ArraySerializerBase()
             {
-                this.Reader = Substitute.For<ValueReader>();
-                this.Writer = Substitute.For<ValueWriter>();
                 this.Writer.When(x => x.WriteNull()).Do(_ => this.values.Add(default));
             }
-
-            public ValueReader Reader { get; }
-
-            public ValueWriter Writer { get; }
 
             internal int BeginArraySize { get; private set; }
 
@@ -46,75 +38,22 @@
 
             internal int EndArrayCount { get; private set; }
 
-            internal int TotalValues { get; set; }
-
             internal IReadOnlyList<T> Values => this.values;
 
-            public static string GetMetadata()
-            {
-                return null;
-            }
-
-            public bool ReadBeginArray(Type elementType)
-            {
-                return this.TotalValues > 0;
-            }
-
-            public bool ReadElementSeparator()
-            {
-                // Increase first as ReadElementSeparator is called after a
-                // value is read
-                this.index++;
-                return this.index < this.TotalValues;
-            }
-
-            public void ReadEndArray()
-            {
-                this.EndArrayCount++;
-            }
-
-            public void WriteBeginArray(Type elementType, int size)
+            public override void WriteBeginArray(Type elementType, int size)
             {
                 this.BeginArraySize = size;
                 this.BeginArrayType = elementType;
             }
 
-            public void WriteElementSeparator()
+            public override void WriteElementSeparator()
             {
                 this.ElementSeparatorCount++;
             }
 
-            public void WriteEndArray()
+            public override void WriteEndArray()
             {
                 this.EndArrayCount++;
-            }
-
-            void IPrimitiveSerializer<string>.BeginWrite(string metadata)
-            {
-            }
-
-            void IPrimitiveSerializer<string>.EndWrite()
-            {
-            }
-
-            void IPrimitiveSerializer<string>.Flush()
-            {
-            }
-
-            void IClassSerializer<string>.WriteBeginClass(string metadata)
-            {
-            }
-
-            void IClassSerializer<string>.WriteBeginProperty(string propertyMetadata)
-            {
-            }
-
-            void IClassSerializer<string>.WriteEndClass()
-            {
-            }
-
-            void IClassSerializer<string>.WriteEndProperty()
-            {
             }
         }
 

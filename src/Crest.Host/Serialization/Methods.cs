@@ -56,6 +56,11 @@ namespace Crest.Host.Serialization
         internal PrimitiveSerializerMethods PrimitiveSerializer { get; }
 
         /// <summary>
+        /// Gets the methods for the <see cref="Internal.ValueReader"/> class.
+        /// </summary>
+        internal ValueReaderMethods ValueReader { get; } = new ValueReaderMethods();
+
+        /// <summary>
         /// Gets the methods for the <see cref="Internal.ValueWriter"/> interface.
         /// </summary>
         internal ValueWriterMethods ValueWriter { get; } = new ValueWriterMethods();
@@ -70,6 +75,15 @@ namespace Crest.Host.Serialization
             /// </summary>
             public ArraySerializerMethods()
             {
+                this.ReadBeginArray = typeof(IArraySerializer)
+                    .GetMethod(nameof(IArraySerializer.ReadBeginArray));
+
+                this.ReadElementSeparator = typeof(IArraySerializer)
+                    .GetMethod(nameof(IArraySerializer.ReadElementSeparator));
+
+                this.ReadEndArray = typeof(IArraySerializer)
+                    .GetMethod(nameof(IArraySerializer.ReadEndArray));
+
                 this.WriteBeginArray = typeof(IArraySerializer)
                     .GetMethod(nameof(IArraySerializer.WriteBeginArray));
 
@@ -79,6 +93,21 @@ namespace Crest.Host.Serialization
                 this.WriteEndArray = typeof(IArraySerializer)
                     .GetMethod(nameof(IArraySerializer.WriteEndArray));
             }
+
+            /// <summary>
+            /// Gets the metadata for the <see cref="IArraySerializer.ReadBeginArray(Type)"/> method.
+            /// </summary>
+            public MethodInfo ReadBeginArray { get; }
+
+            /// <summary>
+            /// Gets the metadata for the <see cref="IArraySerializer.ReadElementSeparator"/> method.
+            /// </summary>
+            public MethodInfo ReadElementSeparator { get; }
+
+            /// <summary>
+            /// Gets the metadata for the <see cref="IArraySerializer.ReadEndArray"/> method.
+            /// </summary>
+            public MethodInfo ReadEndArray { get; }
 
             /// <summary>
             /// Gets the metadata for the <see cref="IArraySerializer.WriteBeginArray(Type, int)"/> method.
@@ -257,6 +286,10 @@ namespace Crest.Host.Serialization
                 this.EndWrite = primitiveSerializer
                     .GetMethod(nameof(IPrimitiveSerializer<object>.EndWrite));
 
+                this.GetReader = typeof(IArraySerializer)
+                    .GetProperty(nameof(IArraySerializer.Reader))
+                    .GetGetMethod();
+
                 this.GetWriter = primitiveSerializer
                     .GetProperty(nameof(IPrimitiveSerializer<object>.Writer))
                     .GetGetMethod();
@@ -273,9 +306,87 @@ namespace Crest.Host.Serialization
             public MethodInfo EndWrite { get; }
 
             /// <summary>
+            /// Gets the metadata for the <see cref="IArraySerializer.Reader"/> property.
+            /// </summary>
+            public MethodInfo GetReader { get; }
+
+            /// <summary>
             /// Gets the metadata for the <see cref="IPrimitiveSerializer{T}.Writer"/> property.
             /// </summary>
             public MethodInfo GetWriter { get; }
+        }
+
+        /// <summary>
+        /// Contains the methods of the <see cref="Internal.ValueReader"/> class.
+        /// </summary>
+        internal sealed class ValueReaderMethods : IEnumerable<KeyValuePair<Type, MethodInfo>>
+        {
+            private readonly Dictionary<Type, MethodInfo> methods;
+
+            /// <summary>
+            /// Initializes a new instance of the <see cref="ValueReaderMethods"/> class.
+            /// </summary>
+            public ValueReaderMethods()
+            {
+                this.ReadNull = typeof(ValueReader).GetMethod(
+                    nameof(Internal.ValueReader.ReadNull));
+
+                this.ReadObject = typeof(ValueReader).GetMethod(
+                    nameof(Internal.ValueReader.ReadObject));
+
+                this.methods = typeof(ValueReader).GetTypeInfo()
+                    .DeclaredMethods
+                    .Where(m => m.IsPublic)
+                    .Where(m => (m != this.ReadNull) && (m != this.ReadObject))
+                    .Where(m => m.Name.StartsWith("Read", StringComparison.Ordinal))
+                    .ToDictionary(m => m.ReturnType);
+            }
+
+            /// <summary>
+            /// Gets the metadata for the <see cref="ValueReader.ReadNull"/> method.
+            /// </summary>
+            public MethodInfo ReadNull { get; }
+
+            /// <summary>
+            /// Gets the metadata for the <see cref="ValueReader.ReadObject(Type)"/> method.
+            /// </summary>
+            public MethodInfo ReadObject { get; }
+
+            /// <summary>
+            /// Gets the write method that accepts the specified type as an argument.
+            /// </summary>
+            /// <param name="type">The type of the argument.</param>
+            /// <returns>The metadata for the method.</returns>
+            public MethodInfo this[Type type] => this.methods[type];
+
+            /// <inheritdoc />
+            public IEnumerator<KeyValuePair<Type, MethodInfo>> GetEnumerator()
+            {
+                return this.methods.GetEnumerator();
+            }
+
+            /// <summary>
+            /// Gets the write method that accepts the specified type as an argument.
+            /// </summary>
+            /// <param name="type">The type of the argument.</param>
+            /// <param name="method">
+            /// When this methods returns, contains the metadata for the method
+            /// or <c>null</c> if no method was found.
+            /// </param>
+            /// <returns>
+            /// <c>true</c> if a write method was found that accepts the
+            /// specified type as an argument; otherwise, <c>false</c>.
+            /// </returns>
+            public bool TryGetMethod(Type type, out MethodInfo method)
+            {
+                return this.methods.TryGetValue(type, out method);
+            }
+
+            /// <inheritdoc />
+            IEnumerator IEnumerable.GetEnumerator()
+            {
+                return this.GetEnumerator();
+            }
         }
 
         /// <summary>
