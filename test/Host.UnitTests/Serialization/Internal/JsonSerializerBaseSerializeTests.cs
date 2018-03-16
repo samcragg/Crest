@@ -2,21 +2,20 @@
 {
     using System.ComponentModel;
     using System.IO;
-    using System.Reflection;
     using System.Text;
     using Crest.Host.Serialization.Internal;
     using FluentAssertions;
     using NSubstitute;
     using Xunit;
 
-    public class JsonSerializerBaseTests
+    public class JsonSerializerBaseSerializeTests
     {
         private readonly JsonSerializerBase serializer;
         private readonly MemoryStream stream = new MemoryStream();
 
-        protected JsonSerializerBaseTests()
+        protected JsonSerializerBaseSerializeTests()
         {
-            this.serializer = new FakeJsonSerializerBase(this.stream, SerializationMode.Serialize);
+            this.serializer = new FakeJsonSerializerBase(this.stream);
         }
 
         protected byte[] GetWrittenData()
@@ -25,12 +24,12 @@
             return this.stream.ToArray();
         }
 
-        public sealed class Constructor : JsonSerializerBaseTests
+        public sealed class Constructor : JsonSerializerBaseSerializeTests
         {
             [Fact]
             public void ShouldCreateAStreamWriter()
             {
-                var instance = new FakeJsonSerializerBase(Stream.Null, SerializationMode.Serialize);
+                var instance = new FakeJsonSerializerBase(Stream.Null);
 
                 instance.Writer.Should().NotBeNull();
             }
@@ -38,7 +37,7 @@
             [Fact]
             public void ShouldSetTheWriter()
             {
-                var parent = new FakeJsonSerializerBase(Stream.Null, SerializationMode.Serialize);
+                var parent = new FakeJsonSerializerBase(Stream.Null);
 
                 var instance = new FakeJsonSerializerBase(parent);
 
@@ -46,13 +45,13 @@
             }
         }
 
-        public sealed class Flush : JsonSerializerBaseTests
+        public sealed class Flush : JsonSerializerBaseSerializeTests
         {
             [Fact]
             public void ShouldFlushTheBuffers()
             {
                 Stream stream = Substitute.For<Stream>();
-                JsonSerializerBase serializer = new FakeJsonSerializerBase(stream, SerializationMode.Serialize);
+                JsonSerializerBase serializer = new FakeJsonSerializerBase(stream);
 
                 serializer.WriteBeginClass(null);
                 stream.DidNotReceiveWithAnyArgs().Write(null, 0, 0);
@@ -62,7 +61,7 @@
             }
         }
 
-        public sealed class GetMetadata : JsonSerializerBaseTests
+        public sealed class GetMetadata : JsonSerializerBaseSerializeTests
         {
             [Fact]
             public void ShouldChangeTheCaseOfTheProperty()
@@ -110,7 +109,7 @@
             }
         }
 
-        public sealed class OutputEnumNames : JsonSerializerBaseTests
+        public sealed class OutputEnumNames : JsonSerializerBaseSerializeTests
         {
             [Fact]
             public void ShouldReturnFalse()
@@ -120,7 +119,7 @@
             }
         }
 
-        public sealed class WriteBeginArray : JsonSerializerBaseTests
+        public sealed class WriteBeginArray : JsonSerializerBaseSerializeTests
         {
             [Fact]
             public void ShouldWriteTheOpeningBracket()
@@ -132,7 +131,7 @@
             }
         }
 
-        public sealed class WriteBeginClass : JsonSerializerBaseTests
+        public sealed class WriteBeginClass : JsonSerializerBaseSerializeTests
         {
             [Fact]
             public void ShouldWriteTheOpeningBrace()
@@ -144,7 +143,7 @@
             }
         }
 
-        public sealed class WriteBeginProperty : JsonSerializerBaseTests
+        public sealed class WriteBeginProperty : JsonSerializerBaseSerializeTests
         {
             [Fact]
             public void ShouldWriteACommaBetweenProperties()
@@ -168,7 +167,7 @@
             }
         }
 
-        public sealed class WriteElementSeparator : JsonSerializerBaseTests
+        public sealed class WriteElementSeparator : JsonSerializerBaseSerializeTests
         {
             [Fact]
             public void ShouldWriteAComma()
@@ -180,7 +179,7 @@
             }
         }
 
-        public sealed class WriteEndArray : JsonSerializerBaseTests
+        public sealed class WriteEndArray : JsonSerializerBaseSerializeTests
         {
             [Fact]
             public void ShouldWriteTheClosingBracket()
@@ -192,7 +191,7 @@
             }
         }
 
-        public sealed class WriteEndClass : JsonSerializerBaseTests
+        public sealed class WriteEndClass : JsonSerializerBaseSerializeTests
         {
             [Fact]
             public void ShouldWriteTheClosingBrace()
@@ -206,7 +205,7 @@
 
         private sealed class FakeJsonSerializerBase : JsonSerializerBase
         {
-            public FakeJsonSerializerBase(Stream stream, SerializationMode mode) : base(stream, mode)
+            public FakeJsonSerializerBase(Stream stream) : base(stream, SerializationMode.Serialize)
             {
             }
 

@@ -14,8 +14,9 @@ namespace Crest.Host.Serialization.Internal
     /// <summary>
     /// The base class for runtime serializers that output JSON.
     /// </summary>
-    public abstract class JsonSerializerBase : IClassSerializer<byte[]>
+    public abstract class JsonSerializerBase : IClassSerializer<byte[]>, IDisposable
     {
+        private readonly JsonStreamReader reader;
         private readonly JsonStreamWriter writer;
         private bool hasPropertyWritten;
 
@@ -26,7 +27,14 @@ namespace Crest.Host.Serialization.Internal
         /// <param name="mode">The serialization mode.</param>
         protected JsonSerializerBase(Stream stream, SerializationMode mode)
         {
-            this.writer = new JsonStreamWriter(stream);
+            if (mode == SerializationMode.Deserialize)
+            {
+                this.reader = new JsonStreamReader(stream);
+            }
+            else
+            {
+                this.writer = new JsonStreamWriter(stream);
+            }
         }
 
         /// <summary>
@@ -35,6 +43,7 @@ namespace Crest.Host.Serialization.Internal
         /// <param name="parent">The serializer this instance belongs to.</param>
         protected JsonSerializerBase(JsonSerializerBase parent)
         {
+            this.reader = parent.reader;
             this.writer = parent.writer;
         }
 
@@ -47,6 +56,9 @@ namespace Crest.Host.Serialization.Internal
         /// numbers for the enumeration values.
         /// </remarks>
         public static bool OutputEnumNames => false;
+
+        /// <inheritdoc />
+        public ValueReader Reader => this.reader;
 
         /// <inheritdoc />
         public ValueWriter Writer => this.writer;
@@ -83,6 +95,12 @@ namespace Crest.Host.Serialization.Internal
         }
 
         /// <inheritdoc />
+        public void Dispose()
+        {
+            this.reader.Dispose();
+        }
+
+        /// <inheritdoc />
         public void EndWrite()
         {
         }
@@ -91,6 +109,32 @@ namespace Crest.Host.Serialization.Internal
         public void Flush()
         {
             this.writer.Flush();
+        }
+
+        /// <inheritdoc />
+        public bool ReadBeginArray(Type elementType)
+        {
+            if (this.reader.TryReadToken('['))
+            {
+                // Make sure we return false for empty arrays
+                return !this.reader.TryReadToken(']');
+            }
+            else
+            {
+                return false;
+            }
+        }
+
+        /// <inheritdoc />
+        public bool ReadElementSeparator()
+        {
+            return this.reader.TryReadToken(',');
+        }
+
+        /// <inheritdoc />
+        public void ReadEndArray()
+        {
+            this.reader.ExpectToken(']');
         }
 
         /// <inheritdoc />
