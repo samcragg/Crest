@@ -23,7 +23,8 @@ effecting older clients.
 
 First create an interface that describes the routes. The XML documentation will
 be converted to an [OpenAPI](https://www.openapis.org/) json for the project, so
-be sure to include it in your contract with the outside world:
+be sure to include it - your API is your contract with the outside world so make
+it as easy to discover and use as possible.
 
 ```C#
 /// <summary>
@@ -46,4 +47,21 @@ public interface ISampleService
 
 The users of the service will be able to invoke the method by navigating to
 `http://hostname/v1/sample/greeting` and since the class that implements the
-interface has no dependencies on the HTTP context, it is easy to unit test.
+interface has no dependencies on the HTTP context, it is easy to unit test the
+logic without having to mock out the HTTP side of things.
+
+Also note that the method is versioned - this allows for new methods to be
+added that replace the old methods without breaking any third party code
+written that's using the old method.
+
+# Contributing
+
+All contributions are welcome! Take a look at [CONTRIBUTING](CONTRIBUTING.md)
+for some tips.
+
+# Code of Conduct
+
+This project has adopted the code of conduct defined by the
+[Contributor Covenant](https://www.contributor-covenant.org/) to clarify
+expected behaviour in our community. For more information see
+[CODE_OF_CONDUCT](CODE_OF_CONDUCT.md).
