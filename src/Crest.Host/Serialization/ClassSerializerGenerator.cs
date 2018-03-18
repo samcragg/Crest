@@ -157,7 +157,6 @@ namespace Crest.Host.Serialization
 
         private void EmitWriteArray(TypeBuilder builder, Type classType, MethodInfo generatedMethod)
         {
-            Type arrayType = classType.MakeArrayType();
             MethodBuilder methodBuilder = builder.DefineMethod(
                     nameof(ITypeSerializer.WriteArray),
                     PublicVirtualMethod,
@@ -165,13 +164,9 @@ namespace Crest.Host.Serialization
 
             methodBuilder.SetParameters(typeof(Array));
             ILGenerator generator = methodBuilder.GetILGenerator();
-            generator.DeclareLocal(typeof(int)); // loop counter
-            generator.DeclareLocal(arrayType);
 
             var arrayEmitter = new ArraySerializeEmitter(generator, this.BaseClass, this.Methods)
             {
-                LoadArray = g => g.EmitLoadLocal(1),
-                LoopCounterLocalIndex = 0,
                 WriteValue = (_, loadElement) =>
                 {
                     // Note the null checking has been done by the array emitter
@@ -185,12 +180,8 @@ namespace Crest.Host.Serialization
                 }
             };
 
-            // T[] array = (T[])arg1
-            generator.EmitLoadArgument(1);
-            generator.Emit(OpCodes.Castclass, arrayType);
-            generator.EmitStoreLocal(1);
-
-            arrayEmitter.EmitWriteArray(arrayType);
+            generator.EmitLoadArgument(1); // 0 = this, 1 = array
+            arrayEmitter.EmitWriteArray(classType.MakeArrayType());
             generator.Emit(OpCodes.Ret);
         }
 

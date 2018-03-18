@@ -41,11 +41,6 @@ namespace Crest.Host.Serialization
         internal BaseClassMethods BaseClass { get; }
 
         /// <summary>
-        /// Gets the methods for the <see cref="IList"/> interface.
-        /// </summary>
-        internal ListMethods List { get; } = new ListMethods();
-
-        /// <summary>
         /// Gets the methods for the <see cref="object"/> class.
         /// </summary>
         internal ObjectMethods Object { get; } = new ObjectMethods();
@@ -211,36 +206,6 @@ namespace Crest.Host.Serialization
             /// Gets the metadata for the <see cref="IClassSerializer{T}.WriteEndProperty"/> method.
             /// </summary>
             public MethodInfo WriteEndProperty { get; }
-        }
-
-        /// <summary>
-        /// Contains the methods of the <see cref="IList"/> interface.
-        /// </summary>
-        internal class ListMethods
-        {
-            /// <summary>
-            /// Initializes a new instance of the <see cref="ListMethods"/> class.
-            /// </summary>
-            public ListMethods()
-            {
-                this.GetCount = typeof(ICollection)
-                    .GetProperty(nameof(ICollection.Count))
-                    .GetGetMethod();
-
-                this.GetItem = typeof(IList)
-                    .GetProperty("Item")
-                    .GetGetMethod();
-            }
-
-            /// <summary>
-            /// Gets the metadata for the <see cref="ICollection.Count"/> property.
-            /// </summary>
-            public MethodInfo GetCount { get; }
-
-            /// <summary>
-            /// Gets the metadata for the <see cref="IList.get_Item(int)"/> method.
-            /// </summary>
-            public MethodInfo GetItem { get; }
         }
 
         /// <summary>

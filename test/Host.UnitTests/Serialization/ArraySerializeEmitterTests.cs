@@ -88,41 +88,6 @@
             }
 
             [Fact]
-            public void ShouldHandleBaseArrayClass()
-            {
-                // Create the dynamic assembly related types
-                TypeBuilder typeBuilder = CreateTypeBuilder<_ArraySerializerBase<int>>();
-                MethodBuilder method = CreateMethod(typeBuilder, typeof(Array));
-
-                // Create the method
-                ILGenerator generator = method.GetILGenerator();
-                generator.DeclareLocal(typeof(int)); // loop counter
-                ArraySerializeEmitter emitter = CreateArraySerializer<_ArraySerializerBase<int>>(generator);
-                emitter.LoadArray = g => g.EmitLoadArgument(1); // 0 = this, 1 = Array
-                emitter.LoadArrayElement = (g, _) => g.EmitCall(OpCodes.Callvirt, typeof(IList).GetProperty("Item").GetGetMethod(), null);
-                emitter.LoadArrayLength = g => g.EmitCall(OpCodes.Callvirt, typeof(Array).GetProperty(nameof(Array.Length)).GetGetMethod(), null);
-                emitter.LoopCounterLocalIndex = 0;
-                emitter.WriteValue = (_, loadElement) =>
-                {
-                    // this.values.Add(x);
-                    generator.Emit(OpCodes.Ldarg_0);
-                    generator.Emit(OpCodes.Ldfld, typeof(_ArraySerializerBase<int>).GetField("values", BindingFlags.Instance | BindingFlags.NonPublic));
-                    loadElement(generator);
-                    generator.Emit(OpCodes.Unbox_Any, typeof(int));
-                    generator.EmitCall(OpCodes.Callvirt, typeof(List<int>).GetMethod(nameof(List<int>.Add)), null);
-                };
-
-                emitter.EmitWriteArray(typeof(int[]));
-                generator.Emit(OpCodes.Ret);
-
-                _ArraySerializerBase<int> result = InvokeGeneratedMethod<int>(
-                    typeBuilder,
-                    new[] { 1, 2, 3 });
-
-                result.Values.Should().Equal(1, 2, 3);
-            }
-
-            [Fact]
             public void ShouldNotCallWriteElementSeparatorForSingleElementArrayss()
             {
                 _ArraySerializerBase<int> result = this.SerializeArray(new int[1]);
@@ -208,11 +173,7 @@
 
                 // Create the method
                 ILGenerator generator = method.GetILGenerator();
-                generator.DeclareLocal(typeof(int)); // loop counter
-                generator.DeclareLocal(typeof(T[])); // array variable
                 ArraySerializeEmitter emitter = CreateArraySerializer<_ArraySerializerBase<T>>(generator);
-                emitter.LoadArray = g => g.EmitLoadLocal(1);
-                emitter.LoopCounterLocalIndex = 0;
                 emitter.WriteValue = (_, loadElement) =>
                 {
                     // this.values.Add(x);
@@ -238,7 +199,6 @@
 
                 // Generate the code
                 generator.Emit(OpCodes.Ldarg_1);
-                generator.Emit(OpCodes.Stloc_1);
                 emitter.EmitWriteArray(typeof(T[]));
                 generator.Emit(OpCodes.Ret);
 

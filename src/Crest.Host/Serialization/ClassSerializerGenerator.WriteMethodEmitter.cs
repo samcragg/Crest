@@ -191,18 +191,13 @@ namespace Crest.Host.Serialization
 
             private void EmitWriteArray(PropertyInfo property)
             {
-                int localArrayIndex = this.GetOrAddLocal(property.PropertyType).LocalIndex;
                 var arrayEmitter = new ArraySerializeEmitter(this.generator, this.owner.BaseClass, this.owner.Methods)
                 {
-                    LoadArray = g => g.EmitLoadLocal(localArrayIndex),
-                    LoopCounterLocalIndex = this.GetOrAddLocal(typeof(int)).LocalIndex,
                     WriteValue = this.EmitSerializeValue
                 };
 
                 // var array = this.ArrayProperty
                 this.EmitLoadPropertyValue(property);
-                this.generator.EmitStoreLocal(localArrayIndex);
-
                 arrayEmitter.EmitWriteArray(property.PropertyType);
             }
 

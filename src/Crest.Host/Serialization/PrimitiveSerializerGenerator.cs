@@ -69,7 +69,6 @@ namespace Crest.Host.Serialization
 
         private void EmitWriteArrayMethod(TypeBuilder builder, MethodInfo writeMethod, Type type)
         {
-            Type arrayType = type.MakeArrayType();
             MethodBuilder methodBuilder = builder.DefineMethod(
                 nameof(ITypeSerializer.WriteArray),
                 PublicVirtualMethod,
@@ -77,18 +76,9 @@ namespace Crest.Host.Serialization
 
             methodBuilder.SetParameters(typeof(Array));
             ILGenerator generator = methodBuilder.GetILGenerator();
-            generator.DeclareLocal(typeof(int));
-            generator.DeclareLocal(arrayType);
-
-            // var array = (T[])parameter
-            generator.EmitLoadArgument(1); // 0 = this, 1 = array
-            generator.Emit(OpCodes.Castclass, arrayType);
-            generator.EmitStoreLocal(1);
 
             var arrayEmitter = new ArraySerializeEmitter(generator, this.BaseClass, this.Methods)
             {
-                LoadArray = g => g.EmitLoadLocal(1),
-                LoopCounterLocalIndex = 0,
                 WriteValue = (_, loadElement) =>
                 {
                     generator.EmitLoadArgument(0);
@@ -97,8 +87,9 @@ namespace Crest.Host.Serialization
                     generator.EmitCall(writeMethod.DeclaringType, writeMethod);
                 }
             };
-            arrayEmitter.EmitWriteArray(arrayType);
 
+            generator.EmitLoadArgument(1); // 0 = this, 1 = array
+            arrayEmitter.EmitWriteArray(type.MakeArrayType());
             generator.Emit(OpCodes.Ret);
         }
 

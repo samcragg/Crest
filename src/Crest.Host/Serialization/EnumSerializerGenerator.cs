@@ -32,46 +32,55 @@ namespace Crest.Host.Serialization
         /// <summary>
         /// Generates a serializer for writing enumeration values as strings.
         /// </summary>
+        /// <param name="enumType">The enumeration type.</param>
         /// <returns>The generated type of the serializer.</returns>
-        public Type GenerateStringSerializer()
+        public Type GenerateStringSerializer(Type enumType)
         {
-            TypeBuilder builder = this.CreateType(nameof(Enum));
+            TypeBuilder builder = this.CreateType(GetName(enumType));
             this.EmitConstructor(builder, null, typeof(Stream), typeof(SerializationMode));
-            this.EmitWriteStringValues(builder);
-            return this.GenerateType(builder, typeof(Enum));
+            this.EmitWriteStringValues(builder, enumType);
+            return this.GenerateType(builder, enumType);
         }
 
         /// <summary>
         /// Generates a serializer for writing enumeration values directly to
         /// the response stream.
         /// </summary>
-        /// <param name="underlyingType">The underlying type of the enumeration.</param>
+        /// <param name="enumType">The enumeration type.</param>
         /// <returns>The generated type of the serializer.</returns>
-        public Type GenerateValueSerializer(Type underlyingType)
+        public Type GenerateValueSerializer(Type enumType)
         {
-            TypeBuilder builder = this.CreateType(nameof(Enum) + underlyingType.Name);
+            TypeBuilder builder = this.CreateType(GetName(enumType));
             this.EmitConstructor(builder, null, typeof(Stream), typeof(SerializationMode));
-            this.EmitWriteIntegerValues(builder, underlyingType);
-            return this.GenerateType(builder, typeof(Enum));
+            this.EmitWriteIntegerValues(builder, enumType);
+            return this.GenerateType(builder, enumType);
         }
 
-        private void EmitWriteArrayMethod(TypeBuilder builder, Action<ILGenerator> writeValue)
+        private static string GetName(Type type)
+        {
+            Type underlyingType = Nullable.GetUnderlyingType(type);
+            if (underlyingType != null)
+            {
+                return underlyingType.Name + "?";
+            }
+            else
+            {
+                return type.Name;
+            }
+        }
+
+        private void EmitWriteArrayMethod(TypeBuilder builder, Type enumType, Action<ILGenerator> writeValue)
         {
             MethodBuilder methodBuilder = builder.DefineMethod(
-                nameof(ITypeSerializer.WriteArray),
-                PublicVirtualMethod,
-                CallingConventions.HasThis);
+                    nameof(ITypeSerializer.WriteArray),
+                    PublicVirtualMethod,
+                    CallingConventions.HasThis);
 
             methodBuilder.SetParameters(typeof(Array));
             ILGenerator generator = methodBuilder.GetILGenerator();
-            generator.DeclareLocal(typeof(int));
 
             var arrayEmitter = new ArraySerializeEmitter(generator, this.BaseClass, this.Methods)
             {
-                LoadArray = g => g.EmitLoadArgument(1),
-                LoadArrayElement = (g, _) => g.EmitCall(OpCodes.Callvirt, this.Methods.List.GetItem, null),
-                LoadArrayLength = g => g.EmitCall(OpCodes.Callvirt, this.Methods.List.GetCount, null),
-                LoopCounterLocalIndex = 0,
                 WriteValue = (_, loadElement) =>
                 {
                     generator.EmitLoadArgument(0);
@@ -80,15 +89,22 @@ namespace Crest.Host.Serialization
                     writeValue(generator);
                 }
             };
-            arrayEmitter.EmitWriteArray(typeof(Enum[]));
 
+            generator.EmitLoadArgument(1); // 0 = this, 1 = array
+            arrayEmitter.EmitWriteArray(enumType.MakeArrayType());
             generator.Emit(OpCodes.Ret);
         }
 
-        private void EmitWriteIntegerValues(TypeBuilder builder, Type underlyingType)
+        private void EmitWriteIntegerValues(TypeBuilder builder, Type enumType)
         {
+            // Find the primitive the enum inherits from, taking into account
+            // that we could have a nullable enum at this stage
+            Type underlyingType = Enum.GetUnderlyingType(
+                Nullable.GetUnderlyingType(enumType) ?? enumType);
+
             this.EmitWriteMethod(
                 builder,
+                enumType,
                 this.Methods.ValueWriter[underlyingType],
                 g =>
                 {
@@ -103,10 +119,8 @@ namespace Crest.Host.Serialization
                     g.Emit(OpCodes.Unbox_Any, underlyingType);
                 });
 
-            this.EmitWriteArrayMethod(builder, g =>
+            this.EmitWriteArrayMethod(builder, enumType, g =>
             {
-                // We've got an object on the stack (IList.get_Item) so unbox it
-                g.Emit(OpCodes.Unbox_Any, underlyingType);
                 g.EmitCall(
                     typeof(ValueWriter),
                     this.Methods.ValueWriter[underlyingType]);
@@ -115,6 +129,7 @@ namespace Crest.Host.Serialization
 
         private void EmitWriteMethod(
             TypeBuilder builder,
+            Type enumType,
             MethodInfo writeMethod,
             Action<ILGenerator> loadValue)
         {
@@ -131,7 +146,7 @@ namespace Crest.Host.Serialization
                 builder,
                 generator,
                 this.Methods.PrimitiveSerializer.BeginWrite,
-                typeof(Enum));
+                enumType);
 
             // this.Writer.WriteXXX((XXX)parameter)
             generator.EmitLoadArgument(0);
@@ -145,23 +160,32 @@ namespace Crest.Host.Serialization
             generator.Emit(OpCodes.Ret);
         }
 
-        private void EmitWriteStringValues(TypeBuilder builder)
+        private void EmitWriteStringValues(TypeBuilder builder, Type enumType)
         {
             this.EmitWriteMethod(
                 builder,
+                enumType,
                 this.Methods.ValueWriter[typeof(string)],
                 g =>
                 {
                     // No need for null checking as that's done higher up in the
-                    // pipeline.
+                    // pipeline and no need for casting as the value is already
+                    // boxed into an object.
                     //
                     // arg.ToString();
                     g.EmitLoadArgument(1);
                     g.EmitCall(OpCodes.Callvirt, this.Methods.Object.ToString, null);
                 });
 
-            this.EmitWriteArrayMethod(builder, g =>
+            this.EmitWriteArrayMethod(builder, enumType, g =>
             {
+                // We could store this in a local so we could load the address
+                // instead of boxing the value up, reducing GC pressure
+                //
+                // If the element type is nullable then the value on the stack
+                // is the actual value (i.e. it's been unwrapped from the
+                // nullable container).
+                g.Emit(OpCodes.Box, Nullable.GetUnderlyingType(enumType) ?? enumType);
                 g.EmitCall(OpCodes.Callvirt, this.Methods.Object.ToString, null);
                 g.EmitCall(
                     typeof(ValueWriter),

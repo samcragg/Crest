@@ -46,6 +46,8 @@ namespace Crest.Host.Serialization
         private readonly Type baseClass;
         private readonly ILGenerator generator;
         private readonly Methods methods;
+        private int arrayLocalIndex;
+        private int loopCounterLocalIndex;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ArraySerializeEmitter"/> class.
@@ -61,32 +63,6 @@ namespace Crest.Host.Serialization
         }
 
         /// <summary>
-        /// Gets or sets the action to call to load the array onto the
-        /// evaluation stack.
-        /// </summary>
-        public Action<ILGenerator> LoadArray { get; set; }
-
-        /// <summary>
-        /// Gets or sets the action to call to write the instruction to load an
-        /// element from the array onto the evaluation stack.
-        /// </summary>
-        public Action<ILGenerator, Type> LoadArrayElement { get; set; }
-            = (g, t) => g.EmitLoadElement(t);
-
-        /// <summary>
-        /// Gets or sets the action to call to write the instruction to load
-        /// the length of the array onto the evaluation stack.
-        /// </summary>
-        public Action<ILGenerator> LoadArrayLength { get; set; }
-            = g => g.Emit(OpCodes.Ldlen);
-
-        /// <summary>
-        /// Gets or sets the index of the local integer variable to store the
-        /// current array index in the loop.
-        /// </summary>
-        public int LoopCounterLocalIndex { get; set; }
-
-        /// <summary>
         /// Gets or sets the action to call to write the value to the output
         /// stream.
         /// </summary>
@@ -100,10 +76,21 @@ namespace Crest.Host.Serialization
         /// Emits the code to serialize all the elements of an array.
         /// </summary>
         /// <param name="arrayType">The type of the array.</param>
+        /// <remarks>
+        /// This method assumes that the array has been loaded into the
+        /// evaluation stack.
+        /// </remarks>
         public void EmitWriteArray(Type arrayType)
         {
             Type elementType = arrayType.GetElementType();
+            this.loopCounterLocalIndex = this.generator.DeclareLocal(typeof(int)).LocalIndex;
+            this.arrayLocalIndex = this.generator.DeclareLocal(arrayType).LocalIndex;
 
+            // var array = (T[])parameter
+            this.generator.Emit(OpCodes.Castclass, arrayType);
+            this.generator.EmitStoreLocal(this.arrayLocalIndex);
+
+            // this.WriteBeginArray(elementType)
             this.CallWriteBeginArray(elementType);
             Label endIf = this.EmitLengthCheck();
 
@@ -121,8 +108,8 @@ namespace Crest.Host.Serialization
             // this.WriteBeginArray(typeof(T), array.Length);
             this.generator.EmitLoadArgument(0);
             this.generator.EmitLoadTypeof(elementType);
-            this.LoadArray(this.generator);
-            this.LoadArrayLength(this.generator); // Could load a natural unsigned int
+            this.generator.EmitLoadLocal(this.arrayLocalIndex);
+            this.generator.Emit(OpCodes.Ldlen); // Loads a natural unsigned int
             this.generator.Emit(OpCodes.Conv_I4);
             this.generator.EmitCall(this.baseClass, this.methods.ArraySerializer.WriteBeginArray);
         }
@@ -131,13 +118,13 @@ namespace Crest.Host.Serialization
         {
             // for (int i = 1; i < array.Length; i++)
             this.generator.EmitForLoop(
-                this.LoopCounterLocalIndex,
+                this.loopCounterLocalIndex,
                 g => g.Emit(OpCodes.Ldc_I4_1),
                 g =>
                 {
                     // i < array.Length
-                    this.LoadArray(g);
-                    this.LoadArrayLength(g);
+                    this.generator.EmitLoadLocal(this.arrayLocalIndex);
+                    g.Emit(OpCodes.Ldlen);
                     g.Emit(OpCodes.Conv_I4);
                 },
                 g =>
@@ -147,15 +134,15 @@ namespace Crest.Host.Serialization
                     g.EmitCall(this.baseClass, this.methods.ArraySerializer.WriteElementSeparator);
 
                     // this.Writer.WriteXXX(local[i]);
-                    this.EmitWriteElement(elementType, gen => gen.EmitLoadLocal(this.LoopCounterLocalIndex));
+                    this.EmitWriteElement(elementType, gen => gen.EmitLoadLocal(this.loopCounterLocalIndex));
                 });
         }
 
         private Label EmitLengthCheck()
         {
             Label endIf = this.generator.DefineLabel();
-            this.LoadArray(this.generator);
-            this.LoadArrayLength(this.generator);
+            this.generator.EmitLoadLocal(this.arrayLocalIndex);
+            this.generator.Emit(OpCodes.Ldlen);
             this.generator.Emit(OpCodes.Brfalse, endIf);
             return endIf;
         }
@@ -182,9 +169,9 @@ namespace Crest.Host.Serialization
             this.WriteValue(elementType, g =>
             {
                 // array[index]
-                this.LoadArray(g);
+                g.EmitLoadLocal(this.arrayLocalIndex);
                 loadIndex(g);
-                this.LoadArrayElement(g, elementType);
+                g.EmitLoadElement(elementType);
             });
         }
 
@@ -214,7 +201,7 @@ namespace Crest.Host.Serialization
             // pointer is the address of the memory location
             //
             // if (array[index].HasValue)
-            this.LoadArray(this.generator);
+            this.generator.EmitLoadLocal(this.arrayLocalIndex);
             loadIndex(this.generator);
             this.generator.Emit(OpCodes.Ldelema, elementType);
             this.generator.EmitCall(OpCodes.Call, hasValue, null);
@@ -223,7 +210,7 @@ namespace Crest.Host.Serialization
             this.WriteValue(underlyingType, g =>
             {
                 // array[index].GetValueOrDefault()
-                this.LoadArray(g);
+                g.EmitLoadLocal(this.arrayLocalIndex);
                 loadIndex(g);
                 g.Emit(OpCodes.Ldelema, elementType);
                 this.generator.EmitCall(OpCodes.Call, getValueOrDefault, null);
@@ -242,9 +229,9 @@ namespace Crest.Host.Serialization
             Label endIfLabel = this.generator.DefineLabel();
 
             // if (array[index] != null) { Write(array[index]) }
-            this.LoadArray(this.generator);
+            this.generator.EmitLoadLocal(this.arrayLocalIndex);
             loadIndex(this.generator);
-            this.LoadArrayElement(this.generator, elementType);
+            this.generator.EmitLoadElement(elementType);
             this.generator.Emit(OpCodes.Brfalse_S, elseLabel);
             this.EmitWriteElementValue(elementType, loadIndex);
             this.generator.Emit(OpCodes.Br_S, endIfLabel);

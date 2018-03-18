@@ -90,10 +90,10 @@
             {
                 this.ShouldSerializeAs(
                     new[] { TestEnum.Value, TestEnum.Value },
-                    @"<ArrayOfEnum>
-                        <Enum>Value</Enum>
-                        <Enum>Value</Enum>
-                      </ArrayOfEnum>");
+                    @"<ArrayOfTestEnum>
+                        <TestEnum>Value</TestEnum>
+                        <TestEnum>Value</TestEnum>
+                      </ArrayOfTestEnum>");
             }
 
             [Fact]
@@ -147,7 +147,7 @@
             {
                 this.ShouldSerializeAs(
                     TestEnum.Value,
-                    "<Enum>Value</Enum>");
+                    "<TestEnum>Value</TestEnum>");
             }
 
             [Fact]

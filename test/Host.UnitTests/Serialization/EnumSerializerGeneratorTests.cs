@@ -86,14 +86,14 @@
                 result.Writer.Received().WriteString(nameof(ShortEnum.Value));
             }
 
-            private FakeSerializerBase SerializeArray(Array array)
+            private FakeSerializerBase SerializeArray<T>(T[] array)
             {
-                return this.SerializeArray(array, this.generator.GenerateStringSerializer());
+                return this.SerializeArray(array, this.generator.GenerateStringSerializer(typeof(T)));
             }
 
-            private FakeSerializerBase SerializeValue(object value)
+            private FakeSerializerBase SerializeValue<T>(T value)
             {
-                return this.SerializeValue(value, this.generator.GenerateStringSerializer());
+                return this.SerializeValue(value, this.generator.GenerateStringSerializer(typeof(T)));
             }
         }
 
@@ -138,14 +138,14 @@
                 result.Writer.Received().WriteInt16((short)ShortEnum.Value);
             }
 
-            private FakeSerializerBase SerializeArray(Array array)
+            private FakeSerializerBase SerializeArray<T>(T[] array)
             {
-                return this.SerializeArray(array, this.generator.GenerateValueSerializer(typeof(short)));
+                return this.SerializeArray(array, this.generator.GenerateValueSerializer(typeof(T)));
             }
 
-            private FakeSerializerBase SerializeValue(object value)
+            private FakeSerializerBase SerializeValue<T>(T value)
             {
-                return this.SerializeValue(value, this.generator.GenerateValueSerializer(typeof(short)));
+                return this.SerializeValue(value, this.generator.GenerateValueSerializer(typeof(T)));
             }
         }
     }
