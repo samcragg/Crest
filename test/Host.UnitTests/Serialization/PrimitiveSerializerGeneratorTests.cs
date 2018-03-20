@@ -28,84 +28,24 @@
         }
 
         // Must be public for the generated classes to inherit from
-        public class _FakeBaseClass : IClassSerializer<string>
+        public class _FakeBaseClass : FakeSerializerBase
         {
             protected _FakeBaseClass(Stream stream, SerializationMode mode)
             {
             }
 
-            public ValueReader Reader { get; } = Substitute.For<ValueReader>();
-
-            public ValueWriter Writer { get; } = Substitute.For<ValueWriter>();
-
             internal string BeginWriteMetadata { get; private set; }
 
             internal int EndWriteCount { get; private set; }
 
-            public static string GetMetadata()
-            {
-                return null;
-            }
-
-            public static string GetTypeMetadata(Type type)
-            {
-                return type.Name;
-            }
-
-            public void BeginWrite(string type)
+            public override void BeginWrite(string type)
             {
                 this.BeginWriteMetadata = type;
             }
 
-            public void EndWrite()
+            public override void EndWrite()
             {
                 this.EndWriteCount++;
-            }
-
-            public void Flush()
-            {
-            }
-
-            bool IArraySerializer.ReadBeginArray(Type elementType)
-            {
-                return false;
-            }
-
-            bool IArraySerializer.ReadElementSeparator()
-            {
-                return false;
-            }
-
-            void IArraySerializer.ReadEndArray()
-            {
-            }
-
-            void IArraySerializer.WriteBeginArray(Type elementType, int size)
-            {
-            }
-
-            void IClassSerializer<string>.WriteBeginClass(string metadata)
-            {
-            }
-
-            void IClassSerializer<string>.WriteBeginProperty(string propertyMetadata)
-            {
-            }
-
-            void IArraySerializer.WriteElementSeparator()
-            {
-            }
-
-            void IArraySerializer.WriteEndArray()
-            {
-            }
-
-            void IClassSerializer<string>.WriteEndClass()
-            {
-            }
-
-            void IClassSerializer<string>.WriteEndProperty()
-            {
             }
         }
 

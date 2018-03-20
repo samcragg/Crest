@@ -13,12 +13,6 @@ namespace Crest.Host.Serialization.Internal
     public interface IArraySerializer
     {
         /// <summary>
-        /// Gets the reader.
-        /// </summary>
-        // HACK: Remove this property when IPrimitiveSerializer has been upgraded
-        ValueReader Reader { get; }
-
-        /// <summary>
         /// Called before reading an array value.
         /// </summary>
         /// <param name="elementType">The type of the array element.</param>

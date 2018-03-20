@@ -179,7 +179,7 @@ namespace Crest.Host.Serialization
         {
             // this.Writer.WriteNull()
             this.generator.EmitLoadArgument(0);
-            this.generator.EmitCall(this.baseClass, this.methods.BaseClass.GetWriter);
+            this.generator.EmitCall(this.baseClass, this.methods.PrimitiveSerializer.GetWriter);
             this.generator.EmitCall(typeof(ValueWriter), this.methods.ValueWriter.WriteNull);
         }
 

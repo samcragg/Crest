@@ -63,6 +63,14 @@
                     return null;
                 }
 
+                public void BeginRead(string metadata)
+                {
+                }
+
+                public void EndRead()
+                {
+                }
+
                 void IPrimitiveSerializer<string>.BeginWrite(string metadata)
                 {
                 }

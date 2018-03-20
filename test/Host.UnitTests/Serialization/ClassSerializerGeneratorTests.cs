@@ -62,6 +62,14 @@
 
                 public ValueWriter Writer => null;
 
+                public void BeginRead(string metadata)
+                {
+                }
+
+                public void EndRead()
+                {
+                }
+
                 public void WriteBeginClass(string metadata)
                 {
                 }

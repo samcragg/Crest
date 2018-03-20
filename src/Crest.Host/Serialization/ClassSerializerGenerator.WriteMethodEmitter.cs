@@ -61,7 +61,7 @@ namespace Crest.Host.Serialization
                 this.generator.EmitStoreLocal(0);
 
                 // base.WriteBeginClass(metadata or null)
-                this.owner.EmitWriteBeginTypeMetadata(
+                this.owner.EmitCallBeginMethodWithTypeMetadata(
                     this.typeBuilder,
                     this.generator,
                     this.owner.Methods.BaseClass.WriteBeginClass,
@@ -76,12 +76,6 @@ namespace Crest.Host.Serialization
                 this.generator.EmitLoadArgument(0);
                 this.generator.EmitCall(this.owner.BaseClass, this.owner.Methods.BaseClass.WriteEndClass);
                 this.generator.Emit(OpCodes.Ret);
-            }
-
-            private static bool CanBeNull(Type type)
-            {
-                return !type.GetTypeInfo().IsValueType ||
-                       (Nullable.GetUnderlyingType(type) != null);
             }
 
             private ILGenerator CreateWriteMethod(TypeBuilder typeBuilder)
@@ -249,7 +243,7 @@ namespace Crest.Host.Serialization
             {
                 // this.Writer.WriteXXX(value)
                 this.generator.EmitLoadArgument(0);
-                this.generator.EmitCall(this.owner.BaseClass, this.owner.Methods.BaseClass.GetWriter);
+                this.generator.EmitCall(this.owner.BaseClass, this.owner.Methods.PrimitiveSerializer.GetWriter);
                 loadValue(this.generator);
 
                 Type underlyingType = Nullable.GetUnderlyingType(type);

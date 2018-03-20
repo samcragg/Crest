@@ -41,6 +41,11 @@ namespace Crest.Host.Serialization
         internal BaseClassMethods BaseClass { get; }
 
         /// <summary>
+        /// Gets the methods for the <see cref="System.Enum"/> class.
+        /// </summary>
+        internal EnumMethods Enum { get; } = new EnumMethods();
+
+        /// <summary>
         /// Gets the methods for the <see cref="object"/> class.
         /// </summary>
         internal ObjectMethods Object { get; } = new ObjectMethods();
@@ -155,10 +160,6 @@ namespace Crest.Host.Serialization
                     TypeMetadataMethodName,
                     BindingFlags.Public | BindingFlags.Static);
 
-                this.GetWriter = primitiveSerializerInterface
-                    .GetProperty(nameof(IPrimitiveSerializer<object>.Writer))
-                    .GetGetMethod();
-
                 this.WriteBeginClass = classSerializerInterface.GetMethod(
                     nameof(IClassSerializer<object>.WriteBeginClass));
 
@@ -183,11 +184,6 @@ namespace Crest.Host.Serialization
             public MethodInfo GetTypeMetadata { get; }
 
             /// <summary>
-            /// Gets the metadata for the <see cref="IPrimitiveSerializer{T}.Writer"/> property.
-            /// </summary>
-            public MethodInfo GetWriter { get; }
-
-            /// <summary>
             /// Gets the metadata for the <see cref="IClassSerializer{T}.WriteBeginClass(T)"/> method.
             /// </summary>
             public MethodInfo WriteBeginClass { get; }
@@ -206,6 +202,26 @@ namespace Crest.Host.Serialization
             /// Gets the metadata for the <see cref="IClassSerializer{T}.WriteEndProperty"/> method.
             /// </summary>
             public MethodInfo WriteEndProperty { get; }
+        }
+
+        /// <summary>
+        /// Contains the methods of the <see cref="System.Enum"/> class.
+        /// </summary>
+        internal sealed class EnumMethods
+        {
+            /// <summary>
+            /// Initializes a new instance of the <see cref="EnumMethods"/> class.
+            /// </summary>
+            public EnumMethods()
+            {
+                this.Parse = typeof(Enum)
+                    .GetMethod(nameof(System.Enum.Parse), new[] { typeof(Type), typeof(string), typeof(bool) });
+            }
+
+            /// <summary>
+            /// Gets the metadata for the <see cref="Enum.Parse(Type, string, bool)"/> method.
+            /// </summary>
+            public MethodInfo Parse { get; }
         }
 
         /// <summary>
@@ -245,14 +261,20 @@ namespace Crest.Host.Serialization
                     baseClass.GetTypeInfo(),
                     typeof(IPrimitiveSerializer<>));
 
+                this.BeginRead = primitiveSerializer
+                    .GetMethod(nameof(IPrimitiveSerializer<object>.BeginRead));
+
                 this.BeginWrite = primitiveSerializer
                     .GetMethod(nameof(IPrimitiveSerializer<object>.BeginWrite));
+
+                this.EndRead = primitiveSerializer
+                    .GetMethod(nameof(IPrimitiveSerializer<object>.EndRead));
 
                 this.EndWrite = primitiveSerializer
                     .GetMethod(nameof(IPrimitiveSerializer<object>.EndWrite));
 
-                this.GetReader = typeof(IArraySerializer)
-                    .GetProperty(nameof(IArraySerializer.Reader))
+                this.GetReader = primitiveSerializer
+                    .GetProperty(nameof(IPrimitiveSerializer<object>.Reader))
                     .GetGetMethod();
 
                 this.GetWriter = primitiveSerializer
@@ -261,9 +283,19 @@ namespace Crest.Host.Serialization
             }
 
             /// <summary>
+            /// Gets the metadata for the <see cref="IPrimitiveSerializer{T}.BeginRead(T)"/> method.
+            /// </summary>
+            public MethodInfo BeginRead { get; }
+
+            /// <summary>
             /// Gets the metadata for the <see cref="IPrimitiveSerializer{T}.BeginWrite(T)"/> method.
             /// </summary>
             public MethodInfo BeginWrite { get; }
+
+            /// <summary>
+            /// Gets the metadata for the <see cref="IPrimitiveSerializer{T}.EndRead"/> method.
+            /// </summary>
+            public MethodInfo EndRead { get; }
 
             /// <summary>
             /// Gets the metadata for the <see cref="IPrimitiveSerializer{T}.EndWrite"/> method.
@@ -271,7 +303,7 @@ namespace Crest.Host.Serialization
             public MethodInfo EndWrite { get; }
 
             /// <summary>
-            /// Gets the metadata for the <see cref="IArraySerializer.Reader"/> property.
+            /// Gets the metadata for the <see cref="IPrimitiveSerializer{T}.Reader"/> property.
             /// </summary>
             public MethodInfo GetReader { get; }
 

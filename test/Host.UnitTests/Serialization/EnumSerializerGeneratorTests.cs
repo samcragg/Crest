@@ -6,6 +6,7 @@
     using System.Reflection.Emit;
     using Crest.Host.Serialization;
     using Crest.Host.Serialization.Internal;
+    using FluentAssertions;
     using NSubstitute;
     using Xunit;
 
@@ -29,6 +30,37 @@
             Value = 1
         }
 
+        private Array DeserializeArray<TValue>(Type type, Func<ValueReader, TValue> readMethod, params TValue[] values)
+        {
+            var serializer = (FakeSerializerBase)Activator.CreateInstance(
+                type,
+                Stream.Null,
+                SerializationMode.Deserialize);
+
+            serializer.SetArray(readMethod, values);
+
+            return ((ITypeSerializer)serializer).ReadArray();
+        }
+
+        private object DeserializeValue<TValue>(Type type, Func<ValueReader, TValue> readMethod, TValue value)
+        {
+            var serializer = (FakeSerializerBase)Activator.CreateInstance(
+                type,
+                Stream.Null,
+                SerializationMode.Deserialize);
+
+            if (value == null)
+            {
+                serializer.Reader.ReadNull().Returns(true);
+            }
+            else
+            {
+                readMethod(serializer.Reader).Returns(value);
+            }
+
+            return ((ITypeSerializer)serializer).Read();
+        }
+
         private FakeSerializerBase SerializeArray(Array array, Type type)
         {
             object instance = Activator.CreateInstance(type, Stream.Null, SerializationMode.Serialize);
@@ -47,6 +79,39 @@
 
         public sealed class GenerateStringSerializer : EnumSerializerGeneratorTests
         {
+            [Fact]
+            public void ShouldDeserializeArraysOfEnums()
+            {
+                Array result = this.DeserializeArray<ShortEnum>(nameof(ShortEnum.Value));
+
+                result.Should().Equal(ShortEnum.Value);
+            }
+
+            [Fact]
+            public void ShouldDeserializeEnums()
+            {
+                object result = this.DeserializeValue<ShortEnum>(nameof(ShortEnum.Value));
+
+                result.Should().BeOfType<ShortEnum>().And.Be(ShortEnum.Value);
+            }
+
+            [Fact]
+            public void ShouldDeserializeNullableArraysOfEnums()
+            {
+                Array result = this.DeserializeArray<ShortEnum?>(nameof(ShortEnum.Value), null);
+
+                result.Should().Equal(ShortEnum.Value, null);
+            }
+
+            [Fact]
+            public void ShouldDeserializeNullableEnums()
+            {
+                object result = this.DeserializeValue<ShortEnum?>(nameof(ShortEnum.Value));
+
+                // Nullables get boxed as their underlying type
+                result.Should().BeOfType<ShortEnum>().And.Be(ShortEnum.Value);
+            }
+
             [Fact]
             public void ShouldSerializeArraysOfEnums()
             {
@@ -86,6 +151,22 @@
                 result.Writer.Received().WriteString(nameof(ShortEnum.Value));
             }
 
+            private Array DeserializeArray<T>(params string[] values)
+            {
+                return this.DeserializeArray(
+                    this.generator.GenerateStringSerializer(typeof(T)),
+                    r => r.ReadString(),
+                    values);
+            }
+
+            private object DeserializeValue<T>(string value)
+            {
+                return this.DeserializeValue(
+                    this.generator.GenerateStringSerializer(typeof(T)),
+                    r => r.ReadString(),
+                    value);
+            }
+
             private FakeSerializerBase SerializeArray<T>(T[] array)
             {
                 return this.SerializeArray(array, this.generator.GenerateStringSerializer(typeof(T)));
@@ -99,6 +180,40 @@
 
         public sealed class GenerateValueSerializer : EnumSerializerGeneratorTests
         {
+            [Fact]
+            public void ShouldDeerializeNullableEnums()
+            {
+                object result = this.DeserializeValue<ShortEnum?>((short)ShortEnum.Value);
+
+                // Nullables get boxed as their underlying type
+                result.Should().BeOfType<ShortEnum>()
+                      .And.Be(ShortEnum.Value);
+            }
+
+            [Fact]
+            public void ShouldDeserializeArraysOfEnums()
+            {
+                Array result = this.DeserializeArray<ShortEnum>((short)ShortEnum.Value);
+
+                result.Should().Equal(ShortEnum.Value);
+            }
+
+            [Fact]
+            public void ShouldDeserializeEnums()
+            {
+                object result = this.DeserializeValue<ShortEnum>((short)ShortEnum.Value);
+
+                result.Should().BeOfType<ShortEnum>().And.Be(ShortEnum.Value);
+            }
+
+            [Fact]
+            public void ShouldDeserializeNullableArraysOfEnums()
+            {
+                Array result = this.DeserializeArray<ShortEnum?>((short)ShortEnum.Value, null);
+
+                result.Should().Equal(ShortEnum.Value, null);
+            }
+
             [Fact]
             public void ShouldSerializeArraysOfEnums()
             {
@@ -136,6 +251,22 @@
                 FakeSerializerBase result = this.SerializeValue(value);
 
                 result.Writer.Received().WriteInt16((short)ShortEnum.Value);
+            }
+
+            private Array DeserializeArray<T>(params short?[] values)
+            {
+                return this.DeserializeArray(
+                    this.generator.GenerateValueSerializer(typeof(T)),
+                    r => r.ReadInt16(),
+                    values);
+            }
+
+            private object DeserializeValue<T>(short? value)
+            {
+                return this.DeserializeValue(
+                    this.generator.GenerateValueSerializer(typeof(T)),
+                    r => r.ReadInt16(),
+                    value);
             }
 
             private FakeSerializerBase SerializeArray<T>(T[] array)

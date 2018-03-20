@@ -89,6 +89,11 @@ namespace Crest.Host.Serialization.Internal
         }
 
         /// <inheritdoc />
+        public void BeginRead(string metadata)
+        {
+        }
+
+        /// <inheritdoc />
         public void BeginWrite(string metadata)
         {
             this.writer.WriteStartElement(metadata);
@@ -98,6 +103,11 @@ namespace Crest.Host.Serialization.Internal
         public void Dispose()
         {
             this.reader.Dispose();
+        }
+
+        /// <inheritdoc />
+        public void EndRead()
+        {
         }
 
         /// <inheritdoc />

@@ -56,6 +56,37 @@ namespace Crest.Host.Serialization
             return this.GenerateType(builder, enumType);
         }
 
+        /// <summary>
+        /// Emits a call to <see cref="ValueReader.ReadString"/> and then
+        /// passing the result to <see cref="Enum.Parse(Type, string, bool)"/>
+        /// to convert it to an object of the specified type.
+        /// </summary>
+        /// <param name="baseClass">The type the generated class inherits from.</param>
+        /// <param name="methods">Contains method metadata.</param>
+        /// <param name="generator">Where to output the generated code.</param>
+        /// <param name="enumType">The type of the enum to parse.</param>
+        internal static void EmitCallToEnumParse(
+            Type baseClass,
+            Methods methods,
+            ILGenerator generator,
+            Type enumType)
+        {
+            // Enum.Parse(enumType, this.Reader.ReadString(), ignoreCase: true)
+            // enumType
+            generator.EmitLoadTypeof(enumType);
+
+            // this.Reader.ReadString()
+            generator.EmitLoadArgument(0);
+            generator.EmitCall(baseClass, methods.PrimitiveSerializer.GetReader);
+            generator.EmitCall(typeof(ValueReader), methods.ValueReader[typeof(string)]);
+
+            // ignoreCase: true
+            generator.EmitLoadConstant(1);
+
+            // Enum.Parse(...)
+            generator.EmitCall(OpCodes.Call, methods.Enum.Parse, null);
+        }
+
         private static string GetName(Type type)
         {
             Type underlyingType = Nullable.GetUnderlyingType(type);
@@ -67,6 +98,106 @@ namespace Crest.Host.Serialization
             {
                 return type.Name;
             }
+        }
+
+        private void EmitReadArrayMethod(Type enumType, TypeBuilder builder, Action<ILGenerator, Type> readValue)
+        {
+            MethodBuilder methodBuilder = builder.DefineMethod(
+                nameof(ITypeSerializer.ReadArray),
+                PublicVirtualMethod,
+                CallingConventions.HasThis);
+
+            methodBuilder.SetReturnType(typeof(Array));
+            ILGenerator generator = methodBuilder.GetILGenerator();
+
+            var arrayEmitter = new ArrayDeserializeEmitter(generator, this.BaseClass, this.Methods)
+            {
+                CreateLocal = generator.DeclareLocal,
+                ReadValue = readValue
+            };
+            arrayEmitter.EmitReadArray(enumType.MakeArrayType());
+
+            generator.Emit(OpCodes.Ret);
+        }
+
+        private void EmitReadIntegerValues(TypeBuilder builder, Type enumType)
+        {
+            void EmitCallToReadInt(ILGenerator generator, Type type)
+            {
+                Type underlyingType = Enum.GetUnderlyingType(type);
+                MethodInfo readInt = this.Methods.ValueReader[underlyingType];
+
+                // this.Reader.ReadIntXX()
+                generator.EmitLoadArgument(0);
+                generator.EmitCall(this.BaseClass, this.Methods.PrimitiveSerializer.GetReader);
+                generator.EmitCall(typeof(ValueReader), readInt);
+            }
+
+            this.EmitReadMethod(
+                builder,
+                enumType,
+                (g, t) =>
+                {
+                    // Read needs to return an object, so box it
+                    EmitCallToReadInt(g, t);
+                    g.EmitConvertToObject(t);
+                });
+
+            this.EmitReadArrayMethod(
+                enumType,
+                builder,
+                EmitCallToReadInt);
+        }
+
+        private void EmitReadMethod(
+            TypeBuilder builder,
+            Type enumType,
+            Action<ILGenerator, Type> readValue)
+        {
+            MethodBuilder methodBuilder = builder.DefineMethod(
+                nameof(ITypeSerializer.Read),
+                PublicVirtualMethod,
+                CallingConventions.HasThis);
+
+            methodBuilder.SetReturnType(typeof(object));
+            ILGenerator generator = methodBuilder.GetILGenerator();
+
+            // this.BeginRead(metadata)
+            this.EmitCallBeginMethodWithTypeMetadata(
+                builder,
+                generator,
+                this.Methods.PrimitiveSerializer.BeginRead,
+                enumType);
+
+            // object result = this.reader.ReadXXX()
+            PrimitiveSerializerGenerator.EmitReadValue(
+                generator,
+                this.BaseClass,
+                this.Methods,
+                enumType,
+                readValue);
+
+            // this.EndRead()
+            generator.EmitLoadArgument(0);
+            generator.EmitCall(this.BaseClass, this.Methods.PrimitiveSerializer.EndRead);
+            generator.Emit(OpCodes.Ret);
+        }
+
+        private void EmitReadStringValues(Type enumType, TypeBuilder builder)
+        {
+            this.EmitReadMethod(
+                builder,
+                enumType,
+                (g, t) => EmitCallToEnumParse(this.BaseClass, this.Methods, g, t));
+
+            this.EmitReadArrayMethod(
+                enumType,
+                builder,
+                (g, t) =>
+                {
+                    EmitCallToEnumParse(this.BaseClass, this.Methods, g, t);
+                    g.Emit(OpCodes.Unbox_Any, t);
+                });
         }
 
         private void EmitWriteArrayMethod(TypeBuilder builder, Type enumType, Action<ILGenerator> writeValue)
@@ -142,7 +273,7 @@ namespace Crest.Host.Serialization
             ILGenerator generator = methodBuilder.GetILGenerator();
 
             // this.BeginWrite(metadata)
-            this.EmitWriteBeginTypeMetadata(
+            this.EmitCallBeginMethodWithTypeMetadata(
                 builder,
                 generator,
                 this.Methods.PrimitiveSerializer.BeginWrite,

@@ -90,6 +90,11 @@ namespace Crest.Host.Serialization.Internal
         }
 
         /// <inheritdoc />
+        public void BeginRead(byte[] metadata)
+        {
+        }
+
+        /// <inheritdoc />
         public void BeginWrite(byte[] metadata)
         {
         }
@@ -98,6 +103,11 @@ namespace Crest.Host.Serialization.Internal
         public void Dispose()
         {
             this.reader.Dispose();
+        }
+
+        /// <inheritdoc />
+        public void EndRead()
+        {
         }
 
         /// <inheritdoc />

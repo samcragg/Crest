@@ -89,6 +89,20 @@ namespace Crest.Host.Serialization
         }
 
         /// <summary>
+        /// Determines whether the specified type can contain a <c>null</c> value.
+        /// </summary>
+        /// <param name="type">The type to examine.</param>
+        /// <returns>
+        /// <c>true</c> if <c>null</c> is a valid value for the type; otherwise,
+        /// <c>false</c>.
+        /// </returns>
+        protected static bool CanBeNull(Type type)
+        {
+            return !type.GetTypeInfo().IsValueType ||
+                   (Nullable.GetUnderlyingType(type) != null);
+        }
+
+        /// <summary>
         /// Creates a field to hold specific metadata.
         /// </summary>
         /// <param name="builder">The builder to create the field in.</param>
@@ -123,6 +137,35 @@ namespace Crest.Host.Serialization
 
             builder.AddInterfaceImplementation(typeof(ITypeSerializer));
             return builder;
+        }
+
+        /// <summary>
+        /// Emits a call to a method that expects the metadata for the type or
+        /// null if the base serializer doesn't provide such data.
+        /// </summary>
+        /// <param name="builder">The builder to emit the metadata field to.</param>
+        /// <param name="generator">Where to emit the instructions to.</param>
+        /// <param name="method">The method to invoke.</param>
+        /// <param name="classType">The type to generate the metadata of.</param>
+        protected void EmitCallBeginMethodWithTypeMetadata(
+            TypeBuilder builder,
+            ILGenerator generator,
+            MethodInfo method,
+            Type classType)
+        {
+            generator.EmitLoadArgument(0);
+
+            if (this.Methods.BaseClass.GetTypeMetadata == null)
+            {
+                generator.Emit(OpCodes.Ldnull);
+            }
+            else
+            {
+                FieldBuilder field = this.CreateMetadataField(builder, classType.Name);
+                generator.Emit(OpCodes.Ldsfld, field);
+            }
+
+            generator.EmitCall(this.BaseClass, method);
         }
 
         /// <summary>
@@ -166,35 +209,6 @@ namespace Crest.Host.Serialization
 
             body?.Invoke(generator);
             generator.Emit(OpCodes.Ret);
-        }
-
-        /// <summary>
-        /// Emits a call to a method that expects the metadata for the type or
-        /// null if the base serializer doesn't provide such data.
-        /// </summary>
-        /// <param name="builder">The builder to emit the metadata field to.</param>
-        /// <param name="generator">Where to emit the instructions to.</param>
-        /// <param name="method">The method to invoke.</param>
-        /// <param name="classType">The type to generate the metadata of.</param>
-        protected void EmitWriteBeginTypeMetadata(
-            TypeBuilder builder,
-            ILGenerator generator,
-            MethodInfo method,
-            Type classType)
-        {
-            generator.EmitLoadArgument(0);
-
-            if (this.Methods.BaseClass.GetTypeMetadata == null)
-            {
-                generator.Emit(OpCodes.Ldnull);
-            }
-            else
-            {
-                FieldBuilder field = this.CreateMetadataField(builder, classType.Name);
-                generator.Emit(OpCodes.Ldsfld, field);
-            }
-
-            generator.EmitCall(this.BaseClass, method);
         }
 
         /// <summary>

@@ -67,6 +67,45 @@ namespace Crest.Host.Serialization
             }
         }
 
+        /// <summary>
+        /// Emits code to read a value from the stream.
+        /// </summary>
+        /// <param name="generator">Where to emit the code to.</param>
+        /// <param name="baseClass">The type of the base class.</param>
+        /// <param name="methods">Contains the methods metadata.</param>
+        /// <param name="type">The type of the value to read.</param>
+        /// <param name="readValue">
+        /// Used to emit code to read the primitive value.
+        /// </param>
+        internal static void EmitReadValue(
+            ILGenerator generator,
+            Type baseClass,
+            Methods methods,
+            Type type,
+            Action<ILGenerator, Type> readValue)
+        {
+            Label notNull = generator.DefineLabel();
+            Label end = generator.DefineLabel();
+
+            if (CanBeNull(type))
+            {
+                // if (this.Reader.ReadNull())
+                generator.EmitLoadArgument(0);
+                generator.EmitCall(baseClass, methods.PrimitiveSerializer.GetReader);
+                generator.EmitCall(typeof(ValueReader), methods.ValueReader.ReadNull);
+                generator.Emit(OpCodes.Brfalse_S, notNull);
+
+                // object result = null
+                generator.Emit(OpCodes.Ldnull);
+                generator.Emit(OpCodes.Br_S, end);
+            }
+
+            // this.Reader.ReadXXX();
+            generator.MarkLabel(notNull);
+            readValue(generator, Nullable.GetUnderlyingType(type) ?? type);
+            generator.MarkLabel(end);
+        }
+
         private void EmitWriteArrayMethod(TypeBuilder builder, MethodInfo writeMethod, Type type)
         {
             MethodBuilder methodBuilder = builder.DefineMethod(
@@ -105,7 +144,7 @@ namespace Crest.Host.Serialization
             ILGenerator generator = methodBuilder.GetILGenerator();
 
             // this.BeginWrite(metadata)
-            this.EmitWriteBeginTypeMetadata(
+            this.EmitCallBeginMethodWithTypeMetadata(
                 builder,
                 generator,
                 this.Methods.PrimitiveSerializer.BeginWrite,

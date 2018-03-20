@@ -80,7 +80,17 @@ namespace Crest.Host.Serialization.Internal
         }
 
         /// <inheritdoc />
+        public void BeginRead(byte[] metadata)
+        {
+        }
+
+        /// <inheritdoc />
         public void BeginWrite(byte[] metadata)
+        {
+        }
+
+        /// <inheritdoc />
+        public void EndRead()
         {
         }
 

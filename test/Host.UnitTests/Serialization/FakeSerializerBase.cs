@@ -1,13 +1,18 @@
 ﻿namespace Host.UnitTests.Serialization
 {
     using System;
+    using System.Collections.Generic;
     using System.IO;
+    using System.Linq;
     using System.Reflection;
     using Crest.Host.Serialization.Internal;
     using NSubstitute;
 
     public class FakeSerializerBase : IClassSerializer<string>
     {
+        private int arrayCount;
+        private int arrayIndex;
+
         protected FakeSerializerBase(Stream stream, SerializationMode mode)
             : this()
         {
@@ -53,9 +58,17 @@
             return type.Name;
         }
 
+        public void BeginRead(string metadata)
+        {
+        }
+
         public virtual void BeginWrite(string metadata)
         {
             this.BeginPrimitive = metadata;
+        }
+
+        public void EndRead()
+        {
         }
 
         public virtual void EndWrite()
@@ -68,12 +81,13 @@
 
         public virtual bool ReadBeginArray(Type elementType)
         {
-            return false;
+            return this.arrayCount > 0;
         }
 
         public virtual bool ReadElementSeparator()
         {
-            return false;
+            this.arrayIndex++;
+            return this.arrayIndex < this.arrayCount;
         }
 
         public virtual void ReadEndArray()
@@ -108,6 +122,18 @@
 
         public virtual void WriteEndProperty()
         {
+        }
+
+        internal void SetArray<T>(Func<ValueReader, T> read, params T[] values)
+        {
+            this.arrayCount = values.Length;
+            if (values.Length > 0)
+            {
+                IEnumerable<bool> isNull = values.Select(v => v == null);
+                this.Reader.ReadNull().Returns(isNull.First(), isNull.Skip(1).ToArray());
+
+                read(this.Reader).Returns(values[0], values.Skip(1).ToArray());
+            }
         }
     }
 }

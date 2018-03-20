@@ -19,6 +19,18 @@ namespace Crest.Host.Serialization.Internal
         void Flush();
 
         /// <summary>
+        /// Reads an object from the underlying stream.
+        /// </summary>
+        /// <returns>A new object containing the read information.</returns>
+        object Read();
+
+        /// <summary>
+        /// Reads an array from the underlying stream.
+        /// </summary>
+        /// <returns>An array of objects containing the read information.</returns>
+        Array ReadArray();
+
+        /// <summary>
         /// Writes the specified object to the underlying stream.
         /// </summary>
         /// <param name="instance">The instance to serialize.</param>
