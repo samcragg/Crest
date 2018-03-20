@@ -55,21 +55,14 @@ namespace Crest.Host.Serialization
             IReadOnlyDictionary<string, FieldInfo> metadata =
                 this.CreateMetadataFields(properties);
 
-            // Create the Write method first, so that if it needs any nested
+            // Create the methods first, so that if it needs any nested
             // serializers we can initialize them in the constructors
-            var writeMethod = new WriteMethodEmitter(this, metadata);
-            writeMethod.WriteProperties(classType, properties);
-            this.EmitWriteArray(classType, writeMethod.GeneratedMethod);
+            IReadOnlyCollection<FieldBuilder> fields =
+                this.EmitMethods(classType, properties, metadata);
 
             // Create the constructors
-            this.EmitConstructor(
-                writeMethod.NestedSerializerFields,
-                this.BaseClass);
-
-            this.EmitConstructor(
-                writeMethod.NestedSerializerFields,
-                typeof(Stream),
-                typeof(SerializationMode));
+            this.EmitConstructor(fields, this.BaseClass);
+            this.EmitConstructor(fields, typeof(Stream), typeof(SerializationMode));
 
             // Build the type and set the static metadata
             TypeInfo generatedInfo = this.Builder.CreateTypeInfo();
@@ -147,6 +140,49 @@ namespace Crest.Host.Serialization
 
             // this.field = ...
             generator.Emit(OpCodes.Stfld, serializerField);
+        }
+
+        private IReadOnlyCollection<FieldBuilder> EmitMethods(Type classType, IReadOnlyList<PropertyInfo> properties, IReadOnlyDictionary<string, FieldInfo> metadata)
+        {
+            var writeMethod = new WriteMethodEmitter(this, metadata);
+            writeMethod.WriteProperties(classType, properties);
+            this.EmitWriteArray(classType, writeMethod.GeneratedMethod);
+
+            var readMethod = new ReadMethodEmitter(this);
+            readMethod.EmitReadMethod(classType, GetProperties(classType));
+            this.EmitReadArrayMethod(classType);
+
+            return writeMethod.NestedSerializerFields;
+        }
+
+        private void EmitReadArrayMethod(Type classType)
+        {
+            MethodBuilder methodBuilder = this.Builder.DefineMethod(
+                    nameof(ITypeSerializer.ReadArray),
+                    PublicVirtualMethod,
+                    CallingConventions.HasThis);
+
+            methodBuilder.SetReturnType(typeof(Array));
+            ILGenerator generator = methodBuilder.GetILGenerator();
+            var arrayEmitter = new ArrayDeserializeEmitter(generator, this.BaseClass, this.Methods)
+            {
+                CreateLocal = generator.DeclareLocal,
+                ReadValue = (g, _) =>
+                {
+                    // The Read method returns an object, so cast it to the
+                    // correct type
+                    // (T)this.Read()
+                    generator.EmitLoadArgument(0);
+                    generator.EmitCall(
+                        OpCodes.Callvirt,
+                        this.Methods.TypeSerializer.Read,
+                        null);
+                    generator.Emit(OpCodes.Castclass, classType);
+                }
+            };
+
+            arrayEmitter.EmitReadArray(classType.MakeArrayType());
+            generator.Emit(OpCodes.Ret);
         }
 
         private void EmitWriteArray(Type classType, MethodInfo generatedMethod)

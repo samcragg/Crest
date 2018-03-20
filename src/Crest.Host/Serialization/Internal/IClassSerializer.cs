@@ -5,16 +5,37 @@
 
 namespace Crest.Host.Serialization.Internal
 {
-    using System;
-
     /// <summary>
     /// Allows the serializing of types at runtime.
     /// </summary>
     /// <typeparam name="T">The type of metadata to store about properties.</typeparam>
-    [CLSCompliant(false)]
     public interface IClassSerializer<T> : IArraySerializer, IPrimitiveSerializer<T>
         where T : class
     {
+        /// <summary>
+        /// Called before serializing any properties for an instance.
+        /// </summary>
+        /// <param name="metadata">The metadata for the class.</param>
+        void ReadBeginClass(T metadata);
+
+        /// <summary>
+        /// Tries to read the name of a property that has been serialized.
+        /// </summary>
+        /// <returns>
+        /// The name of the property, or <c>null</c> if none was read.
+        /// </returns>
+        string ReadBeginProperty();
+
+        /// <summary>
+        /// Called after serializing all the properties for an instance.
+        /// </summary>
+        void ReadEndClass();
+
+        /// <summary>
+        /// Called after serializing a property value.
+        /// </summary>
+        void ReadEndProperty();
+
         /// <summary>
         /// Called before serializing any properties for an instance.
         /// </summary>

@@ -10,8 +10,10 @@
 
     public class FakeSerializerBase : IClassSerializer<string>
     {
+        private readonly FakeSerializerBase parent;
         private int arrayCount;
         private int arrayIndex;
+        private int propertyIndex = -1;
 
         protected FakeSerializerBase(Stream stream, SerializationMode mode)
             : this()
@@ -22,6 +24,7 @@
 
         protected FakeSerializerBase(FakeSerializerBase parent)
         {
+            this.parent = parent;
             this.Reader = parent.Reader;
             this.Writer = parent.Writer;
         }
@@ -45,6 +48,14 @@
         internal string BeginProperty { get; private set; }
 
         internal SerializationMode Mode { get; }
+
+        internal List<string> Properties { get; } = new List<string>();
+
+        internal int ReadBeginClassCount { get; private set; }
+
+        internal int ReadEndClassCount { get; private set; }
+
+        internal int ReadEndPropertyCount { get; private set; }
 
         internal Stream Stream { get; }
 
@@ -84,6 +95,28 @@
             return this.arrayCount > 0;
         }
 
+        public virtual void ReadBeginClass(string metadata)
+        {
+            this.ReadBeginClassCount++;
+        }
+
+        public virtual string ReadBeginProperty()
+        {
+            if (this.parent != null)
+            {
+                return this.parent.ReadBeginProperty();
+            }
+            else
+            {
+                if (++this.propertyIndex >= this.Properties.Count)
+                {
+                    return default;
+                }
+
+                return this.Properties[this.propertyIndex];
+            }
+        }
+
         public virtual bool ReadElementSeparator()
         {
             this.arrayIndex++;
@@ -92,6 +125,16 @@
 
         public virtual void ReadEndArray()
         {
+        }
+
+        public virtual void ReadEndClass()
+        {
+            this.ReadEndClassCount++;
+        }
+
+        public virtual void ReadEndProperty()
+        {
+            this.ReadEndPropertyCount++;
         }
 
         public virtual void WriteBeginArray(Type elementType, int size)

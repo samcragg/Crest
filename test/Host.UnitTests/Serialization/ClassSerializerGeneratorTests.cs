@@ -3,6 +3,7 @@
     using System;
     using System.ComponentModel;
     using System.IO;
+    using System.Linq;
     using System.Reflection;
     using System.Reflection.Emit;
     using Crest.Host.Serialization;
@@ -67,6 +68,23 @@
                 }
 
                 public void EndRead()
+                {
+                }
+
+                public void ReadBeginClass(string metadata)
+                {
+                }
+
+                public string ReadBeginProperty()
+                {
+                    return null;
+                }
+
+                public void ReadEndClass()
+                {
+                }
+
+                public void ReadEndProperty()
                 {
                 }
 
@@ -160,6 +178,37 @@
             }
 
             [Fact]
+            public void ShouldCallReadBeginClass()
+            {
+                FakeSerializerBase serializer = this.CreateSerializer<PrimitiveProperty>();
+
+                ((ITypeSerializer)serializer).Read();
+
+                serializer.ReadBeginClassCount.Should().Be(1);
+            }
+
+            [Fact]
+            public void ShouldCallReadEndClass()
+            {
+                FakeSerializerBase serializer = this.CreateSerializer<PrimitiveProperty>();
+
+                ((ITypeSerializer)serializer).Read();
+
+                serializer.ReadEndClassCount.Should().Be(1);
+            }
+
+            [Fact]
+            public void ShouldCallReadEndProperty()
+            {
+                FakeSerializerBase serializer = this.CreateSerializer<PrimitiveProperty>();
+                serializer.Properties.Add(nameof(PrimitiveProperty.Value));
+
+                ((ITypeSerializer)serializer).Read();
+
+                serializer.ReadEndPropertyCount.Should().Be(1);
+            }
+
+            [Fact]
             public void ShouldCallTheParentSerializerConstructor()
             {
                 Type type = this.generator.GenerateFor(typeof(PrimitiveProperty));
@@ -182,6 +231,15 @@
             }
 
             [Fact]
+            public void ShouldEnsureTheTypeHasAPublicDefaultConstructor()
+            {
+                Action action = () => this.generator.GenerateFor(typeof(NoDefaultConstructor));
+
+                action.Should().Throw<InvalidOperationException>()
+                      .WithMessage("*" + nameof(NoDefaultConstructor) + "*");
+            }
+
+            [Fact]
             public void ShouldHandleBrowsableAttributes()
             {
                 FakeSerializerBase serializer = this.SerializeValue(
@@ -193,6 +251,19 @@
 
                 serializer.Writer.DidNotReceive().WriteInt32(1);
                 serializer.Writer.Received().WriteInt32(2);
+            }
+
+            [Fact]
+            public void ShouldIncludeReadArrayMethod()
+            {
+                FakeSerializerBase serializer = this.CreateSerializer<PrimitiveProperty>();
+                serializer.SetArray(r => r.ReadInt32(), 1);
+                serializer.Properties.Add(nameof(PrimitiveProperty.Value));
+
+                Array result = ((ITypeSerializer)serializer).ReadArray();
+
+                result.Should().BeOfType<PrimitiveProperty[]>()
+                      .Which.Single().Value.Should().Be(1);
             }
 
             [Fact]
@@ -225,6 +296,158 @@
             }
 
             [Fact]
+            public void ShouldReadArrayOfEnumElements()
+            {
+                FakeSerializerBase.OutputEnumNames = false;
+                FakeSerializerBase serializer = this.CreateSerializer<ArrayProperty>();
+                serializer.SetArray(r => r.ReadInt64(), 1);
+                serializer.Properties.Add(nameof(ArrayProperty.EnumValues));
+
+                object result = ((ITypeSerializer)serializer).Read();
+
+                result.Should().BeOfType<ArrayProperty>()
+                      .Which.EnumValues.Should().Equal(FakeLongEnum.Value);
+            }
+
+            [Fact]
+            public void ShouldReadArrayOfPrimitivesElements()
+            {
+                FakeSerializerBase serializer = this.CreateSerializer<ArrayProperty>();
+                serializer.SetArray(r => r.ReadInt32(), 1);
+                serializer.Properties.Add(nameof(ArrayProperty.IntValues));
+
+                object result = ((ITypeSerializer)serializer).Read();
+
+                result.Should().BeOfType<ArrayProperty>()
+                      .Which.IntValues.Should().Equal(1);
+            }
+
+            [Fact]
+            public void ShouldReadEnumsAsNames()
+            {
+                FakeSerializerBase.OutputEnumNames = true;
+                FakeSerializerBase serializer = this.CreateSerializer<EnumProperty>();
+                serializer.Properties.Add(nameof(EnumProperty.Value));
+                serializer.Reader.ReadString().Returns(nameof(FakeLongEnum.Value));
+
+                object result = ((ITypeSerializer)serializer).Read();
+
+                result.Should().BeOfType<EnumProperty>()
+                      .Which.Value.Should().Be(FakeLongEnum.Value);
+            }
+
+            [Fact]
+            public void ShouldReadEnumsAsNumbers()
+            {
+                FakeSerializerBase.OutputEnumNames = false;
+                FakeSerializerBase serializer = this.CreateSerializer<EnumProperty>();
+                serializer.Properties.Add(nameof(EnumProperty.Value));
+                serializer.Reader.ReadInt64().Returns((long)FakeLongEnum.Value);
+
+                object result = ((ITypeSerializer)serializer).Read();
+
+                result.Should().BeOfType<EnumProperty>()
+                      .Which.Value.Should().Be(FakeLongEnum.Value);
+            }
+
+            [Fact]
+            public void ShouldReadNestedTypes()
+            {
+                this.nestedSerializerType = this.generator.GenerateFor(typeof(PrimitiveProperty));
+
+                FakeSerializerBase serializer = this.CreateSerializer<WithNestedType>();
+                serializer.Properties.Add(nameof(WithNestedType.Nested));
+                serializer.Properties.Add(nameof(PrimitiveProperty.Value));
+                serializer.Reader.ReadInt32().Returns(123);
+
+                object result = ((ITypeSerializer)serializer).Read();
+
+                result.Should().BeOfType<WithNestedType>()
+                      .Which.Nested.Value.Should().Be(123);
+            }
+
+            [Fact]
+            public void ShouldReadNullablePropertiesThatAreNull()
+            {
+                FakeSerializerBase serializer = this.CreateSerializer<NullableProperty>();
+                serializer.Properties.Add(nameof(NullableProperty.Value));
+                serializer.Reader.ReadNull().Returns(true);
+
+                object result = ((ITypeSerializer)serializer).Read();
+
+                result.Should().BeOfType<NullableProperty>()
+                      .Which.Value.Should().BeNull();
+
+                // Also make sure it didn't try to read anything from the stream
+                serializer.Reader.DidNotReceive().ReadInt32();
+            }
+
+            [Fact]
+            public void ShouldReadNullablePropertiesWithValues()
+            {
+                FakeSerializerBase serializer = this.CreateSerializer<NullableProperty>();
+                serializer.Properties.Add(nameof(NullableProperty.Value));
+                serializer.Reader.ReadInt32().Returns(1);
+
+                object result = ((ITypeSerializer)serializer).Read();
+
+                result.Should().BeOfType<NullableProperty>()
+                      .Which.Value.Should().Be(1);
+            }
+
+            [Fact]
+            public void ShouldReadPrimitiveProperties()
+            {
+                FakeSerializerBase serializer = this.CreateSerializer<PrimitiveProperty>();
+                serializer.Properties.Add(nameof(PrimitiveProperty.Value));
+                serializer.Reader.ReadInt32().Returns(123);
+
+                object result = ((ITypeSerializer)serializer).Read();
+
+                result.Should().BeOfType<PrimitiveProperty>()
+                      .Which.Value.Should().Be(123);
+            }
+
+            [Fact]
+            public void ShouldReadPropertiesWithDisplayName()
+            {
+                FakeSerializerBase serializer = this.CreateSerializer<DisplayNameProperty>();
+                serializer.Properties.Add("display");
+                serializer.Reader.ReadInt32().Returns(1);
+
+                object result = ((ITypeSerializer)serializer).Read();
+
+                result.Should().BeOfType<DisplayNameProperty>()
+                      .Which.Value.Should().Be(1);
+            }
+
+            [Fact]
+            public void ShouldReadReferencePropertiesWithValues()
+            {
+                FakeSerializerBase serializer = this.CreateSerializer<ReferenceProperty>();
+                serializer.Properties.Add(nameof(ReferenceProperty.Value));
+                serializer.Reader.ReadString().Returns("string");
+
+                object result = ((ITypeSerializer)serializer).Read();
+
+                result.Should().BeOfType<ReferenceProperty>()
+                      .Which.Value.Should().Be("string");
+            }
+
+            [Fact]
+            public void ShouldReadUnknownTypesAsObject()
+            {
+                FakeSerializerBase serializer = this.CreateSerializer<ValueProperty>();
+                serializer.Properties.Add(nameof(ValueProperty.Value));
+                serializer.Reader.ReadObject(typeof(ExampleValueType)).Returns(new ExampleValueType(123));
+
+                object result = ((ITypeSerializer)serializer).Read();
+
+                result.Should().BeOfType<ValueProperty>()
+                      .Which.Value.Value.Should().Be(123);
+            }
+
+            [Fact]
             public void ShouldSerializeArrayOfEnumsElements()
             {
                 FakeSerializerBase.OutputEnumNames = false;
@@ -249,7 +472,7 @@
             {
                 FakeSerializerBase.OutputEnumNames = true;
                 FakeSerializerBase serializer = this.SerializeValue(
-                    new EnumProperty { Enum = FakeLongEnum.Value });
+                    new EnumProperty { Value = FakeLongEnum.Value });
 
                 serializer.Writer.Received().WriteString(nameof(FakeLongEnum.Value));
             }
@@ -259,7 +482,7 @@
             {
                 FakeSerializerBase.OutputEnumNames = false;
                 FakeSerializerBase serializer = this.SerializeValue(
-                    new EnumProperty { Enum = FakeLongEnum.Value });
+                    new EnumProperty { Value = FakeLongEnum.Value });
 
                 // Notice the call to the 64 bit version, as the base class of
                 // the FakeLongEnum is long not int.
@@ -320,19 +543,31 @@
                 serializer.Writer.Received().WriteObject(Arg.Is<object>(o => o is ExampleValueType));
             }
 
+            private FakeSerializerBase CreateSerializer<T>()
+            {
+                return (FakeSerializerBase)Activator.CreateInstance(
+                    this.generator.GenerateFor(typeof(T)),
+                    Stream.Null,
+                    SerializationMode.Serialize);
+            }
+
             private FakeSerializerBase SerializeValue<T>(T value)
             {
-                Type type = this.generator.GenerateFor(typeof(T));
-                object instance = Activator.CreateInstance(type, Stream.Null, SerializationMode.Serialize);
-
-                ((ITypeSerializer)instance).Write(value);
-                return (FakeSerializerBase)instance;
+                FakeSerializerBase serializer = CreateSerializer<T>();
+                ((ITypeSerializer)serializer).Write(value);
+                return serializer;
             }
 
             // These have to be public so the generated code can access them
             [TypeConverter(typeof(Int16Converter))] // Value types need to have a value converter
             public struct ExampleValueType
             {
+                public ExampleValueType(short value)
+                {
+                    this.Value = value;
+                }
+
+                public short Value { get; }
             }
 
             public class ArrayProperty
@@ -351,9 +586,22 @@
                 public int BrowsableTrue { get; set; }
             }
 
+            public class DisplayNameProperty
+            {
+                [DisplayName("display")]
+                public int Value { get; set; }
+            }
+
             public class EnumProperty
             {
-                public FakeLongEnum Enum { get; set; }
+                public FakeLongEnum Value { get; set; }
+            }
+
+            public class NoDefaultConstructor
+            {
+                public NoDefaultConstructor(int value)
+                {
+                }
             }
 
             public class NullableArrayProperty
@@ -363,7 +611,8 @@
 
             public class NullableProperty
             {
-                public int? Value { get; set; }
+                // Initialize it to a non-null value to prove we're overwriting the property
+                public int? Value { get; set; } = int.MaxValue;
             }
 
             public class PrimitiveProperty

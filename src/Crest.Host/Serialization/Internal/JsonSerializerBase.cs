@@ -136,6 +136,17 @@ namespace Crest.Host.Serialization.Internal
         }
 
         /// <inheritdoc />
+        public void ReadBeginClass(byte[] metadata)
+        {
+        }
+
+        /// <inheritdoc />
+        public string ReadBeginProperty()
+        {
+            return null;
+        }
+
+        /// <inheritdoc />
         public bool ReadElementSeparator()
         {
             return this.reader.TryReadToken(',');
@@ -145,6 +156,16 @@ namespace Crest.Host.Serialization.Internal
         public void ReadEndArray()
         {
             this.reader.ExpectToken(']');
+        }
+
+        /// <inheritdoc />
+        public void ReadEndClass()
+        {
+        }
+
+        /// <inheritdoc />
+        public void ReadEndProperty()
+        {
         }
 
         /// <inheritdoc />

@@ -88,12 +88,29 @@
                     return false;
                 }
 
+                void IClassSerializer<string>.ReadBeginClass(string metadata)
+                {
+                }
+
+                string IClassSerializer<string>.ReadBeginProperty()
+                {
+                    return null;
+                }
+
                 bool IArraySerializer.ReadElementSeparator()
                 {
                     return false;
                 }
 
                 void IArraySerializer.ReadEndArray()
+                {
+                }
+
+                void IClassSerializer<string>.ReadEndClass()
+                {
+                }
+
+                void IClassSerializer<string>.ReadEndProperty()
                 {
                 }
 

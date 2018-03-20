@@ -41,6 +41,12 @@ namespace Crest.Host.Serialization
         internal BaseClassMethods BaseClass { get; }
 
         /// <summary>
+        /// Gets the methods for the <see cref="Internal.CaseInsensitiveStringHelper"/> class.
+        /// </summary>
+        internal CaseInsensitiveStringHelperMethods CaseInsensitiveStringHelper { get; }
+            = new CaseInsensitiveStringHelperMethods();
+
+        /// <summary>
         /// Gets the methods for the <see cref="System.Enum"/> class.
         /// </summary>
         internal EnumMethods Enum { get; } = new EnumMethods();
@@ -54,6 +60,11 @@ namespace Crest.Host.Serialization
         /// Gets the methods for the <see cref="IPrimitiveSerializer{T}"/> interface.
         /// </summary>
         internal PrimitiveSerializerMethods PrimitiveSerializer { get; }
+
+        /// <summary>
+        /// Gets the methods for the <see cref="ITypeSerializer"/> interface.
+        /// </summary>
+        internal TypeSerializerMethods TypeSerializer { get; } = new TypeSerializerMethods();
 
         /// <summary>
         /// Gets the methods for the <see cref="Internal.ValueReader"/> class.
@@ -160,17 +171,29 @@ namespace Crest.Host.Serialization
                     TypeMetadataMethodName,
                     BindingFlags.FlattenHierarchy | BindingFlags.Public | BindingFlags.Static);
 
-                this.WriteBeginClass = classSerializerInterface.GetMethod(
-                    nameof(IClassSerializer<object>.WriteBeginClass));
+                this.ReadBeginClass = classSerializerInterface
+                    .GetMethod(nameof(IClassSerializer<object>.ReadBeginClass));
 
-                this.WriteBeginProperty = classSerializerInterface.GetMethod(
-                    nameof(IClassSerializer<object>.WriteBeginProperty));
+                this.ReadBeginProperty = classSerializerInterface
+                    .GetMethod(nameof(IClassSerializer<object>.ReadBeginProperty));
 
-                this.WriteEndClass = classSerializerInterface.GetMethod(
-                    nameof(IClassSerializer<object>.WriteEndClass));
+                this.ReadEndClass = classSerializerInterface
+                    .GetMethod(nameof(IClassSerializer<object>.ReadEndClass));
 
-                this.WriteEndProperty = classSerializerInterface.GetMethod(
-                    nameof(IClassSerializer<object>.WriteEndProperty));
+                this.ReadEndProperty = classSerializerInterface
+                    .GetMethod(nameof(IClassSerializer<object>.ReadEndProperty));
+
+                this.WriteBeginClass = classSerializerInterface
+                    .GetMethod(nameof(IClassSerializer<object>.WriteBeginClass));
+
+                this.WriteBeginProperty = classSerializerInterface
+                    .GetMethod(nameof(IClassSerializer<object>.WriteBeginProperty));
+
+                this.WriteEndClass = classSerializerInterface
+                    .GetMethod(nameof(IClassSerializer<object>.WriteEndClass));
+
+                this.WriteEndProperty = classSerializerInterface
+                    .GetMethod(nameof(IClassSerializer<object>.WriteEndProperty));
             }
 
             /// <summary>
@@ -182,6 +205,26 @@ namespace Crest.Host.Serialization
             /// Gets the metadata for the optional <c>GetTypeMetadata</c> method.
             /// </summary>
             public MethodInfo GetTypeMetadata { get; }
+
+            /// <summary>
+            /// Gets the metadata for the <see cref="IClassSerializer{T}.ReadBeginClass"/> method.
+            /// </summary>
+            public MethodInfo ReadBeginClass { get; }
+
+            /// <summary>
+            /// Gets the metadata for the <see cref="IClassSerializer{T}.ReadBeginProperty"/> method.
+            /// </summary>
+            public MethodInfo ReadBeginProperty { get; }
+
+            /// <summary>
+            /// Gets the metadata for the <see cref="IClassSerializer{T}.ReadEndClass"/> method.
+            /// </summary>
+            public MethodInfo ReadEndClass { get; }
+
+            /// <summary>
+            /// Gets the metadata for the <see cref="IClassSerializer{T}.ReadEndProperty"/> method.
+            /// </summary>
+            public MethodInfo ReadEndProperty { get; }
 
             /// <summary>
             /// Gets the metadata for the <see cref="IClassSerializer{T}.WriteBeginClass(T)"/> method.
@@ -202,6 +245,36 @@ namespace Crest.Host.Serialization
             /// Gets the metadata for the <see cref="IClassSerializer{T}.WriteEndProperty"/> method.
             /// </summary>
             public MethodInfo WriteEndProperty { get; }
+        }
+
+        /// <summary>
+        /// Contains the methods of the <see cref="Internal.CaseInsensitiveStringHelper"/> class.
+        /// </summary>
+        internal sealed class CaseInsensitiveStringHelperMethods
+        {
+            /// <summary>
+            /// Initializes a new instance of the <see cref="CaseInsensitiveStringHelperMethods"/> class.
+            /// </summary>
+            public CaseInsensitiveStringHelperMethods()
+            {
+                this.Equals = typeof(CaseInsensitiveStringHelper).GetMethod(
+                    nameof(Internal.CaseInsensitiveStringHelper.Equals),
+                    new[] { typeof(string), typeof(string) });
+
+                this.GetHashCode = typeof(CaseInsensitiveStringHelper).GetMethod(
+                    nameof(Internal.CaseInsensitiveStringHelper.GetHashCode),
+                    new[] { typeof(string) });
+            }
+
+            /// <summary>
+            /// Gets the metadata for the <see cref="CaseInsensitiveStringHelper.Equals(string, string)"/> method.
+            /// </summary>
+            public new MethodInfo Equals { get; }
+
+            /// <summary>
+            /// Gets the metadata for the <see cref="CaseInsensitiveStringHelper.GetHashCode(string)"/> method.
+            /// </summary>
+            public new MethodInfo GetHashCode { get; }
         }
 
         /// <summary>
@@ -311,6 +384,26 @@ namespace Crest.Host.Serialization
             /// Gets the metadata for the <see cref="IPrimitiveSerializer{T}.Writer"/> property.
             /// </summary>
             public MethodInfo GetWriter { get; }
+        }
+
+        /// <summary>
+        /// Contains the methods of the <see cref="ITypeSerializer"/> interface.
+        /// </summary>
+        internal sealed class TypeSerializerMethods
+        {
+            /// <summary>
+            /// Initializes a new instance of the <see cref="TypeSerializerMethods"/> class.
+            /// </summary>
+            public TypeSerializerMethods()
+            {
+                this.Read = typeof(ITypeSerializer)
+                    .GetMethod(nameof(ITypeSerializer.Read));
+            }
+
+            /// <summary>
+            /// Gets the metadata for the <see cref="ITypeSerializer.Read"/> method.
+            /// </summary>
+            public MethodInfo Read { get; }
         }
 
         /// <summary>

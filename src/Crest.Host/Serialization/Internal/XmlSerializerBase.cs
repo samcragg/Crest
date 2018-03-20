@@ -149,10 +149,12 @@ namespace Crest.Host.Serialization.Internal
             }
         }
 
-        /// <summary>
-        /// Temporary code to make unit test work.
-        /// </summary>
-        /// <returns>Nothing interesting.</returns>
+        /// <inheritdoc />
+        public void ReadBeginClass(string metadata)
+        {
+        }
+
+        /// <inheritdoc />
         public string ReadBeginProperty()
         {
             if (!this.reader.CanReadStartElement())
@@ -188,6 +190,16 @@ namespace Crest.Host.Serialization.Internal
                 this.reader.ReadEndElement();
                 this.hasRootArrayElement = false;
             }
+        }
+
+        /// <inheritdoc />
+        public void ReadEndClass()
+        {
+        }
+
+        /// <inheritdoc />
+        public void ReadEndProperty()
+        {
         }
 
         /// <inheritdoc />
