@@ -18,7 +18,7 @@
                     null,
                     typeof(ClassWithProtectedConstructors));
 
-                generator.Invoking(g => g.EmitConstructor(null, typeof(string)))
+                generator.Invoking(g => g.EmitConstructor(typeof(string)))
                          .Should().Throw<InvalidOperationException>()
                          .WithMessage("*String*"); // It should output the type of the parameter
             }
@@ -30,7 +30,7 @@
                     null,
                     typeof(ClassWithPrivateConstructor));
 
-                generator.Invoking(g => g.EmitConstructor(null, typeof(int)))
+                generator.Invoking(g => g.EmitConstructor(typeof(int)))
                          .Should().Throw<InvalidOperationException>();
             }
 
@@ -134,9 +134,9 @@
             {
             }
 
-            public void EmitConstructor(TypeBuilder builder, Type parameter)
+            public void EmitConstructor(Type parameter)
             {
-                base.EmitConstructor(builder, null, parameter);
+                base.EmitConstructor(null, parameter);
             }
         }
     }

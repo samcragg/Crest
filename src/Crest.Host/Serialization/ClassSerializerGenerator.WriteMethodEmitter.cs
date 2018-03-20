@@ -30,7 +30,6 @@ namespace Crest.Host.Serialization
             private readonly ClassSerializerGenerator owner;
             private readonly bool writeEnumNames;
             private ILGenerator generator;
-            private TypeBuilder typeBuilder;
 
             public WriteMethodEmitter(
                 ClassSerializerGenerator owner,
@@ -47,12 +46,10 @@ namespace Crest.Host.Serialization
                 => this.nestedSerializersFields.Values;
 
             public void WriteProperties(
-                TypeBuilder typeBuilder,
                 Type serializedType,
                 IEnumerable<PropertyInfo> properties)
             {
-                this.typeBuilder = typeBuilder;
-                this.generator = this.CreateWriteMethod(typeBuilder);
+                this.generator = this.CreateWriteMethod();
 
                 // T instance = (T)parameter;
                 this.generator.DeclareLocal(serializedType);
@@ -62,7 +59,6 @@ namespace Crest.Host.Serialization
 
                 // base.WriteBeginClass(metadata or null)
                 this.owner.EmitCallBeginMethodWithTypeMetadata(
-                    this.typeBuilder,
                     this.generator,
                     this.owner.Methods.BaseClass.WriteBeginClass,
                     serializedType);
@@ -78,9 +74,9 @@ namespace Crest.Host.Serialization
                 this.generator.Emit(OpCodes.Ret);
             }
 
-            private ILGenerator CreateWriteMethod(TypeBuilder typeBuilder)
+            private ILGenerator CreateWriteMethod()
             {
-                MethodBuilder methodBuilder = typeBuilder.DefineMethod(
+                MethodBuilder methodBuilder = this.owner.Builder.DefineMethod(
                     nameof(ITypeSerializer.Write),
                     PublicVirtualMethod,
                     CallingConventions.HasThis);
@@ -285,7 +281,7 @@ namespace Crest.Host.Serialization
                 if (!this.nestedSerializersFields.TryGetValue(propertyType, out FieldBuilder field))
                 {
                     Type serializerType = this.owner.generateSerializer(propertyType);
-                    field = this.typeBuilder.DefineField(
+                    field = this.owner.Builder.DefineField(
                         serializerType.Name,
                         serializerType,
                         FieldAttributes.Private | FieldAttributes.InitOnly);

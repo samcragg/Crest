@@ -122,9 +122,9 @@ namespace Crest.Host.Serialization
             generator.EmitConvertToObject(type);
         }
 
-        private void EmitReadArrayMethod(TypeBuilder builder, MethodInfo readMethod, Type type)
+        private void EmitReadArrayMethod(MethodInfo readMethod, Type type)
         {
-            MethodBuilder methodBuilder = builder.DefineMethod(
+            MethodBuilder methodBuilder = this.Builder.DefineMethod(
                 nameof(ITypeSerializer.ReadArray),
                 PublicVirtualMethod,
                 CallingConventions.HasThis);
@@ -148,9 +148,9 @@ namespace Crest.Host.Serialization
             generator.Emit(OpCodes.Ret);
         }
 
-        private void EmitReadMethod(TypeBuilder builder, MethodInfo readMethod, Type type)
+        private void EmitReadMethod(MethodInfo readMethod, Type type)
         {
-            MethodBuilder methodBuilder = builder.DefineMethod(
+            MethodBuilder methodBuilder = this.Builder.DefineMethod(
                 nameof(ITypeSerializer.Read),
                 PublicVirtualMethod,
                 CallingConventions.HasThis);
@@ -160,7 +160,6 @@ namespace Crest.Host.Serialization
 
             // this.BeginRead(metadata)
             this.EmitCallBeginMethodWithTypeMetadata(
-                builder,
                 generator,
                 this.Methods.PrimitiveSerializer.BeginRead,
                 type);
@@ -180,9 +179,9 @@ namespace Crest.Host.Serialization
             generator.Emit(OpCodes.Ret);
         }
 
-        private void EmitWriteArrayMethod(TypeBuilder builder, MethodInfo writeMethod, Type type)
+        private void EmitWriteArrayMethod(MethodInfo writeMethod, Type type)
         {
-            MethodBuilder methodBuilder = builder.DefineMethod(
+            MethodBuilder methodBuilder = this.Builder.DefineMethod(
                 nameof(ITypeSerializer.WriteArray),
                 PublicVirtualMethod,
                 CallingConventions.HasThis);
@@ -206,10 +205,10 @@ namespace Crest.Host.Serialization
             generator.Emit(OpCodes.Ret);
         }
 
-        private void EmitWriteMethod(TypeBuilder builder, MethodInfo writeMethod, Type type)
+        private void EmitWriteMethod(MethodInfo writeMethod, Type type)
         {
             Type primitive = Nullable.GetUnderlyingType(type) ?? type;
-            MethodBuilder methodBuilder = builder.DefineMethod(
+            MethodBuilder methodBuilder = this.Builder.DefineMethod(
                 nameof(ITypeSerializer.Write),
                 PublicVirtualMethod,
                 CallingConventions.HasThis);
@@ -219,7 +218,6 @@ namespace Crest.Host.Serialization
 
             // this.BeginWrite(metadata)
             this.EmitCallBeginMethodWithTypeMetadata(
-                builder,
                 generator,
                 this.Methods.PrimitiveSerializer.BeginWrite,
                 type);
@@ -245,13 +243,13 @@ namespace Crest.Host.Serialization
 
         private Type GenerateType(string name, Type type, MethodInfo readMethod, MethodInfo writeMethod)
         {
-            TypeBuilder builder = this.CreateType(name);
-            this.EmitConstructor(builder, null, typeof(Stream), typeof(SerializationMode));
-            this.EmitReadMethod(builder, readMethod, type);
-            this.EmitReadArrayMethod(builder, readMethod, type);
-            this.EmitWriteMethod(builder, writeMethod, type);
-            this.EmitWriteArrayMethod(builder, writeMethod, type);
-            return this.GenerateType(builder, type);
+            this.CreateType(name);
+            this.EmitConstructor(null, typeof(Stream), typeof(SerializationMode));
+            this.EmitReadMethod(readMethod, type);
+            this.EmitReadArrayMethod(readMethod, type);
+            this.EmitWriteMethod(writeMethod, type);
+            this.EmitWriteArrayMethod(writeMethod, type);
+            return this.GenerateType(type);
         }
     }
 }

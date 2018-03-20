@@ -50,31 +50,29 @@ namespace Crest.Host.Serialization
         public Type GenerateFor(Type classType)
         {
             IReadOnlyList<PropertyInfo> properties = GetProperties(classType);
-            TypeBuilder builder = this.CreateType(classType.Name);
+            this.CreateType(classType.Name);
 
             IReadOnlyDictionary<string, FieldInfo> metadata =
-                this.CreateMetadataFields(builder, properties);
+                this.CreateMetadataFields(properties);
 
             // Create the Write method first, so that if it needs any nested
             // serializers we can initialize them in the constructors
             var writeMethod = new WriteMethodEmitter(this, metadata);
-            writeMethod.WriteProperties(builder, classType, properties);
-            this.EmitWriteArray(builder, classType, writeMethod.GeneratedMethod);
+            writeMethod.WriteProperties(classType, properties);
+            this.EmitWriteArray(classType, writeMethod.GeneratedMethod);
 
             // Create the constructors
             this.EmitConstructor(
-                builder,
                 writeMethod.NestedSerializerFields,
                 this.BaseClass);
 
             this.EmitConstructor(
-                builder,
                 writeMethod.NestedSerializerFields,
                 typeof(Stream),
                 typeof(SerializationMode));
 
             // Build the type and set the static metadata
-            TypeInfo generatedInfo = builder.CreateTypeInfo();
+            TypeInfo generatedInfo = this.Builder.CreateTypeInfo();
             Type generatedType = generatedInfo.AsType();
             this.InitializeTypeMetadata(generatedType, classType);
             this.SetMetadataFields(generatedInfo, properties, metadata);
@@ -106,14 +104,12 @@ namespace Crest.Host.Serialization
                        .ToList();
         }
 
-        private IReadOnlyDictionary<string, FieldInfo> CreateMetadataFields(
-            TypeBuilder builder,
-            IReadOnlyList<PropertyInfo> properties)
+        private IReadOnlyDictionary<string, FieldInfo> CreateMetadataFields(IReadOnlyList<PropertyInfo> properties)
         {
             var fields = new Dictionary<string, FieldInfo>(StringComparer.Ordinal);
             foreach (PropertyInfo property in properties)
             {
-                FieldBuilder field = this.CreateMetadataField(builder, property.Name);
+                FieldBuilder field = this.CreateMetadataField(property.Name);
                 fields.Add(property.Name, field);
             }
 
@@ -121,12 +117,10 @@ namespace Crest.Host.Serialization
         }
 
         private void EmitConstructor(
-            TypeBuilder builder,
             IEnumerable<FieldBuilder> nestedSerializers,
             params Type[] parameters)
         {
             this.EmitConstructor(
-                builder,
                 generator =>
                 {
                     foreach (FieldBuilder serializerField in nestedSerializers)
@@ -155,9 +149,9 @@ namespace Crest.Host.Serialization
             generator.Emit(OpCodes.Stfld, serializerField);
         }
 
-        private void EmitWriteArray(TypeBuilder builder, Type classType, MethodInfo generatedMethod)
+        private void EmitWriteArray(Type classType, MethodInfo generatedMethod)
         {
-            MethodBuilder methodBuilder = builder.DefineMethod(
+            MethodBuilder methodBuilder = this.Builder.DefineMethod(
                     nameof(ITypeSerializer.WriteArray),
                     PublicVirtualMethod,
                     CallingConventions.HasThis);

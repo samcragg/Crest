@@ -6,6 +6,7 @@
 namespace Crest.Host.Serialization
 {
     using System;
+    using System.Collections.Generic;
     using System.Linq;
     using System.Reflection;
     using System.Reflection.Emit;
@@ -27,6 +28,7 @@ namespace Crest.Host.Serialization
             MethodAttributes.Virtual;
 
         private const string MetadataSuffix = "<>Metadata";
+        private readonly List<FieldBuilder> fields = new List<FieldBuilder>();
         private readonly ModuleBuilder moduleBuilder;
 
         /// <summary>
@@ -52,6 +54,11 @@ namespace Crest.Host.Serialization
         /// Gets the base class for the generated type.
         /// </summary>
         protected Type BaseClass { get; }
+
+        /// <summary>
+        /// Gets the builder created by the last call to <see cref="CreateType(string)"/>.
+        /// </summary>
+        protected TypeBuilder Builder { get; private set; }
 
         /// <summary>
         /// Gets the type of the metadata stored for properties/types.
@@ -105,23 +112,32 @@ namespace Crest.Host.Serialization
         /// <summary>
         /// Creates a field to hold specific metadata.
         /// </summary>
-        /// <param name="builder">The builder to create the field in.</param>
         /// <param name="name">The prefix for the field name.</param>
         /// <returns>A field for containing the metadata.</returns>
-        protected FieldBuilder CreateMetadataField(TypeBuilder builder, string name)
+        protected FieldBuilder CreateMetadataField(string name)
         {
-            return builder.DefineField(
-                name + MetadataSuffix,
-                this.MetadataType,
-                FieldAttributes.Public | FieldAttributes.Static);
+            name = name + MetadataSuffix;
+            FieldBuilder field = this.fields.FirstOrDefault(
+                f => string.Equals(f.Name, name, StringComparison.Ordinal));
+
+            if (field == null)
+            {
+                field = this.Builder.DefineField(
+                    name,
+                    this.MetadataType,
+                    FieldAttributes.Public | FieldAttributes.Static);
+
+                this.fields.Add(field);
+            }
+
+            return field;
         }
 
         /// <summary>
         /// Creates a type based on the specified name,
         /// </summary>
         /// <param name="name">The name for the type.</param>
-        /// <returns>A new builder for a class at runtime.</returns>
-        protected TypeBuilder CreateType(string name)
+        protected void CreateType(string name)
         {
             const TypeAttributes PublicSealedClass =
                 TypeAttributes.AnsiClass |
@@ -136,19 +152,19 @@ namespace Crest.Host.Serialization
                             this.BaseClass);
 
             builder.AddInterfaceImplementation(typeof(ITypeSerializer));
-            return builder;
+
+            this.fields.Clear();
+            this.Builder = builder;
         }
 
         /// <summary>
         /// Emits a call to a method that expects the metadata for the type or
         /// null if the base serializer doesn't provide such data.
         /// </summary>
-        /// <param name="builder">The builder to emit the metadata field to.</param>
         /// <param name="generator">Where to emit the instructions to.</param>
         /// <param name="method">The method to invoke.</param>
         /// <param name="classType">The type to generate the metadata of.</param>
         protected void EmitCallBeginMethodWithTypeMetadata(
-            TypeBuilder builder,
             ILGenerator generator,
             MethodInfo method,
             Type classType)
@@ -161,7 +177,7 @@ namespace Crest.Host.Serialization
             }
             else
             {
-                FieldBuilder field = this.CreateMetadataField(builder, classType.Name);
+                FieldBuilder field = this.CreateMetadataField(classType.Name);
                 generator.Emit(OpCodes.Ldsfld, field);
             }
 
@@ -172,14 +188,12 @@ namespace Crest.Host.Serialization
         /// Emits a constructor with the specified parameter and, optionally,
         /// specified body.
         /// </summary>
-        /// <param name="builder">The builder to emit the constructor to.</param>
         /// <param name="body">
         /// Used to write additional instructions after the base class
         /// constructor has been called, can be <c>null</c>.
         /// </param>
         /// <param name="parameters">The types of the parameter.</param>
         protected void EmitConstructor(
-            TypeBuilder builder,
             Action<ILGenerator> body,
             params Type[] parameters)
         {
@@ -191,7 +205,7 @@ namespace Crest.Host.Serialization
 
             ConstructorInfo baseConstructor = FindConstructorWithParameters(this.BaseClass, parameters);
 
-            ConstructorBuilder constructorBuilder = builder.DefineConstructor(
+            ConstructorBuilder constructorBuilder = this.Builder.DefineConstructor(
                 PublicConstructor,
                 CallingConventions.Standard,
                 parameters);
@@ -214,14 +228,13 @@ namespace Crest.Host.Serialization
         /// <summary>
         /// Builds the type and initializes the static metadata.
         /// </summary>
-        /// <param name="builder">The type builder.</param>
         /// <param name="classType">
         /// The type the serializer has been generated for.
         /// </param>
         /// <returns>The created type.</returns>
-        protected Type GenerateType(TypeBuilder builder, Type classType)
+        protected Type GenerateType(Type classType)
         {
-            Type generatedType = builder.CreateTypeInfo().AsType();
+            Type generatedType = this.Builder.CreateTypeInfo().AsType();
             this.InitializeTypeMetadata(generatedType, classType);
             return generatedType;
         }
