@@ -34,13 +34,27 @@
             {
             }
 
+            internal string BeginReadMetadata { get; private set; }
+
             internal string BeginWriteMetadata { get; private set; }
 
+            internal int EndReadCount { get; private set; }
+
             internal int EndWriteCount { get; private set; }
+
+            public override void BeginRead(string type)
+            {
+                this.BeginReadMetadata = type;
+            }
 
             public override void BeginWrite(string type)
             {
                 this.BeginWriteMetadata = type;
+            }
+
+            public override void EndRead()
+            {
+                this.EndReadCount++;
             }
 
             public override void EndWrite()
@@ -70,6 +84,16 @@
             }
 
             [Fact]
+            public void TheGeneratedSerializersShouldCallTheBeginReadMethod()
+            {
+                _FakeBaseClass serializer = this.GetSerializerFor<string>();
+
+                ((ITypeSerializer)serializer).Read();
+
+                serializer.BeginReadMetadata.Should().Be(nameof(String));
+            }
+
+            [Fact]
             public void TheGeneratedSerializersShouldCallTheBeginWriteMethod()
             {
                 object serializer = this.GetSerializerFor<string>();
@@ -80,6 +104,16 @@
             }
 
             [Fact]
+            public void TheGeneratedSerializersShouldCallTheEndReadMethod()
+            {
+                _FakeBaseClass serializer = this.GetSerializerFor<string>();
+
+                ((ITypeSerializer)serializer).Read();
+
+                serializer.EndReadCount.Should().Be(1);
+            }
+
+            [Fact]
             public void TheGeneratedSerializersShouldCallTheEndWriteMethod()
             {
                 object serializer = this.GetSerializerFor<string>();
@@ -87,6 +121,86 @@
                 ((ITypeSerializer)serializer).Write("value");
 
                 ((_FakeBaseClass)serializer).EndWriteCount.Should().Be(1);
+            }
+
+            [Fact]
+            public void TheGeneratedSerializersShouldReadArrays()
+            {
+                _FakeBaseClass serializer = this.GetSerializerFor<int>();
+                serializer.SetArray(r => r.ReadInt32(), 123);
+
+                Array result = ((ITypeSerializer)serializer).ReadArray();
+
+                result.Should().BeOfType<int[]>().Which.Should().Equal(123);
+            }
+
+            [Fact]
+            public void TheGeneratedSerializersShouldReadNullableArrays()
+            {
+                _FakeBaseClass serializer = this.GetSerializerFor<int?>();
+                serializer.SetArray(r => r.ReadInt32(), 123);
+
+                Array result = ((ITypeSerializer)serializer).ReadArray();
+
+                result.Should().BeOfType<int?[]>().Which.Should().Equal(123);
+            }
+
+            [Fact]
+            public void TheGeneratedSerializersShouldReadNullableTypes()
+            {
+                _FakeBaseClass serializer = this.GetSerializerFor<short?>();
+                serializer.Reader.ReadInt16().Returns((short)123);
+
+                object result = ((ITypeSerializer)serializer).Read();
+
+                // When a nullable gets boxed to an object, it get boxed as the
+                // underlying type (if it has a value), hence the usage of
+                // short here and not short?
+                result.Should().BeOfType<short>().Which.Equals(123);
+            }
+
+            [Fact]
+            public void TheGeneratedSerializersShouldReadNullNullableTypes()
+            {
+                _FakeBaseClass serializer = this.GetSerializerFor<short?>();
+                serializer.Reader.ReadNull().Returns(true);
+
+                object result = ((ITypeSerializer)serializer).Read();
+
+                result.Should().BeNull();
+            }
+
+            [Fact]
+            public void TheGeneratedSerializersShouldReadNullReferenceTypes()
+            {
+                _FakeBaseClass serializer = this.GetSerializerFor<string>();
+                serializer.Reader.ReadNull().Returns(true);
+
+                object result = ((ITypeSerializer)serializer).Read();
+
+                result.Should().BeNull();
+            }
+
+            [Fact]
+            public void TheGeneratedSerializersShouldReadReferenceTypes()
+            {
+                _FakeBaseClass serializer = this.GetSerializerFor<string>();
+                serializer.Reader.ReadString().Returns("value");
+
+                object result = ((ITypeSerializer)serializer).Read();
+
+                result.Should().BeOfType<string>().Which.Equals("value");
+            }
+
+            [Fact]
+            public void TheGeneratedSerializersShouldReadValueTypes()
+            {
+                object serializer = this.GetSerializerFor<long>();
+                ((_FakeBaseClass)serializer).Reader.ReadInt64().Returns(123L);
+
+                object result = ((ITypeSerializer)serializer).Read();
+
+                result.Should().BeOfType<long>().Which.Equals(123);
             }
 
             [Fact]
@@ -145,7 +259,7 @@
                 ((_FakeBaseClass)serializer).Writer.Received().WriteInt64(123);
             }
 
-            private object GetSerializerFor<T>()
+            private _FakeBaseClass GetSerializerFor<T>()
             {
                 Type serializerType =
                     this.generator.GetSerializers()
@@ -153,7 +267,7 @@
                         .Select(kvp => kvp.Value)
                         .Single();
 
-                return Activator.CreateInstance(serializerType, Stream.Null, SerializationMode.Serialize);
+                return (_FakeBaseClass)Activator.CreateInstance(serializerType, Stream.Null, SerializationMode.Serialize);
             }
         }
     }

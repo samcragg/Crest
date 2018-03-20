@@ -58,7 +58,7 @@
             return type.Name;
         }
 
-        public void BeginRead(string metadata)
+        public virtual void BeginRead(string metadata)
         {
         }
 
@@ -67,7 +67,7 @@
             this.BeginPrimitive = metadata;
         }
 
-        public void EndRead()
+        public virtual void EndRead()
         {
         }
 

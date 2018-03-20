@@ -158,7 +158,7 @@ namespace Crest.Host.Serialization
                 // Can be null as it's optional
                 this.GetTypeMetadata = baseClass.GetMethod(
                     TypeMetadataMethodName,
-                    BindingFlags.Public | BindingFlags.Static);
+                    BindingFlags.FlattenHierarchy | BindingFlags.Public | BindingFlags.Static);
 
                 this.WriteBeginClass = classSerializerInterface.GetMethod(
                     nameof(IClassSerializer<object>.WriteBeginClass));

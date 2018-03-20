@@ -43,11 +43,14 @@ namespace Crest.Host.Serialization
         {
             foreach (KeyValuePair<Type, MethodInfo> kvp in this.Methods.ValueWriter)
             {
-                // Create the class for writing the primitive type first
                 Type primitive = kvp.Key;
+                MethodInfo readerMethod = this.Methods.ValueReader[primitive];
+
+                // Create the class for writing the primitive type first
                 Type serializer = this.GenerateType(
                     primitive.Name,
                     primitive,
+                    readerMethod,
                     kvp.Value);
 
                 yield return new KeyValuePair<Type, Type>(primitive, serializer);
@@ -60,6 +63,7 @@ namespace Crest.Host.Serialization
                     serializer = this.GenerateType(
                         primitive.Name + "?",
                         nullable,
+                        readerMethod,
                         kvp.Value);
 
                     yield return new KeyValuePair<Type, Type>(nullable, serializer);
@@ -104,6 +108,76 @@ namespace Crest.Host.Serialization
             generator.MarkLabel(notNull);
             readValue(generator, Nullable.GetUnderlyingType(type) ?? type);
             generator.MarkLabel(end);
+        }
+
+        private static void EmitBoxToObject(ILGenerator generator, Type type)
+        {
+            Type underlyingType = Nullable.GetUnderlyingType(type);
+            if (underlyingType != null)
+            {
+                // new Nullable<T>(this.Reader.ReadXXX())
+                generator.Emit(OpCodes.Newobj, type.GetConstructor(new[] { underlyingType }));
+            }
+
+            generator.EmitConvertToObject(type);
+        }
+
+        private void EmitReadArrayMethod(TypeBuilder builder, MethodInfo readMethod, Type type)
+        {
+            MethodBuilder methodBuilder = builder.DefineMethod(
+                nameof(ITypeSerializer.ReadArray),
+                PublicVirtualMethod,
+                CallingConventions.HasThis);
+
+            methodBuilder.SetReturnType(typeof(Array));
+            ILGenerator generator = methodBuilder.GetILGenerator();
+
+            var arrayEmitter = new ArrayDeserializeEmitter(generator, this.BaseClass, this.Methods)
+            {
+                CreateLocal = generator.DeclareLocal,
+                ReadValue = (g, _) =>
+                {
+                    // this.Reader.ReadXxx()
+                    g.EmitLoadArgument(0);
+                    g.EmitCall(this.BaseClass, this.Methods.PrimitiveSerializer.GetReader);
+                    g.EmitCall(typeof(ValueReader), readMethod);
+                }
+            };
+            arrayEmitter.EmitReadArray(type.MakeArrayType());
+
+            generator.Emit(OpCodes.Ret);
+        }
+
+        private void EmitReadMethod(TypeBuilder builder, MethodInfo readMethod, Type type)
+        {
+            MethodBuilder methodBuilder = builder.DefineMethod(
+                nameof(ITypeSerializer.Read),
+                PublicVirtualMethod,
+                CallingConventions.HasThis);
+
+            methodBuilder.SetReturnType(typeof(object));
+            ILGenerator generator = methodBuilder.GetILGenerator();
+
+            // this.BeginRead(metadata)
+            this.EmitCallBeginMethodWithTypeMetadata(
+                builder,
+                generator,
+                this.Methods.PrimitiveSerializer.BeginRead,
+                type);
+
+            // object result = this.reader.ReadXXX()
+            EmitReadValue(generator, this.BaseClass, this.Methods, type, (g, _) =>
+            {
+                g.EmitLoadArgument(0);
+                g.EmitCall(this.BaseClass, this.Methods.PrimitiveSerializer.GetReader);
+                g.EmitCall(readMethod.DeclaringType, readMethod);
+                EmitBoxToObject(g, type);
+            });
+
+            // this.EndRead()
+            generator.EmitLoadArgument(0);
+            generator.EmitCall(this.BaseClass, this.Methods.PrimitiveSerializer.EndRead);
+            generator.Emit(OpCodes.Ret);
         }
 
         private void EmitWriteArrayMethod(TypeBuilder builder, MethodInfo writeMethod, Type type)
@@ -169,10 +243,12 @@ namespace Crest.Host.Serialization
             generator.Emit(OpCodes.Ret);
         }
 
-        private Type GenerateType(string name, Type type, MethodInfo writeMethod)
+        private Type GenerateType(string name, Type type, MethodInfo readMethod, MethodInfo writeMethod)
         {
             TypeBuilder builder = this.CreateType(name);
             this.EmitConstructor(builder, null, typeof(Stream), typeof(SerializationMode));
+            this.EmitReadMethod(builder, readMethod, type);
+            this.EmitReadArrayMethod(builder, readMethod, type);
             this.EmitWriteMethod(builder, writeMethod, type);
             this.EmitWriteArrayMethod(builder, writeMethod, type);
             return this.GenerateType(builder, type);
