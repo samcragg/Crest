@@ -87,6 +87,64 @@
             }
         }
 
+        public sealed class ReadBeginClass : JsonSerializerBaseDeserializeTests
+        {
+            [Fact]
+            public void ShouldConsumeTheStartToken()
+            {
+                this.SetStreamTo("{1");
+
+                this.Serializer.ReadBeginClass(null);
+                int result = this.Serializer.Reader.ReadInt32();
+
+                result.Should().Be(1);
+            }
+
+            [Fact]
+            public void ShouldThrowIfNotAtTheStartOfAClass()
+            {
+                this.SetStreamTo("123");
+
+                Action action = () => this.Serializer.ReadBeginClass(null);
+
+                action.Should().Throw<FormatException>();
+            }
+        }
+
+        public sealed class ReadBeginProperty : JsonSerializerBaseDeserializeTests
+        {
+            [Fact]
+            public void ShouldReturnNullIfNotAProperty()
+            {
+                this.SetStreamTo("123");
+
+                string result = this.Serializer.ReadBeginProperty();
+
+                result.Should().BeNull();
+            }
+
+            [Fact]
+            public void ShouldReturnThePropertyName()
+            {
+                this.SetStreamTo("\"property\":123");
+
+                string result = this.Serializer.ReadBeginProperty();
+
+                result.Should().Be("property");
+            }
+
+            [Fact]
+            public void ShouldThrowMissingTheValueSeparator()
+            {
+                this.SetStreamTo("\"property\" 123");
+
+                Action action = () => this.Serializer.ReadBeginProperty();
+
+                action.Should().Throw<FormatException>()
+                      .WithMessage("*:*");
+            }
+        }
+
         public sealed class ReadElementSeparator : JsonSerializerBaseDeserializeTests
         {
             [Fact]
@@ -131,6 +189,44 @@
                 Action action = () => this.Serializer.ReadEndArray();
 
                 action.Should().Throw<FormatException>();
+            }
+        }
+
+        public sealed class ReadEndClass : JsonSerializerBaseDeserializeTests
+        {
+            [Fact]
+            public void ShouldConsumeTheEndToken()
+            {
+                this.SetStreamTo("}1");
+
+                this.Serializer.ReadEndClass();
+                int result = this.Serializer.Reader.ReadInt32();
+
+                result.Should().Be(1);
+            }
+
+            [Fact]
+            public void ShouldThrowIfNotAtTheEndOfAClass()
+            {
+                this.SetStreamTo("1");
+
+                Action action = () => this.Serializer.ReadEndClass();
+
+                action.Should().Throw<FormatException>();
+            }
+        }
+
+        public sealed class ReadEndProperty : JsonSerializerBaseDeserializeTests
+        {
+            [Fact]
+            public void ShouldConsumePropertySeparators()
+            {
+                this.SetStreamTo(",1");
+
+                this.Serializer.ReadEndProperty();
+                int result = this.Serializer.Reader.ReadInt32();
+
+                result.Should().Be(1);
             }
         }
 

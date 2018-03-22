@@ -138,12 +138,22 @@ namespace Crest.Host.Serialization.Internal
         /// <inheritdoc />
         public void ReadBeginClass(byte[] metadata)
         {
+            this.reader.ExpectToken('{');
         }
 
         /// <inheritdoc />
         public string ReadBeginProperty()
         {
-            return null;
+            if (this.reader.PeekToken() != '"')
+            {
+                return null;
+            }
+            else
+            {
+                string name = this.reader.ReadString();
+                this.reader.ExpectToken(':');
+                return name;
+            }
         }
 
         /// <inheritdoc />
@@ -161,11 +171,18 @@ namespace Crest.Host.Serialization.Internal
         /// <inheritdoc />
         public void ReadEndClass()
         {
+            this.reader.ExpectToken('}');
         }
 
         /// <inheritdoc />
         public void ReadEndProperty()
         {
+            // This is slightly less strict and allows for trailing commas, i.e.
+            //
+            //     { "property":false, }
+            //
+            // is invalid JSON due to the trailing comma but we allow it
+            this.reader.TryReadToken(',');
         }
 
         /// <inheritdoc />
