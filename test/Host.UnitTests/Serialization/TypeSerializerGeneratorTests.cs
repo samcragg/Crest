@@ -153,7 +153,7 @@
 
             public void EmitConstructor(Type parameter)
             {
-                base.EmitConstructor(null, parameter);
+                base.EmitConstructor(null, null, parameter);
             }
         }
     }

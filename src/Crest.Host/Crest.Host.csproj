@@ -93,6 +93,9 @@
     <Compile Update="Serialization/SerializerGenerator{TBase}.SerializerInfo.cs">
       <DependentUpon>SerializerGenerator{TBase}.cs</DependentUpon>
     </Compile>
+    <Compile Update="Serialization/TypeSerializerGenerator.TypeSerializerBuilder.cs">
+      <DependentUpon>TypeSerializerGenerator.cs</DependentUpon>
+    </Compile>
     <Compile Update="Serialization/UrlEncodedStreamReader.FormParser.cs">
       <DependentUpon>UrlEncodedStreamReader.cs</DependentUpon>
     </Compile>

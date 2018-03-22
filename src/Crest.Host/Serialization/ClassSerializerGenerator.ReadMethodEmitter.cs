@@ -19,44 +19,44 @@ namespace Crest.Host.Serialization
     {
         private class ReadMethodEmitter
         {
+            private readonly TypeSerializerBuilder builder;
+
             private readonly Dictionary<Type, LocalBuilder> locals
                 = new Dictionary<Type, LocalBuilder>();
 
-            private readonly Dictionary<Type, FieldBuilder> nestedSerializersFields
-                = new Dictionary<Type, FieldBuilder>();
-
+            private readonly IReadOnlyDictionary<Type, FieldBuilder> nestedSerializerFields;
             private readonly ClassSerializerGenerator owner;
             private readonly bool useEnumNames;
             private ILGenerator generator;
 
-            public ReadMethodEmitter(ClassSerializerGenerator owner)
+            public ReadMethodEmitter(
+                ClassSerializerGenerator owner,
+                TypeSerializerBuilder builder,
+                IReadOnlyDictionary<Type, FieldBuilder> nestedSerializerFields)
             {
+                this.builder = builder;
+                this.nestedSerializerFields = nestedSerializerFields;
                 this.owner = owner;
                 this.useEnumNames = SerializerGenerator.OutputEnumNames(this.owner.BaseClass);
             }
 
-            public IReadOnlyCollection<FieldBuilder> NestedSerializerFields
-                => this.nestedSerializersFields.Values;
-
-            public void EmitReadMethod(Type classType, IReadOnlyList<PropertyInfo> properties)
+            public void EmitReadMethod(IReadOnlyList<PropertyInfo> properties)
             {
-                MethodBuilder method = this.owner.Builder.DefineMethod(
-                    nameof(ITypeSerializer.Read),
-                    PublicVirtualMethod,
-                    CallingConventions.HasThis);
+                MethodBuilder method = this.builder.CreatePublicVirtualMethod(
+                    nameof(ITypeSerializer.Read));
 
                 method.SetReturnType(typeof(object));
                 this.generator = method.GetILGenerator();
-                int instanceIndex = this.generator.DeclareLocal(classType).LocalIndex;
+                int instanceIndex = this.generator.DeclareLocal(this.builder.SerializedType).LocalIndex;
 
                 // T instance = new T();
-                InitializeInstance(this.generator, classType, instanceIndex);
+                InitializeInstance(this.generator, this.builder.SerializedType, instanceIndex);
 
                 // this.BeginReadClass(metadata or null);
                 this.owner.EmitCallBeginMethodWithTypeMetadata(
+                    this.builder,
                     this.generator,
-                    this.owner.Methods.BaseClass.ReadBeginClass,
-                    classType);
+                    this.owner.Methods.BaseClass.ReadBeginClass);
 
                 // instance.Property = this.Reader.ReadXXX()
                 this.EmitReadProperties(properties, instanceIndex);
@@ -280,7 +280,7 @@ namespace Crest.Host.Serialization
                 else
                 {
                     // Use a specialist serializer to serialize the value
-                    FieldBuilder serializer = this.GetOrCreateNestedSerializer(type);
+                    FieldBuilder serializer = this.nestedSerializerFields[type];
                     MethodInfo readMethod =
                         typeof(ITypeSerializer).GetMethod(nameof(ITypeSerializer.Read));
 
@@ -301,22 +301,6 @@ namespace Crest.Host.Serialization
                 }
 
                 return local;
-            }
-
-            private FieldBuilder GetOrCreateNestedSerializer(Type propertyType)
-            {
-                if (!this.nestedSerializersFields.TryGetValue(propertyType, out FieldBuilder field))
-                {
-                    Type serializerType = this.owner.generateSerializer(propertyType);
-                    field = this.owner.Builder.DefineField(
-                        serializerType.Name,
-                        serializerType,
-                        FieldAttributes.Private | FieldAttributes.InitOnly);
-
-                    this.nestedSerializersFields.Add(propertyType, field);
-                }
-
-                return field;
             }
         }
     }

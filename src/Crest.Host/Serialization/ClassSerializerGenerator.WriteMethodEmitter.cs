@@ -19,6 +19,8 @@ namespace Crest.Host.Serialization
     {
         private class WriteMethodEmitter
         {
+            private readonly TypeSerializerBuilder builder;
+
             private readonly Dictionary<Type, LocalBuilder> locals
                 = new Dictionary<Type, LocalBuilder>();
 
@@ -33,35 +35,35 @@ namespace Crest.Host.Serialization
 
             public WriteMethodEmitter(
                 ClassSerializerGenerator owner,
+                TypeSerializerBuilder builder,
                 IReadOnlyDictionary<string, FieldInfo> metadataFields)
             {
-                this.owner = owner;
+                this.builder = builder;
                 this.metadataFields = metadataFields;
+                this.owner = owner;
                 this.writeEnumNames = SerializerGenerator.OutputEnumNames(owner.BaseClass);
             }
 
             public MethodInfo GeneratedMethod { get; private set; }
 
-            public IReadOnlyCollection<FieldBuilder> NestedSerializerFields
-                => this.nestedSerializersFields.Values;
+            public IReadOnlyDictionary<Type, FieldBuilder> NestedSerializerFields
+                => this.nestedSerializersFields;
 
-            public void WriteProperties(
-                Type serializedType,
-                IEnumerable<PropertyInfo> properties)
+            public void WriteProperties(IEnumerable<PropertyInfo> properties)
             {
                 this.generator = this.CreateWriteMethod();
 
                 // T instance = (T)parameter;
-                this.generator.DeclareLocal(serializedType);
+                this.generator.DeclareLocal(this.builder.SerializedType);
                 this.generator.EmitLoadArgument(1); // Argument 0 is 'this', 1 is the value
-                this.generator.Emit(OpCodes.Castclass, serializedType);
+                this.generator.Emit(OpCodes.Castclass, this.builder.SerializedType);
                 this.generator.EmitStoreLocal(0);
 
                 // base.WriteBeginClass(metadata or null)
                 this.owner.EmitCallBeginMethodWithTypeMetadata(
+                    this.builder,
                     this.generator,
-                    this.owner.Methods.BaseClass.WriteBeginClass,
-                    serializedType);
+                    this.owner.Methods.BaseClass.WriteBeginClass);
 
                 foreach (PropertyInfo property in properties)
                 {
@@ -76,10 +78,8 @@ namespace Crest.Host.Serialization
 
             private ILGenerator CreateWriteMethod()
             {
-                MethodBuilder methodBuilder = this.owner.Builder.DefineMethod(
-                    nameof(ITypeSerializer.Write),
-                    PublicVirtualMethod,
-                    CallingConventions.HasThis);
+                MethodBuilder methodBuilder = this.builder.CreatePublicVirtualMethod(
+                    nameof(ITypeSerializer.Write));
 
                 methodBuilder.SetParameters(typeof(object));
                 this.GeneratedMethod = methodBuilder;
@@ -281,7 +281,7 @@ namespace Crest.Host.Serialization
                 if (!this.nestedSerializersFields.TryGetValue(propertyType, out FieldBuilder field))
                 {
                     Type serializerType = this.owner.generateSerializer(propertyType);
-                    field = this.owner.Builder.DefineField(
+                    field = this.builder.Builder.DefineField(
                         serializerType.Name,
                         serializerType,
                         FieldAttributes.Private | FieldAttributes.InitOnly);

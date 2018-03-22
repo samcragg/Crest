@@ -50,25 +50,23 @@ namespace Crest.Host.Serialization
         public Type GenerateFor(Type classType)
         {
             IReadOnlyList<PropertyInfo> properties = GetProperties(classType);
-            this.CreateType(classType.Name);
+            TypeSerializerBuilder builder = this.CreateType(classType, classType.Name);
 
             IReadOnlyDictionary<string, FieldInfo> metadata =
-                this.CreateMetadataFields(properties);
+                this.CreateMetadataFields(builder, properties);
 
             // Create the methods first, so that if it needs any nested
             // serializers we can initialize them in the constructors
-            IReadOnlyCollection<FieldBuilder> fields =
-                this.EmitMethods(classType, properties, metadata);
+            IEnumerable<FieldBuilder> fields =
+                this.EmitMethods(builder, properties, metadata);
 
             // Create the constructors
-            this.EmitConstructor(fields, this.BaseClass);
-            this.EmitConstructor(fields, typeof(Stream), typeof(SerializationMode));
+            this.EmitConstructor(builder, fields, this.BaseClass);
+            this.EmitConstructor(builder, fields, typeof(Stream), typeof(SerializationMode));
 
             // Build the type and set the static metadata
-            TypeInfo generatedInfo = this.Builder.CreateTypeInfo();
-            Type generatedType = generatedInfo.AsType();
-            this.InitializeTypeMetadata(generatedType, classType);
-            this.SetMetadataFields(generatedInfo, properties, metadata);
+            Type generatedType = builder.GenerateType();
+            this.SetMetadataFields(generatedType.GetTypeInfo(), properties, metadata);
             return generatedType;
         }
 
@@ -97,12 +95,14 @@ namespace Crest.Host.Serialization
                        .ToList();
         }
 
-        private IReadOnlyDictionary<string, FieldInfo> CreateMetadataFields(IReadOnlyList<PropertyInfo> properties)
+        private IReadOnlyDictionary<string, FieldInfo> CreateMetadataFields(
+            TypeSerializerBuilder builder,
+            IReadOnlyList<PropertyInfo> properties)
         {
             var fields = new Dictionary<string, FieldInfo>(StringComparer.Ordinal);
             foreach (PropertyInfo property in properties)
             {
-                FieldBuilder field = this.CreateMetadataField(property.Name);
+                FieldBuilder field = builder.CreateMetadataField(property.Name);
                 fields.Add(property.Name, field);
             }
 
@@ -110,10 +110,12 @@ namespace Crest.Host.Serialization
         }
 
         private void EmitConstructor(
+            TypeSerializerBuilder builder,
             IEnumerable<FieldBuilder> nestedSerializers,
             params Type[] parameters)
         {
             this.EmitConstructor(
+                builder,
                 generator =>
                 {
                     foreach (FieldBuilder serializerField in nestedSerializers)
@@ -142,25 +144,26 @@ namespace Crest.Host.Serialization
             generator.Emit(OpCodes.Stfld, serializerField);
         }
 
-        private IReadOnlyCollection<FieldBuilder> EmitMethods(Type classType, IReadOnlyList<PropertyInfo> properties, IReadOnlyDictionary<string, FieldInfo> metadata)
+        private IEnumerable<FieldBuilder> EmitMethods(
+            TypeSerializerBuilder builder,
+            IReadOnlyList<PropertyInfo> properties,
+            IReadOnlyDictionary<string, FieldInfo> metadata)
         {
-            var writeMethod = new WriteMethodEmitter(this, metadata);
-            writeMethod.WriteProperties(classType, properties);
-            this.EmitWriteArray(classType, writeMethod.GeneratedMethod);
+            var writeMethod = new WriteMethodEmitter(this, builder, metadata);
+            writeMethod.WriteProperties(properties);
+            this.EmitWriteArray(builder, writeMethod.GeneratedMethod);
 
-            var readMethod = new ReadMethodEmitter(this);
-            readMethod.EmitReadMethod(classType, GetProperties(classType));
-            this.EmitReadArrayMethod(classType);
+            var readMethod = new ReadMethodEmitter(this, builder, writeMethod.NestedSerializerFields);
+            readMethod.EmitReadMethod(GetProperties(builder.SerializedType));
+            this.EmitReadArrayMethod(builder);
 
-            return writeMethod.NestedSerializerFields;
+            return writeMethod.NestedSerializerFields.Values;
         }
 
-        private void EmitReadArrayMethod(Type classType)
+        private void EmitReadArrayMethod(TypeSerializerBuilder builder)
         {
-            MethodBuilder methodBuilder = this.Builder.DefineMethod(
-                    nameof(ITypeSerializer.ReadArray),
-                    PublicVirtualMethod,
-                    CallingConventions.HasThis);
+            MethodBuilder methodBuilder = builder.CreatePublicVirtualMethod(
+                nameof(ITypeSerializer.ReadArray));
 
             methodBuilder.SetReturnType(typeof(Array));
             ILGenerator generator = methodBuilder.GetILGenerator();
@@ -177,20 +180,18 @@ namespace Crest.Host.Serialization
                         OpCodes.Callvirt,
                         this.Methods.TypeSerializer.Read,
                         null);
-                    generator.Emit(OpCodes.Castclass, classType);
+                    generator.Emit(OpCodes.Castclass, builder.SerializedType);
                 }
             };
 
-            arrayEmitter.EmitReadArray(classType.MakeArrayType());
+            arrayEmitter.EmitReadArray(builder.SerializedType.MakeArrayType());
             generator.Emit(OpCodes.Ret);
         }
 
-        private void EmitWriteArray(Type classType, MethodInfo generatedMethod)
+        private void EmitWriteArray(TypeSerializerBuilder builder, MethodInfo generatedMethod)
         {
-            MethodBuilder methodBuilder = this.Builder.DefineMethod(
-                    nameof(ITypeSerializer.WriteArray),
-                    PublicVirtualMethod,
-                    CallingConventions.HasThis);
+            MethodBuilder methodBuilder = builder.CreatePublicVirtualMethod(
+                    nameof(ITypeSerializer.WriteArray));
 
             methodBuilder.SetParameters(typeof(Array));
             ILGenerator generator = methodBuilder.GetILGenerator();
@@ -211,7 +212,7 @@ namespace Crest.Host.Serialization
             };
 
             generator.EmitLoadArgument(1); // 0 = this, 1 = array
-            arrayEmitter.EmitWriteArray(classType.MakeArrayType());
+            arrayEmitter.EmitWriteArray(builder.SerializedType.MakeArrayType());
             generator.Emit(OpCodes.Ret);
         }
 
