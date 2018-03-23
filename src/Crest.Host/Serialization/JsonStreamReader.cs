@@ -72,7 +72,10 @@ namespace Crest.Host.Serialization
 
             this.Expect('"');
             char c = JsonStringEncoding.DecodeChar(this.iterator);
+
+            this.iterator.MoveNext();
             this.Expect('"');
+
             return c;
         }
 

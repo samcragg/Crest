@@ -56,6 +56,45 @@
             }
         }
 
+        public sealed class ReadChar : JsonStreamReaderTests
+        {
+            [Fact]
+            public void ShouldReadASingleCharacter()
+            {
+                char result = ReadValue("\"a\"", r => r.ReadChar());
+
+                result.Should().Be('a');
+            }
+
+            [Fact]
+            public void ShouldReadEscapedCharacters()
+            {
+                char result = ReadValue("\"\\\\\"", r => r.ReadChar());
+
+                result.Should().Be('\\');
+            }
+
+            [Fact]
+            public void ShouldThrowForInvalidTokens()
+            {
+                Action action = () => ReadValue("invalid", r => r.ReadChar());
+
+                // Make sure the exception includes where it was
+                action.Should().Throw<FormatException>().WithMessage("*1*");
+            }
+        }
+
+        public sealed class ReadDateTime : JsonStreamReaderTests
+        {
+            [Fact]
+            public void ShouldIgnoreWhitespace()
+            {
+                DateTime result = ReadValue("\" 2003-02-01 \"", r => r.ReadDateTime());
+
+                result.Should().HaveYear(2003).And.HaveMonth(2).And.HaveDay(1);
+            }
+        }
+
         public sealed class ReadDecimal : JsonStreamReaderTests
         {
             [Theory]
