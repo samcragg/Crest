@@ -33,9 +33,28 @@
             Value = 1
         }
 
-        internal ISerializerGenerator<TBase> Generator { get; }
+        private protected ISerializerGenerator<TBase> Generator { get; }
 
-        internal void ShouldSerializeAs<T>(T value, string expected)
+        protected T Deserialize<T>(string input)
+        {
+            Type serializerType = this.Generator.GetSerializerFor(typeof(T));
+
+            byte[] bytes = Encoding.UTF8.GetBytes(input);
+            using (var ms = new MemoryStream(bytes, writable: false))
+            {
+                var serializer = (ITypeSerializer)Activator.CreateInstance(serializerType, ms, SerializationMode.Deserialize);
+                if (typeof(T).IsArray)
+                {
+                    return (T)((object)serializer.ReadArray());
+                }
+                else
+                {
+                    return (T)serializer.Read();
+                }
+            }
+        }
+
+        protected void ShouldSerializeAs<T>(T value, string expected)
         {
             string result = this.GetOutput(value);
             result = this.StripNonEssentialInformation(result);
