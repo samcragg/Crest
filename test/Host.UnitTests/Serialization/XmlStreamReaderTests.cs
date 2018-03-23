@@ -136,6 +136,14 @@
             }
 
             [Fact]
+            public void ShouldThrowForEmptyElements()
+            {
+                Action action = () => ReadXmlValue("<a/>", r => r.ReadBoolean());
+
+                action.Should().Throw<FormatException>();
+            }
+
+            [Fact]
             public void ShouldThrowForInvalidTokens()
             {
                 Action action = () => ReadValue("invalid", r => r.ReadBoolean());
