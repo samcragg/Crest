@@ -48,11 +48,6 @@ namespace Crest.Host.Serialization
             public TypeBuilder Builder { get; }
 
             /// <summary>
-            /// Gets the fields that have been added to the type.
-            /// </summary>
-            public IReadOnlyList<FieldInfo> Fields => this.fields;
-
-            /// <summary>
             /// Gets the type the generated class will serialize.
             /// </summary>
             public Type SerializedType { get; }

@@ -409,7 +409,7 @@ namespace Crest.Host.Serialization
         /// <summary>
         /// Contains the methods of the <see cref="Internal.ValueReader"/> class.
         /// </summary>
-        internal sealed class ValueReaderMethods : IEnumerable<KeyValuePair<Type, MethodInfo>>
+        internal sealed class ValueReaderMethods
         {
             private readonly Dictionary<Type, MethodInfo> methods;
 
@@ -449,12 +449,6 @@ namespace Crest.Host.Serialization
             /// <returns>The metadata for the method.</returns>
             public MethodInfo this[Type type] => this.methods[type];
 
-            /// <inheritdoc />
-            public IEnumerator<KeyValuePair<Type, MethodInfo>> GetEnumerator()
-            {
-                return this.methods.GetEnumerator();
-            }
-
             /// <summary>
             /// Gets the write method that accepts the specified type as an argument.
             /// </summary>
@@ -470,12 +464,6 @@ namespace Crest.Host.Serialization
             public bool TryGetMethod(Type type, out MethodInfo method)
             {
                 return this.methods.TryGetValue(type, out method);
-            }
-
-            /// <inheritdoc />
-            IEnumerator IEnumerable.GetEnumerator()
-            {
-                return this.GetEnumerator();
             }
         }
 
