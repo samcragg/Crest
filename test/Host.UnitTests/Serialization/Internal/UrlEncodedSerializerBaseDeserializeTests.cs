@@ -62,6 +62,52 @@
             }
         }
 
+        public sealed class ReadBeginClass : UrlEncodedSerializerBaseDeserializeTests
+        {
+            [Fact]
+            public void ShouldResetThePropertiesThatHaveBeenRead()
+            {
+                this.SetStreamTo("A=x&B=y");
+                this.Serializer.ReadBeginProperty();
+                this.Serializer.ReadEndProperty();
+
+                this.Serializer.ReadBeginClass(null);
+
+                // Read begin property doesn't skip if it's the first property
+                // being read
+                this.Serializer.ReadBeginProperty()
+                    .Should().Be("A");
+            }
+        }
+
+        public sealed class ReadBeginProperty : UrlEncodedSerializerBaseDeserializeTests
+        {
+            [Fact]
+            public void ShouldMoveToTheNextProperty()
+            {
+                this.SetStreamTo("A=x&B=y");
+                this.Serializer.ReadBeginProperty();
+                this.Serializer.ReadEndProperty();
+
+                string result = this.Serializer.ReadBeginProperty();
+
+                // Read begin property doesn't skip if it's the first property
+                // being read
+                result.Should().Be("B");
+            }
+
+            [Fact]
+            public void ShouldReturnTheKeyPart()
+            {
+                this.SetStreamTo("0.A=x");
+
+                this.Serializer.ReadBeginArray(null);
+                string result = this.Serializer.ReadBeginProperty();
+
+                result.Should().Be("A");
+            }
+        }
+
         public sealed class ReadElementSeparator : UrlEncodedSerializerBaseDeserializeTests
         {
             [Fact]

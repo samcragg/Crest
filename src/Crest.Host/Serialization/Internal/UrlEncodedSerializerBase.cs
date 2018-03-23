@@ -16,10 +16,10 @@ namespace Crest.Host.Serialization.Internal
     /// </summary>
     public abstract class UrlEncodedSerializerBase : IClassSerializer<byte[]>
     {
-        private readonly UrlEncodedSerializerBase parent;
         private readonly UrlEncodedStreamReader reader;
         private readonly UrlEncodedStreamWriter writer;
         private int currentIndex;
+        private int propertyIndex;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="UrlEncodedSerializerBase"/> class.
@@ -44,7 +44,6 @@ namespace Crest.Host.Serialization.Internal
         /// <param name="parent">The serializer this instance belongs to.</param>
         protected UrlEncodedSerializerBase(UrlEncodedSerializerBase parent)
         {
-            this.parent = parent;
             this.reader = parent.reader;
             this.writer = parent.writer;
         }
@@ -122,12 +121,25 @@ namespace Crest.Host.Serialization.Internal
         /// <inheritdoc />
         public void ReadBeginClass(byte[] metadata)
         {
+            this.propertyIndex = 0;
         }
 
         /// <inheritdoc />
         public string ReadBeginProperty()
         {
-            return null;
+            if (this.propertyIndex > 0)
+            {
+                if (!this.reader.MoveToNextSibling())
+                {
+                    return null;
+                }
+            }
+
+            this.propertyIndex++;
+
+            string part = this.reader.CurrentPart;
+            this.reader.MoveToChildren();
+            return part;
         }
 
         /// <inheritdoc />
@@ -158,6 +170,7 @@ namespace Crest.Host.Serialization.Internal
         /// <inheritdoc />
         public void ReadEndProperty()
         {
+            this.reader.MoveToParent();
         }
 
         /// <inheritdoc />
