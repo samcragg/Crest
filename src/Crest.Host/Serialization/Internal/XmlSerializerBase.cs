@@ -91,6 +91,7 @@ namespace Crest.Host.Serialization.Internal
         /// <inheritdoc />
         public void BeginRead(string metadata)
         {
+            this.ExpectStartElement(metadata);
         }
 
         /// <inheritdoc />
@@ -108,6 +109,7 @@ namespace Crest.Host.Serialization.Internal
         /// <inheritdoc />
         public void EndRead()
         {
+            this.reader.ReadEndElement();
         }
 
         /// <inheritdoc />
@@ -152,6 +154,10 @@ namespace Crest.Host.Serialization.Internal
         /// <inheritdoc />
         public void ReadBeginClass(string metadata)
         {
+            if (this.reader.Depth == 0)
+            {
+                this.ExpectStartElement(metadata);
+            }
         }
 
         /// <inheritdoc />
@@ -195,11 +201,16 @@ namespace Crest.Host.Serialization.Internal
         /// <inheritdoc />
         public void ReadEndClass()
         {
+            if (this.reader.Depth == 0)
+            {
+                this.reader.ReadEndElement();
+            }
         }
 
         /// <inheritdoc />
         public void ReadEndProperty()
         {
+            this.reader.ReadEndElement();
         }
 
         /// <inheritdoc />

@@ -29,6 +29,31 @@
             this.stream.Position = 0;
         }
 
+        public sealed class BeginRead : XmlSerializerBaseDeserializeTests
+        {
+            [Fact]
+            public void ShouldIgnoreTheCaseOfTheElement()
+            {
+                this.SetStreamTo("<className>1</className>");
+
+                this.Serializer.BeginRead("ClassName");
+                int content = this.Serializer.Reader.ReadInt32();
+
+                content.Should().Be(1);
+            }
+
+            [Fact]
+            public void ShouldThrowIfNotTheExpectedStartElement()
+            {
+                this.SetStreamTo("<element />");
+
+                Action action = () => this.Serializer.BeginRead("className");
+
+                action.Should().Throw<FormatException>()
+                      .WithMessage("*className*");
+            }
+        }
+
         public sealed class Constructor : XmlSerializerBaseDeserializeTests
         {
             [Fact]
@@ -99,6 +124,56 @@
             }
         }
 
+        public sealed class ReadBeginClass : XmlSerializerBaseDeserializeTests
+        {
+            [Fact]
+            public void ShouldNotReadTheElementForNestedClasses()
+            {
+                this.SetStreamTo("<Property><NestedProperty /></Property>");
+
+                this.Serializer.ReadBeginProperty();
+                this.Serializer.ReadBeginClass("Class");
+                string property = this.Serializer.ReadBeginProperty();
+
+                property.Should().Be("NestedProperty");
+            }
+
+            [Fact]
+            public void ShouldReadTheRootElement()
+            {
+                this.SetStreamTo("<Class>1</Class>");
+
+                this.Serializer.ReadBeginClass("Class");
+                int content = this.Serializer.Reader.ReadInt32();
+
+                content.Should().Be(1);
+            }
+        }
+
+        public sealed class ReadBeginProperty : XmlSerializerBaseDeserializeTests
+        {
+            [Fact]
+            public void ShouldReturnNullIfThereIsNoElement()
+            {
+                this.SetStreamTo("<Class />");
+
+                this.Serializer.ReadBeginClass("Class");
+                string property = this.Serializer.ReadBeginProperty();
+
+                property.Should().BeNull();
+            }
+
+            [Fact]
+            public void ShouldReturnTheNameOfTheElement()
+            {
+                this.SetStreamTo("<Property>1</Property>");
+
+                string property = this.Serializer.ReadBeginProperty();
+
+                property.Should().Be("Property");
+            }
+        }
+
         public sealed class ReadElementSeparator : XmlSerializerBaseDeserializeTests
         {
             [Fact]
@@ -146,6 +221,36 @@
                 this.Serializer.ReadBeginArray(typeof(int));
                 this.Serializer.ReadElementSeparator();
                 this.Serializer.ReadEndArray();
+                int content = this.Serializer.Reader.ReadInt32();
+
+                content.Should().Be(1);
+            }
+        }
+
+        public sealed class ReadEndClass : XmlSerializerBaseDeserializeTests
+        {
+            [Fact]
+            public void ShouldReadTheEndElement()
+            {
+                this.SetStreamTo("<Class></Class> 1");
+
+                this.Serializer.ReadBeginClass("Class");
+                this.Serializer.ReadEndClass();
+                int content = this.Serializer.Reader.ReadInt32();
+
+                content.Should().Be(1);
+            }
+        }
+
+        public sealed class ReadEndProperty : XmlSerializerBaseDeserializeTests
+        {
+            [Fact]
+            public void ShouldReadTheEndElement()
+            {
+                this.SetStreamTo("<Property></Property> 1");
+
+                this.Serializer.ReadBeginProperty();
+                this.Serializer.ReadEndProperty();
                 int content = this.Serializer.Reader.ReadInt32();
 
                 content.Should().Be(1);
