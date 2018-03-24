@@ -15,7 +15,6 @@
     <ProjectReference Include="..\Crest.Core\Crest.Core.csproj" />
     <PackageReference Include="DryIoc.Internal" Version="2.12.7" PrivateAssets="All" />
     <PackageReference Include="Microsoft.Extensions.DependencyModel" Version="2.0.4" />
-    <PackageReference Include="Newtonsoft.Json" Version="10.0.3" />
     <PackageReference Include="StyleCop.Analyzers" Version="1.0.2" PrivateAssets="All" />
     <PackageReference Include="System.Buffers" Version="4.4.0" />
     <PackageReference Include="System.Collections.Immutable" Version="1.4.0" />
