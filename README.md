@@ -19,10 +19,24 @@ to update their code is even harder. Therefore, there is strong support for
 providing versioned routes, to allow for new functionality to be added without
 effecting older clients.
 
+# Provided functionality
+
+Out of the box the framework handles most of the mundane functionality to allow
+you to get developing your service quickly:
+
++ Dependency injection with assembly scanning (i.e. it will map your interfaces
+  to their concrete implementation for you).
++ Deserializing/serializing the HTTP request/response based on its content type
+  (out of the box JSON, URL form encoded data and XML are supported).
++ OpenAPI documentation of endpoints
++ Health page
++ Basic metrics for the last 15 minutes
++ JWT handling
+
 # Basic usage
 
 First create an interface that describes the routes. The XML documentation will
-be converted to an [OpenAPI](https://www.openapis.org/) json for the project, so
+be converted to an [OpenAPI](https://www.openapis.org/) JSON for the project, so
 be sure to include it - your API is your contract with the outside world so make
 it as easy to discover and use as possible.
 
