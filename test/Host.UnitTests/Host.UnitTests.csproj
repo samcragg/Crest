@@ -12,6 +12,11 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <EmbeddedResource Include="TestData\TestEcCert.pfx" />
+    <EmbeddedResource Include="TestData\TestRsaCert.pfx" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\..\src\Crest.Host\Crest.Host.csproj" />
     <PackageReference Include="FluentAssertions" Version="5.2.0" />
     <PackageReference Include="FluentAssertions.Analyzers" Version="0.8.0" />
