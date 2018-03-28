@@ -78,6 +78,9 @@
     <Compile Update="Routing/UrlParser.SegmentParser.cs">
       <DependentUpon>UrlParser.cs</DependentUpon>
     </Compile>
+    <Compile Update="Security/JwtSignatureVerifier.JwtInformation.cs">
+      <DependentUpon>JwtSignatureVerifier.cs</DependentUpon>
+    </Compile>
     <Compile Update="Security/SecurityKeyCache.KeyProvider.cs">
       <DependentUpon>SecurityKeyCache.cs</DependentUpon>
     </Compile>
