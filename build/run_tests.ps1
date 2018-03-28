@@ -52,7 +52,7 @@ foreach ($path in (dir .\test -Directory))
     -hideskipped `
     -oldstyle `
     -register:user `
-    "-filter:+[Crest.*]* -[*]DryIoc.* -[*]ImTools.* -[*]FastExpressionCompiler.*" `
+    "-filter:+[Crest.*]* -[*]DryIoc.* -[*]ImTools.* -[*]FastExpressionCompiler.* -[*]*.Logging.*" `
     "-target:$dotnetexe" `
     "-targetargs:$runXunit" `
     -returntargetcode `
