@@ -93,7 +93,7 @@ namespace Crest.Host.Serialization
         /// <see cref="StreamIterator.MoveNext"/> on <c>source</c> if it
         /// contains an unescaped character).
         /// </remarks>
-        public static char DecodeChar(StreamIterator source)
+        public static char DecodeChar(ICharIterator source)
         {
             char c = source.Current;
             if (c == '\\')
@@ -197,7 +197,7 @@ namespace Crest.Host.Serialization
             offset += 2;
         }
 
-        private static int GetHexChar(StreamIterator source)
+        private static int GetHexChar(ICharIterator source)
         {
             if (!source.MoveNext())
             {
@@ -234,7 +234,7 @@ namespace Crest.Host.Serialization
             return (ch < 32) || (ch == '"') || (ch == '\\');
         }
 
-        private static char Unescape(StreamIterator source)
+        private static char Unescape(ICharIterator source)
         {
             if (!source.MoveNext())
             {
@@ -278,7 +278,7 @@ namespace Crest.Host.Serialization
             }
         }
 
-        private static char UnescapeHexSequence(StreamIterator source)
+        private static char UnescapeHexSequence(ICharIterator source)
         {
             int h1 = GetHexChar(source) << 12;
             int h2 = GetHexChar(source) << 8;

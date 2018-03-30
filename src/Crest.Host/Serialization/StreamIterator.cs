@@ -7,8 +7,6 @@ namespace Crest.Host.Serialization
 {
     using System;
     using System.Buffers;
-    using System.Collections;
-    using System.Collections.Generic;
     using System.IO;
     using System.Text;
     using static System.Diagnostics.Debug;
@@ -20,7 +18,7 @@ namespace Crest.Host.Serialization
     /// This class makes use of shared buffers so it is cheaper to allocate
     /// than a <see cref="StreamReader"/>.
     /// </remarks>
-    internal sealed class StreamIterator : IEnumerator<char>, IDisposable
+    internal sealed class StreamIterator : ICharIterator, IDisposable
     {
         // We use this value for the buffer lengths as when we rent them they
         // may return a bigger buffer, however, since we're copying from one to
@@ -60,18 +58,11 @@ namespace Crest.Host.Serialization
             this.offset = -1;
         }
 
-        /// <summary>
-        /// Gets the current character.
-        /// </summary>
+        /// <inheritdoc />
         public char Current { get; private set; }
 
-        /// <summary>
-        /// Gets the character position relative to the start.
-        /// </summary>
-        public int Position => this.previousCharsRead + this.offset + 1;
-
         /// <inheritdoc />
-        object IEnumerator.Current => this.Current;
+        public int Position => this.previousCharsRead + this.offset + 1;
 
         /// <summary>
         /// Gets or sets the resource pool for obtaining byte arrays.
@@ -141,13 +132,7 @@ namespace Crest.Host.Serialization
             return new ReadOnlySpan<char>(this.charBuffer, this.offset, maximumBytes);
         }
 
-        /// <summary>
-        /// Attempts to read the next character from the stream.
-        /// </summary>
-        /// <returns>
-        /// <c>true</c> if another character was read from the stream;
-        /// otherwise, <c>false</c>.
-        /// </returns>
+        /// <inheritdoc />
         public bool MoveNext()
         {
             this.offset++;
@@ -177,12 +162,6 @@ namespace Crest.Host.Serialization
         {
             this.offset += length;
             this.Current = this.charBuffer[this.offset];
-        }
-
-        /// <inheritdoc />
-        void IEnumerator.Reset()
-        {
-            throw new NotSupportedException();
         }
 
         private static Encoding DetectEncoding(byte[] bytes, out int skip)
