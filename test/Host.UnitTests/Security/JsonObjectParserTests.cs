@@ -1,5 +1,6 @@
 ﻿namespace Host.UnitTests.Security
 {
+    using System;
     using System.Collections.Generic;
     using System.Linq;
     using System.Text;
@@ -147,6 +148,38 @@
 
                 result.Key.Should().Be("key");
                 result.Value.Should().Be("value");
+            }
+
+            [Theory]
+            [InlineData("[")]
+            [InlineData(@"[""1]")]
+            public void ShouldThrowIfTheNestedValueIsNotTerminated(string value)
+            {
+                JsonObjectParser parser = CreateParser(@"{""key"":" + value + "}");
+
+                Action action = () => parser.GetPairs().ToList();
+
+                action.Should().Throw<FormatException>();
+            }
+
+            [Fact]
+            public void ShouldThrowIfTheObjectIsNotTerminated()
+            {
+                JsonObjectParser parser = CreateParser(@"{""key"":1");
+
+                Action action = () => parser.GetPairs().ToList();
+
+                action.Should().Throw<FormatException>();
+            }
+
+            [Fact]
+            public void ShouldThrowIfTheStringIsNotTerminated()
+            {
+                JsonObjectParser parser = CreateParser(@"{""key");
+
+                Action action = () => parser.GetPairs().ToList();
+
+                action.Should().Throw<FormatException>();
             }
 
             private static JsonObjectParser CreateParser(string json)

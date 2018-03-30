@@ -141,6 +141,18 @@
                 this.verifier.IsSignatureValid("eyJhbGciOiJVVDEyMyJ9.payload.signature", out _)
                     .Should().BeFalse();
             }
+
+            [Fact]
+            public void ShouldReturnFalseIfTheValidatorReturnsFalse()
+            {
+                this.validator.IsValid(null, null, default)
+                    .ReturnsForAnyArgs(false);
+
+                // {"alg":"UT256"}
+                bool result = this.verifier.IsSignatureValid("eyJhbGciOiJVVDI1NiJ9.payload.signature", out _);
+
+                result.Should().BeFalse();
+            }
         }
     }
 }
