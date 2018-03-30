@@ -9,12 +9,6 @@
 
     public class JsonObjectParserTests
     {
-        private static JsonObjectParser CreateParser(string json)
-        {
-            byte[] bytes = Encoding.UTF8.GetBytes(json);
-            return new JsonObjectParser(bytes);
-        }
-
         public sealed class Dispose : JsonObjectParserTests
         {
             [Fact]
@@ -25,7 +19,7 @@
                     FakeArrayPool<char>.Instance.Reset();
 
                     // Make it allocate some strings
-                    JsonObjectParser parser = CreateParser(@"{""key"":123}");
+                    var parser = new JsonObjectParser(@"{""key"":123}");
                     parser.GetPairs().ToList();
                     FakeArrayPool<char>.Instance.TotalAllocated.Should().BePositive();
 
@@ -33,6 +27,29 @@
                     parser.Dispose();
                     FakeArrayPool<char>.Instance.TotalAllocated.Should().Be(0);
                 }
+            }
+        }
+
+        public sealed class GetArrayValues : JsonObjectParserTests
+        {
+            [Fact]
+            public void ShouldReturnAllValues()
+            {
+                var parser = new JsonObjectParser(@"[""1"", 2, [3]]");
+
+                var result = parser.GetArrayValues().ToList();
+
+                result.Should().Equal("1", "2", "[3]");
+            }
+
+            [Fact]
+            public void ShouldReturnAnEmptyEnumeratorForEmptyArrays()
+            {
+                var parser = new JsonObjectParser("[]");
+
+                var result = parser.GetArrayValues().ToList();
+
+                result.Should().BeEmpty();
             }
         }
 
@@ -130,6 +147,12 @@
 
                 result.Key.Should().Be("key");
                 result.Value.Should().Be("value");
+            }
+
+            private static JsonObjectParser CreateParser(string json)
+            {
+                byte[] bytes = Encoding.UTF8.GetBytes(json);
+                return new JsonObjectParser(bytes);
             }
         }
     }

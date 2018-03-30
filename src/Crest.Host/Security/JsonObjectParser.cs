@@ -14,7 +14,7 @@ namespace Crest.Host.Security
     /// </summary>
     internal sealed partial class JsonObjectParser : IDisposable
     {
-        private readonly Utf8Enumerator iterator;
+        private readonly ICharIterator iterator;
         private readonly StringBuffer stringBuffer = new StringBuffer();
 
         /// <summary>
@@ -24,6 +24,15 @@ namespace Crest.Host.Security
         public JsonObjectParser(byte[] bytes)
         {
             this.iterator = new Utf8Enumerator(bytes);
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="JsonObjectParser"/> class.
+        /// </summary>
+        /// <param name="json">Contains the data to parse.</param>
+        public JsonObjectParser(string json)
+        {
+            this.iterator = new StringIterator(json);
         }
 
         /// <summary>
@@ -70,6 +79,34 @@ namespace Crest.Host.Security
             while (this.TryRead(','));
 
             this.Expect('}');
+        }
+
+        /// <summary>
+        /// Gets the values from an array as strings.
+        /// </summary>
+        /// <returns>A sequence of strings representing the values in the array.</returns>
+        public IEnumerable<string> GetArrayValues()
+        {
+            this.SkipWhiteSpace();
+            this.Expect('[');
+
+            // Special check for empty objects
+            this.SkipWhiteSpace();
+            if (this.iterator.Current == ']')
+            {
+                yield break;
+            }
+
+            do
+            {
+                this.SkipWhiteSpace();
+                yield return this.ReadValue();
+
+                this.SkipWhiteSpace();
+            }
+            while (this.TryRead(','));
+
+            this.Expect(']');
         }
 
         private static bool IsWhiteSpace(char b)
