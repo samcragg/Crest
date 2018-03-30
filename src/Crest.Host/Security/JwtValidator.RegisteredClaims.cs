@@ -5,6 +5,8 @@
 
 namespace Crest.Host.Security
 {
+    using System.Linq;
+
     /// <content>
     /// Contains the nested helper <see cref="RegisteredClaims"/> class.
     /// </content>
@@ -12,7 +14,7 @@ namespace Crest.Host.Security
     {
         private class RegisteredClaims
         {
-            internal string Aud { get; private set; }
+            internal string[] Aud { get; private set; }
 
             internal string Exp { get; private set; }
 
@@ -25,7 +27,7 @@ namespace Crest.Host.Security
                 switch (key)
                 {
                     case "aud":
-                        this.Aud = value;
+                        this.SetAudiences(value);
                         break;
 
                     case "exp":
@@ -39,6 +41,21 @@ namespace Crest.Host.Security
                     case "nbf":
                         this.Nbf = value;
                         break;
+                }
+            }
+
+            private void SetAudiences(string aud)
+            {
+                if (aud.StartsWith("["))
+                {
+                    using (var parser = new JsonObjectParser(aud))
+                    {
+                        this.Aud = parser.GetArrayValues().ToArray();
+                    }
+                }
+                else
+                {
+                    this.Aud = new[] { aud };
                 }
             }
         }

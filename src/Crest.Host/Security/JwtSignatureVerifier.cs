@@ -6,8 +6,8 @@
 namespace Crest.Host.Security
 {
     using System;
+    using System.Collections.Generic;
     using System.Security.Cryptography;
-    using System.Text;
     using Crest.Host.Logging;
 
     /// <summary>
@@ -110,12 +110,21 @@ namespace Crest.Host.Security
                 return false;
             }
 
-            Newtonsoft.Json.JsonConvert.PopulateObject(
-                Encoding.UTF8.GetString(headerBytes),
-                jwt);
+            using (var parser = new JsonObjectParser(headerBytes))
+            {
+                foreach (KeyValuePair<string, string> kvp in parser.GetPairs())
+                {
+                    jwt.SetProperty(kvp.Key, kvp.Value);
+                }
+            }
 
+            // RFC 7519:
+            //    While media type names are not case sensitive, it is
+            //    RECOMMENDED that "JWT" always be spelled using uppercase
+            //    characters
+            // Hence the need to use case insensitive comparison
             if ((jwt.Typ == null) ||
-                string.Equals(jwt.Typ, "JWT", StringComparison.Ordinal))
+                string.Equals(jwt.Typ, "JWT", StringComparison.OrdinalIgnoreCase))
             {
                 return true;
             }

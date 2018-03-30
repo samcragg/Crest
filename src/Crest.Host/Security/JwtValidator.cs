@@ -7,9 +7,7 @@ namespace Crest.Host.Security
 {
     using System;
     using System.Collections.Generic;
-    using System.Linq;
     using System.Security.Claims;
-    using System.Text;
     using Crest.Host.Diagnostics;
     using Crest.Host.Logging;
 
@@ -18,6 +16,7 @@ namespace Crest.Host.Security
     /// </summary>
     internal partial class JwtValidator
     {
+        private const string JwtClaimProperty = "http://schemas.xmlsoap.org/ws/2005/05/identity/claimproperties/ShortTypeName";
         private static readonly ILog Logger = LogProvider.For<JwtValidator>();
         private static readonly DateTime UnixEpoc = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
         private readonly JwtValidationSettings settings;
@@ -84,55 +83,46 @@ namespace Crest.Host.Security
             }
         }
 
-        private static IEnumerable<string> ParseAudiences(string aud)
+        private static IEnumerable<Claim> ParseClaims(
+            IDictionary<string, string> mappings,
+            byte[] payload,
+            RegisteredClaims knownClaims)
         {
-            if (aud.StartsWith("["))
+            using (var parser = new JsonObjectParser(payload))
             {
-                var array = Newtonsoft.Json.Linq.JArray.Parse(aud);
-                foreach (string value in array.Values<string>())
+                foreach (KeyValuePair<string, string> kvp in parser.GetPairs())
                 {
-                    yield return value;
+                    knownClaims.SetClaim(kvp.Key, kvp.Value);
+                    if (mappings.TryGetValue(kvp.Key, out string mapped))
+                    {
+                        var claim = new Claim(mapped, kvp.Value);
+                        claim.Properties.Add(JwtClaimProperty, kvp.Key);
+                        yield return claim;
+                    }
+                    else
+                    {
+                        yield return new Claim(kvp.Key, kvp.Value);
+                    }
                 }
-            }
-            else
-            {
-                yield return aud;
             }
         }
 
-        private ClaimsPrincipal ConvertToClaimsPrincipal(byte[] payload, RegisteredClaims registered)
+        private ClaimsPrincipal ConvertToClaimsPrincipal(byte[] payload, RegisteredClaims knownClaims)
         {
-            Claim ConvertClaim(KeyValuePair<string, string> kvp)
-            {
-                // Try to add the claim to the registered ones
-                registered.SetClaim(kvp.Key, kvp.Value);
-
-                if (this.settings.JwtClaimMappings.TryGetValue(kvp.Key, out string mapped))
-                {
-                    var claim = new Claim(mapped, kvp.Value);
-                    claim.Properties.Add(JwtValidationSettings.JwtClaimProperty, kvp.Key);
-                    return claim;
-                }
-                else
-                {
-                    return new Claim(kvp.Key, kvp.Value);
-                }
-            }
-
             return new ClaimsPrincipal(
                 new ClaimsIdentity(
-                    this.ParsePayload(payload).Select(ConvertClaim),
+                    ParseClaims(this.settings.JwtClaimMappings, payload, knownClaims),
                     this.settings.AuthenticationType));
         }
 
-        private bool IsValidAudience(string aud)
+        private bool IsValidAudience(string[] aud)
         {
-            if (string.IsNullOrEmpty(aud))
+            if (aud == null)
             {
                 return true;
             }
 
-            if (this.settings.Audiences.Overlaps(ParseAudiences(aud)))
+            if (this.settings.Audiences.Overlaps(aud))
             {
                 return true;
             }
@@ -219,18 +209,6 @@ namespace Crest.Host.Security
                     this.settings.ClockSkew);
 
                 return false;
-            }
-        }
-
-        private IEnumerable<KeyValuePair<string, string>> ParsePayload(byte[] payload)
-        {
-            string json = Encoding.UTF8.GetString(payload);
-            Dictionary<string, object> dictionary =
-                Newtonsoft.Json.JsonConvert.DeserializeObject<Dictionary<string, object>>(json);
-
-            foreach (KeyValuePair<string, object> kvp in dictionary)
-            {
-                yield return new KeyValuePair<string, string>(kvp.Key, kvp.Value.ToString());
             }
         }
     }

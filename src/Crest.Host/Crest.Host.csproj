@@ -79,6 +79,9 @@
     <Compile Update="Routing/UrlParser.SegmentParser.cs">
       <DependentUpon>UrlParser.cs</DependentUpon>
     </Compile>
+    <Compile Update="Security/JsonObjectParser.StringIterator.cs">
+      <DependentUpon>JsonObjectParser.cs</DependentUpon>
+    </Compile>
     <Compile Update="Security/JsonObjectParser.Utf8Enumerator.cs">
       <DependentUpon>JsonObjectParser.cs</DependentUpon>
     </Compile>

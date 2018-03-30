@@ -14,17 +14,31 @@ namespace Crest.Host.Security
     {
         private sealed class JwtInformation
         {
-            public string Alg { get; set; }
+            public string Alg { get; private set; }
 
-            public string Typ { get; set; }
+            public string Typ { get; private set; }
 
-            internal HashAlgorithmName AlgorithmName { get; set; }
+            public HashAlgorithmName AlgorithmName { get; set; }
 
-            internal int PayloadStart { get; set; }
+            public int PayloadStart { get; set; }
 
-            internal int SignatureStart { get; set; }
+            public int SignatureStart { get; set; }
 
-            internal ISignatureValidator Validator { get; set; }
+            public ISignatureValidator Validator { get; set; }
+
+            public void SetProperty(string key, string value)
+            {
+                switch (key)
+                {
+                    case "alg":
+                        this.Alg = value;
+                        break;
+
+                    case "typ":
+                        this.Typ = value;
+                        break;
+                }
+            }
         }
     }
 }
