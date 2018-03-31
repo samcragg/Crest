@@ -208,6 +208,22 @@
             }
 
             [Fact]
+            public void ShouldIncludeTheServiceProviderPlaceholder()
+            {
+                RouteMetadata[] routes = new[] { CreateRoute("GET", "/route") };
+                routes[0].Method = ExampleMethodInfo;
+
+                var mapper = new RouteMapper(routes, this.noDirectRoutes);
+                MethodInfo route = mapper.Match(
+                    "GET",
+                    "/v1/route",
+                    this.query,
+                    out IReadOnlyDictionary<string, object> parameters);
+
+                parameters.Keys.Should().Contain(ServiceProviderPlaceholder.Key);
+            }
+
+            [Fact]
             public void ShouldMatchTheRoute()
             {
                 var mapper = new RouteMapper(new[] { CreateRoute("GET", "/route") }, this.noDirectRoutes);

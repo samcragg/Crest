@@ -117,7 +117,7 @@ namespace Crest.Host
             IReadOnlyCollection<Type> types = this.RegisterTypes(discovery);
 
             List<RouteMetadata> routes =
-                types.SelectMany(t => this.GetRoutes(discovery, t)).ToList();
+                types.SelectMany(discovery.GetRoutes).ToList();
             this.RouteMapper = new RouteMapper(routes, this.GetDirectRoutes());
 
             IConfigurationService configuration = this.ServiceLocator.GetConfigurationService();
@@ -158,15 +158,6 @@ namespace Crest.Host
             }
 
             return null;
-        }
-
-        private IEnumerable<RouteMetadata> GetRoutes(IDiscoveryService discovery, Type type)
-        {
-            foreach (RouteMetadata route in discovery.GetRoutes(type))
-            {
-                route.Factory = route.Factory ?? (() => this.serviceRegister.GetService(type));
-                yield return route;
-            }
         }
 
         private IReadOnlyCollection<Type> RegisterTypes(IDiscoveryService discovery)

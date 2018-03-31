@@ -19,16 +19,19 @@ namespace Crest.Host.Routing
     internal sealed class RouteMethodAdapter
     {
         private readonly MethodInfo convertGenericTaskMethod =
-            typeof(RouteMethodAdapter).GetTypeInfo().GetDeclaredMethod(nameof(ConvertGenericTask));
+            typeof(RouteMethodAdapter).GetMethod(nameof(ConvertGenericTask), BindingFlags.NonPublic | BindingFlags.Static);
 
         private readonly MethodInfo convertTaskMethod =
-            typeof(RouteMethodAdapter).GetTypeInfo().GetDeclaredMethod(nameof(ConvertTaskToNoContent));
+            typeof(RouteMethodAdapter).GetMethod(nameof(ConvertTaskToNoContent), BindingFlags.NonPublic | BindingFlags.Static);
 
-        private readonly PropertyInfo dictionaryGetValue =
-            typeof(IReadOnlyDictionary<string, object>).GetTypeInfo().GetDeclaredProperty("Item");
+        private readonly MethodInfo dictionaryGetValue =
+            typeof(IReadOnlyDictionary<string, object>).GetProperty("Item").GetGetMethod();
 
         private readonly MethodInfo dictionaryTryGetValue =
-            typeof(IReadOnlyDictionary<string, object>).GetTypeInfo().GetDeclaredMethod(nameof(IReadOnlyDictionary<string, object>.TryGetValue));
+            typeof(IReadOnlyDictionary<string, object>).GetMethod(nameof(IReadOnlyDictionary<string, object>.TryGetValue));
+
+        private readonly MethodInfo serviceProviderGetservice =
+            typeof(IServiceProvider).GetMethod(nameof(IServiceProvider.GetService));
 
         /// <summary>
         /// Creates an adapter for the specified method.
@@ -55,7 +58,7 @@ namespace Crest.Host.Routing
             List<Expression> body = this.LoadParameters(locals, captures, method.GetParameters()).ToList();
 
             locals.Add(instance);
-            body.Add(CreateInstance(instance, factory));
+            body.Add(this.CreateInstance(captures, instance, factory));
             body.Add(this.InvokeMethod(locals, instance, method));
 
             return Expression.Lambda<RouteMethod>(
@@ -81,16 +84,6 @@ namespace Crest.Host.Routing
                 TaskContinuationOptions.ExecuteSynchronously);
         }
 
-        private static Expression CreateInstance(Expression instance, Func<object> factory)
-        {
-            // T instance = (T)factory();
-            return Expression.Assign(
-                instance,
-                Expression.Convert(
-                    Expression.Invoke(Expression.Constant(factory)),
-                    instance.Type));
-        }
-
         private static Expression GetDefaultValue(ParameterInfo parameter)
         {
             if (parameter.HasDefaultValue)
@@ -101,6 +94,40 @@ namespace Crest.Host.Routing
             {
                 return Expression.Default(parameter.ParameterType);
             }
+        }
+
+        private Expression CreateInstance(Expression captures, Expression instance, Func<object> factory)
+        {
+            Expression createInstance;
+            if (factory != null)
+            {
+                // (T)factory();
+                createInstance = Expression.Convert(
+                    Expression.Invoke(Expression.Constant(factory)),
+                    instance.Type);
+            }
+            else
+            {
+                // (IServiceProvider)captures["ServiceProviderKey"]
+                Expression getServiceProvider =
+                    Expression.Convert(
+                        Expression.Call(
+                            captures,
+                            this.dictionaryGetValue,
+                            Expression.Constant(ServiceProviderPlaceholder.Key)),
+                        typeof(IServiceProvider));
+
+                // (T)serviceProvider.GetService(typeof(T))
+                createInstance = Expression.Convert(
+                    Expression.Call(
+                        getServiceProvider,
+                        this.serviceProviderGetservice,
+                        Expression.Constant(instance.Type)),
+                    instance.Type);
+            }
+
+            // T instance = (T)factory();
+            return Expression.Assign(instance, createInstance);
         }
 
         private Expression GetCapturedValue(ref ParameterExpression temp, Expression captures, ParameterInfo parameter)
@@ -133,7 +160,7 @@ namespace Crest.Host.Routing
                 return Expression.Convert(
                     Expression.Call(
                         captures,
-                        this.dictionaryGetValue.GetMethod,
+                        this.dictionaryGetValue,
                         Expression.Constant(parameter.Name)),
                     parameter.ParameterType);
             }
@@ -158,7 +185,7 @@ namespace Crest.Host.Routing
         private Expression InvokeMethod(IReadOnlyList<Expression> locals, Expression instance, MethodInfo method)
         {
             ParameterInfo[] parameters = method.GetParameters();
-            Expression[] parameterExpressions = new Expression[parameters.Length];
+            var parameterExpressions = new Expression[parameters.Length];
             for (int i = 0; i < parameters.Length; i++)
             {
                 parameterExpressions[i] = locals[i];

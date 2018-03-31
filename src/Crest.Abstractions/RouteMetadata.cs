@@ -17,6 +17,10 @@ namespace Crest.Abstractions
         /// Gets or sets the factory to use to create an instance of the object
         /// that <see cref="Method"/> is invoked on.
         /// </summary>
+        /// <remarks>
+        /// If <c>null</c> then the instance will be created from a service
+        /// container that is scoped to the current request.
+        /// </remarks>
         public Func<object> Factory { get; set; }
 
         /// <summary>

@@ -95,6 +95,13 @@ namespace Crest.Host.Routing
                     Target target = match.Value.Match(version);
                     if (target.Method != null)
                     {
+                        // We need to store this in the parameters now so we
+                        // can update it in the RequestProcessor with a scoped
+                        // service provider
+                        match.Captures.Add(
+                            ServiceProviderPlaceholder.Key,
+                            new ServiceProviderPlaceholder());
+
                         SaveQueryParameters(query, ref target, ref match);
                         parameters = match.Captures;
                         return target.Method;

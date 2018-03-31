@@ -47,6 +47,29 @@
             }
 
             [Fact]
+            public void ShouldConstructTheObjectFromTheServiceProviderInTheCaptures()
+            {
+                IFakeInterface instance = Substitute.For<IFakeInterface>();
+
+                IServiceProvider serviceProvider = Substitute.For<IServiceProvider>();
+                serviceProvider.GetService(typeof(IFakeInterface))
+                    .Returns(instance);
+
+                var captures = new Dictionary<string, object>
+                {
+                    { ServiceProviderPlaceholder.Key, serviceProvider }
+                };
+
+                RouteMethod result = this.adapter.CreateMethod(
+                    null,
+                    typeof(IFakeInterface).GetMethod(nameof(IFakeInterface.SimpleMethod)));
+
+                result(captures);
+
+                instance.Received().SimpleMethod();
+            }
+
+            [Fact]
             public void ShouldConstructTheObjectWithTheFactoryDelegate()
             {
                 bool delegateCalled = false;

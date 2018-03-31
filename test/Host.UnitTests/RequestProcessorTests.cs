@@ -9,6 +9,7 @@
     using Crest.Abstractions;
     using Crest.Host;
     using Crest.Host.Engine;
+    using Crest.Host.Routing;
     using FluentAssertions;
     using NSubstitute;
     using NSubstitute.ExceptionExtensions;
@@ -37,6 +38,8 @@
             this.serviceLocator = register;
 
             this.request.Handler.Returns(Substitute.For<MethodInfo>());
+            this.request.Parameters[ServiceProviderPlaceholder.Key]
+                .Returns(new ServiceProviderPlaceholder());
 
             this.serviceLocator.GetContentConverterFactory().Returns(this.converterFactory);
             this.serviceLocator.GetResponseStatusGenerator().Returns(this.responseGenerator);

@@ -176,24 +176,6 @@
                 this.bootstrapper.RouteMapper.Should().NotBeNull();
             }
 
-            [Fact]
-            public void ShouldSetTheRouteMetadataFactory()
-            {
-                var metadata = new RouteMetadata
-                {
-                    Method = typeof(IFakeRoute).GetMethod(nameof(IFakeRoute.Route)),
-                    RouteUrl = "route",
-                    Verb = "GET"
-                };
-
-                this.discoveryService.GetDiscoveredTypes().Returns(new[] { typeof(IFakeRoute) });
-                this.discoveryService.GetRoutes(typeof(IFakeRoute)).Returns(new[] { metadata });
-
-                this.bootstrapper.Initialize();
-
-                metadata.Factory.Should().NotBeNull();
-            }
-
             internal class CannotInject : IFakeInterface
             {
                 private CannotInject(int arg)

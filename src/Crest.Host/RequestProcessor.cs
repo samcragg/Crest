@@ -16,6 +16,7 @@ namespace Crest.Host
     using Crest.Host.Conversion;
     using Crest.Host.Diagnostics;
     using Crest.Host.Engine;
+    using Crest.Host.Routing;
 
     /// <summary>
     /// Processes the HTTP request, routing it through applicable plug-ins and
@@ -320,6 +321,10 @@ namespace Crest.Host
 
         private async Task<IResponseData> ProcessRequestAsync(IRequestData request, IContentConverter converter)
         {
+            // TODO: Scope it
+            var placeholder = (ServiceProviderPlaceholder)request.Parameters[ServiceProviderPlaceholder.Key];
+            placeholder.Provider = this.serviceLocator;
+
             IResponseData response = await this.OnBeforeRequestAsync(request).ConfigureAwait(false);
             if (response == null)
             {
