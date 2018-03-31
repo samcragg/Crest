@@ -16,6 +16,7 @@ namespace Crest.Host
     using Crest.Host.Conversion;
     using Crest.Host.Diagnostics;
     using Crest.Host.Engine;
+    using Crest.Host.Logging;
     using Crest.Host.Routing;
 
     /// <summary>
@@ -25,6 +26,7 @@ namespace Crest.Host
     public abstract partial class RequestProcessor
     {
         private static readonly Task<IResponseData> EmptyResponse = Task.FromResult<IResponseData>(null);
+        private static readonly ILog Logger = LogProvider.For<RequestProcessor>();
 
         private static readonly MatchResult NoMatch = new MatchResult(
             typeof(RequestProcessor).GetMethod(nameof(OverrideMethodAdapter), BindingFlags.NonPublic | BindingFlags.Static),
@@ -329,8 +331,14 @@ namespace Crest.Host
             IServiceLocator scope = this.serviceLocator.CreateScope();
             try
             {
-                var placeholder = (ServiceProviderPlaceholder)request.Parameters[ServiceProviderPlaceholder.Key];
-                placeholder.Provider = scope;
+                if (request.Parameters.TryGetValue(ServiceProviderPlaceholder.Key, out object placeholder))
+                {
+                    ((ServiceProviderPlaceholder)placeholder).Provider = scope;
+                }
+                else
+                {
+                    Logger.Warn("No service provider parameter has been set - dependency injection will fail for request targets");
+                }
 
                 IResponseData response = await this.OnBeforeRequestAsync(scope, request).ConfigureAwait(false);
                 if (response == null)

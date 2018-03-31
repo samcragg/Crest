@@ -38,8 +38,6 @@
             this.serviceLocator = register;
 
             this.request.Handler.Returns(Substitute.For<MethodInfo>());
-            this.request.Parameters[ServiceProviderPlaceholder.Key]
-                .Returns(new ServiceProviderPlaceholder());
 
             this.serviceLocator.GetContentConverterFactory().Returns(this.converterFactory);
             this.serviceLocator.GetResponseStatusGenerator().Returns(this.responseGenerator);
@@ -258,6 +256,22 @@
                 await this.processor.HandleRequestAsync(this.simpleMatch, r => request);
 
                 await this.responseGenerator.Received().NotAcceptableAsync(request);
+            }
+
+            [Fact]
+            public async Task ShouldUpdateTheServiceLocatorCapture()
+            {
+                var placeholder = new ServiceProviderPlaceholder();
+                this.request.Parameters.TryGetValue(ServiceProviderPlaceholder.Key, out object _)
+                    .Returns(ci =>
+                    {
+                        ci[1] = placeholder;
+                        return true;
+                    });
+
+                await this.processor.HandleRequestAsync(this.simpleMatch, r => this.request);
+
+                placeholder.Provider.Should().NotBeNull();
             }
 
             internal static void FakeMethod()
