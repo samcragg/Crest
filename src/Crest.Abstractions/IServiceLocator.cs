@@ -13,6 +13,13 @@ namespace Crest.Abstractions
     public interface IServiceLocator : IServiceProvider
     {
         /// <summary>
+        /// Creates a service provider that can create services for the
+        /// duration of a request.
+        /// </summary>
+        /// <returns>A child service provider.</returns>
+        IServiceLocator CreateScope();
+
+        /// <summary>
         /// Gets the registered plugins to call after processing a request.
         /// </summary>
         /// <returns>A sequence of registered plugins.</returns>

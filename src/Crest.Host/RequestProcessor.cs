@@ -170,15 +170,19 @@ namespace Crest.Host
         /// Called after the request has been processed but before it is sent
         /// back to the originator.
         /// </summary>
+        /// <param name="locator">Used to locate services.</param>
         /// <param name="request">The request data.</param>
         /// <param name="response">The generator response data.</param>
         /// <returns>
         /// A task that represents the asynchronous operation. The value of the
         /// <c>TResult</c> parameter contains the response to send.
         /// </returns>
-        protected internal virtual async Task<IResponseData> OnAfterRequestAsync(IRequestData request, IResponseData response)
+        protected internal virtual async Task<IResponseData> OnAfterRequestAsync(
+            IServiceLocator locator,
+            IRequestData request,
+            IResponseData response)
         {
-            IPostRequestPlugin[] plugins = this.serviceLocator.GetAfterRequestPlugins();
+            IPostRequestPlugin[] plugins = locator.GetAfterRequestPlugins();
             Array.Sort(plugins, (a, b) => a.Order.CompareTo(b.Order));
 
             for (int i = 0; i < plugins.Length; i++)
@@ -193,6 +197,7 @@ namespace Crest.Host
         /// Called before the request is processed and allow the early reply
         /// if the returned value is not null.
         /// </summary>
+        /// <param name="locator">Used to locate services.</param>
         /// <param name="request">The request data to process.</param>
         /// <returns>
         /// A task that represents the asynchronous operation. The value of the
@@ -203,9 +208,9 @@ namespace Crest.Host
         /// Return a task with a null result to allow the request to be
         /// processed in the normal way.
         /// </remarks>
-        protected internal virtual async Task<IResponseData> OnBeforeRequestAsync(IRequestData request)
+        protected internal virtual async Task<IResponseData> OnBeforeRequestAsync(IServiceLocator locator, IRequestData request)
         {
-            IPreRequestPlugin[] plugins = this.serviceLocator.GetBeforeRequestPlugins();
+            IPreRequestPlugin[] plugins = locator.GetBeforeRequestPlugins();
             Array.Sort(plugins, (a, b) => a.Order.CompareTo(b.Order));
 
             for (int i = 0; i < plugins.Length; i++)
@@ -321,18 +326,25 @@ namespace Crest.Host
 
         private async Task<IResponseData> ProcessRequestAsync(IRequestData request, IContentConverter converter)
         {
-            // TODO: Scope it
-            var placeholder = (ServiceProviderPlaceholder)request.Parameters[ServiceProviderPlaceholder.Key];
-            placeholder.Provider = this.serviceLocator;
-
-            IResponseData response = await this.OnBeforeRequestAsync(request).ConfigureAwait(false);
-            if (response == null)
+            IServiceLocator scope = this.serviceLocator.CreateScope();
+            try
             {
-                response = await this.InvokeHandlerAsync(request, converter).ConfigureAwait(false);
-                response = await this.OnAfterRequestAsync(request, response).ConfigureAwait(false);
-            }
+                var placeholder = (ServiceProviderPlaceholder)request.Parameters[ServiceProviderPlaceholder.Key];
+                placeholder.Provider = scope;
 
-            return response;
+                IResponseData response = await this.OnBeforeRequestAsync(scope, request).ConfigureAwait(false);
+                if (response == null)
+                {
+                    response = await this.InvokeHandlerAsync(request, converter).ConfigureAwait(false);
+                    response = await this.OnAfterRequestAsync(scope, request, response).ConfigureAwait(false);
+                }
+
+                return response;
+            }
+            finally
+            {
+                (scope as IDisposable)?.Dispose();
+            }
         }
 
         private ResponseData SerializeResponse(IContentConverter converter, object value)

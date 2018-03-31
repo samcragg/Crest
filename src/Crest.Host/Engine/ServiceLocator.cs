@@ -32,7 +32,7 @@ namespace Crest.Host.Engine
         /// Initializes a new instance of the <see cref="ServiceLocator"/> class.
         /// </summary>
         /// <param name="container">The container to use.</param>
-        /// <remarks>This constructor is to allow unit testing.</remarks>
+        /// <remarks>Internal to allow unit testing.</remarks>
         internal ServiceLocator(IContainer container)
         {
             this.container = container;
@@ -53,6 +53,12 @@ namespace Crest.Host.Engine
         {
             get;
             private set;
+        }
+
+        /// <inheritdoc />
+        public IServiceLocator CreateScope()
+        {
+            return new ServiceLocator(this.container.OpenScope());
         }
 
         /// <summary>

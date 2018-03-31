@@ -152,6 +152,28 @@
             }
 
             [Fact]
+            public async Task ShouldCreateANewServiceLocatorScope()
+            {
+                IServiceLocator child = Substitute.For<IServiceLocator>();
+                this.serviceLocator.CreateScope().Returns(child);
+
+                await this.processor.HandleRequestAsync(this.simpleMatch, _ => this.request);
+
+                await this.processor.Received().OnBeforeRequestAsync(child, this.request);
+            }
+
+            [Fact]
+            public async Task ShouldDisposeTheServiceLocatorScope()
+            {
+                IServiceLocator child = Substitute.For<IServiceLocator, IDisposable>();
+                this.serviceLocator.CreateScope().Returns(child);
+
+                await this.processor.HandleRequestAsync(this.simpleMatch, _ => this.request);
+
+                ((IDisposable)child).Received().Dispose();
+            }
+
+            [Fact]
             public async Task ShouldInvokeTheOverrideMethod()
             {
                 IRequestData capturedRequest = null;
@@ -178,18 +200,18 @@
             [Fact]
             public async Task ShouldInvokeThePipelineInTheCorrectOrder()
             {
-                this.processor.WhenForAnyArgs(p => p.OnAfterRequestAsync(null, null)).DoNotCallBase();
-                this.processor.WhenForAnyArgs(p => p.OnBeforeRequestAsync(null)).DoNotCallBase();
+                this.processor.WhenForAnyArgs(p => p.OnAfterRequestAsync(null, null, null)).DoNotCallBase();
+                this.processor.WhenForAnyArgs(p => p.OnBeforeRequestAsync(null, null)).DoNotCallBase();
                 this.processor.WhenForAnyArgs(p => p.InvokeHandlerAsync(null, null)).DoNotCallBase();
-                this.processor.OnBeforeRequestAsync(null).ReturnsForAnyArgs((IResponseData)null);
+                this.processor.OnBeforeRequestAsync(null, null).ReturnsForAnyArgs((IResponseData)null);
 
                 await this.processor.HandleRequestAsync(this.simpleMatch, _ => this.request);
 
                 Received.InOrder(() =>
                 {
-                    this.processor.OnBeforeRequestAsync(this.request);
+                    this.processor.OnBeforeRequestAsync(Arg.Any<IServiceLocator>(), this.request);
                     this.processor.InvokeHandlerAsync(this.request, Arg.Is<IContentConverter>(c => c != null));
-                    this.processor.OnAfterRequestAsync(this.request, Arg.Any<IResponseData>());
+                    this.processor.OnAfterRequestAsync(Arg.Any<IServiceLocator>(), this.request, Arg.Any<IResponseData>());
                 });
             }
 
@@ -217,7 +239,8 @@
             public async Task ShouldReturnNonNullValuesFromOnBeforeRequest()
             {
                 IResponseData response = Substitute.For<IResponseData>();
-                this.processor.OnBeforeRequestAsync(Arg.Is(this.request)).Returns(response);
+                this.processor.OnBeforeRequestAsync(Arg.Any<IServiceLocator>(), Arg.Is(this.request))
+                    .Returns(response);
 
                 await this.processor.HandleRequestAsync(this.simpleMatch, _ => this.request);
 
@@ -378,7 +401,7 @@
                 IPostRequestPlugin three = CreatePostRequestPlugin(3);
                 this.serviceLocator.GetAfterRequestPlugins().Returns(new[] { three, one, two });
 
-                await this.processor.OnAfterRequestAsync(this.request, Substitute.For<IResponseData>());
+                await this.processor.OnAfterRequestAsync(this.serviceLocator, this.request, Substitute.For<IResponseData>());
 
                 Received.InOrder(() =>
                 {
@@ -407,7 +430,7 @@
                 IPreRequestPlugin three = CreatePreRequestPlugin(3);
                 this.serviceLocator.GetBeforeRequestPlugins().Returns(new[] { three, one, two });
 
-                await this.processor.OnBeforeRequestAsync(this.request);
+                await this.processor.OnBeforeRequestAsync(this.serviceLocator, this.request);
 
                 Received.InOrder(() =>
                 {
@@ -425,7 +448,7 @@
                 plugin.ProcessAsync(this.request).Returns(response);
                 this.serviceLocator.GetBeforeRequestPlugins().Returns(new[] { plugin });
 
-                IResponseData result = await this.processor.OnBeforeRequestAsync(this.request);
+                IResponseData result = await this.processor.OnBeforeRequestAsync(this.serviceLocator, this.request);
 
                 result.Should().BeSameAs(response);
             }

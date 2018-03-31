@@ -44,6 +44,25 @@
                   .WithMessage("*" + nameof(IDiscoveryService) + "*");
         }
 
+        public sealed class CreateScope : ServiceLocatorTests
+        {
+            [Fact]
+            public void ShouldCreateANewScope()
+            {
+                this.locator.CreateScope();
+
+                this.container.Received().OpenScope();
+            }
+
+            [Fact]
+            public void ShouldReturnANewInstance()
+            {
+                IServiceLocator result = this.locator.CreateScope();
+
+                result.Should().NotBeSameAs(this.locator);
+            }
+        }
+
         public sealed class Dispose : ServiceLocatorTests
         {
             [Fact]
