@@ -27,12 +27,12 @@ namespace Crest.Host.AspNetCore
         /// <summary>
         /// Initializes a new instance of the <see cref="StartupBootstrapper"/> class.
         /// </summary>
-        /// <param name="register">Used to locate the services.</param>
+        /// <param name="locator">Used to locate the services.</param>
         /// <remarks>
         /// This constructor is required for unit testing only.
         /// </remarks>
-        internal StartupBootstrapper(IServiceRegister register)
-            : base(register)
+        internal StartupBootstrapper(IServiceLocator locator)
+            : base(locator)
         {
         }
 

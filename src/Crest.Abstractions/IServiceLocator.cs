@@ -73,5 +73,11 @@ namespace Crest.Abstractions
         /// </summary>
         /// <returns>An object implementing <see cref="IResponseStatusGenerator"/>.</returns>
         IResponseStatusGenerator GetResponseStatusGenerator();
+
+        /// <summary>
+        /// Gets the service to use to register services.
+        /// </summary>
+        /// <returns>An object implementing <see cref="IServiceRegister"/>.</returns>
+        IServiceRegister GetServiceRegister();
     }
 }

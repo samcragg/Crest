@@ -20,6 +20,7 @@ namespace Crest.Host
     /// </summary>
     public abstract class Bootstrapper : IDisposable
     {
+        private readonly IServiceLocator serviceLocator;
         private readonly IServiceRegister serviceRegister;
 
         /// <summary>
@@ -33,11 +34,12 @@ namespace Crest.Host
         /// <summary>
         /// Initializes a new instance of the <see cref="Bootstrapper"/> class.
         /// </summary>
-        /// <param name="serviceRegister">Used to locate the services.</param>
-        protected Bootstrapper(IServiceRegister serviceRegister)
+        /// <param name="serviceLocator">Used to locate the services.</param>
+        protected Bootstrapper(IServiceLocator serviceLocator)
         {
-            Check.IsNotNull(serviceRegister, nameof(serviceRegister));
-            this.serviceRegister = serviceRegister;
+            Check.IsNotNull(serviceLocator, nameof(serviceLocator));
+            this.serviceLocator = serviceLocator;
+            this.serviceRegister = this.serviceLocator.GetServiceRegister();
         }
 
         /// <summary>
@@ -65,7 +67,7 @@ namespace Crest.Host
             get
             {
                 this.ThrowIfDisposed();
-                return this.serviceRegister;
+                return this.serviceLocator;
             }
         }
 
@@ -101,7 +103,10 @@ namespace Crest.Host
             {
                 if (disposing)
                 {
-                    this.serviceRegister.Dispose();
+                    if (this.serviceLocator is IDisposable disposable)
+                    {
+                        disposable.Dispose();
+                    }
                 }
 
                 this.IsDisposed = true;
@@ -113,18 +118,18 @@ namespace Crest.Host
         /// </summary>
         protected void Initialize()
         {
-            IDiscoveryService discovery = this.ServiceLocator.GetDiscoveryService();
+            IDiscoveryService discovery = this.serviceLocator.GetDiscoveryService();
             IReadOnlyCollection<Type> types = this.RegisterTypes(discovery);
 
             List<RouteMetadata> routes =
                 types.SelectMany(discovery.GetRoutes).ToList();
             this.RouteMapper = new RouteMapper(routes, this.GetDirectRoutes());
 
-            IConfigurationService configuration = this.ServiceLocator.GetConfigurationService();
+            IConfigurationService configuration = this.serviceLocator.GetConfigurationService();
             configuration.InitializeProviders(types).Wait();
             this.serviceRegister.RegisterInitializer(
                 configuration.CanConfigure,
-                instance => configuration.InitializeInstance(instance, this.serviceRegister));
+                instance => configuration.InitializeInstance(instance, this.serviceLocator));
         }
 
         /// <summary>
@@ -141,7 +146,7 @@ namespace Crest.Host
 
         private IEnumerable<DirectRouteMetadata> GetDirectRoutes()
         {
-            return this.ServiceLocator.GetDirectRouteProviders()
+            return this.serviceLocator.GetDirectRouteProviders()
                        .SelectMany(d => d.GetDirectRoutes());
         }
 
@@ -153,7 +158,7 @@ namespace Crest.Host
                 ITypeFactory factory = factories[i];
                 if (factory.CanCreate(type))
                 {
-                    return () => factory.Create(type, this.serviceRegister);
+                    return () => factory.Create(type, this.serviceLocator);
                 }
             }
 

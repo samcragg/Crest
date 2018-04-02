@@ -13,7 +13,7 @@
     public class StartupBootstrapperTests
     {
         private readonly StartupBootstrapper startup =
-            new StartupBootstrapper(Substitute.For<IServiceRegister>());
+            new StartupBootstrapper(Substitute.For<IServiceLocator>());
 
         public sealed class Configure : StartupBootstrapperTests
         {

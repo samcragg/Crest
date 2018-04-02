@@ -16,15 +16,16 @@ namespace Crest.Host.Engine
     /// <summary>
     /// Creates the instances of interfaces required during initialization.
     /// </summary>
-    public class ServiceLocator : IServiceRegister
+    public class ServiceLocator : IServiceRegister, IServiceLocator, IDisposable
     {
         private readonly IContainer container;
+        private readonly IResolverContext scope;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ServiceLocator"/> class.
         /// </summary>
         public ServiceLocator()
-            : this(new Container())
+            : this(new Container(), null)
         {
         }
 
@@ -32,10 +33,13 @@ namespace Crest.Host.Engine
         /// Initializes a new instance of the <see cref="ServiceLocator"/> class.
         /// </summary>
         /// <param name="container">The container to use.</param>
+        /// <param name="scope">The current scope.</param>
         /// <remarks>Internal to allow unit testing.</remarks>
-        internal ServiceLocator(IContainer container)
+        internal ServiceLocator(IContainer container, IResolverContext scope)
         {
             this.container = container;
+            this.scope = scope;
+            this.scope?.UseInstance<IScopedServiceRegister>(this);
         }
 
         /// <summary>
@@ -58,7 +62,7 @@ namespace Crest.Host.Engine
         /// <inheritdoc />
         public IServiceLocator CreateScope()
         {
-            return new ServiceLocator(this.container.OpenScope());
+            return new ServiceLocator(this.container, this.container.OpenScope());
         }
 
         /// <summary>
@@ -155,6 +159,12 @@ namespace Crest.Host.Engine
         }
 
         /// <inheritdoc />
+        public IServiceRegister GetServiceRegister()
+        {
+            return this;
+        }
+
+        /// <inheritdoc />
         public void RegisterFactory(Type serviceType, Func<object> factory)
         {
             Check.IsNotNull(serviceType, nameof(serviceType));
@@ -193,6 +203,12 @@ namespace Crest.Host.Engine
                 Type[] serviceTypes = type.GetImplementedServiceTypes(nonPublicServiceTypes: true);
                 this.RegisterMany(serviceTypes, type, isSingleInstance(type));
             }
+        }
+
+        /// <inheritdoc />
+        public void UseInstance(Type serviceType, object instance)
+        {
+            (this.scope ?? this.container).UseInstance(serviceType, instance);
         }
 
         /// <summary>

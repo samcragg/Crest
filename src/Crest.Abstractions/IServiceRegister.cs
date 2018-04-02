@@ -11,7 +11,7 @@ namespace Crest.Abstractions
     /// <summary>
     /// Allows the registering of services.
     /// </summary>
-    public interface IServiceRegister : IServiceLocator, IDisposable
+    public interface IServiceRegister : IScopedServiceRegister
     {
         /// <summary>
         /// Registers a factory delegate for creating an instance of the
@@ -22,8 +22,8 @@ namespace Crest.Abstractions
         void RegisterFactory(Type serviceType, Func<object> factory);
 
         /// <summary>
-        /// Registers an action that will be called after service is resolved
-        /// just before returning it to caller.
+        /// Registers an action that will be called after the service is
+        /// resolved but before it is returned to the caller.
         /// </summary>
         /// <param name="condition">
         /// Determines whether a type should be initialized.

@@ -1,11 +1,9 @@
 ﻿namespace Host.UnitTests
 {
     using System;
-    using System.Reflection;
     using System.Threading.Tasks;
     using Crest.Abstractions;
     using Crest.Host;
-    using Crest.Host.Diagnostics;
     using Crest.Host.Engine;
     using FluentAssertions;
     using NSubstitute;
@@ -15,6 +13,7 @@
     {
         private readonly FakeBootstrapper bootstrapper;
         private readonly IDiscoveryService discoveryService;
+        private readonly IServiceLocator serviceLocator;
         private readonly IServiceRegister serviceRegister;
 
         public BootstrapperTests()
@@ -24,9 +23,12 @@
                 .Returns(new[] { typeof(IFakeInterface), typeof(FakeClass) });
 
             this.serviceRegister = Substitute.For<IServiceRegister>();
-            this.serviceRegister.GetDiscoveryService().Returns(this.discoveryService);
 
-            this.bootstrapper = new FakeBootstrapper(this.serviceRegister);
+            this.serviceLocator = Substitute.For<IServiceLocator, IDisposable>();
+            this.serviceLocator.GetDiscoveryService().Returns(this.discoveryService);
+            this.serviceLocator.GetServiceRegister().Returns(this.serviceRegister);
+
+            this.bootstrapper = new FakeBootstrapper(this.serviceLocator);
         }
 
         internal interface IFakeInterface
@@ -48,7 +50,7 @@
             {
                 this.bootstrapper.Dispose();
 
-                this.serviceRegister.Received().Dispose();
+                ((IDisposable)this.serviceLocator).Received().Dispose();
             }
 
             [Fact]
@@ -91,7 +93,7 @@
             public void ShouldInitializeClassesWithTheConfigurationService()
             {
                 IConfigurationService configurationService = Substitute.For<IConfigurationService>();
-                this.serviceRegister.GetConfigurationService()
+                this.serviceLocator.GetConfigurationService()
                     .Returns(configurationService);
 
                 // Force the passed in lambdas to be invoked
@@ -103,14 +105,14 @@
                 this.bootstrapper.Initialize();
 
                 configurationService.Received().CanConfigure(typeof(FakeClass));
-                configurationService.Received().InitializeInstance(toInitialize, this.serviceRegister);
+                configurationService.Received().InitializeInstance(toInitialize, this.serviceLocator);
             }
 
             [Fact]
             public void ShouldInitializeTheConfigurationService()
             {
                 IConfigurationService configurationService = Substitute.For<IConfigurationService>();
-                this.serviceRegister.GetConfigurationService()
+                this.serviceLocator.GetConfigurationService()
                     .Returns(configurationService);
 
                 this.bootstrapper.Initialize();
@@ -135,14 +137,14 @@
 
                 this.bootstrapper.Initialize();
 
-                factory.Received().Create(typeof(IFakeInterface), this.serviceRegister);
+                factory.Received().Create(typeof(IFakeInterface), this.serviceLocator);
             }
 
             [Fact]
             public void ShouldRegisterDirectRoutes()
             {
                 IDirectRouteProvider direct = Substitute.For<IDirectRouteProvider>();
-                this.serviceRegister.GetDirectRouteProviders()
+                this.serviceLocator.GetDirectRouteProviders()
                     .Returns(new[] { direct });
 
                 this.bootstrapper.Initialize();
@@ -199,7 +201,7 @@
             [Fact]
             public void ShouldReturnTheValuePassedToTheConstructor()
             {
-                this.bootstrapper.ServiceLocator.Should().BeSameAs(this.serviceRegister);
+                this.bootstrapper.ServiceLocator.Should().BeSameAs(this.serviceLocator);
             }
 
             [Fact]
@@ -231,8 +233,8 @@
 
         private class FakeBootstrapper : Bootstrapper
         {
-            internal FakeBootstrapper(IServiceRegister register)
-                : base(register)
+            internal FakeBootstrapper(IServiceLocator locator)
+                : base(locator)
             {
             }
 

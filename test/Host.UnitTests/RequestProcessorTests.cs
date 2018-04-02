@@ -28,14 +28,13 @@
 
         public RequestProcessorTests()
         {
-            IServiceRegister register = Substitute.For<IServiceRegister>();
-            this.bootstrapper = Substitute.For<Bootstrapper>(register);
+            this.serviceLocator = Substitute.For<IServiceLocator>();
+            this.bootstrapper = Substitute.For<Bootstrapper>(this.serviceLocator);
 
             this.converterFactory = Substitute.For<IContentConverterFactory>();
             this.mapper = Substitute.For<IRouteMapper>();
             this.request = Substitute.For<IRequestData>();
             this.responseGenerator = Substitute.For<IResponseStatusGenerator>();
-            this.serviceLocator = register;
 
             this.request.Handler.Returns(Substitute.For<MethodInfo>());
 

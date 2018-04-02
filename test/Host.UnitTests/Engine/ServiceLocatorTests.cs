@@ -17,11 +17,13 @@
     {
         private readonly IContainer container;
         private readonly FakeServiceLocator locator;
+        private readonly IResolverContext scope;
 
         public ServiceLocatorTests()
         {
             this.container = Substitute.For<IContainer>();
-            this.locator = new FakeServiceLocator(this.container);
+            this.scope = Substitute.For<IResolverContext>();
+            this.locator = new FakeServiceLocator(this.container, this.scope);
         }
 
         private interface IInterface1
@@ -479,14 +481,38 @@
             }
         }
 
+        public sealed class UseInstance : ServiceLocatorTests
+        {
+            [Fact]
+            public void ShouldRegisterTheInstanceWithTheContainerIfThereIsNoScope()
+            {
+                var instance = new ExampleClass();
+                var rootContainer = new FakeServiceLocator(this.container, null);
+
+                rootContainer.UseInstance(typeof(ExampleClass), instance);
+
+                this.container.Received().UseInstance(typeof(ExampleClass), instance);
+            }
+
+            [Fact]
+            public void ShouldRegisterTheInstanceWithTheScope()
+            {
+                var instance = new ExampleClass();
+
+                this.locator.UseInstance(typeof(ExampleClass), instance);
+
+                this.scope.Received().UseInstance(typeof(ExampleClass), instance);
+            }
+        }
+
         private class ExampleClass : IInterface1, IInterface2
         {
         }
 
         private class FakeServiceLocator : ServiceLocator
         {
-            public FakeServiceLocator(IContainer container)
-                : base(container)
+            public FakeServiceLocator(IContainer container, IResolverContext scope)
+                : base(container, scope)
             {
             }
 
