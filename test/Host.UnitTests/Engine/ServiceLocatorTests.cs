@@ -260,6 +260,7 @@
             [InlineData(nameof(ServiceLocator.GetContentConverterFactory))]
             [InlineData(nameof(ServiceLocator.GetDiscoveryService))]
             [InlineData(nameof(ServiceLocator.GetHtmlTemplateProvider))]
+            [InlineData(nameof(ServiceLocator.GetJwtSettings))]
             [InlineData(nameof(ServiceLocator.GetResponseStatusGenerator))]
             public void ShouldCheckForDisposed(string methodName)
             {
@@ -276,6 +277,7 @@
             [InlineData(nameof(ServiceLocator.GetContentConverterFactory))]
             [InlineData(nameof(ServiceLocator.GetDiscoveryService))]
             [InlineData(nameof(ServiceLocator.GetHtmlTemplateProvider))]
+            [InlineData(nameof(ServiceLocator.GetJwtSettings))]
             [InlineData(nameof(ServiceLocator.GetResponseStatusGenerator))]
             public void ShouldGetTheServiceFromTheContainer(string methodName)
             {
@@ -295,6 +297,7 @@
             [InlineData(nameof(ServiceLocator.GetContentConverterFactory))]
             [InlineData(nameof(ServiceLocator.GetDiscoveryService))]
             [InlineData(nameof(ServiceLocator.GetHtmlTemplateProvider))]
+            [InlineData(nameof(ServiceLocator.GetJwtSettings))]
             [InlineData(nameof(ServiceLocator.GetResponseStatusGenerator))]
             public void ShouldReturnADefaultRegisteredInstance(string methodName)
             {

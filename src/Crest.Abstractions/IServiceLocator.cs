@@ -68,6 +68,12 @@ namespace Crest.Abstractions
         IHtmlTemplateProvider GetHtmlTemplateProvider();
 
         /// <summary>
+        /// Gets the service to use for providing values for validating JWTs.
+        /// </summary>
+        /// <returns>An object implementing <see cref="IJwtSettings"/>.</returns>
+        IJwtSettings GetJwtSettings();
+
+        /// <summary>
         /// Gets the service to use to generate responses for various status
         /// codes.
         /// </summary>

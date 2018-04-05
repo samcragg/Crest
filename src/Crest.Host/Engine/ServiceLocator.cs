@@ -11,6 +11,7 @@ namespace Crest.Host.Engine
     using System.Reflection;
     using Crest.Abstractions;
     using Crest.Host.Conversion;
+    using Crest.Host.Security;
     using DryIoc;
 
     /// <summary>
@@ -139,6 +140,14 @@ namespace Crest.Host.Engine
             this.ThrowIfDisposed();
 
             return this.TryResolve<IHtmlTemplateProvider, HtmlTemplateProvider>();
+        }
+
+        /// <inheritdoc />
+        public IJwtSettings GetJwtSettings()
+        {
+            this.ThrowIfDisposed();
+
+            return this.TryResolve<IJwtSettings, JwtValidationSettings>();
         }
 
         /// <inheritdoc />

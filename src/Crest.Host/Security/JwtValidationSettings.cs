@@ -7,15 +7,16 @@ namespace Crest.Host.Security
 {
     using System;
     using System.Collections.Generic;
+    using Crest.Abstractions;
 
     /// <summary>
     /// Represents configuration options used during the validation of JWTs.
     /// </summary>
-    public sealed class JwtValidationSettings
+    public class JwtValidationSettings : IJwtSettings
     {
         /// <summary>
-        /// Gets the claim property the original JWT claim name is stored again
-        /// if a match is found in the <see cref="JwtClaimMappings"/>
+        /// Gets the claim property the original JWT claim name is stored
+        /// against if a match is found in the <see cref="JwtClaimMappings"/>
         /// dictionary.
         /// </summary>
         public const string JwtClaimProperty = "http://schemas.xmlsoap.org/ws/2005/05/identity/claimproperties/ShortTypeName";
@@ -42,21 +43,11 @@ namespace Crest.Host.Security
             { "website", "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/webpage" }
         };
 
-        /// <summary>
-        /// Gets a list of valid intended recipients.
-        /// </summary>
-        /// <remarks>
-        /// If the <c>aud</c> claim is present in the JWT then this list will
-        /// be checked to see if the claim matches one of the values. If no
-        /// matches are found then the data in the JWT will be disregarded.
-        /// </remarks>
+        /// <inheritdoc />
         public ISet<string> Audiences => this.audiences;
 
-        /// <summary>
-        /// Gets or sets the value to report for the type of authentication
-        /// used when creating the claims identity.
-        /// </summary>
-        public string AuthenticationType { get; set; } = "AuthenticationTypes.Federation";
+        /// <inheritdoc />
+        public virtual string AuthenticationType => "AuthenticationTypes.Federation";
 
         /// <summary>
         /// Gets or sets the clock skew to apply when validating a time.
@@ -66,19 +57,18 @@ namespace Crest.Host.Security
         /// </remarks>
         public TimeSpan ClockSkew { get; set; } = TimeSpan.FromMinutes(5);
 
-        /// <summary>
-        /// Gets a list of valid issuing parties.
-        /// </summary>
-        /// <remarks>
-        /// If the <c>iss</c> claim is present in the JWT then this list will
-        /// be checked to see if the claim matches one of the values. If no
-        /// matches are found then the data in the JWT will be disregarded.
-        /// </remarks>
+        /// <inheritdoc />
         public ISet<string> Issuers => this.issuers;
+
+        /// <inheritdoc />
+        public virtual bool SkipAuthentication => false;
+
+        /// <inheritdoc />
+        IReadOnlyDictionary<string, string> IJwtSettings.JwtClaimMappings => this.mappings;
 
         /// <summary>
         /// Gets the mappings between a JWT and a <see cref="System.Security.Claims.Claim"/>.
         /// </summary>
-        public IDictionary<string, string> JwtClaimMappings => this.mappings;
+        protected internal IDictionary<string, string> JwtClaimMappings => this.mappings;
     }
 }
