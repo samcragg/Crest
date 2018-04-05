@@ -6,6 +6,7 @@
     {
         public static void Initialize()
         {
+            FakeLogger.InterceptLogger();
             StreamIterator.BytePool = FakeArrayPool<byte>.Instance;
             StreamIterator.CharPool = FakeArrayPool<char>.Instance;
             StringBuffer.Pool = FakeArrayPool<char>.Instance;

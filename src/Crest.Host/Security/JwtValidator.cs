@@ -8,6 +8,7 @@ namespace Crest.Host.Security
     using System;
     using System.Collections.Generic;
     using System.Security.Claims;
+    using Crest.Abstractions;
     using Crest.Host.Diagnostics;
     using Crest.Host.Logging;
 
@@ -19,7 +20,7 @@ namespace Crest.Host.Security
         private const string JwtClaimProperty = "http://schemas.xmlsoap.org/ws/2005/05/identity/claimproperties/ShortTypeName";
         private static readonly ILog Logger = LogProvider.For<JwtValidator>();
         private static readonly DateTime UnixEpoc = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
-        private readonly JwtValidationSettings settings;
+        private readonly IJwtSettings settings;
         private readonly ITimeProvider timeProvider;
 
         /// <summary>
@@ -27,11 +28,22 @@ namespace Crest.Host.Security
         /// </summary>
         /// <param name="timeProvider">Provides the current time.</param>
         /// <param name="settings">The settings to use during validation.</param>
-        public JwtValidator(ITimeProvider timeProvider, JwtValidationSettings settings)
+        public JwtValidator(ITimeProvider timeProvider, IJwtSettings settings)
         {
             this.settings = settings;
             this.timeProvider = timeProvider;
+
+            if (this.settings.SkipAuthentication)
+            {
+                Logger.Warn("JWT authentication is disabled");
+            }
         }
+
+        /// <summary>
+        /// Gets a value indicating whether JWT authentication should be
+        /// performed or not.
+        /// </summary>
+        public virtual bool IsEnabled => !this.settings.SkipAuthentication;
 
         /// <summary>
         /// Validate the specified data and converts it to a claims principal
@@ -84,7 +96,7 @@ namespace Crest.Host.Security
         }
 
         private static IEnumerable<Claim> ParseClaims(
-            IDictionary<string, string> mappings,
+            IReadOnlyDictionary<string, string> mappings,
             byte[] payload,
             RegisteredClaims knownClaims)
         {

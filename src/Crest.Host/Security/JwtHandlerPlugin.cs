@@ -71,19 +71,22 @@ namespace Crest.Host.Security
         /// <inheritdoc />
         public Task<IResponseData> ProcessAsync(IRequestData request)
         {
-            if (request.Headers.TryGetValue(AuthorizationHeader, out string authorization))
+            if (this.validator.IsEnabled)
             {
-                if (!this.ValidateBearerToken(authorization, out ClaimsPrincipal principal))
+                if (request.Headers.TryGetValue(AuthorizationHeader, out string authorization))
                 {
+                    if (!this.ValidateBearerToken(authorization, out ClaimsPrincipal principal))
+                    {
+                        return UnauthorizedRequest;
+                    }
+
+                    this.serviceRegister.UseInstance(typeof(IPrincipal), principal);
+                }
+                else if (!IsAnonymous(request.Handler))
+                {
+                    Logger.InfoFormat("Access to {method} requires an authorization header", request.Handler.Name);
                     return UnauthorizedRequest;
                 }
-
-                this.serviceRegister.UseInstance(typeof(IPrincipal), principal);
-            }
-            else if (!IsAnonymous(request.Handler))
-            {
-                Logger.InfoFormat("Access to {method} requires an authorization header", request.Handler.Name);
-                return UnauthorizedRequest;
             }
 
             return ContinueRequest;

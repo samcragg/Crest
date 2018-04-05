@@ -23,7 +23,10 @@
         private JwtHandlerPluginTests()
         {
             this.register = Substitute.For<IScopedServiceRegister>();
-            this.validator = Substitute.For<JwtValidator>(null, null);
+
+            this.validator = Substitute.For<JwtValidator>(null, Substitute.For<IJwtSettings>());
+            this.validator.IsEnabled.Returns(true);
+
             this.verifier = Substitute.For<JwtSignatureVerifier>(new object[] { null });
 
             this.plugin = new JwtHandlerPlugin(
@@ -136,6 +139,16 @@
 
                 response.Should().BeNull();
                 this.register.Received().UseInstance(typeof(IPrincipal), principal);
+            }
+
+            [Fact]
+            public async Task ShouldSkipAuthenticationIfTheValidatorIsNotEneabled()
+            {
+                this.validator.IsEnabled.Returns(false);
+
+                IResponseData response = await this.plugin.ProcessAsync(CreateRequest(""));
+
+                response.Should().BeNull();
             }
 
             [AllowAnonymous]

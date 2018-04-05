@@ -1,10 +1,13 @@
 ﻿namespace Host.UnitTests.Security
 {
     using System;
+    using System.Collections.Generic;
     using System.Linq;
     using System.Security.Claims;
     using System.Text;
+    using Crest.Abstractions;
     using Crest.Host.Diagnostics;
+    using Crest.Host.Logging;
     using Crest.Host.Security;
     using FluentAssertions;
     using NSubstitute;
@@ -14,7 +17,7 @@
     {
         private const int CurrentTimeInSeconds = 1483228800;
         private readonly DateTime currentTime = new DateTime(2017, 1, 1, 0, 0, 0, DateTimeKind.Utc);
-        private readonly JwtValidationSettings settings = new JwtValidationSettings();
+        private readonly IJwtSettings settings = Substitute.For<IJwtSettings>();
         private readonly ITimeProvider timeProvider = Substitute.For<ITimeProvider>();
         private readonly JwtValidator validator;
 
@@ -24,12 +27,28 @@
             this.validator = new JwtValidator(this.timeProvider, this.settings);
         }
 
+        public sealed class Constructor : JwtValidatorTests
+        {
+            [Fact]
+            public void ShouldLogAWarningIfJwtValidationIsDisabled()
+            {
+                using (FakeLogger.LogInfo logging = FakeLogger.MonitorLogging())
+                {
+                    this.settings.SkipAuthentication.Returns(true);
+                    new JwtValidator(this.timeProvider, this.settings);
+
+                    logging.LogLevel.Should().Be(LogLevel.Warn);
+                    logging.Message.Should().NotBeNullOrEmpty();
+                }
+            }
+        }
+
         public sealed class GetValidClaimsPrincipal : JwtValidatorTests
         {
             [Fact]
             public void ShouldAdjustTheExpirationByTheClockScew()
             {
-                this.settings.ClockSkew = TimeSpan.FromSeconds(5);
+                this.settings.ClockSkew.Returns(TimeSpan.FromSeconds(5));
 
                 ClaimsPrincipal result = this.GetPayload(@"""exp"":" + (CurrentTimeInSeconds - 4));
 
@@ -39,7 +58,7 @@
             [Fact]
             public void ShouldAdjustTheNotBeforeByTheClockScew()
             {
-                this.settings.ClockSkew = TimeSpan.FromSeconds(5);
+                this.settings.ClockSkew.Returns(TimeSpan.FromSeconds(5));
 
                 ClaimsPrincipal result = this.GetPayload(@"""nbf"":" + (CurrentTimeInSeconds + 4));
 
@@ -49,7 +68,7 @@
             [Fact]
             public void ShouldAllowKnownIssuers()
             {
-                this.settings.Issuers.Add("known issuer");
+                this.settings.Issuers.Returns(new HashSet<string>(new[] { "known issuer" }));
 
                 ClaimsPrincipal result = this.GetPayload(@"""iss"":""known issuer""");
 
@@ -59,7 +78,7 @@
             [Fact]
             public void ShouldAllowMultipleAudienceValues()
             {
-                this.settings.Audiences.Add("two");
+                this.settings.Audiences.Returns(new HashSet<string>(new[] { "two" }));
 
                 ClaimsPrincipal result = this.GetPayload(@"""aud"":[""one"", ""two""]");
 
@@ -69,7 +88,7 @@
             [Fact]
             public void ShouldAllowSingleAudienceValues()
             {
-                this.settings.Audiences.Add("single");
+                this.settings.Audiences.Returns(new HashSet<string>(new[] { "single" }));
 
                 ClaimsPrincipal result = this.GetPayload(@"""aud"":""single""");
 
@@ -79,8 +98,6 @@
             [Fact]
             public void ShouldAllowTimesEqualToThecurrentTime()
             {
-                this.settings.ClockSkew = TimeSpan.Zero;
-
                 ClaimsPrincipal result = this.GetPayload(@"""nbf"":" + CurrentTimeInSeconds);
 
                 result.Should().NotBeNull();
@@ -98,7 +115,13 @@
             [Fact]
             public void ShouldIncludeTheOriginalJwtClaimInTheProperties()
             {
-                this.settings.JwtClaimMappings.Add("jwt", "mapped");
+                string any = Arg.Any<string>();
+                this.settings.JwtClaimMappings.TryGetValue("jwt", out any)
+                    .Returns(ci =>
+                    {
+                        ci[1] = "mapped";
+                        return true;
+                    });
 
                 ClaimsPrincipal result = this.GetPayload(@"""jwt"":""value""");
 
@@ -110,7 +133,13 @@
             [Fact]
             public void ShouldMapTheJwtClaims()
             {
-                this.settings.JwtClaimMappings.Add("jwt", "mapped");
+                string any = Arg.Any<string>();
+                this.settings.JwtClaimMappings.TryGetValue("jwt", out any)
+                    .Returns(ci =>
+                    {
+                        ci[1] = "mapped";
+                        return true;
+                    });
 
                 ClaimsPrincipal result = this.GetPayload(@"""jwt"":""value""");
 
@@ -145,8 +174,6 @@
             [Fact]
             public void ShouldReturnNullIfTheExpirationIsEqualToTheTime()
             {
-                this.settings.ClockSkew = TimeSpan.Zero;
-
                 ClaimsPrincipal result = this.GetPayload(@"""exp"":" + CurrentTimeInSeconds);
 
                 result.Should().BeNull();
@@ -155,8 +182,6 @@
             [Fact]
             public void ShouldReturnNullIfTheExpirationIsTooLate()
             {
-                this.settings.ClockSkew = TimeSpan.Zero;
-
                 ClaimsPrincipal result = this.GetPayload(@"""exp"":" + (CurrentTimeInSeconds - 1));
 
                 result.Should().BeNull();
@@ -173,8 +198,6 @@
             [Fact]
             public void ShouldReturnNullIfTheNotBeforeIsTooEarly()
             {
-                this.settings.ClockSkew = TimeSpan.Zero;
-
                 ClaimsPrincipal result = this.GetPayload(@"""nbf"":" + (CurrentTimeInSeconds + 1));
 
                 result.Should().BeNull();
@@ -184,6 +207,19 @@
             {
                 byte[] payload = Encoding.UTF8.GetBytes("{" + value + "}");
                 return this.validator.GetValidClaimsPrincipal(payload);
+            }
+        }
+
+        public sealed class IsEnabled : JwtValidatorTests
+        {
+            [Fact]
+            public void ShouldReturnFalseIfSkipAuthorizationIsTrue()
+            {
+                this.settings.SkipAuthentication.Returns(true);
+
+                bool result = this.validator.IsEnabled;
+
+                result.Should().BeFalse();
             }
         }
     }
