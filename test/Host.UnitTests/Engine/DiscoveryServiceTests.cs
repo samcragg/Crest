@@ -50,7 +50,7 @@
 
                 IEnumerable<Type> result = discoverService.GetDiscoveredTypes();
 
-                result.Should().Contain(typeof(DiscoveryServiceTests));
+                result.Should().NotBeEmpty();
             }
         }
 
