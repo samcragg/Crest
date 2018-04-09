@@ -4,7 +4,6 @@
     using System.Collections;
     using System.Collections.Generic;
     using System.Linq;
-    using System.Reflection;
     using System.Threading.Tasks;
     using Crest.Abstractions;
     using Crest.Host.Engine;
@@ -34,16 +33,18 @@
         {
         }
 
-        [Fact]
-        public void ShouldThrowAnExceptionIfMultipleServicesAreRegisteredForASingleItem()
+        public sealed class Create : ServiceLocatorTests
         {
-            this.container.Resolve(typeof(IDiscoveryService[]))
-                .Returns(new IDiscoveryService[2]);
+            [Fact]
+            public void ShouldBeAbleToCreateTypesThatAreNotRegistered()
+            {
+                using (var serviceLocator = new ServiceLocator())
+                {
+                    IDiscoveryService result = serviceLocator.GetDiscoveryService();
 
-            Action action = () => this.locator.GetDiscoveryService();
-
-            action.Should().Throw<InvalidOperationException>()
-                  .WithMessage("*" + nameof(IDiscoveryService) + "*");
+                    result.Should().NotBeNull();
+                }
+            }
         }
 
         public sealed class CreateScope : ServiceLocatorTests
@@ -197,6 +198,57 @@
             }
         }
 
+        public sealed class GetDiscoveryService : ServiceLocatorTests
+        {
+            [Fact]
+            public void ShouldCheckForDisposed()
+            {
+                Action action = () => this.locator.GetDiscoveryService();
+
+                this.locator.Dispose();
+
+                action.Should().Throw<ObjectDisposedException>();
+            }
+
+            [Fact]
+            public void ShouldGetTheServiceFromTheContainer()
+            {
+                // TryResolve method determines whether there is a registered
+                // instance or not by resolving an array of them
+                IDiscoveryService discoveryService = Substitute.For<IDiscoveryService>();
+                this.container.Resolve(typeof(IDiscoveryService[]))
+                    .Returns(new[] { discoveryService });
+
+                IDiscoveryService result = this.locator.GetDiscoveryService();
+
+                result.Should().BeSameAs(discoveryService);
+            }
+
+            [Fact]
+            public void ShouldReturnADefaultRegisteredInstance()
+            {
+                // An empty array indicates the service does not exist
+                this.container.Resolve(typeof(IDiscoveryService[]))
+                    .Returns(new IDiscoveryService[0]);
+
+                this.locator.GetDiscoveryService();
+
+                this.container.Received().Resolve(typeof(DiscoveryService));
+            }
+
+            [Fact]
+            public void ShouldThrowAnExceptionIfMultipleServicesAreRegisteredForASingleItem()
+            {
+                this.container.Resolve(typeof(IDiscoveryService[]))
+                    .Returns(new IDiscoveryService[2]);
+
+                Action action = () => this.locator.GetDiscoveryService();
+
+                action.Should().Throw<InvalidOperationException>()
+                      .WithMessage("*" + nameof(IDiscoveryService) + "*");
+            }
+        }
+
         public sealed class GetErrorHandlers : ServiceLocatorTests
         {
             [Fact]
@@ -251,64 +303,6 @@
                 object result = this.locator.GetService(typeof(string));
 
                 result.Should().Be("Instance");
-            }
-        }
-
-        public sealed class GetSpecificItem : ServiceLocatorTests
-        {
-            [Theory]
-            [InlineData(nameof(ServiceLocator.GetContentConverterFactory))]
-            [InlineData(nameof(ServiceLocator.GetDiscoveryService))]
-            [InlineData(nameof(ServiceLocator.GetHtmlTemplateProvider))]
-            [InlineData(nameof(ServiceLocator.GetJwtSettings))]
-            [InlineData(nameof(ServiceLocator.GetResponseStatusGenerator))]
-            public void ShouldCheckForDisposed(string methodName)
-            {
-                MethodInfo method = typeof(ServiceLocator).GetMethod(methodName);
-                Action action = () => method.Invoke(this.locator, null);
-
-                this.locator.Dispose();
-
-                action.Should().Throw<TargetInvocationException>()
-                      .WithInnerException<ObjectDisposedException>();
-            }
-
-            [Theory]
-            [InlineData(nameof(ServiceLocator.GetContentConverterFactory))]
-            [InlineData(nameof(ServiceLocator.GetDiscoveryService))]
-            [InlineData(nameof(ServiceLocator.GetHtmlTemplateProvider))]
-            [InlineData(nameof(ServiceLocator.GetJwtSettings))]
-            [InlineData(nameof(ServiceLocator.GetResponseStatusGenerator))]
-            public void ShouldGetTheServiceFromTheContainer(string methodName)
-            {
-                MethodInfo method = typeof(ServiceLocator).GetMethod(methodName);
-
-                // The expected type is an array as that's how the TryResolve method
-                // determines whether there is a registered instance or not
-                Type expectedType = method.ReturnType.MakeArrayType();
-                this.container.Resolve(null).ReturnsForAnyArgs(Array.CreateInstance(method.ReturnType, 1));
-
-                method.Invoke(this.locator, null);
-
-                this.container.Received().Resolve(expectedType);
-            }
-
-            [Theory]
-            [InlineData(nameof(ServiceLocator.GetContentConverterFactory))]
-            [InlineData(nameof(ServiceLocator.GetDiscoveryService))]
-            [InlineData(nameof(ServiceLocator.GetHtmlTemplateProvider))]
-            [InlineData(nameof(ServiceLocator.GetJwtSettings))]
-            [InlineData(nameof(ServiceLocator.GetResponseStatusGenerator))]
-            public void ShouldReturnADefaultRegisteredInstance(string methodName)
-            {
-                MethodInfo method = typeof(ServiceLocator).GetMethod(methodName);
-
-                using (var serviceLocator = new ServiceLocator())
-                {
-                    object result = method.Invoke(serviceLocator, null);
-
-                    result.Should().NotBeNull();
-                }
             }
         }
 
@@ -514,9 +508,12 @@
 
         private class FakeServiceLocator : ServiceLocator
         {
+            private readonly IContainer container;
+
             public FakeServiceLocator(IContainer container, IResolverContext scope)
                 : base(container, scope)
             {
+                this.container = container;
             }
 
             internal new bool IsDisposed => base.IsDisposed;
@@ -524,6 +521,11 @@
             internal new void ThrowIfDisposed()
             {
                 base.ThrowIfDisposed();
+            }
+
+            protected override T Create<T>()
+            {
+                return (T)this.container.Resolve(typeof(T));
             }
         }
     }

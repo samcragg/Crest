@@ -8,10 +8,12 @@ namespace Crest.Host.Security
     using System;
     using System.Collections.Generic;
     using Crest.Abstractions;
+    using Crest.Host.Engine;
 
     /// <summary>
     /// Represents configuration options used during the validation of JWTs.
     /// </summary>
+    [OverridableService]
     public class JwtValidationSettings : IJwtSettings
     {
         /// <summary>

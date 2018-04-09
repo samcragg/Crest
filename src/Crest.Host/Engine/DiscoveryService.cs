@@ -18,6 +18,7 @@ namespace Crest.Host.Engine
     /// <summary>
     /// Uses the DependencyModel package to find dependencies at runtime.
     /// </summary>
+    [OverridableService]
     internal sealed class DiscoveryService : IDiscoveryService
     {
         private static readonly ISet<string> ExcludedNamespaces = new HashSet<string>(
@@ -33,6 +34,7 @@ namespace Crest.Host.Engine
 
         private readonly ExecutingAssembly assemblyInfo;
         private readonly Lazy<IReadOnlyList<Type>> loadedTypes;
+        private readonly List<Type> overridableServices = new List<Type>();
 
         /// <summary>
         /// Initializes a new instance of the <see cref="DiscoveryService"/> class.
@@ -72,6 +74,12 @@ namespace Crest.Host.Engine
         public IEnumerable<Type> GetDiscoveredTypes()
         {
             return this.loadedTypes.Value;
+        }
+
+        /// <inheritdoc />
+        public IEnumerable<Type> GetOptionalServices()
+        {
+            return this.overridableServices;
         }
 
         /// <inheritdoc />
@@ -155,19 +163,25 @@ namespace Crest.Host.Engine
             return attribute;
         }
 
-        private static bool IncludeType(TypeInfo typeInfo)
+        private bool IncludeType(TypeInfo typeInfo)
         {
             // Quick check against the namespace of the type
             string root = GetRootNamespace(typeInfo.Namespace);
-            if (!ExcludedNamespaces.Contains(root))
-            {
-                // More expensive check to exclude generated types
-                return !typeInfo.IsDefined(typeof(CompilerGeneratedAttribute), inherit: false);
-            }
-            else
+            if (ExcludedNamespaces.Contains(root))
             {
                 return false;
             }
+            else if (typeInfo.IsDefined(typeof(CompilerGeneratedAttribute), inherit: false))
+            {
+                return false;
+            }
+            else if (typeInfo.IsDefined(typeof(OverridableServiceAttribute), inherit: false))
+            {
+                this.overridableServices.Add(typeInfo.AsType());
+                return false;
+            }
+
+            return true;
         }
 
         private IReadOnlyList<Type> LoadTypes()
@@ -175,7 +189,7 @@ namespace Crest.Host.Engine
             IEnumerable<Type> types =
                 from assembly in this.assemblyInfo.LoadCompileLibraries()
                 from typeInfo in assembly.DefinedTypes
-                where IncludeType(typeInfo)
+                where this.IncludeType(typeInfo)
                 select typeInfo.AsType();
 
             return types.ToList();

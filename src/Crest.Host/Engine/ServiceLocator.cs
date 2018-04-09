@@ -10,8 +10,6 @@ namespace Crest.Host.Engine
     using System.Linq;
     using System.Reflection;
     using Crest.Abstractions;
-    using Crest.Host.Conversion;
-    using Crest.Host.Security;
     using DryIoc;
 
     /// <summary>
@@ -103,14 +101,6 @@ namespace Crest.Host.Engine
         }
 
         /// <inheritdoc />
-        public IContentConverterFactory GetContentConverterFactory()
-        {
-            this.ThrowIfDisposed();
-
-            return this.TryResolve<IContentConverterFactory, ContentConverterFactory>();
-        }
-
-        /// <inheritdoc />
         public IDirectRouteProvider[] GetDirectRouteProviders()
         {
             this.ThrowIfDisposed();
@@ -132,30 +122,6 @@ namespace Crest.Host.Engine
             this.ThrowIfDisposed();
 
             return this.Resolve<IErrorHandlerPlugin[]>();
-        }
-
-        /// <inheritdoc />
-        public IHtmlTemplateProvider GetHtmlTemplateProvider()
-        {
-            this.ThrowIfDisposed();
-
-            return this.TryResolve<IHtmlTemplateProvider, HtmlTemplateProvider>();
-        }
-
-        /// <inheritdoc />
-        public IJwtSettings GetJwtSettings()
-        {
-            this.ThrowIfDisposed();
-
-            return this.TryResolve<IJwtSettings, JwtValidationSettings>();
-        }
-
-        /// <inheritdoc />
-        public IResponseStatusGenerator GetResponseStatusGenerator()
-        {
-            this.ThrowIfDisposed();
-
-            return this.TryResolve<IResponseStatusGenerator, ResponseGenerator>();
         }
 
         /// <inheritdoc />

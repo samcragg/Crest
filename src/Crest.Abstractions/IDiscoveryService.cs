@@ -30,6 +30,13 @@ namespace Crest.Abstractions
         IEnumerable<Type> GetDiscoveredTypes();
 
         /// <summary>
+        /// Scans for types that can be used if a service hasn't already been
+        /// registered.
+        /// </summary>
+        /// <returns>A sequence of fallback services.</returns>
+        IEnumerable<Type> GetOptionalServices();
+
+        /// <summary>
         /// Gets the metadata for the routes to match.
         /// </summary>
         /// <param name="type">The type to scan for routes.</param>

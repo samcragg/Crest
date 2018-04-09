@@ -1,6 +1,8 @@
 ﻿namespace Host.UnitTests
 {
     using System;
+    using System.Collections.Generic;
+    using System.Linq;
     using System.Threading.Tasks;
     using Crest.Abstractions;
     using Crest.Host;
@@ -150,6 +152,26 @@
                 this.bootstrapper.Initialize();
 
                 direct.Received().GetDirectRoutes();
+            }
+
+            [Fact]
+            public void ShouldRegisterOptionalServices()
+            {
+                // Bootstrapper use the same trick as the ServiceLocator to
+                // determine if a type is registered or not by asking for an
+                // array of the interface - empty arrays mean nothing has been
+                // registered
+                this.serviceLocator.GetService(Arg.Is<Type>(t => t.IsArray))
+                    .Returns(new object[0]);
+
+                this.discoveryService.GetOptionalServices()
+                    .Returns(new[] { typeof(FakeClass) });
+
+                this.bootstrapper.Initialize();
+
+                this.serviceRegister.Received().RegisterMany(
+                    Arg.Is<IEnumerable<Type>>(types => types.Contains(typeof(FakeClass))),
+                    Arg.Any<Func<Type, bool>>());
             }
 
             [Fact]

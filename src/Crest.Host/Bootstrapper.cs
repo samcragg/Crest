@@ -7,10 +7,9 @@ namespace Crest.Host
 {
     using System;
     using System.Collections.Generic;
-    using System.Diagnostics;
     using System.Linq;
+    using System.Reflection;
     using Crest.Abstractions;
-    using Crest.Host.Diagnostics;
     using Crest.Host.Engine;
     using Crest.Host.Routing;
 
@@ -119,7 +118,8 @@ namespace Crest.Host
         protected void Initialize()
         {
             IDiscoveryService discovery = this.serviceLocator.GetDiscoveryService();
-            IReadOnlyCollection<Type> types = this.RegisterTypes(discovery);
+            IReadOnlyCollection<Type> types = this.RegisterTypes(discovery, discovery.GetDiscoveredTypes());
+            this.RegisterTypes(discovery, this.GetDefaultOptionalServices(discovery, types));
 
             List<RouteMetadata> routes =
                 types.SelectMany(discovery.GetRoutes).ToList();
@@ -144,6 +144,25 @@ namespace Crest.Host
             }
         }
 
+        private IEnumerable<Type> GetDefaultOptionalServices(IDiscoveryService discovery, IReadOnlyCollection<Type> types)
+        {
+            foreach (Type serviceType in discovery.GetOptionalServices())
+            {
+                foreach (Type serviceInterface in serviceType.GetInterfaces())
+                {
+                    // Try to resolve the service as an array so that if any
+                    // haven't been registered we don't get an exception
+                    var implementations = (Array)this.serviceLocator.GetService(
+                        serviceInterface.MakeArrayType());
+
+                    if (implementations.Length == 0)
+                    {
+                        yield return serviceType;
+                    }
+                }
+            }
+        }
+
         private IEnumerable<DirectRouteMetadata> GetDirectRoutes()
         {
             return this.serviceLocator.GetDirectRouteProviders()
@@ -165,13 +184,13 @@ namespace Crest.Host
             return null;
         }
 
-        private IReadOnlyCollection<Type> RegisterTypes(IDiscoveryService discovery)
+        private IReadOnlyCollection<Type> RegisterTypes(IDiscoveryService discovery, IEnumerable<Type> types)
         {
             ITypeFactory[] factories = discovery.GetCustomFactories().ToArray();
             var normal = new List<Type>();
             var custom = new List<Type>(); // We need to store these to return them at the end
 
-            foreach (Type type in discovery.GetDiscoveredTypes())
+            foreach (Type type in types)
             {
                 Func<object> factory = this.GetFactory(factories, type);
                 if (factory == null)

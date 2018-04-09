@@ -41,6 +41,19 @@
             }
         }
 
+        public sealed class Constructor : DiscoveryServiceTests
+        {
+            [Fact]
+            public void ShouldScanTheLoadedAssemblies()
+            {
+                var discoverService = new DiscoveryService();
+
+                IEnumerable<Type> result = discoverService.GetDiscoveredTypes();
+
+                result.Should().Contain(typeof(DiscoveryServiceTests));
+            }
+        }
+
         public sealed class GetCustomFactories : DiscoveryServiceTests
         {
             [Fact]
@@ -63,6 +76,14 @@
                 IEnumerable<Type> types = this.service.GetDiscoveredTypes();
 
                 types.Should().NotContain(typeof(DryIoc.Container));
+            }
+
+            [Fact]
+            public void ShouldExcludeTypesMarkedAsOverridableService()
+            {
+                IEnumerable<Type> types = this.service.GetDiscoveredTypes();
+
+                types.Should().NotContain(typeof(Overridable));
             }
 
             [Fact]
@@ -89,7 +110,46 @@
                 types.Should().Contain(typeof(SingleNamespace.ClassWithSingleNamespace));
             }
 
+            [OverridableService]
+            public class Overridable
+            {
+            }
+
             internal class ExampleInternalClass
+            {
+            }
+        }
+
+        public sealed class GetOptionalServices : DiscoveryServiceTests
+        {
+            public GetOptionalServices()
+            {
+                // We need to call this to force the lazy scanning of the assemblies
+                this.service.GetDiscoveredTypes();
+            }
+
+            [Fact]
+            public void ShouldIncludeTypesThatAreMarkedAsOverridableService()
+            {
+                IEnumerable<Type> types = this.service.GetOptionalServices();
+
+                types.Should().Contain(typeof(Overridable));
+            }
+
+            [Fact]
+            public void ShouldNotIncludeTypesWithoutTheAttribute()
+            {
+                IEnumerable<Type> types = this.service.GetOptionalServices();
+
+                types.Should().NotContain(typeof(NotOverridable));
+            }
+
+            public class NotOverridable
+            {
+            }
+
+            [OverridableService]
+            public class Overridable
             {
             }
         }

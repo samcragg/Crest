@@ -11,11 +11,11 @@ namespace Crest.Host.Engine
     using System.Net;
     using System.Threading.Tasks;
     using Crest.Abstractions;
-    using Crest.Host.Conversion;
 
     /// <summary>
     /// Generates responses for various status codes.
     /// </summary>
+    [OverridableService]
     internal sealed class ResponseGenerator : IResponseStatusGenerator
     {
         /// <summary>

@@ -38,12 +38,6 @@ namespace Crest.Abstractions
         IConfigurationService GetConfigurationService();
 
         /// <summary>
-        /// Gets the service to use for providing content converters for requests.
-        /// </summary>
-        /// <returns>An object implementing <see cref="IContentConverterFactory"/>.</returns>
-        IContentConverterFactory GetContentConverterFactory();
-
-        /// <summary>
         /// Gets the registered plugins to call to obtain direct routes.
         /// </summary>
         /// <returns>A sequence of registered plugins.</returns>
@@ -60,25 +54,6 @@ namespace Crest.Abstractions
         /// </summary>
         /// <returns>A sequence of registered plugins.</returns>
         IErrorHandlerPlugin[] GetErrorHandlers();
-
-        /// <summary>
-        /// Gets the service to use for providing the template for generated HTML.
-        /// </summary>
-        /// <returns>An object implementing <see cref="IHtmlTemplateProvider"/>.</returns>
-        IHtmlTemplateProvider GetHtmlTemplateProvider();
-
-        /// <summary>
-        /// Gets the service to use for providing values for validating JWTs.
-        /// </summary>
-        /// <returns>An object implementing <see cref="IJwtSettings"/>.</returns>
-        IJwtSettings GetJwtSettings();
-
-        /// <summary>
-        /// Gets the service to use to generate responses for various status
-        /// codes.
-        /// </summary>
-        /// <returns>An object implementing <see cref="IResponseStatusGenerator"/>.</returns>
-        IResponseStatusGenerator GetResponseStatusGenerator();
 
         /// <summary>
         /// Gets the service to use to register services.

@@ -12,8 +12,16 @@
 
     public class StartupBootstrapperTests
     {
-        private readonly StartupBootstrapper startup =
-            new StartupBootstrapper(Substitute.For<IServiceLocator>());
+        private readonly StartupBootstrapper startup;
+
+        private StartupBootstrapperTests()
+        {
+            IServiceLocator serviceLocator = Substitute.For<IServiceLocator>();
+            serviceLocator.GetService(null)
+                .ReturnsForAnyArgs(ci => Substitute.For(new[] { (Type)ci[0] }, new object[0]));
+
+            this.startup = new StartupBootstrapper(serviceLocator);
+        }
 
         public sealed class Configure : StartupBootstrapperTests
         {

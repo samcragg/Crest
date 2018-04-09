@@ -9,10 +9,12 @@ namespace Crest.Host.Conversion
     using System.Collections.Generic;
     using System.Linq;
     using Crest.Abstractions;
+    using Crest.Host.Engine;
 
     /// <summary>
     /// Creates a <see cref="IContentConverter"/> based on the request information.
     /// </summary>
+    [OverridableService]
     internal sealed class ContentConverterFactory : IContentConverterFactory
     {
         private const string DefaultAcceptType = @"application/json";

@@ -50,8 +50,12 @@ namespace Crest.Host
             this.serviceLocator = bootstrapper.ServiceLocator;
             this.mapper = bootstrapper.RouteMapper;
 
-            this.converterFactory = this.serviceLocator.GetContentConverterFactory();
-            this.responseGenerator = this.serviceLocator.GetResponseStatusGenerator();
+            this.converterFactory = (IContentConverterFactory)this.serviceLocator.GetService(
+                typeof(IContentConverterFactory));
+
+            this.responseGenerator = (IResponseStatusGenerator)this.serviceLocator.GetService(
+                typeof(IResponseStatusGenerator));
+
             this.notFound = new MatchResult(this.responseGenerator.NotFoundAsync);
 
             this.PrimeConverterFactory();

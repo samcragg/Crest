@@ -6,10 +6,12 @@
 namespace Crest.Host.Conversion
 {
     using Crest.Abstractions;
+    using Crest.Host.Engine;
 
     /// <summary>
     /// Provides the default template for HTML pages.
     /// </summary>
+    [OverridableService]
     internal sealed class HtmlTemplateProvider : IHtmlTemplateProvider
     {
         private const string Hint = "<p>You are seeing this page because you either requested HTML or no <code>Accept</code> header was specified. To return the object in another format, specify the <code>Accept</code> header with its MIME media type (for example, to return a JSON representation of the object, specify <code>Accept: application/json</code>).</p>";

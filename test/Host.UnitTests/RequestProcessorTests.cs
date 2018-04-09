@@ -38,8 +38,11 @@
 
             this.request.Handler.Returns(Substitute.For<MethodInfo>());
 
-            this.serviceLocator.GetContentConverterFactory().Returns(this.converterFactory);
-            this.serviceLocator.GetResponseStatusGenerator().Returns(this.responseGenerator);
+            this.serviceLocator.GetService(typeof(IContentConverterFactory))
+                .Returns(this.converterFactory);
+
+            this.serviceLocator.GetService(typeof(IResponseStatusGenerator))
+                .Returns(this.responseGenerator);
 
             this.bootstrapper.RouteMapper.Returns(this.mapper);
 
