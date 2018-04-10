@@ -1,9 +1,11 @@
 ﻿namespace Host.UnitTests.Security
 {
     using System.Collections.Generic;
+    using System.IO;
     using System.Reflection;
     using System.Security.Claims;
     using System.Security.Principal;
+    using System.Text;
     using System.Threading.Tasks;
     using Crest.Abstractions;
     using Crest.Core;
@@ -120,25 +122,24 @@
             [Fact]
             public async Task ShouldRegisterTheClaimsPrincipal()
             {
-                IRequestData request = CreateRequest("Bearer 123");
-                byte[] payload = new byte[0];
                 var principal = new ClaimsPrincipal();
-
-                byte[] any = Arg.Any<byte[]>();
-                this.verifier.IsSignatureValid("123", out any)
-                    .Returns(ci =>
-                    {
-                        ci[1] = payload;
-                        return true;
-                    });
-
-                this.validator.GetValidClaimsPrincipal(payload)
-                    .Returns(principal);
+                IRequestData request = CreateRequestForPrincipal(principal);
 
                 IResponseData response = await this.plugin.ProcessAsync(request);
 
                 response.Should().BeNull();
                 this.register.Received().UseInstance(typeof(IPrincipal), principal);
+            }
+
+            [Fact]
+            public async Task ShouldSetTheGlobalClaimsPrincipal()
+            {
+                var principal = new ClaimsPrincipal();
+                IRequestData request = CreateRequestForPrincipal(principal);
+
+                await this.plugin.ProcessAsync(request);
+
+                ClaimsPrincipal.Current.Should().BeSameAs(principal);
             }
 
             [Fact]
@@ -149,6 +150,20 @@
                 IResponseData response = await this.plugin.ProcessAsync(CreateRequest(""));
 
                 response.Should().BeNull();
+            }
+
+            [Fact]
+            public async Task ShouldWriteUnauthorizedToTheResponseStream()
+            {
+                IResponseData response = await this.plugin.ProcessAsync(CreateRequest(""));
+
+                using (var stream = new MemoryStream())
+                {
+                    await response.WriteBody(stream);
+                    string body = Encoding.UTF8.GetString(stream.ToArray());
+
+                    body.Should().MatchEquivalentOf("*unauthorized*");
+                }
             }
 
             [AllowAnonymous]
@@ -169,6 +184,24 @@
                     { "Authorization", authorization }
                 });
 
+                return request;
+            }
+
+            private IRequestData CreateRequestForPrincipal(ClaimsPrincipal principal)
+            {
+                IRequestData request = CreateRequest("Bearer 123");
+                byte[] payload = new byte[0];
+
+                byte[] any = Arg.Any<byte[]>();
+                this.verifier.IsSignatureValid("123", out any)
+                    .Returns(ci =>
+                    {
+                        ci[1] = payload;
+                        return true;
+                    });
+
+                this.validator.GetValidClaimsPrincipal(payload)
+                    .Returns(principal);
                 return request;
             }
         }
