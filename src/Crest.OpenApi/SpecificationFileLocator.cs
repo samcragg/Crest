@@ -50,7 +50,7 @@ namespace Crest.OpenApi
         {
             string currentDirectory = io.GetBaseDirectory();
             string searchDirectory = Path.Combine(currentDirectory, DocsDirectory);
-            var baseUri = new Uri(currentDirectory + "\\" + DocsDirectory + "\\");
+            var baseUri = new Uri(Path.Combine(currentDirectory, DocsDirectory + "\\"));
 
             string MakeRelative(string fullPath)
             {
