@@ -19,21 +19,24 @@ to update their code is even harder. Therefore, there is strong support for
 providing versioned routes, to allow for new functionality to be added without
 effecting older clients.
 
-# Provided functionality
+## Provided functionality
 
 Out of the box the framework handles most of the mundane functionality to allow
 you to get developing your service quickly:
 
-+ Dependency injection with assembly scanning (i.e. it will map your interfaces
-  to their concrete implementation for you).
-+ Deserializing/serializing the HTTP request/response based on its content type
-  (out of the box JSON, URL form encoded data and XML are supported).
-+ OpenAPI documentation of endpoints
-+ Health page
-+ Basic metrics for the last 15 minutes
-+ JWT handling
++ [Dependency injection](docs/Dependency%20Injection.md) with assembly scanning
+  (i.e. it will map your interfaces to their concrete implementation for you).
++ Simple [configuration injection](docs/Configuration.md)
++ [OpenAPI documentation](docs/OpenAPI%20Support.md) of endpoints
++ Versioning of endpoints
++ [Deserializing/serializing](docs/Content%20Negotiation.md) the HTTP
+  request/response based on its content type (out of the box JSON, URL form
+  encoded data and XML are supported).
++ [Health page](docs/Health.md)
++ [Basic metrics](docs/Metrics.md) for the last 15 minutes
++ [JWT handling](docs/JWT.md)
 
-# Basic usage
+## Basic usage
 
 First create an interface that describes the routes. The XML documentation will
 be converted to an [OpenAPI](https://www.openapis.org/) JSON for the project, so
@@ -44,7 +47,6 @@ it as easy to discover and use as possible.
 /// <summary>
 /// My simple service.
 /// </summary>
-[WebApi("sample")]
 public interface ISampleService
 {
     /// <summary>
@@ -59,21 +61,23 @@ public interface ISampleService
 }
 ```
 
+![OpenAPI output](docs/images/OpenApiExample.png)
+
 The users of the service will be able to invoke the method by navigating to
-`http://hostname/v1/sample/greeting` and since the class that implements the
+`http://hostname/v1/greeting` and since the class that implements the
 interface has no dependencies on the HTTP context, it is easy to unit test the
 logic without having to mock out the HTTP side of things.
 
 Also note that the method is versioned - this allows for new methods to be
 added that replace the old methods without breaking any third party code
-written that's using the old method.
+that relies on the old method.
 
-# Contributing
+## Contributing
 
 All contributions are welcome! Take a look at [CONTRIBUTING](CONTRIBUTING.md)
 for some tips.
 
-# Code of Conduct
+## Code of Conduct
 
 This project has adopted the code of conduct defined by the
 [Contributor Covenant](https://www.contributor-covenant.org/) to clarify
