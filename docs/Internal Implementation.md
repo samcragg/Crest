@@ -1,9 +1,13 @@
 # Internal Implementation
 
+> **Internal documentation**
+>
+> This documents implementation details and is not required for normal usage
+
 These are some general notes on how some of the internal classes are structured
 to get an understanding of how the inner workings of the code is organised.
 
-# General
+## General
 
 The library should be extendable, hence there are a lot of interfaces with a
 single class implementing them. If multiple providers can be used then they
@@ -12,7 +16,7 @@ order. The convention is to use an `Order` property when all the providers will
 be invoked and a `Priority` property when they will be invoked until some kind
 of match is found (i.e. they may not all be invoked).
 
-# Conversion
+## Conversion
 
 The classes in this namespace allow the conversion from .NET objects to bytes
 depending on what the client can understand (i.e. content negotiation). The
@@ -20,14 +24,14 @@ depending on what the client can understand (i.e. content negotiation). The
 by the `ContentConverterFactory` class to determine which factory to use to
 generate the bytes.
 
-# Engine
+## Engine
 
 These are mainly types that allow customisation of the library for advanced
 scenarios and placed here to keep the root namespace tidy. Most interfaces will
 have a default implementation by the library, however, the interface is exposed
 to allow custom types to be substituted by client code.
 
-# Routing
+## Routing
 
 Routes are scanned at start-up by the `DiscoveryService`, which converts them to
 metadata containing the version, verb, path and method to invoke. The method,

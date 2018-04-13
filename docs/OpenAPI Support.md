@@ -7,7 +7,7 @@ information for the documentation is taken from the routing attributes and XML
 documentation on the interfaces via a tool that runs as a post compile step
 producing separate files for each version of the API.
 
-# Documentation Generation
+## Documentation Generation
 
 To generate the OpenAPI JSON information, first of all make sure the XML
 documentation file is generated when building the project contiaing the web API
@@ -41,7 +41,7 @@ following target:
       <Exec Command="dotnet crest-openapi $(TargetPath)" WorkingDirectory="$(ProjectDir)" />
     </Target>
 
-# Hosting
+## Hosting
 
 The generated JSON files can be used with any tool that can read OpenAPI files,
 such as the [Swagger Editor](https://swagger.io/swagger-editor/) or the
@@ -50,7 +50,7 @@ packaged up so that it can be hosted directly from the host project by
 including the `Crest.OpenApi` package and then navigating to
 `http://base_url/docs`.
 
-# OpenAPI Document Information
+## OpenAPI Document Information
 
 The generated file will follow the
 [version 2.0](https://github.com/OAI/OpenAPI-Specification/blob/master/versions/2.0.md))
@@ -67,7 +67,7 @@ not specified, the name of the assembly will be used. Also, if the license URL
 is specified then the license must also be there but you can just specify the
 license without the URL.
 
-# Tags
+## Tags
 
 When using the framework all routes are defined inside interfaces, allowing
 routes to be naturally grouped together by functionality. To group the paths

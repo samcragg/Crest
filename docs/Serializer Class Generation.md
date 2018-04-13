@@ -1,13 +1,15 @@
-Serializer Class Generation
-===========================
+# Serializer Class Generation
+
+> **Internal documentation**
+>
+> This documents implementation details and is not required for normal usage
 
 When scanning the methods for routing information, when a route is found a
 dynamic class is created for serializing the return type to the response
 stream. This happens once at startup and the generated class type can be used
 for all requests. Out of the box there are serializers for JSON and XML.
 
-Rationale
----------
+## Rationale
 
 In addition to performance improvements, the main motivating rationale for
 implementing the serialization logic in this manor is to provide a consistent
@@ -28,8 +30,7 @@ attribute can be placed on a member to stop it being in the XML output, but
 this property may be present in other formats, making adding additional
 supported content types more difficult).
 
-Class Serialization
-===================
+## Class Serialization
 
 Only classes can be serialized, with the exception of build in primitives such
 as `int`, `decimal`, `DateTime`. As the results of methods gets passed to the
@@ -47,8 +48,7 @@ a value, which take precedence over non-ordered properties (i.e. will be
 serialized before them). Again, this should be avoided but is provided to
 enable scenarios where the order is important due to backwards compatibility.
 
-Custom Serializers
-==================
+## Custom Serializers
 
 A custom serializer can be created using the following template:
 
@@ -94,8 +94,7 @@ serialize the root object, with the `Stream` representing the response stream.
 The second constructor is called for nested types (i.e. when the serializer
 is created by another serializer).
 
-Generated Classes
-=================
+## Generated Classes
 
 To help understand how the base class will get used, lets take a look at how a
 serializer will be generated for this simple data class:
@@ -210,8 +209,7 @@ public sealed class MySerializer<>OtherDataClass : MySerializer, ITypeSerializer
 }
 ```
 
-Primitive Types
-===============
+## Primitive Types
 
 If just writing a primitive type to the stream (i.e. the method returns an int
 or string etc) then a different generated serializer is used. These are all

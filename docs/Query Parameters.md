@@ -1,5 +1,4 @@
-Query Parameters
-================
+# Query Parameters
 
 At the moment, parameters being captured by query values have to be optional.
 This is because we can't reject a request because part of the query is missing;
