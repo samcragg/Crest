@@ -5,7 +5,7 @@ JSON, XML etc.), during development (and deployment) you can use a browser to
 query the service. To render HTML, the framework uses a class implementing the
 `IHtmlTemplateProvider` interface to provide the structure of the page, which by
 default includes a little Crest branding. This can be easily customised by
-overriding the relevant method in the `Bootstrapper`.
+providing your own class that implements the interface.
 
 ## Creating a custom template
 
