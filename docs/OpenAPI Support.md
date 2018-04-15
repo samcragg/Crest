@@ -1,7 +1,7 @@
 # OpenAPI Support
 
 The framework supports the generation of [OpenAPI](https://www.openapis.org/)
-JSON files at compile time, which can then be used as part of a static webpage
+JSON files at compile time, which can then be used as part of a static web page
 or can be served by the micro service via the `Crest.OpenApi` package. The
 information for the documentation is taken from the routing attributes and XML
 documentation on the interfaces via a tool that runs as a post compile step
@@ -10,7 +10,7 @@ producing separate files for each version of the API.
 ## Documentation Generation
 
 To generate the OpenAPI JSON information, first of all make sure the XML
-documentation file is generated when building the project contiaing the web API
+documentation file is generated when building the project containing the web API
 interfaces (either by the Properties page in Visual Studio or editing the
 `.csproj` to include
 `<GenerateDocumentationFile>true</GenerateDocumentationFile>`). You'll then
@@ -45,7 +45,7 @@ following target:
 
 The generated JSON files can be used with any tool that can read OpenAPI files,
 such as the [Swagger Editor](https://swagger.io/swagger-editor/) or the
-[Swagger UI](https://swagger.io/swagger-ui/) tools. Alternativly, the latter is
+[Swagger UI](https://swagger.io/swagger-ui/) tools. Alternatively, the latter is
 packaged up so that it can be hosted directly from the host project by
 including the `Crest.OpenApi` package and then navigating to
 `http://base_url/docs`.
