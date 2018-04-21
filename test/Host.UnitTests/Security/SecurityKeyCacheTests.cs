@@ -27,7 +27,7 @@
                 this.provider.GetCertificatesAsync()
                     .Returns(new[] { CertificateHelper.GetCertificate("TestEcCert.pfx") });
 
-                await this.cache.UpdateCache();
+                await this.cache.UpdateCacheAsync();
                 ECParameters parameters = this.cache.GetECParameters().Single();
 
                 // D is the private key (which we don't want)
@@ -47,7 +47,7 @@
                 this.provider.GetCertificatesAsync()
                     .Returns(new[] { CertificateHelper.GetCertificate("TestRsaCert.pfx") });
 
-                await this.cache.UpdateCache();
+                await this.cache.UpdateCacheAsync();
                 RSAParameters parameters = this.cache.GetRsaParameters().Single();
 
                 // D is the private exponent, which shouldn't be there
@@ -67,28 +67,28 @@
                 this.provider.GetSecretKeysAsync()
                     .Returns(new[] { secret });
 
-                await this.cache.UpdateCache();
+                await this.cache.UpdateCacheAsync();
                 byte[] result = this.cache.GetSecretKeys().Single();
 
                 result.Should().BeSameAs(secret);
             }
         }
 
-        public sealed class UpdateCache : SecurityKeyCacheTests
+        public sealed class UpdateCacheAsync : SecurityKeyCacheTests
         {
             [Fact]
             public async Task ShouldUpdateTheCertificatesWhenTheVersionChanges()
             {
                 this.provider.Version.Returns(123);
-                await this.cache.UpdateCache();
+                await this.cache.UpdateCacheAsync();
                 await this.provider.Received().GetCertificatesAsync();
 
                 this.provider.ClearReceivedCalls();
-                await this.cache.UpdateCache();
+                await this.cache.UpdateCacheAsync();
                 await this.provider.DidNotReceive().GetCertificatesAsync();
 
                 this.provider.Version.Returns(321);
-                await this.cache.UpdateCache();
+                await this.cache.UpdateCacheAsync();
                 await this.provider.Received().GetCertificatesAsync();
             }
         }

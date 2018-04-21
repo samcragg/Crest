@@ -5,6 +5,7 @@
 
 namespace Crest.Host.Security
 {
+    using System;
     using System.Collections.Generic;
     using System.Linq;
     using System.Security.Cryptography;
@@ -66,24 +67,29 @@ namespace Crest.Host.Security
         /// <returns>
         /// A task that represents the asynchronous update operation.
         /// </returns>
-        public virtual Task UpdateCache()
+        // TODO: This is not called :(
+        public virtual Task UpdateCacheAsync()
         {
-            var indexes = new List<int>();
-            for (int i = 0; i < this.keyProviders.Length; i++)
+            unsafe
             {
-                if (this.keyProviders[i].Version != this.keyProviders[i].Provider.Version)
+                Span<int> indexes = stackalloc int[this.keyProviders.Length];
+                int count = 0;
+                for (int i = 0; i < this.keyProviders.Length; i++)
                 {
-                    indexes.Add(i);
+                    if (this.keyProviders[i].Version != this.keyProviders[i].Provider.Version)
+                    {
+                        indexes[count++] = i;
+                    }
                 }
-            }
 
-            if (indexes.Count == 0)
-            {
-                return Task.CompletedTask;
-            }
-            else
-            {
-                return this.UpdateProviders(indexes);
+                if (count == 0)
+                {
+                    return Task.CompletedTask;
+                }
+                else
+                {
+                    return this.UpdateProvidersAsync(indexes.Slice(0, count));
+                }
             }
         }
 
@@ -143,12 +149,12 @@ namespace Crest.Host.Security
             }
         }
 
-        private Task UpdateProviders(IReadOnlyCollection<int> indexes)
+        private Task UpdateProvidersAsync(Span<int> indexes)
         {
-            var tasks = new List<Task>(indexes.Count);
-            foreach (int index in indexes)
+            var tasks = new List<Task>(indexes.Length);
+            for (int i = 0; i < indexes.Length; i++)
             {
-                KeyProvider provider = this.keyProviders[index];
+                KeyProvider provider = this.keyProviders[indexes[i]];
                 lock (provider)
                 {
                     Task updateTask = provider.UpdateTask;
