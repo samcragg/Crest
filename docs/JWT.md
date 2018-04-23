@@ -12,7 +12,26 @@ To send a request to the service, the client must include the following header:
 where the `<token>` is the actual JWT. A great site to generate this is
 [jwt.io](https://jwt.io/)
 
-## Algorithm
+## Getting The Authorization Information
+
+If the token is successfully parsed and validated, then the
+[`ClaimsPrincipal.Current`](https://docs.microsoft.com/en-gb/dotnet/api/system.security.claims.claimsprincipal.current)
+will return the information. However, you can also request that an
+[`IPrincipal`](https://docs.microsoft.com/en-gb/dotnet/api/system.security.principal.iprincipal)
+be injected into your constructor, which is the preferred method as it makes
+unit testing of your logic easier:
+
+```C#
+public MyLogic : IMyService
+{
+    public MyLogic(IPrincipal user)
+    {
+        this.userName = user.Identity.Name;
+    }
+}
+```
+
+## Algorithm Support
 
 The JWT validator supports the following algorithms (taken from
 [RFC 7518](https://www.rfc-editor.org/rfc/rfc7518.txt)). Note that `none` is NOT
