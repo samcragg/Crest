@@ -151,7 +151,7 @@ namespace Crest.Host.Security
             do
             {
                 char c = this.iterator.Current;
-                if ((c == ',') || (c == '}'))
+                if ((c == ',') || (c == '}') || (c == ']'))
                 {
                     break;
                 }

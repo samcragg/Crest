@@ -34,6 +34,16 @@
         public sealed class GetArrayValues : JsonObjectParserTests
         {
             [Fact]
+            public void ShouldReturnAllTokens()
+            {
+                var parser = new JsonObjectParser(@"[true, false]");
+
+                var result = parser.GetArrayValues().ToList();
+
+                result.Should().Equal("true", "false");
+            }
+
+            [Fact]
             public void ShouldReturnAllValues()
             {
                 var parser = new JsonObjectParser(@"[""1"", 2, [3]]");
