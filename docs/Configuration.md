@@ -42,3 +42,57 @@ be specified:
 [DefaultValue(true)]
 public bool HasOption { get; set; }
 ```
+
+## Application Settings
+
+Values inside the `appsettings.json` file will automatically get injected after
+the default values have been set. After this, any value inside the environment
+specific application file (e.g. `appsettings.Production.json`) will be injected.
+This means the environmental settings will override the global application
+settings.
+
+To map the values to the correct class, the typename should be specified as the
+JSON key and the object value will be read into the configuration class. Any
+value not specified will be left uninitialized (i.e. properties not specified in
+the JSON object written to). If two types have the same name then you can use
+the fully qualified type name (e.g. `Namespace.Class`) to differentiate them.
+When matching the type (or the properties in the type), case is not taken into
+account (i.e. comparison is case insensitive).
+
+Here's an example highlighting the behaviour of the above.
+
+`appsettings.json`
+
+``` JSON
+{
+    "myConfig":{
+        "setting1": "global 1",
+        "setting2": "global 2"
+    }
+}
+```
+
+`appsettings.Production.json`
+
+``` JSON
+{
+    "myConfig":{
+        "setting2": "environment"
+    }
+}
+```
+
+`Code`
+
+``` C#
+[Configuration]
+public class MyConfig
+{
+    // Will return "global 1"
+    public string Setting1 { get; set; }
+
+    // Will return "environment" when ASPNETCORE_ENVIRONMENT is "Production" -
+    // otherwise will return "global 2" for other environments
+    public string Setting2 { get; set; }
+}
+```
