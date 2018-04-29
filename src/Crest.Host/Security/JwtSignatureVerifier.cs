@@ -8,6 +8,7 @@ namespace Crest.Host.Security
     using System;
     using System.Collections.Generic;
     using System.Security.Cryptography;
+    using Crest.Host.IO;
     using Crest.Host.Logging;
 
     /// <summary>

@@ -80,10 +80,10 @@
     <Compile Update="Routing/UrlParser.SegmentParser.cs">
       <DependentUpon>UrlParser.cs</DependentUpon>
     </Compile>
-    <Compile Update="Security/JsonObjectParser.StringIterator.cs">
+    <Compile Update="IO/JsonObjectParser.StringIterator.cs">
       <DependentUpon>JsonObjectParser.cs</DependentUpon>
     </Compile>
-    <Compile Update="Security/JsonObjectParser.Utf8Enumerator.cs">
+    <Compile Update="IO/JsonObjectParser.Utf8Enumerator.cs">
       <DependentUpon>JsonObjectParser.cs</DependentUpon>
     </Compile>
     <Compile Update="Security/JwtSignatureVerifier.JwtInformation.cs">

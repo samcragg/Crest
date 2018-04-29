@@ -6,6 +6,7 @@
 namespace Crest.Host.Security
 {
     using System.Linq;
+    using Crest.Host.IO;
 
     /// <content>
     /// Contains the nested helper <see cref="RegisteredClaims"/> class.

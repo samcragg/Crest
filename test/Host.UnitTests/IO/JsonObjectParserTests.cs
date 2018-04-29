@@ -1,10 +1,10 @@
-﻿namespace Host.UnitTests.Security
+﻿namespace Host.UnitTests.IO
 {
     using System;
     using System.Collections.Generic;
     using System.Linq;
     using System.Text;
-    using Crest.Host.Security;
+    using Crest.Host.IO;
     using FluentAssertions;
     using Xunit;
 

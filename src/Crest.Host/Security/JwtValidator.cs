@@ -10,6 +10,7 @@ namespace Crest.Host.Security
     using System.Security.Claims;
     using Crest.Abstractions;
     using Crest.Host.Diagnostics;
+    using Crest.Host.IO;
     using Crest.Host.Logging;
 
     /// <summary>
