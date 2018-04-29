@@ -162,6 +162,22 @@
             }
 
             [Fact]
+            public async Task ShouldApplyGlobalSettings()
+            {
+                byte[] global = Encoding.ASCII.GetBytes(@"{""myConfig"":null}");
+                this.reader.ReadAllBytesAsync(GlobalSettingsFile).Returns(global);
+
+                this.generator.CreatePopulateMethod(null, null)
+                    .ReturnsForAnyArgs(x => ((MyConfig)x).Value = "global");
+
+                await this.provider.Initialize(new[] { typeof(MyConfig) });
+                var instance = new MyConfig();
+                this.provider.Inject(instance);
+
+                instance.Value.Should().Be("global");
+            }
+
+            [Fact]
             public async Task ShouldOverwriteGlobalSettingsWithEnvironmentSettings()
             {
                 byte[] environemnt = Encoding.ASCII.GetBytes(@"{""myConfig"":""environment""}");

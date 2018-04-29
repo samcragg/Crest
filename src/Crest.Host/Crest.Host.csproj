@@ -53,6 +53,9 @@
     <Compile Update="Diagnostics/ExecutingAssembly.AssemblyInfo.cs">
       <DependentUpon>ExecutingAssembly.cs</DependentUpon>
     </Compile>
+    <Compile Update="Engine/JsonConfigurationProvider.TypeInitializer.cs">
+      <DependentUpon>JsonConfigurationProvider.cs</DependentUpon>
+    </Compile>
     <Compile Update="Routing/NodeBuilder.IParseResult.cs">
       <DependentUpon>NodeBuilder.cs</DependentUpon>
     </Compile>

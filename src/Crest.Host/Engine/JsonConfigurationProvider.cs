@@ -18,7 +18,7 @@ namespace Crest.Host.Engine
     /// Injects the application JSON settings for the properties in a
     /// configuration class.
     /// </summary>
-    internal sealed class JsonConfigurationProvider : IConfigurationProvider, IDisposable
+    internal sealed partial class JsonConfigurationProvider : IConfigurationProvider, IDisposable
     {
         private const string GlobalSettingsFile = "appsettings.json";
         private static readonly ILog Logger = LogProvider.For<JsonConfigurationProvider>();
@@ -189,30 +189,6 @@ namespace Crest.Host.Engine
             catch (IOException ex)
             {
                 Logger.ErrorException("Unable to read '{filename}'", ex, filename);
-            }
-        }
-
-        private class TypeInitializer
-        {
-            public TypeInitializer(Type type)
-            {
-                this.EnvironmentSettings = DoNothing;
-                this.GlobalSettings = DoNothing;
-                this.Type = type;
-            }
-
-            public static Action<object> DoNothing { get; } = EmptyMethod;
-
-            public Action<object> EnvironmentSettings { get; set; }
-
-            public Action<object> GlobalSettings { get; set; }
-
-            public Type Type { get; }
-
-            private static void EmptyMethod(object instance)
-            {
-                // This method is intentionally empty to allow the actions
-                // to always be invoked
             }
         }
     }
