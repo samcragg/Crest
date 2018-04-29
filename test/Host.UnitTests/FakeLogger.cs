@@ -3,12 +3,17 @@
     using System;
     using System.Threading;
     using Crest.Host.Logging;
+    using Crest.Host.Logging.LogProviders;
     using NSubstitute;
 
     internal static class FakeLogger
     {
         private static readonly object LockObject = new object();
+        
+        [ThreadStatic]
         private static LogLevel level;
+        
+        [ThreadStatic]
         private static string message;
 
         internal static void InterceptLogger()
@@ -16,7 +21,11 @@
             Logger logger = (logLevel, messageFunc, exception, formatParameters) =>
             {
                 level = logLevel;
-                message = messageFunc?.Invoke();
+                message =
+                    messageFunc == null ?
+                    string.Empty :
+                    LogMessageFormatter.SimulateStructuredLogging(messageFunc, formatParameters)();
+
                 return true;
             };
 
