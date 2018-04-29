@@ -1,8 +1,8 @@
-﻿namespace Host.UnitTests.Conversion
+﻿namespace Host.UnitTests.IO
 {
     using System.Collections.Generic;
     using System.IO;
-    using Crest.Host.Conversion;
+    using Crest.Host.IO;
     using FluentAssertions;
     using Xunit;
 
@@ -59,8 +59,10 @@
                     bytes += BlockStreamPool.DefaultBlockSize;
                 }
 
-                var tooBig = new List<byte[]>();
-                tooBig.Add(new byte[BlockStreamPool.DefaultBlockSize]);
+                var tooBig = new List<byte[]>
+                {
+                    new byte[BlockStreamPool.DefaultBlockSize]
+                };
 
                 // Fill the pool up with known blocks...
                 this.pool.ReturnBlocks(blocks);

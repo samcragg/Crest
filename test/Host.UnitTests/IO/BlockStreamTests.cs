@@ -1,8 +1,8 @@
-﻿namespace Host.UnitTests.Conversion
+﻿namespace Host.UnitTests.IO
 {
     using System;
     using System.IO;
-    using Crest.Host.Conversion;
+    using Crest.Host.IO;
     using FluentAssertions;
     using Xunit;
 
@@ -136,10 +136,10 @@
                 int read = this.stream.Read(buffer, 1, data.Length);
 
                 read.Should().Be(data.Length);
-                buffer[0].Should().Be(0);
-                buffer[1].Should().Be(1);
-                buffer[buffer.Length - 2].Should().Be(1);
-                buffer[buffer.Length - 1].Should().Be(0);
+                buffer.Should().HaveElementAt(0, 0);
+                buffer.Should().HaveElementAt(1, 1);
+                buffer.Should().HaveElementAt(buffer.Length - 2, 1);
+                buffer.Should().HaveElementAt(buffer.Length - 1, 0);
             }
 
             [Fact]

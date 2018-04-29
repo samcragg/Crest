@@ -3,7 +3,7 @@
 // Licensed under the MIT license. See LICENSE file in the project root for
 // full license information.
 
-namespace Crest.Host.Conversion
+namespace Crest.Host.IO
 {
     using System;
     using System.Collections.Generic;
@@ -72,8 +72,8 @@ namespace Crest.Host.Conversion
         /// <inheritdoc />
         public override long Position
         {
-            get { return this.position; }
-            set { this.position = (int)value; }
+            get => this.position;
+            set => this.position = (int)value;
         }
 
         /// <inheritdoc />
@@ -93,8 +93,7 @@ namespace Crest.Host.Conversion
             }
 
             int read = 0;
-            int blockOffset;
-            int blockIndex = DivRem(this.position, BlockStreamPool.DefaultBlockSize, out blockOffset);
+            int blockIndex = DivRem(this.position, BlockStreamPool.DefaultBlockSize, out int blockOffset);
             int remaining = Math.Min(count, this.length - this.position);
             while (remaining > 0)
             {
@@ -157,8 +156,7 @@ namespace Crest.Host.Conversion
             this.ThrowIfDisposed();
             this.EnsureCapacity((int)(this.Position + count));
 
-            int blockOffset;
-            int blockIndex = DivRem(this.position, BlockStreamPool.DefaultBlockSize, out blockOffset);
+            int blockIndex = DivRem(this.position, BlockStreamPool.DefaultBlockSize, out int blockOffset);
             int remaining = count;
             while (remaining > 0)
             {
