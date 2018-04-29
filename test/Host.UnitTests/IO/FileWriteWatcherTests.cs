@@ -27,7 +27,8 @@
             [Fact]
             public async Task ShouldListenForFileChanges()
             {
-                const string Filename = nameof(FileWriteWatcherTests);
+                const string Filename = nameof(FileWriteWatcherTests) + ".json";
+                string fullPath = Path.Combine(AppContext.BaseDirectory, Filename);
 
                 try
                 {
@@ -41,14 +42,14 @@
                     this.watcher.WatchFile(Filename, callback);
                     this.watcher.StartMonitoring();
 
-                    File.WriteAllText(Filename, "{}");
-                    bool success = await semaphore.WaitAsync(TimeSpan.FromSeconds(1));
+                    File.WriteAllText(fullPath, "{}");
+                    bool success = await semaphore.WaitAsync(TimeSpan.FromSeconds(5));
 
                     success.Should().BeTrue();
                 }
                 finally
                 {
-                    FileReaderTests.TryDeleteFile(Filename);
+                    FileReaderTests.TryDeleteFile(fullPath);
                 }
             }
         }
