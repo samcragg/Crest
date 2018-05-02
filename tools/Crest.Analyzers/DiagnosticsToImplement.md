@@ -1,19 +1,4 @@
-﻿Introduction
-============
-
-Crest.Analyzers allows the analyzing of Crest APIs to catch runtime errors at
-compile time. It also allows the basic checking of routes to help them follow
-some of the REST principles, offering suggestions to keep them consistent.
-
-
-Installation
-============
-
-To install the analyzer, simply reference the NuGet package in the project you
-want analyzing.
-
-
-Errors
+﻿Errors
 ======
 
 The following are reported as errors by the analyzer.
@@ -40,24 +25,6 @@ would trigger the error as the end bracket is missing:
 
     [Get("/things/{capture")]
 
-
-MissingVersionAttribute
------------------------
-
-All methods that have a route applied to them must also have a version applied
-to them so the API is always backwards compatible with earlier releases. Since
-the following method doesn't have the version attribute applied to it, it will
-trigger the error:
-
-    [Get(...)]
-    Task Method();
-
-A code fix is available that inserts the attribute for you, producing the
-following when applied to the above:
-
-    [Get(...)]
-    [Version(1)]
-    Task Method();
 
 
 MustReturnTask
