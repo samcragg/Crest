@@ -3,12 +3,11 @@
     using Analyzers.UnitTests.Helpers;
     using Crest.Analyzers;
     using Microsoft.CodeAnalysis;
-    using NUnit.Framework;
+    using Xunit;
 
-    [TestFixture]
     public sealed class VersionAnalyzerTests : DiagnosticVerifier<VersionAnalyzer>
     {
-        [Test]
+        [Fact]
         public void ShouldCheckTheVersionAttributeIsSpecified()
         {
             const string Source = Code.Usings + Code.GetAttribute + @"
@@ -29,7 +28,7 @@ interface IRoute
             VerifyDiagnostic(Source, expected);
         }
 
-        [Test]
+        [Fact]
         public void ShouldCheckTheVersionRange()
         {
             const string Source = Code.Usings + Code.GetAttribute + Code.VersionAttribute + @"

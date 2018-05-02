@@ -6,13 +6,14 @@
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
+    using FluentAssertions;
     using Microsoft.CodeAnalysis;
     using Microsoft.CodeAnalysis.CodeActions;
     using Microsoft.CodeAnalysis.CodeFixes;
     using Microsoft.CodeAnalysis.Diagnostics;
     using Microsoft.CodeAnalysis.Formatting;
     using Microsoft.CodeAnalysis.Simplification;
-    using NUnit.Framework;
+    using Xunit.Sdk;
 
     /// <summary>
     /// Superclass of all unit tests made for diagnostics with code fixes.
@@ -32,8 +33,8 @@
         {
             DiagnosticAnalyzer analyzer = new TDiagnostic();
             CodeFixProvider codeFixProvider = new TCodeFix();
-            var document = CreateDocument(oldSource);
-            var analyzerDiagnostics = GetSortedDiagnosticsFromDocuments(analyzer, new[] { document });
+            Document document = CreateDocument(oldSource);
+            Diagnostic[] analyzerDiagnostics = GetSortedDiagnosticsFromDocuments(analyzer, new[] { document });
             Diagnostic[] compilerDiagnostics = await GetCompilerDiagnostics(document);
 
             for (int i = 0; i < analyzerDiagnostics.Length; i++)
@@ -56,7 +57,7 @@
                 document = await ApplyFix(document, actions[0]);
                 analyzerDiagnostics = GetSortedDiagnosticsFromDocuments(analyzer, new[] { document });
 
-                var newCompilerDiagnostics = GetNewDiagnostics(compilerDiagnostics, await GetCompilerDiagnostics(document));
+                IEnumerable<Diagnostic> newCompilerDiagnostics = GetNewDiagnostics(compilerDiagnostics, await GetCompilerDiagnostics(document));
 
                 //check if applying the code fix introduced any new compiler diagnostics
                 if (!allowNewCompilerDiagnostics && newCompilerDiagnostics.Any())
@@ -65,7 +66,7 @@
                     document = document.WithSyntaxRoot(Formatter.Format(await document.GetSyntaxRootAsync(), Formatter.Annotation, document.Project.Solution.Workspace));
                     newCompilerDiagnostics = GetNewDiagnostics(compilerDiagnostics, await GetCompilerDiagnostics(document));
 
-                    Assert.IsTrue(false,
+                    throw new XunitException(
                         string.Format("Fix introduced new compiler diagnostics:\r\n{0}\r\n\r\nNew document:\r\n{1}\r\n",
                             string.Join("\r\n", newCompilerDiagnostics.Select(d => d.ToString())),
                             document.GetSyntaxRootAsync().Result.ToFullString()));
@@ -80,7 +81,7 @@
 
             //after applying all of the code fixes, compare the resulting string to the inputted one
             string actual = await GetStringFromDocument(document);
-            Assert.AreEqual(newSource, actual);
+            newSource.Should().Be(actual);
         }
 
         private static async Task<Document> ApplyFix(Document document, CodeAction codeAction)
@@ -88,6 +89,12 @@
             ImmutableArray<CodeActionOperation> operations = await codeAction.GetOperationsAsync(CancellationToken.None);
             Solution solution = operations.OfType<ApplyChangesOperation>().Single().ChangedSolution;
             return solution.GetDocument(document.Id);
+        }
+
+        private static async Task<Diagnostic[]> GetCompilerDiagnostics(Document document)
+        {
+            SemanticModel model = await document.GetSemanticModelAsync();
+            return model.GetDiagnostics().ToArray();
         }
 
         private static IEnumerable<Diagnostic> GetNewDiagnostics(Diagnostic[] diagnostics, Diagnostic[] newDiagnostics)
@@ -110,12 +117,6 @@
                     yield return newDiagnostics[newIndex++];
                 }
             }
-        }
-
-        private static async Task<Diagnostic[]> GetCompilerDiagnostics(Document document)
-        {
-            SemanticModel model = await document.GetSemanticModelAsync();
-            return model.GetDiagnostics().ToArray();
         }
 
         private static async Task<string> GetStringFromDocument(Document document)

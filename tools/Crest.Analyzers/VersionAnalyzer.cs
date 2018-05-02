@@ -1,6 +1,5 @@
 namespace Crest.Analyzers
 {
-    using System;
     using System.Collections.Immutable;
     using System.Linq;
     using Microsoft.CodeAnalysis;
@@ -34,19 +33,12 @@ namespace Crest.Analyzers
                 isEnabledByDefault: true,
                 description: "The from version must be greater than zero and less than or equal to the to version.");
 
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
-        {
-            get
-            {
-                return ImmutableArray.Create(
-                    MissingVersionAttributeRule,
-                    VersionOutOfRangeRule);
-            }
-        }
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics =>
+            ImmutableArray.Create(MissingVersionAttributeRule, VersionOutOfRangeRule);
 
         public override void Initialize(AnalysisContext context)
         {
-            context.RegisterSyntaxNodeAction(AnalyzeNode, SyntaxKind.MethodDeclaration);
+            context.RegisterSyntaxNodeAction(this.AnalyzeNode, SyntaxKind.MethodDeclaration);
         }
 
         private static bool IsRangeValid(int? minimum, int? maximum)

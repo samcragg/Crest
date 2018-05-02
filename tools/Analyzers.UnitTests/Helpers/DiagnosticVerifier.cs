@@ -5,11 +5,12 @@
     using System.Collections.Immutable;
     using System.Linq;
     using System.Text;
+    using FluentAssertions;
     using Microsoft.CodeAnalysis;
     using Microsoft.CodeAnalysis.CSharp;
     using Microsoft.CodeAnalysis.Diagnostics;
     using Microsoft.CodeAnalysis.Text;
-    using NUnit.Framework;
+    using Xunit.Sdk;
 
     /// <summary>
     /// Superclass of all Unit Tests for DiagnosticAnalyzers
@@ -45,17 +46,17 @@
         protected static Diagnostic[] GetSortedDiagnosticsFromDocuments(DiagnosticAnalyzer analyzer, Document[] documents)
         {
             var projects = new HashSet<Project>();
-            foreach (var document in documents)
+            foreach (Document document in documents)
             {
                 projects.Add(document.Project);
             }
 
             var diagnostics = new List<Diagnostic>();
-            foreach (var project in projects)
+            foreach (Project project in projects)
             {
-                var compilationWithAnalyzers = project.GetCompilationAsync().Result.WithAnalyzers(ImmutableArray.Create(analyzer));
-                var diags = compilationWithAnalyzers.GetAnalyzerDiagnosticsAsync().Result;
-                foreach (var diag in diags)
+                CompilationWithAnalyzers compilationWithAnalyzers = project.GetCompilationAsync().Result.WithAnalyzers(ImmutableArray.Create(analyzer));
+                ImmutableArray<Diagnostic> diags = compilationWithAnalyzers.GetAnalyzerDiagnosticsAsync().Result;
+                foreach (Diagnostic diag in diags)
                 {
                     if (diag.Location == Location.None || diag.Location.IsInMetadata)
                     {
@@ -65,8 +66,8 @@
                     {
                         for (int i = 0; i < documents.Length; i++)
                         {
-                            var document = documents[i];
-                            var tree = document.GetSyntaxTreeAsync().Result;
+                            Document document = documents[i];
+                            SyntaxTree tree = document.GetSyntaxTreeAsync().Result;
                             if (tree == diag.Location.SourceTree)
                             {
                                 diagnostics.Add(diag);
@@ -76,7 +77,7 @@
                 }
             }
 
-            var results = SortDiagnostics(diagnostics);
+            Diagnostic[] results = SortDiagnostics(diagnostics);
             diagnostics.Clear();
             return results;
         }
@@ -111,7 +112,7 @@
 
             var projectId = ProjectId.CreateNewId(debugName: TestProjectName);
 
-            var solution = new AdhocWorkspace()
+            Solution solution = new AdhocWorkspace()
                 .CurrentSolution
                 .AddProject(projectId, TestProjectName, TestProjectName, LanguageNames.CSharp)
                 .AddMetadataReference(projectId, CorlibReference)
@@ -136,25 +137,25 @@
             {
                 builder.AppendLine("// " + diagnostics[i].ToString());
 
-                var analyzerType = analyzer.GetType();
-                var rules = analyzer.SupportedDiagnostics;
+                Type analyzerType = analyzer.GetType();
+                ImmutableArray<DiagnosticDescriptor> rules = analyzer.SupportedDiagnostics;
 
-                foreach (var rule in rules)
+                foreach (DiagnosticDescriptor rule in rules)
                 {
                     if (rule != null && rule.Id == diagnostics[i].Id)
                     {
-                        var location = diagnostics[i].Location;
+                        Location location = diagnostics[i].Location;
                         if (location == Location.None)
                         {
                             builder.AppendFormat("GetGlobalResult({0}.{1})", analyzerType.Name, rule.Id);
                         }
                         else
                         {
-                            Assert.IsTrue(location.IsInSource,
+                            location.IsInSource.Should().BeTrue(
                                 $"Test base does not currently handle diagnostics in metadata locations. Diagnostic in metadata: {diagnostics[i]}\r\n");
 
                             string resultMethodName = diagnostics[i].Location.SourceTree.FilePath.EndsWith(".cs") ? "GetCSharpResultAt" : "GetBasicResultAt";
-                            var linePosition = diagnostics[i].Location.GetLineSpan().StartLinePosition;
+                            LinePosition linePosition = diagnostics[i].Location.GetLineSpan().StartLinePosition;
 
                             builder.AppendFormat("{0}({1}, {2}, {3}.{4})",
                                 resultMethodName,
@@ -179,8 +180,8 @@
 
         private static Document[] GetDocuments(string[] sources)
         {
-            var project = CreateProject(sources);
-            var documents = project.Documents.ToArray();
+            Project project = CreateProject(sources);
+            Document[] documents = project.Documents.ToArray();
 
             if (sources.Length != documents.Length)
             {
@@ -234,12 +235,12 @@
                 builder.AppendLine("    NONE");
             }
 
-            throw new AssertionException(builder.ToString());
+            throw new XunitException(builder.ToString());
         }
 
         private static void VerifyDiagnosticLocation(DiagnosticAnalyzer analyzer, Diagnostic diagnostic, Location actual, DiagnosticResultLocation expected)
         {
-            var actualLinePosition = actual.GetLineSpan().StartLinePosition;
+            LinePosition actualLinePosition = actual.GetLineSpan().StartLinePosition;
 
             // Only check line position if there is an actual line in the real diagnostic
             if ((actualLinePosition.Line > 0) && ((actualLinePosition.Line + 1) != expected.Line))
@@ -272,14 +273,14 @@
 
             for (int i = 0; i < expectedResults.Length; i++)
             {
-                var actual = actualResults.ElementAt(i);
-                var expected = expectedResults[i];
+                Diagnostic actual = actualResults.ElementAt(i);
+                DiagnosticResult expected = expectedResults[i];
 
                 if (expected.Line == -1 && expected.Column == -1)
                 {
                     if (actual.Location != Location.None)
                     {
-                        Assert.IsTrue(false,
+                        throw new XunitException(
                             string.Format("Expected:\nA project diagnostic with No location\nActual:\n{0}",
                             FormatDiagnostics(analyzer, actual)));
                     }
@@ -287,11 +288,11 @@
                 else
                 {
                     VerifyDiagnosticLocation(analyzer, actual, actual.Location, expected.Locations.First());
-                    var additionalLocations = actual.AdditionalLocations.ToArray();
+                    Location[] additionalLocations = actual.AdditionalLocations.ToArray();
 
                     if (additionalLocations.Length != expected.Locations.Length - 1)
                     {
-                        Assert.IsTrue(false,
+                        throw new XunitException(
                             string.Format("Expected {0} additional locations but got {1} for Diagnostic:\r\n    {2}\r\n",
                                 expected.Locations.Length - 1, additionalLocations.Length,
                                 FormatDiagnostics(analyzer, actual)));
@@ -303,21 +304,15 @@
                     }
                 }
 
-                Assert.AreEqual(
-                    expected.Id,
-                    actual.Id,
+                expected.Id.Should().Be(actual.Id,
                     "\n\nDiagnostic:\n\n" + FormatDiagnostics(analyzer, actual));
 
-                Assert.AreEqual(
-                    expected.Severity,
-                    actual.Severity,
+                expected.Severity.Should().Be(actual.Severity,
                     "\n\nDiagnostic:\n\n" + FormatDiagnostics(analyzer, actual));
 
                 if (!string.IsNullOrEmpty(expected.Message))
                 {
-                    Assert.AreEqual(
-                        expected.Message,
-                        actual.GetMessage(),
+                    expected.Message.Should().Be(actual.GetMessage(),
                         "\n\nDiagnostic:\n\n" + FormatDiagnostics(analyzer, actual));
                 }
             }

@@ -3,12 +3,11 @@
     using System.Threading.Tasks;
     using Analyzers.UnitTests.Helpers;
     using Crest.Analyzers;
-    using NUnit.Framework;
+    using Xunit;
 
-    [TestFixture]
     public sealed class VersionCodeFixTests : CodeFixVerifier<VersionAnalyzer, VersionCodeFix>
     {
-        [Test]
+        [Fact]
         public async Task ShouldAddTheVersionAttribute()
         {
             const string Original = Code.Usings + Code.GetAttribute + Code.VersionAttribute + @"

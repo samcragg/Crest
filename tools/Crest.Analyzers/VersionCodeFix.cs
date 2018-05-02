@@ -16,13 +16,8 @@
     [Shared]
     public sealed class VersionCodeFix : CodeFixProvider
     {
-        public override ImmutableArray<string> FixableDiagnosticIds
-        {
-            get
-            {
-                return ImmutableArray.Create(VersionAnalyzer.MissingVersionAttributeId);
-            }
-        }
+        public override ImmutableArray<string> FixableDiagnosticIds =>
+            ImmutableArray.Create(VersionAnalyzer.MissingVersionAttributeId);
 
         public override FixAllProvider GetFixAllProvider()
         {
