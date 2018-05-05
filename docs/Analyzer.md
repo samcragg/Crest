@@ -13,6 +13,19 @@ declares your API routes.
 
 The following are reported as errors by the analyzer:
 
+### DuplicateCapture
+
+A parameter capture can only appear once in the route, for example, the
+following would trigger the error:
+
+```C#
+[Get("/things/{id}/details/{id}")]
+Task Method(int id);
+```
+
+Because `{id}` appears more than once, it is uncertain which one to use to
+provide the value for the parameter, therefore, the route is invalid.
+
 ### MissingVersionAttribute
 
 All methods that have a route applied to them must also have a version applied
@@ -20,7 +33,7 @@ to them so the API is always backwards compatible with earlier releases. Since
 the following method doesn't have the version attribute applied to it, it will
 trigger the error:
 
-``` C#
+```C#
 [Get(...)]
 Task Method();
 ```

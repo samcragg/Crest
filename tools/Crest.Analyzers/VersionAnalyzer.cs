@@ -7,7 +7,7 @@ namespace Crest.Analyzers
     using Microsoft.CodeAnalysis.CSharp.Syntax;
     using Microsoft.CodeAnalysis.Diagnostics;
 
-    [DiagnosticAnalyzer(LanguageNames.CSharp, "")]
+    [DiagnosticAnalyzer(LanguageNames.CSharp)]
     public sealed class VersionAnalyzer : DiagnosticAnalyzer
     {
         public const string MissingVersionAttributeId = "MissingVersionAttribute";

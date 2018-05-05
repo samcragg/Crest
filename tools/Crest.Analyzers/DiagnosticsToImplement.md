@@ -4,18 +4,6 @@
 The following are reported as errors by the analyzer.
 
 
-DuplicateCapture
-----------------
-
-A parameter capture can only appear once in the route, for example, the
-following would trigger the error:
-
-    [Get("/things/{id}/details/{id}")]
-
-Because `{id}` appears more than once, it is uncertain which one to use to
-provide the value for the parameter, therefore, the route is invalid.
-
-
 InvalidCaptureSyntax
 --------------------
 

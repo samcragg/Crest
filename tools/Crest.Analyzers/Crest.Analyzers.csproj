@@ -19,19 +19,23 @@
     <PackageTags>Crest, analyzers</PackageTags>
     <NoPackageAnalysis>true</NoPackageAnalysis>
   </PropertyGroup>
+  
+  <ItemGroup>
+    <Folder Include="Crest.Host\" />
+    <Compile Include="..\..\src\Crest.Host\Routing\UrlParser.cs" Link="Crest.Host\UrlParser.cs" />
+    <Compile Include="..\..\src\Crest.Host\Routing\UrlParser.SegmentParser.cs" Link="Crest.Host\UrlParser.SegmentParser.cs" />
+    <Compile Include="..\..\src\Crest.Host\StringSegment.cs" Link="Crest.Host\StringSegment.cs" />
+  </ItemGroup>
    
   <ItemGroup>
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="2.7.0" PrivateAssets="all" />
+    <PackageReference Include="System.Memory" Version="4.5.0-preview2-26406-04" />
     <PackageReference Update="NETStandard.Library" PrivateAssets="all" />
   </ItemGroup>
 
   <ItemGroup>
     <None Update="tools\*.ps1" CopyToOutputDirectory="Always" Pack="true" PackagePath="" />
     <None Include="$(OutputPath)\$(AssemblyName).dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Properties\" />
   </ItemGroup>
 
 </Project>
