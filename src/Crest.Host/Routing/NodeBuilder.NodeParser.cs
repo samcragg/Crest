@@ -7,6 +7,7 @@ namespace Crest.Host.Routing
 {
     using System;
     using System.Collections.Generic;
+    using static System.Diagnostics.Debug;
 
     /// <content>
     /// Contains the nested <see cref="NodeParser"/> struct.
@@ -42,14 +43,14 @@ namespace Crest.Host.Routing
                 }
             }
 
-            protected override void OnError(string error, string parameter)
+            protected override void OnError(ErrorType error, string parameter)
             {
-                throw new FormatException(error);
+                throw new FormatException(GetErrorMessage(error, parameter));
             }
 
-            protected override void OnError(string error, int start, int length)
+            protected override void OnError(ErrorType error, int start, int length, string value)
             {
-                throw new FormatException(error);
+                throw new FormatException(GetErrorMessage(error, value));
             }
 
             protected override void OnLiteralSegment(string value)
@@ -74,6 +75,38 @@ namespace Crest.Host.Routing
 
                 this.queryCaptures.Add(
                     QueryCapture.Create(key, parameterType, name, TryGetConverter));
+            }
+
+            private static string GetErrorMessage(ErrorType error, string value)
+            {
+                switch (error)
+                {
+                    case ErrorType.DuplicateParameter:
+                    default:
+                        Assert(error == ErrorType.DuplicateParameter, "Unknown enum value");
+                        return "Parameter is captured multiple times";
+
+                    case ErrorType.MissingClosingBrace:
+                        return "Missing closing brace";
+
+                    case ErrorType.MissingQueryValue:
+                        return "Missing query value capture";
+
+                    case ErrorType.MustBeOptional:
+                        return "Query parameters must be optional";
+
+                    case ErrorType.MustCaptureQueryValue:
+                        return "Query values must be parameter captures";
+
+                    case ErrorType.ParameterNotFound:
+                        return "Parameter is missing from the URL";
+
+                    case ErrorType.UnescapedBrace:
+                        return "Unescaped braces are not allowed";
+
+                    case ErrorType.UnknownParameter:
+                        return "Unable to find parameter called: " + value;
+                }
             }
         }
     }

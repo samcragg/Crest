@@ -19,7 +19,6 @@ namespace Crest.Host.Routing
             private readonly char[] buffer;
             private readonly UrlParser parent;
             private int index;
-            private SegmentType type;
 
             public SegmentParser(UrlParser parent, string segment, int start, int end)
                 : this()
@@ -53,15 +52,9 @@ namespace Crest.Host.Routing
                 }
             }
 
-            internal SegmentType Type
-            {
-                get { return this.type; }
-            }
+            internal SegmentType Type { get; private set; }
 
-            internal string Value
-            {
-                get { return new string(this.buffer, 0, this.index); }
-            }
+            internal string Value => new string(this.buffer, 0, this.index);
 
             private void AppendToBuffer(char ch)
             {
@@ -79,14 +72,14 @@ namespace Crest.Host.Routing
                     return true;
                 }
 
-                if ((i == end) && (this.type == SegmentType.PartialCapture))
+                if ((i == end) && (this.Type == SegmentType.PartialCapture))
                 {
-                    this.type = SegmentType.Capture;
+                    this.Type = SegmentType.Capture;
                     return true;
                 }
 
-                this.parent.OnError("Unescaped braces are not allowed.", i - 1, 1);
-                this.type = SegmentType.Error;
+                this.parent.OnError(ErrorType.UnescapedBrace, i - 1, 1, segment);
+                this.Type = SegmentType.Error;
                 return false;
             }
 
@@ -102,12 +95,12 @@ namespace Crest.Host.Routing
 
                 if (i == (start + 1))
                 {
-                    this.type = SegmentType.PartialCapture;
+                    this.Type = SegmentType.PartialCapture;
                     return true;
                 }
 
-                this.parent.OnError("Unescaped braces are not allowed.", i - 1, 1);
-                this.type = SegmentType.Error;
+                this.parent.OnError(ErrorType.UnescapedBrace, i - 1, 1, segment);
+                this.Type = SegmentType.Error;
                 return false;
             }
         }

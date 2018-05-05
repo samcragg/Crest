@@ -196,12 +196,12 @@
                 this.Captures.Add((parameterType, name));
             }
 
-            protected override void OnError(string error, string parameter)
+            protected override void OnError(ErrorType error, string parameter)
             {
                 this.ErrorParameters.Add(parameter);
             }
 
-            protected override void OnError(string error, int start, int length)
+            protected override void OnError(ErrorType error, int start, int length, string value)
             {
                 this.ErrorParts.Add(this.routeUrl.Substring(start, length));
             }

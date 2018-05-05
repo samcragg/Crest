@@ -18,16 +18,55 @@ namespace Crest.Host.Routing
     /// </remarks>
     internal abstract partial class UrlParser
     {
-        private const string DuplicateParameter = "Parameter is captured multiple times";
-        private const string MissingClosingBrace = "Missing closing brace.";
-        private const string MissingQueryValue = "Missing query value capture.";
-        private const string MustBeOptional = "Query parameters must be optional.";
-        private const string MustCaptureQueryValue = "Query values must be parameter captures.";
-        private const string ParameterNotFound = "Parameter is missing from the URL.";
-        private const string UnknownParameterPrefix = "Unable to find parameter called: ";
-
         private readonly HashSet<string> capturedParameters =
             new HashSet<string>(StringComparer.Ordinal);
+
+        /// <summary>
+        /// Represents the error found during parsing.
+        /// </summary>
+        protected enum ErrorType
+        {
+            /// <summary>
+            /// Indicates a parameter is captured multiple times.
+            /// </summary>
+            DuplicateParameter,
+
+            /// <summary>
+            /// Indicates an opening brace was found but no matching closing brace.
+            /// </summary>
+            MissingClosingBrace,
+
+            /// <summary>
+            /// Indicates that a query key does not specify a capture value.
+            /// </summary>
+            MissingQueryValue,
+
+            /// <summary>
+            /// Indicates that a parameter captured by a query parameter wasn't
+            /// marked as optional.
+            /// </summary>
+            MustBeOptional,
+
+            /// <summary>
+            /// Indicates a query value was found that wasn't a capture.
+            /// </summary>
+            MustCaptureQueryValue,
+
+            /// <summary>
+            /// Indicates a parameter was not captured in the URL.
+            /// </summary>
+            ParameterNotFound,
+
+            /// <summary>
+            /// Indicates a brace was found that wasn't escaped.
+            /// </summary>
+            UnescapedBrace,
+
+            /// <summary>
+            /// Indicates a capture specifies a parameter that wasn't found.
+            /// </summary>
+            UnknownParameter,
+        }
 
         private enum SegmentType
         {
@@ -99,17 +138,18 @@ namespace Crest.Host.Routing
         /// <summary>
         /// Called when there is an error parsing the URL.
         /// </summary>
-        /// <param name="error">The error message.</param>
+        /// <param name="error">The error that was found.</param>
         /// <param name="parameter">The name of the parameter causing the error.</param>
-        protected abstract void OnError(string error, string parameter);
+        protected abstract void OnError(ErrorType error, string parameter);
 
         /// <summary>
         /// Called when there is an error parsing the URL.
         /// </summary>
-        /// <param name="error">The error message.</param>
+        /// <param name="error">The error that was found.</param>
         /// <param name="start">The index of where the error starts.</param>
         /// <param name="length">The length of the string producing the error.</param>
-        protected abstract void OnError(string error, int start, int length);
+        /// <param name="value">The value of the string producing the error.</param>
+        protected abstract void OnError(ErrorType error, int start, int length, string value);
 
         /// <summary>
         /// Called when a literal segment of text is parsed.
@@ -148,7 +188,7 @@ namespace Crest.Host.Routing
             {
                 if (!this.capturedParameters.Contains(name))
                 {
-                    this.OnError(ParameterNotFound, name);
+                    this.OnError(ErrorType.ParameterNotFound, name);
                     break;
                 }
             }
@@ -169,7 +209,12 @@ namespace Crest.Host.Routing
                     return false;
 
                 case SegmentType.Literal:
-                    this.OnError(MustCaptureQueryValue, value.Start, value.Count);
+                    this.OnError(
+                        ErrorType.MustCaptureQueryValue,
+                        value.Start,
+                        value.Count,
+                        value.String);
+
                     parameterType = null;
                     return false;
             }
@@ -185,29 +230,30 @@ namespace Crest.Host.Routing
             }
             else
             {
-                this.OnError(MustBeOptional, parameterName);
+                this.OnError(ErrorType.MustBeOptional, parameterName);
                 return false;
             }
         }
 
         private Type GetValidParameter(
-                    IReadOnlyDictionary<string, Type> parameters,
+            IReadOnlyDictionary<string, Type> parameters,
             StringSegment declaration,
             string name)
         {
             if (!parameters.TryGetValue(name, out Type parameterType))
             {
                 this.OnError(
-                    UnknownParameterPrefix + name,
+                    ErrorType.UnknownParameter,
                     declaration.Start + 1,
-                    declaration.Count - 2);
+                    declaration.Count - 2,
+                    name);
 
                 return null;
             }
 
             if (!this.capturedParameters.Add(name))
             {
-                this.OnError(DuplicateParameter, name);
+                this.OnError(ErrorType.DuplicateParameter, name);
                 return null;
             }
 
@@ -250,7 +296,12 @@ namespace Crest.Host.Routing
                 int separator = keyValue.IndexOf('=');
                 if (separator < 0)
                 {
-                    this.OnError(MissingQueryValue, segment.Start, segment.Count);
+                    this.OnError(
+                        ErrorType.MissingQueryValue,
+                        segment.Start,
+                        segment.Count,
+                        segment.String);
+
                     return false;
                 }
 
@@ -278,7 +329,11 @@ namespace Crest.Host.Routing
             var parser = new SegmentParser(this, segment.String, segment.Start, segment.End);
             if (parser.Type == SegmentType.PartialCapture)
             {
-                this.OnError(MissingClosingBrace, segment.End - 1, 1);
+                this.OnError(
+                    ErrorType.MissingClosingBrace,
+                    segment.End - 1,
+                    1,
+                    segment.String);
             }
             else if (parser.Type != SegmentType.Error)
             {
