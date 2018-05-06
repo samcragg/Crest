@@ -34,7 +34,7 @@ interface IRoute
 interface IRoute
 {
     [Get(""/{capture"")]
-    Task Method(int capture);
+    Task Method();
 }";
 
             var expected = new DiagnosticResult
@@ -62,6 +62,26 @@ interface IRoute
                 Id = RouteAnalyzer.MissingQueryValueId,
                 Severity = DiagnosticSeverity.Error,
                 Locations = new[] { new DiagnosticResultLocation(line: 4, column: 18) }
+            };
+
+            VerifyDiagnostic(Source, expected);
+        }
+
+        [Fact]
+        public void ShouldCheckParametersAreCaptured()
+        {
+            const string Source = Code.Usings + Code.GetAttribute + @"
+interface IRoute
+{
+    [Get(""/route"")]
+    Task Method(int id);
+}";
+
+            var expected = new DiagnosticResult
+            {
+                Id = RouteAnalyzer.ParameterNotFoundId,
+                Severity = DiagnosticSeverity.Error,
+                Locations = new[] { new DiagnosticResultLocation(line: 5, column: 17) }
             };
 
             VerifyDiagnostic(Source, expected);

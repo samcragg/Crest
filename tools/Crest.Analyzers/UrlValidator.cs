@@ -97,6 +97,9 @@
                 case ErrorType.MustCaptureQueryValue:
                     return RouteAnalyzer.MustCaptureQueryValueRule;
 
+                case ErrorType.ParameterNotFound:
+                    return RouteAnalyzer.ParameterNotFoundRule;
+
                 default:
                     return null;
             }

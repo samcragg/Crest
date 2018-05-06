@@ -86,6 +86,16 @@ following specified a literal value for the query value, an error is generated:
 [Get("/route?queryKey=literalValue")]
 ```
 
+### ParameterNotFound
+
+All method parameters must be captured in the route URL. This error is generated
+when a parameter doesn't have a default value and is not specified in the URL:
+
+```C#
+[Get("/route")]
+Task Method(int id);
+```
+
 ### VersionOutOfRange
 
 The version attributes allow you to specify a range of versions the API is

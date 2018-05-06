@@ -14,6 +14,7 @@
         public const string MissingQueryValueId = "MissingQueryValue";
         public const string MustBeOptionalId = "MustBeOptional";
         public const string MustCaptureQueryValueId = "MustCaptureQueryValue";
+        public const string ParameterNotFoundId = "ParameterNotFound";
 
         internal static readonly DiagnosticDescriptor DuplicateCaptureRule =
             new DiagnosticDescriptor(
@@ -65,13 +66,24 @@
                 isEnabledByDefault: true,
                 description: "Query values must be captured by an optional parameter.");
 
+        internal static readonly DiagnosticDescriptor ParameterNotFoundRule =
+            new DiagnosticDescriptor(
+                ParameterNotFoundId,
+                "Parameter not found",
+                "Parameter must be captured in the route URL",
+                "Syntax",
+                DiagnosticSeverity.Error,
+                isEnabledByDefault: true,
+                description: "Method parameters must be specified as captures in the URL.");
+
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics =>
             ImmutableArray.Create(
                 DuplicateCaptureRule,
                 MissingClosingBraceRule,
                 MissingQueryValueRule,
                 MustBeOptionalRule,
-                MustCaptureQueryValueRule);
+                MustCaptureQueryValueRule,
+                ParameterNotFoundRule);
 
         public override void Initialize(AnalysisContext context)
         {
