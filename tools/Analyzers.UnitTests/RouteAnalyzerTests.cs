@@ -46,5 +46,25 @@ interface IRoute
 
             VerifyDiagnostic(Source, expected);
         }
+
+        [Fact]
+        public void ShouldCheckForMissingQueryValue()
+        {
+            const string Source = Code.Usings + Code.GetAttribute + @"
+interface IRoute
+{
+    [Get(""/route?queryKey"")]
+    Task Method();
+}";
+
+            var expected = new DiagnosticResult
+            {
+                Id = RouteAnalyzer.MissingQueryValueId,
+                Severity = DiagnosticSeverity.Error,
+                Locations = new[] { new DiagnosticResultLocation(line: 4, column: 18) }
+            };
+
+            VerifyDiagnostic(Source, expected);
+        }
     }
 }

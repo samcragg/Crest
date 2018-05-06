@@ -11,6 +11,7 @@
     {
         public const string DuplicateCaptureId = "DuplicateCapture";
         public const string MissingClosingBraceId = "MissingClosingBrace";
+        public const string MissingQueryValueId = "MissingQueryValue";
 
         internal static readonly DiagnosticDescriptor DuplicateCaptureRule =
             new DiagnosticDescriptor(
@@ -32,10 +33,21 @@
                 isEnabledByDefault: true,
                 description: "Open braces must be matched with a closing brace.");
 
+        internal static readonly DiagnosticDescriptor MissingQueryValueRule =
+            new DiagnosticDescriptor(
+                MissingQueryValueId,
+                "Missing query value",
+                "Query parameters should be in the form 'key={value}'",
+                "Syntax",
+                DiagnosticSeverity.Error,
+                isEnabledByDefault: true,
+                description: "Query parameters must consist of a key and capture value.");
+
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics =>
             ImmutableArray.Create(
                 DuplicateCaptureRule,
-                MissingClosingBraceRule);
+                MissingClosingBraceRule,
+                MissingQueryValueRule);
 
         public override void Initialize(AnalysisContext context)
         {

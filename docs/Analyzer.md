@@ -35,6 +35,15 @@ therefore, the following would trigger the error as the end brace is missing:
 [Get("/things/{capture")]
 ```
 
+### MissingQueryValue
+
+All query parameters must specify a capture as their value so should be in the
+form `key={value}`. The following generates the error as only a key is specified:
+
+```C#
+[Get("/route?queryKeyOnly")]
+```
+
 ### MissingVersionAttribute
 
 All methods that have a route applied to them must also have a version applied

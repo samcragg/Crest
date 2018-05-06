@@ -84,6 +84,9 @@
                 case ErrorType.MissingClosingBrace:
                     return RouteAnalyzer.MissingClosingBraceRule;
 
+                case ErrorType.MissingQueryValue:
+                    return RouteAnalyzer.MissingQueryValueRule;
+
                 default:
                     return null;
             }
