@@ -94,6 +94,9 @@
                 case ErrorType.MustBeOptional:
                     return RouteAnalyzer.MustBeOptionalRule;
 
+                case ErrorType.MustCaptureQueryValue:
+                    return RouteAnalyzer.MustCaptureQueryValueRule;
+
                 default:
                     return null;
             }

@@ -77,6 +77,15 @@ specified for the argument:
 Task Method(int id);
 ```
 
+### MustCaptureQueryValue
+
+Query values must be captured by an optional argument in the method. Since the
+following specified a literal value for the query value, an error is generated:
+
+```C#
+[Get("/route?queryKey=literalValue")]
+```
+
 ### VersionOutOfRange
 
 The version attributes allow you to specify a range of versions the API is
