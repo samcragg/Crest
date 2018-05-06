@@ -12,7 +12,7 @@
     internal sealed class UrlValidator : UrlParser
     {
         private readonly SyntaxNodeAnalysisContext context;
-        private readonly ISet<string> optionalParameters = new SortedSet<string>();
+        private readonly ISet<string> optionalParameters;
         private readonly IReadOnlyDictionary<string, Type> parameterNames;
         private readonly IReadOnlyDictionary<string, ParameterSyntax> parameterSyntax;
         private SyntaxToken currentNode;
@@ -22,6 +22,10 @@
             this.context = context;
 
             this.parameterSyntax = parameters.ToDictionary(ps => ps.Identifier.Text);
+            this.optionalParameters = new SortedSet<string>(
+                this.parameterSyntax.Values
+                    .Where(ps => ps.Default != null)
+                    .Select(ps => ps.Identifier.Text));
 
             // We don't actually need the type of the parameter
             this.parameterNames = this.parameterSyntax.Keys.ToDictionary(
@@ -86,6 +90,9 @@
 
                 case ErrorType.MissingQueryValue:
                     return RouteAnalyzer.MissingQueryValueRule;
+
+                case ErrorType.MustBeOptional:
+                    return RouteAnalyzer.MustBeOptionalRule;
 
                 default:
                     return null;

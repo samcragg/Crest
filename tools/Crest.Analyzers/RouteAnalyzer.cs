@@ -12,6 +12,7 @@
         public const string DuplicateCaptureId = "DuplicateCapture";
         public const string MissingClosingBraceId = "MissingClosingBrace";
         public const string MissingQueryValueId = "MissingQueryValue";
+        public const string MustBeOptionalId = "MustBeOptional";
 
         internal static readonly DiagnosticDescriptor DuplicateCaptureRule =
             new DiagnosticDescriptor(
@@ -43,11 +44,22 @@
                 isEnabledByDefault: true,
                 description: "Query parameters must consist of a key and capture value.");
 
+        internal static readonly DiagnosticDescriptor MustBeOptionalRule =
+            new DiagnosticDescriptor(
+                MustBeOptionalId,
+                "Parameter must be optional",
+                "Query parameters must be marked as optional",
+                "Syntax",
+                DiagnosticSeverity.Error,
+                isEnabledByDefault: true,
+                description: "Query parameters in the route are optional, therefore, the parameter must me optional.");
+
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics =>
             ImmutableArray.Create(
                 DuplicateCaptureRule,
                 MissingClosingBraceRule,
-                MissingQueryValueRule);
+                MissingQueryValueRule,
+                MustBeOptionalRule);
 
         public override void Initialize(AnalysisContext context)
         {

@@ -65,6 +65,18 @@ following when applied to the above:
 Task Method();
 ```
 
+### MustBeOptional
+
+All parameters that are captured in the query must be marked as optional (i.e.
+have their default value specified), as the query part of the URL is by
+definition optional. The following generates the error as no default value is
+specified for the argument:
+
+```C#
+[Get("/route?queryKey={id}")]
+Task Method(int id);
+```
+
 ### VersionOutOfRange
 
 The version attributes allow you to specify a range of versions the API is
@@ -72,7 +84,6 @@ available between. This error is flagged when the `from` version is greater than
 the `to` version:
 
 ```C#
-[Get(...)]
 [Version(2, 1)]
 Task Method();
 ```

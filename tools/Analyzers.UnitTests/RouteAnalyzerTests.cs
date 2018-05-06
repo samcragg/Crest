@@ -66,5 +66,25 @@ interface IRoute
 
             VerifyDiagnostic(Source, expected);
         }
+
+        [Fact]
+        public void ShouldCheckThatQueryCapturesAreOptional()
+        {
+            const string Source = Code.Usings + Code.GetAttribute + @"
+interface IRoute
+{
+    [Get(""/route?key={capture}"")]
+    Task Method(int capture);
+}";
+
+            var expected = new DiagnosticResult
+            {
+                Id = RouteAnalyzer.MustBeOptionalId,
+                Severity = DiagnosticSeverity.Error,
+                Locations = new[] { new DiagnosticResultLocation(line: 5, column: 17) }
+            };
+
+            VerifyDiagnostic(Source, expected);
+        }
     }
 }
