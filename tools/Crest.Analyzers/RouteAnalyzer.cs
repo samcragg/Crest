@@ -9,7 +9,8 @@
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     public sealed class RouteAnalyzer : DiagnosticAnalyzer
     {
-        public const string DuplicateCaptureId = "MissingVersionAttribute";
+        public const string DuplicateCaptureId = "DuplicateCapture";
+        public const string MissingClosingBraceId = "MissingClosingBrace";
 
         internal static readonly DiagnosticDescriptor DuplicateCaptureRule =
             new DiagnosticDescriptor(
@@ -21,9 +22,20 @@
                 isEnabledByDefault: true,
                 description: "Parameters may only be captured once in the URL.");
 
+        internal static readonly DiagnosticDescriptor MissingClosingBraceRule =
+            new DiagnosticDescriptor(
+                MissingClosingBraceId,
+                "Missing closing brace",
+                "Missing closing brace",
+                "Syntax",
+                DiagnosticSeverity.Error,
+                isEnabledByDefault: true,
+                description: "Open braces must be matched with a closing brace.");
+
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics =>
             ImmutableArray.Create(
-                DuplicateCaptureRule);
+                DuplicateCaptureRule,
+                MissingClosingBraceRule);
 
         public override void Initialize(AnalysisContext context)
         {

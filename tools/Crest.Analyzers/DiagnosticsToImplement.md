@@ -4,17 +4,6 @@
 The following are reported as errors by the analyzer.
 
 
-InvalidCaptureSyntax
---------------------
-
-The analyzer was unable to parse part of the route. The syntax for a parameter
-capture in the route is `{ + parameterName + }`. For example, the following
-would trigger the error as the end bracket is missing:
-
-    [Get("/things/{capture")]
-
-
-
 MustReturnTask
 --------------
 

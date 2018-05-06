@@ -26,6 +26,15 @@ Task Method(int id);
 Because `{id}` appears more than once, it is uncertain which one to use to
 provide the value for the parameter, therefore, the route is invalid.
 
+### MissingClosingBrace
+
+The syntax for a parameter capture in the route is `{ + parameterName + }`,
+therefore, the following would trigger the error as the end brace is missing:
+
+```C#
+[Get("/things/{capture")]
+```
+
 ### MissingVersionAttribute
 
 All methods that have a route applied to them must also have a version applied

@@ -26,5 +26,25 @@ interface IRoute
 
             VerifyDiagnostic(Source, expected);
         }
+
+        [Fact]
+        public void ShouldCheckForMissingClosingBraces()
+        {
+            const string Source = Code.Usings + Code.GetAttribute + @"
+interface IRoute
+{
+    [Get(""/{capture"")]
+    Task Method(int capture);
+}";
+
+            var expected = new DiagnosticResult
+            {
+                Id = RouteAnalyzer.MissingClosingBraceId,
+                Severity = DiagnosticSeverity.Error,
+                Locations = new[] { new DiagnosticResultLocation(line: 4, column: 19) }
+            };
+
+            VerifyDiagnostic(Source, expected);
+        }
     }
 }
