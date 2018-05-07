@@ -148,7 +148,8 @@
                 QueryCapture query = result.QueryCaptures.Single();
 
                 query.ParseParameters(lookup, dictionary);
-                dictionary["capture"].Should().Be("value");
+                dictionary.Should().ContainKey("capture")
+                          .WhichValue.Should().Be("value");
             }
 
             [Fact]
@@ -166,26 +167,25 @@
                 action.Should().Throw<InvalidOperationException>();
             }
 
-            [Fact]
-            public void ShouldThrowFormatExceptionForParsingErrors()
-            {
-                // No need to test the parsing, as that's handled by UrlParse,
-                // just test that we don't silently ignore errors
-                Action action = () => this.builder.Parse("", "{missing brace", new ParameterInfo[0]);
-
-                action.Should().Throw<FormatException>();
-            }
-
-            [Fact]
-            public void ShouldThrowFormatExceptionForParsingParemeterErrors()
+            [Theory]
+            [InlineData("/{param}/{param}", "multiple")]
+            [InlineData("/{param", "closing brace")]
+            [InlineData("/route?queryKeyOnly", "query value")]
+            [InlineData("/route?query={param}", "optional")]
+            [InlineData("/route?query=literal", "capture")]
+            [InlineData("/route", "missing")]
+            [InlineData("/unescaped{brace", "brace")]
+            [InlineData("/{unkownParameter}", "parameter")]
+            public void ShouldThrowFormatExceptionForParsingErrors(string url, string error)
             {
                 ParameterInfo param = CreateParameter<string>("param");
 
                 // No need to test the parsing, as that's handled by UrlParse,
                 // just test that we don't silently ignore parameter errors
-                Action action = () => this.builder.Parse("", "/unused_parameter/", new[] { param });
+                Action action = () => this.builder.Parse("", url, new[] { param });
 
-                action.Should().Throw<FormatException>();
+                action.Should().Throw<FormatException>()
+                      .WithMessage("*" + error + "*");
             }
 
             private static NodeMatchResult GetMatch(NodeBuilder.IParseResult result, string value)
