@@ -62,7 +62,6 @@
             AttributeListSyntax attributeList =
                 SyntaxFactory.AttributeList(new SeparatedSyntaxList<AttributeSyntax>().Add(newAttribute));
 
-            SemanticModel model = await document.GetSemanticModelAsync(token).ConfigureAwait(false);
             SyntaxList<AttributeListSyntax> attributes = method.AttributeLists;
             attributes = attributes.Add(attributeList);
 
