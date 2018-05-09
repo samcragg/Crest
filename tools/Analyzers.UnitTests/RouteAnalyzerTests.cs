@@ -68,6 +68,26 @@ interface IRoute
         }
 
         [Fact]
+        public void ShouldCheckForUnescapedBraces()
+        {
+            const string Source = Code.Usings + Code.GetAttribute + @"
+interface IRoute
+{
+    [Get(""/route{unescaped"")]
+    Task Method();
+}";
+
+            var expected = new DiagnosticResult
+            {
+                Id = RouteAnalyzer.UnescapedBraceId,
+                Severity = DiagnosticSeverity.Error,
+                Locations = new[] { new DiagnosticResultLocation(line: 4, column: 17) }
+            };
+
+            VerifyDiagnostic(Source, expected);
+        }
+
+        [Fact]
         public void ShouldCheckParametersAreCaptured()
         {
             const string Source = Code.Usings + Code.GetAttribute + @"

@@ -96,6 +96,24 @@ when a parameter doesn't have a default value and is not specified in the URL:
 Task Method(int id);
 ```
 
+### UnescapedBrace
+
+Braces are used to indicate a parameter capture, which must appear at the start
+of a URL segment (i.e. preceded by a `\`). If the URL is to contain a brace, it
+must be escaped by doubling it (i.e. `{{` or `}}`). The following contains a
+single brace inside the segment and, therefore, generates the error:
+
+```C#
+[Get("/segment1/segment_with_{")]
+```
+
+A code fix is available that inserts the brace for you, producing the following
+when applied to the above:
+
+```C#
+[Get("/segment1/segment_with_{{")]
+```
+
 ### VersionOutOfRange
 
 The version attributes allow you to specify a range of versions the API is

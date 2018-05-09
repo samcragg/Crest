@@ -100,6 +100,9 @@
                 case ErrorType.ParameterNotFound:
                     return RouteAnalyzer.ParameterNotFoundRule;
 
+                case ErrorType.UnescapedBrace:
+                    return RouteAnalyzer.UnescapedBraceRule;
+
                 default:
                     return null;
             }

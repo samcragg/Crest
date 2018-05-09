@@ -40,17 +40,6 @@ would produce:
     Task Method(string id);
 
 
-ParameterNotSpecifed
---------------------
-
-This occurs when a method has a routing attribute applied to it but not all
-the parameters have been specified in the route/body. For example, here only
-one of the parameters is specified in the route:
-
-    [Get("/things/{id}"), Version(...)]
-    Task Method(Guid id, string name);
-
-
 Warnings
 ========
 

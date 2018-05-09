@@ -15,6 +15,7 @@
         public const string MustBeOptionalId = "MustBeOptional";
         public const string MustCaptureQueryValueId = "MustCaptureQueryValue";
         public const string ParameterNotFoundId = "ParameterNotFound";
+        public const string UnescapedBraceId = "UnescapedBrace";
 
         internal static readonly DiagnosticDescriptor DuplicateCaptureRule =
             new DiagnosticDescriptor(
@@ -76,6 +77,16 @@
                 isEnabledByDefault: true,
                 description: "Method parameters must be specified as captures in the URL.");
 
+        internal static readonly DiagnosticDescriptor UnescapedBraceRule =
+            new DiagnosticDescriptor(
+                UnescapedBraceId,
+                "Unescaped brace",
+                "Braces must be escaped",
+                "Syntax",
+                DiagnosticSeverity.Error,
+                isEnabledByDefault: true,
+                description: "Braces not used as captures must be escaped as '{{' or '}}'");
+
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics =>
             ImmutableArray.Create(
                 DuplicateCaptureRule,
@@ -83,7 +94,8 @@
                 MissingQueryValueRule,
                 MustBeOptionalRule,
                 MustCaptureQueryValueRule,
-                ParameterNotFoundRule);
+                ParameterNotFoundRule,
+                UnescapedBraceRule);
 
         public override void Initialize(AnalysisContext context)
         {
