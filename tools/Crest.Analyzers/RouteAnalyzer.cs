@@ -16,6 +16,7 @@
         public const string MustCaptureQueryValueId = "MustCaptureQueryValue";
         public const string ParameterNotFoundId = "ParameterNotFound";
         public const string UnescapedBraceId = "UnescapedBrace";
+        public const string UnknownParameterId = "UnknownParameter";
 
         internal static readonly DiagnosticDescriptor DuplicateCaptureRule =
             new DiagnosticDescriptor(
@@ -85,7 +86,17 @@
                 "Syntax",
                 DiagnosticSeverity.Error,
                 isEnabledByDefault: true,
-                description: "Braces not used as captures must be escaped as '{{' or '}}'");
+                description: "Braces not used as captures must be escaped as '{{' or '}}'.");
+
+        internal static readonly DiagnosticDescriptor UnknownParameterRule =
+            new DiagnosticDescriptor(
+                UnknownParameterId,
+                "Unknown parameter",
+                "No matching method parameter",
+                "Syntax",
+                DiagnosticSeverity.Error,
+                isEnabledByDefault: true,
+                description: "The method contains no parameter matching the capture name.");
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics =>
             ImmutableArray.Create(
@@ -95,7 +106,8 @@
                 MustBeOptionalRule,
                 MustCaptureQueryValueRule,
                 ParameterNotFoundRule,
-                UnescapedBraceRule);
+                UnescapedBraceRule,
+                UnknownParameterRule);
 
         public override void Initialize(AnalysisContext context)
         {

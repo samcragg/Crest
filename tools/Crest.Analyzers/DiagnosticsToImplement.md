@@ -22,24 +22,6 @@ above would produce this:
     Task<string> Method();
 
 
-ParameterDoesNotExist
----------------------
-
-A parameter capture has been specified in the route but no parameter was found
-with the same name. Note, as with C#, the name of the parameter in the capture
-is case sensitive.
-
-    [Get("/things/{id}"), Version(...)]
-    Task Method();
-
-Since the method does not have any parameters, the above triggers the error. A
-code fix is provided that will add the parameter, so applying it to the above
-would produce:
-
-    [Get("/things/{id}"), Version(...)]
-    Task Method(string id);
-
-
 Warnings
 ========
 

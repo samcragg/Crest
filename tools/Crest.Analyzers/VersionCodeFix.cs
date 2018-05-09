@@ -38,20 +38,15 @@
             return Task.FromResult(0);
         }
 
-        private static MethodDeclarationSyntax GetRouteMethod(SyntaxNode root, TextSpan span)
-        {
-            return root.FindToken(span.Start)
-                       .Parent
-                       .AncestorsAndSelf()
-                       .OfType<MethodDeclarationSyntax>()
-                       .First();
-        }
-
         private async Task<Document> AddAttribute(CodeFixContext context, CancellationToken token)
         {
             Document document = context.Document;
             SyntaxNode root = await document.GetSyntaxRootAsync(token).ConfigureAwait(false);
-            MethodDeclarationSyntax method = GetRouteMethod(root, context.Span);
+            MethodDeclarationSyntax method = CodeFixHelper.GetRouteMethod(root, context.Span);
+            if (method == null)
+            {
+                return document;
+            }
 
             AttributeSyntax newAttribute =
                 SyntaxFactory.Attribute(

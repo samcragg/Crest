@@ -114,6 +114,26 @@ when applied to the above:
 [Get("/segment1/segment_with_{{")]
 ```
 
+### UnknownParameter
+
+A parameter capture has been specified in the route but no parameter was found
+with the same name. Note, as with C#, the name of the parameter in the capture
+is case sensitive.
+
+```C#
+[Get("/things/{id}")]
+Task Method();
+```
+
+Since the method does not have any parameters, the above triggers the error. A
+code fix is provided that will add the parameter, so applying it to the above
+would produce:
+
+```C#
+[Get("/things/{id}")]
+Task Method(string id);
+```
+
 ### VersionOutOfRange
 
 The version attributes allow you to specify a range of versions the API is

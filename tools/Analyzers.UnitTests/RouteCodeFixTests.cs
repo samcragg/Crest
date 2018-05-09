@@ -8,16 +8,35 @@
     public sealed class RouteCodeFixTests : CodeFixVerifier<RouteAnalyzer, RouteCodeFix>
     {
         [Fact]
-        public async Task ShouldAddTheVersionAttribute()
+        public async Task ShouldAddUnknownParameters()
         {
-            const string Original = Code.Usings + Code.GetAttribute + Code.VersionAttribute + @"
+            const string Original = Code.Usings + Code.GetAttribute + @"
+interface IRoute
+{
+    [Get(""{unknown}"")]
+    Task Method();
+}";
+
+            const string Fixed = Code.Usings + Code.GetAttribute + @"
+interface IRoute
+{
+    [Get(""{unknown}"")]
+    Task Method(string unknown);
+}";
+            await this.VerifyFix(Original, Fixed);
+        }
+
+        [Fact]
+        public async Task ShouldEscapeTheBrace()
+        {
+            const string Original = Code.Usings + Code.GetAttribute + @"
 interface IRoute
 {
     [Get(""open{brace"")]
     Task Method();
 }";
 
-            const string Fixed = Code.Usings + Code.GetAttribute + Code.VersionAttribute + @"
+            const string Fixed = Code.Usings + Code.GetAttribute + @"
 interface IRoute
 {
     [Get(""open{{brace"")]

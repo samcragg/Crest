@@ -103,6 +103,9 @@
                 case ErrorType.UnescapedBrace:
                     return RouteAnalyzer.UnescapedBraceRule;
 
+                case ErrorType.UnknownParameter:
+                    return RouteAnalyzer.UnknownParameterRule;
+
                 default:
                     return null;
             }

@@ -88,6 +88,26 @@ interface IRoute
         }
 
         [Fact]
+        public void ShouldCheckForUnknownParameters()
+        {
+            const string Source = Code.Usings + Code.GetAttribute + @"
+interface IRoute
+{
+    [Get(""/{unknown}"")]
+    Task Method();
+}";
+
+            var expected = new DiagnosticResult
+            {
+                Id = RouteAnalyzer.UnknownParameterId,
+                Severity = DiagnosticSeverity.Error,
+                Locations = new[] { new DiagnosticResultLocation(line: 4, column: 13) }
+            };
+
+            VerifyDiagnostic(Source, expected);
+        }
+
+        [Fact]
         public void ShouldCheckParametersAreCaptured()
         {
             const string Source = Code.Usings + Code.GetAttribute + @"
