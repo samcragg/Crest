@@ -84,11 +84,11 @@ artifacts/
 Generated_Code/
 
 # Build tools and output
-CoverResult.xml
-NuGet.exe
+coverage.xml
 build/node_modules/
-build/report/
-build/tools/
+build/coverage_report/
+build/tools/**
+!build/tools/packages.config
 **/BenchmarkDotNet.Artifacts
 
 # Auto-generated files

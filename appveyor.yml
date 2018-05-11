@@ -10,15 +10,9 @@ environment:
   COVERALLS_REPO_TOKEN:
     secure: YeKsMYgc+mNFE+yN5S0r5A6cY50tElPf0e8fIDhdDtdbZ8HWDHgOd5eejr/wO+Gy
 
-install:
-  - ps: .\build\restore_swagger_ui.ps1
-
 build_script:
-  - ps: .\build\build_all.ps1
-
-test_script:
-  - ps: .\build\run_tests.ps1
+  - ps: Set-Location ./build
+  - ps: ./build.ps1
 
 artifacts:
-  - path: 'src\**\*.nupkg'
-  - path: 'tools\**\*.nupkg'
+  - path: 'build/artifacts/*.nupkg'

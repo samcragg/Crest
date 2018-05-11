@@ -129,8 +129,4 @@
       <DependentUpon>RequestProcessor.cs</DependentUpon>
     </Compile>
   </ItemGroup>
-
-  <Target Name="PrecompileScript" BeforeTargets="BeforeBuild">
-    <Exec Command="powershell Set-ExecutionPolicy Bypass -Scope Process -Force; ../../build/exclude_dry_ioc_from_stylecop.ps1;" />
-  </Target>
 </Project>
