@@ -10,7 +10,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\src\Crest.Host.AspNetCore\Crest.Host.AspNetCore.csproj" />
     <ProjectReference Include="..\..\src\Crest.OpenApi\Crest.OpenApi.csproj" />
-    <DotNetCliToolReference Include="Crest.OpenApi.Generator" Version="0.1.0-local" />
+    <DotNetCliToolReference Include="Crest.OpenApi.Generator" Version="0.1.0" />
   </ItemGroup>
 
   <ItemGroup>
