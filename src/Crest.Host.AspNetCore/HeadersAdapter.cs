@@ -29,33 +29,20 @@ namespace Crest.Host.AspNetCore
         }
 
         /// <inheritdoc />
-        public int Count
-        {
-            get { return this.headers.Count; }
-        }
+        public int Count => this.headers.Count;
 
         /// <inheritdoc />
-        public IEnumerable<string> Keys
-        {
-            get { return this.headers.Keys; }
-        }
+        public IEnumerable<string> Keys => this.headers.Keys;
 
         /// <inheritdoc />
-        public IEnumerable<string> Values
-        {
-            get
-            {
-                return this.headers.Values.Select(x => x.ToString());
-            }
-        }
+        public IEnumerable<string> Values => this.headers.Values.Select(x => x.ToString());
 
         /// <inheritdoc />
         public string this[string key]
         {
             get
             {
-                StringValues value;
-                if (!this.headers.TryGetValue(key, out value))
+                if (!this.headers.TryGetValue(key, out StringValues value))
                 {
                     throw new KeyNotFoundException();
                 }
@@ -82,8 +69,7 @@ namespace Crest.Host.AspNetCore
         /// <inheritdoc />
         public bool TryGetValue(string key, out string value)
         {
-            StringValues header;
-            if (this.headers.TryGetValue(key, out header))
+            if (this.headers.TryGetValue(key, out StringValues header))
             {
                 value = header.ToString();
                 return true;

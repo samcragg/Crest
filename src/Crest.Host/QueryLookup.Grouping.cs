@@ -39,10 +39,7 @@ namespace Crest.Host
                 get;
             }
 
-            bool ICollection<string>.IsReadOnly
-            {
-                get { return true; }
-            }
+            bool ICollection<string>.IsReadOnly => true;
 
             public bool Contains(string item)
             {

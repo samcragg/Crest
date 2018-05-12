@@ -98,15 +98,13 @@ namespace Crest.Host.Conversion
 
             private void WriteValue(object instance)
             {
-                var convertible = instance as IConvertible;
-                if (convertible != null)
+                if (instance is IConvertible convertible)
                 {
                     this.Write(convertible.ToString(CultureInfo.CurrentCulture));
                 }
                 else
                 {
-                    var enumerable = instance as IEnumerable;
-                    if (enumerable != null)
+                    if (instance is IEnumerable enumerable)
                     {
                         this.WriteList(enumerable);
                     }

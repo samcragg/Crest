@@ -122,7 +122,7 @@ namespace Crest.Host.Routing
                 }
             }
 
-            return default(MatchResult);
+            return default;
         }
 
         private void AddChild(RouteNode<T> node)

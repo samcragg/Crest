@@ -118,8 +118,7 @@ namespace Crest.Host.Conversion
 
                 index++; // Skip the ';'
                 index = SkipWhitespace(value, index, end);
-                int quality;
-                if (ParseQualityParameter(value, index, end, out quality))
+                if (ParseQualityParameter(value, index, end, out int quality))
                 {
                     return quality;
                 }

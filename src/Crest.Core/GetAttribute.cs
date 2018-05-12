@@ -23,9 +23,6 @@ namespace Crest.Core
         }
 
         /// <inheritdoc />
-        public override string Verb
-        {
-            get { return "GET"; }
-        }
+        public override string Verb => "GET";
     }
 }

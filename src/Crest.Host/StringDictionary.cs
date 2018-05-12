@@ -55,7 +55,7 @@ namespace Crest.Host
             get
             {
                 int index = this.IndexOf(key);
-                return index >= 0 ? this.values[index] : default(T);
+                return index >= 0 ? this.values[index] : default;
             }
 
             set => throw new NotSupportedException();
@@ -100,7 +100,7 @@ namespace Crest.Host
             int index = this.IndexOf(key);
             if (index < 0)
             {
-                value = default(T);
+                value = default;
                 return false;
             }
             else
@@ -191,7 +191,7 @@ namespace Crest.Host
 
         private int IndexOf(string key)
         {
-            if (!object.ReferenceEquals(key, null))
+            if (key != null)
             {
                 for (int i = 0; i < this.length; i++)
                 {

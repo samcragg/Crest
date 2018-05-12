@@ -200,18 +200,18 @@
             [Fact]
             public async Task ShouldInvokeThePipelineInTheCorrectOrder()
             {
-                this.processor.WhenForAnyArgs(p => p.OnAfterRequestAsync(null, null, null)).DoNotCallBase();
-                this.processor.WhenForAnyArgs(p => p.OnBeforeRequestAsync(null, null)).DoNotCallBase();
-                this.processor.WhenForAnyArgs(p => p.InvokeHandlerAsync(null, null)).DoNotCallBase();
+                this.processor.WhenForAnyArgs(async p => await p.OnAfterRequestAsync(null, null, null)).DoNotCallBase();
+                this.processor.WhenForAnyArgs(async p => await p.OnBeforeRequestAsync(null, null)).DoNotCallBase();
+                this.processor.WhenForAnyArgs(async p => await p.InvokeHandlerAsync(null, null)).DoNotCallBase();
                 this.processor.OnBeforeRequestAsync(null, null).ReturnsForAnyArgs((IResponseData)null);
 
                 await this.processor.HandleRequestAsync(this.simpleMatch, _ => this.request);
 
-                Received.InOrder(() =>
+                Received.InOrder(async () =>
                 {
-                    this.processor.OnBeforeRequestAsync(Arg.Any<IServiceLocator>(), this.request);
-                    this.processor.InvokeHandlerAsync(this.request, Arg.Is<IContentConverter>(c => c != null));
-                    this.processor.OnAfterRequestAsync(Arg.Any<IServiceLocator>(), this.request, Arg.Any<IResponseData>());
+                    await this.processor.OnBeforeRequestAsync(Arg.Any<IServiceLocator>(), this.request);
+                    await this.processor.InvokeHandlerAsync(this.request, Arg.Is<IContentConverter>(c => c != null));
+                    await this.processor.OnAfterRequestAsync(Arg.Any<IServiceLocator>(), this.request, Arg.Any<IResponseData>());
                 });
             }
 

@@ -50,7 +50,7 @@ namespace Crest.Host.Routing
                     }
                 }
 
-                return default(Target);
+                return default;
             }
 
             private static bool InsideVersionRange(long range, int version)

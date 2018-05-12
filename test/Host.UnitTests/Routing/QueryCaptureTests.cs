@@ -62,7 +62,7 @@
                 var result = QueryCapture.Create("key", typeof(int), "", this.converters.TryGetValue);
                 result.ParseParameters(this.lookup, new Dictionary<string, object>());
 
-                this.converter.ReceivedWithAnyArgs().TryConvertValue(default(StringSegment), out _);
+                this.converter.ReceivedWithAnyArgs().TryConvertValue(default, out _);
             }
 
             [TypeConverter(typeof(FakeTypeConverter))]

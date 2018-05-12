@@ -15,7 +15,7 @@ namespace Crest.Host.Routing
         /// <summary>
         /// Represents a non-successful match.
         /// </summary>
-        internal static readonly NodeMatchResult None = default(NodeMatchResult);
+        internal static readonly NodeMatchResult None = default;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="NodeMatchResult"/> struct.

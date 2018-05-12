@@ -36,7 +36,7 @@ namespace Crest.Host
                     {
                         this.AddGroup(
                             new StringSegment(query, start, index),
-                            default(StringSegment));
+                            default);
                     }
                     else
                     {
@@ -53,10 +53,7 @@ namespace Crest.Host
         /// <summary>
         /// Gets the number of keys in the query information.
         /// </summary>
-        public int Count
-        {
-            get { return this.groups.Count; }
-        }
+        public int Count => this.groups.Count;
 
         /// <summary>
         /// Gets the values associated with the specified key in the query
@@ -71,8 +68,7 @@ namespace Crest.Host
         {
             get
             {
-                Grouping group;
-                if (this.groups.TryGetValue(key, out group))
+                if (this.groups.TryGetValue(key, out Grouping group))
                 {
                     return group;
                 }
@@ -198,8 +194,7 @@ namespace Crest.Host
         {
             string keyString = UnescapeSegment(key);
 
-            Grouping group;
-            if (!this.groups.TryGetValue(keyString, out group))
+            if (!this.groups.TryGetValue(keyString, out Grouping group))
             {
                 group = new Grouping(keyString);
                 this.groups.Add(keyString, group);

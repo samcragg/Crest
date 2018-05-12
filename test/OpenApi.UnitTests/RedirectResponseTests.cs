@@ -25,7 +25,7 @@
             [Fact]
             public void ShouldIncludeTheLocationHeader()
             {
-                this.response.Headers.Should().HaveCount(1);
+                this.response.Headers.Should().ContainSingle();
                 this.response.Headers["Location"].Should().Be(RedirectUri);
             }
         }

@@ -132,8 +132,8 @@
             {
                 var segment = new StringSegment("0123456", 2, 4);
 
-                segment[0].Should().Be('2');
-                segment[1].Should().Be('3');
+                segment.Should().HaveElementAt(0, '2');
+                segment.Should().HaveElementAt(1, '3');
             }
         }
 
