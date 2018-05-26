@@ -109,26 +109,6 @@ namespace Crest.Host.Routing
         }
 
         /// <summary>
-        /// Parses the specified URL, matching the specified parameters.
-        /// </summary>
-        /// <param name="routeUrl">The URL to parse.</param>
-        /// <param name="parameters">The parameter names and types.</param>
-        /// <param name="optionalParameters">Contains the names of optional parameters.</param>
-        internal virtual void ParseUrl(
-            string routeUrl,
-            IReadOnlyDictionary<string, Type> parameters,
-            ISet<string> optionalParameters)
-        {
-            this.capturedParameters.Clear();
-
-            if (this.ParsePath(routeUrl, parameters) &&
-                this.ParseQuery(routeUrl, parameters, optionalParameters.Contains))
-            {
-                this.CheckAllParametersAreCaptured(parameters);
-            }
-        }
-
-        /// <summary>
         /// Called when a capture segment is parsed.
         /// </summary>
         /// <param name="parameterType">The type of the parameter being captured.</param>
@@ -165,6 +145,24 @@ namespace Crest.Host.Routing
         /// <param name="name">The name of the captured parameter.</param>
         protected abstract void OnQueryParameter(string key, Type parameterType, string name);
 
+        /// <summary>
+        /// Parses the specified URL, matching the specified parameters.
+        /// </summary>
+        /// <param name="routeUrl">The URL to parse.</param>
+        /// <param name="parameters">The parameter names and information.</param>
+        protected virtual void ParseUrl(
+            string routeUrl,
+            IReadOnlyDictionary<string, ParameterData> parameters)
+        {
+            this.capturedParameters.Clear();
+
+            if (this.ParsePath(routeUrl, parameters) &&
+                this.ParseQuery(routeUrl, parameters))
+            {
+                this.CheckAllParametersAreCaptured(parameters);
+            }
+        }
+
         private static IEnumerable<StringSegment> GetKeyValues(string url)
         {
             int start = url.IndexOf('?') + 1;
@@ -182,7 +180,7 @@ namespace Crest.Host.Routing
             }
         }
 
-        private void CheckAllParametersAreCaptured(IReadOnlyDictionary<string, Type> parameters)
+        private void CheckAllParametersAreCaptured(IReadOnlyDictionary<string, ParameterData> parameters)
         {
             foreach (string name in parameters.Keys)
             {
@@ -195,9 +193,8 @@ namespace Crest.Host.Routing
         }
 
         private bool GetQueryParameter(
-            IReadOnlyDictionary<string, Type> parameters,
+            IReadOnlyDictionary<string, ParameterData> parameters,
             StringSegment value,
-            Func<string, bool> isOptional,
             out string parameterName,
             out Type parameterType)
         {
@@ -219,28 +216,30 @@ namespace Crest.Host.Routing
                     return false;
             }
 
-            parameterType = this.GetValidParameter(
+            ParameterData parameter = this.GetValidParameter(
                 parameters,
                 value,
                 parameterName);
 
-            if ((parameterType != null) && isOptional(parameterName))
+            if ((parameter != null) && parameter.IsOptional)
             {
+                parameterType = parameter.ParameterType;
                 return true;
             }
             else
             {
                 this.OnError(ErrorType.MustBeOptional, parameterName);
+                parameterType = null;
                 return false;
             }
         }
 
-        private Type GetValidParameter(
-            IReadOnlyDictionary<string, Type> parameters,
+        private ParameterData GetValidParameter(
+            IReadOnlyDictionary<string, ParameterData> parameters,
             StringSegment declaration,
             string name)
         {
-            if (!parameters.TryGetValue(name, out Type parameterType))
+            if (!parameters.TryGetValue(name, out ParameterData parameter))
             {
                 this.OnError(
                     ErrorType.UnknownParameter,
@@ -257,27 +256,27 @@ namespace Crest.Host.Routing
                 return null;
             }
 
-            return parameterType;
+            return parameter;
         }
 
-        private bool ParsePath(string routeUrl, IReadOnlyDictionary<string, Type> parameters)
+        private bool ParsePath(string routeUrl, IReadOnlyDictionary<string, ParameterData> parameters)
         {
             foreach (StringSegment segment in GetSegments(routeUrl))
             {
                 SegmentType type = this.UnescapeSegment(segment, out string segmentValue);
                 if (type == SegmentType.Capture)
                 {
-                    Type parameterType = this.GetValidParameter(
+                    ParameterData parameter = this.GetValidParameter(
                         parameters,
                         segment,
                         segmentValue);
 
-                    if (parameterType == null)
+                    if (parameter == null)
                     {
                         return false;
                     }
 
-                    this.OnCaptureSegment(parameterType, segmentValue);
+                    this.OnCaptureSegment(parameter.ParameterType, segmentValue);
                 }
                 else if (type == SegmentType.Literal)
                 {
@@ -288,7 +287,7 @@ namespace Crest.Host.Routing
             return true;
         }
 
-        private bool ParseQuery(string url, IReadOnlyDictionary<string, Type> parameters, Func<string, bool> isOptional)
+        private bool ParseQuery(string url, IReadOnlyDictionary<string, ParameterData> parameters)
         {
             foreach (StringSegment segment in GetKeyValues(url))
             {
@@ -308,7 +307,6 @@ namespace Crest.Host.Routing
                 if (!this.GetQueryParameter(
                     parameters,
                     new StringSegment(segment.String, segment.Start + separator + 1, segment.End),
-                    isOptional,
                     out string parameterName,
                     out Type parameterType))
                 {

@@ -80,6 +80,9 @@
     <Compile Update="Routing/RouteNode{T}.MatchResult.cs">
       <DependentUpon>RouteNode{T}.cs</DependentUpon>
     </Compile>
+    <Compile Update="Routing/UrlParser.ParameterData.cs">
+      <DependentUpon>UrlParser.cs</DependentUpon>
+    </Compile>
     <Compile Update="Routing/UrlParser.SegmentParser.cs">
       <DependentUpon>UrlParser.cs</DependentUpon>
     </Compile>

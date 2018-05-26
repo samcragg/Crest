@@ -45,15 +45,8 @@ namespace Crest.Host.Routing
         /// <returns>The parsed nodes.</returns>
         public IParseResult Parse(string version, string routeUrl, IReadOnlyCollection<ParameterInfo> parameters)
         {
-            IReadOnlyDictionary<string, Type> parameterPairs =
-                parameters.ToDictionary(p => p.Name, p => p.ParameterType, StringComparer.Ordinal);
-
-            ISet<string> optional = new HashSet<string>(
-                parameters.Where(p => p.IsOptional).Select(p => p.Name),
-                StringComparer.Ordinal);
-
             var parser = new NodeParser(this.specializedCaptureNodes);
-            parser.ParseUrl(routeUrl, parameterPairs, optional);
+            parser.ParseUrl(routeUrl, parameters);
 
             string normalizedUrl = GetNormalizedRoute(version, routeUrl, parser.Nodes);
             if (!this.normalizedUrls.Add(normalizedUrl))

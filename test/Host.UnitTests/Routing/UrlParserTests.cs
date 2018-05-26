@@ -27,8 +27,6 @@
 
         public sealed class ParseUrl : UrlParserTests
         {
-            private static readonly ISet<string> NoOptional = new SortedSet<string>();
-
             [Fact]
             public void ShouldCaptureLiterals()
             {
@@ -40,12 +38,7 @@
             [Fact]
             public void ShouldCaptureParameters()
             {
-                var parameters = new Dictionary<string, Type>
-                {
-                    { "capture", typeof(int) }
-                };
-
-                this.parser.ParseUrl("/{capture}/", parameters, NoOptional);
+                this.parser.ParseUrl("/{capture}/", new FakeParameter("capture"));
 
                 this.parser.Captures.Single().type.Should().Be(typeof(int));
                 this.parser.Captures.Single().name.Should().Be("capture");
@@ -54,16 +47,10 @@
             [Fact]
             public void ShouldCaptureQueryParemters()
             {
-                var parameters = new Dictionary<string, Type>
-                {
-                    { "query1", typeof(int) },
-                    { "query2", typeof(int) }
-                };
-
                 this.parser.ParseUrl(
                     "/literal?key1={query1}&key2={query2}",
-                    parameters,
-                    new SortedSet<string>(new[] { "query1", "query2" }));
+                    new FakeParameter("query1") { IsOptional = true },
+                    new FakeParameter("query2") { IsOptional = true });
 
                 this.parser.QueryParameters.Keys
                     .Should().BeEquivalentTo("key1", "key2");
@@ -80,7 +67,7 @@
                     { "parameter", typeof(int) }
                 };
 
-                this.parser.ParseUrl("/{parameter}/{parameter}", parameters, NoOptional);
+                this.parser.ParseUrl("/{parameter}/{parameter}", new FakeParameter("parameter"));
 
                 this.parser.ErrorParameters.Single().Should().Be("parameter");
             }
@@ -113,12 +100,7 @@
             [Fact]
             public void ShouldCheckForUnmatchedParameters()
             {
-                var parameters = new Dictionary<string, Type>
-                {
-                    { "parameter", typeof(int) }
-                };
-
-                this.parser.ParseUrl("/literal", parameters, NoOptional);
+                this.parser.ParseUrl("/literal", new FakeParameter("parameter"));
 
                 this.parser.ErrorParameters.Single().Should().Be("parameter");
             }
@@ -142,12 +124,9 @@
             [Fact]
             public void ShouldCheckQueryParemtersAreOptional()
             {
-                var parameters = new Dictionary<string, Type>
-                {
-                    { "query", typeof(int) }
-                };
-
-                this.parser.ParseUrl("/literal?key={query}", parameters, NoOptional);
+                this.parser.ParseUrl(
+                    "/literal?key={query}",
+                    new FakeParameter("query") { IsOptional = false });
 
                 this.parser.QueryParameters.Should().BeEmpty();
                 this.parser.ErrorParameters.Single().Should().Be("query");
@@ -170,6 +149,18 @@
             }
         }
 
+        private class FakeParameter
+        {
+            public FakeParameter(string name)
+            {
+                this.Name = name;
+            }
+
+            public bool IsOptional { get; set; }
+
+            public string Name { get; }
+        }
+
         private class FakeUrlParser : UrlParser
         {
             private string routeUrl;
@@ -180,15 +171,17 @@
             internal List<string> Literals { get; } = new List<string>();
             internal Dictionary<string, (Type type, string name)> QueryParameters { get; } = new Dictionary<string, (Type type, string name)>();
 
-            internal void ParseUrl(string routeUrl)
-            {
-                this.ParseUrl(routeUrl, new Dictionary<string, Type>(), new HashSet<string>());
-            }
-
-            internal override void ParseUrl(string routeUrl, IReadOnlyDictionary<string, Type> parameters, ISet<string> optionalParameters)
+            internal void ParseUrl(string routeUrl, params FakeParameter[] parameters)
             {
                 this.routeUrl = routeUrl;
-                base.ParseUrl(routeUrl, parameters, optionalParameters);
+                base.ParseUrl(
+                    routeUrl,
+                    parameters.Select(p => new ParameterData
+                    {
+                        IsOptional = p.IsOptional,
+                        Name = p.Name,
+                        ParameterType = typeof(int)
+                    }).ToDictionary(pd => pd.Name));
             }
 
             protected override void OnCaptureSegment(Type parameterType, string name)

@@ -7,6 +7,9 @@ namespace Crest.Host.Routing
 {
     using System;
     using System.Collections.Generic;
+    using System.Linq;
+    using System.Reflection;
+    using Crest.Core;
     using static System.Diagnostics.Debug;
 
     /// <content>
@@ -28,6 +31,26 @@ namespace Crest.Host.Routing
             public IReadOnlyList<IMatchNode> Nodes => this.nodes;
 
             public IReadOnlyList<QueryCapture> QueryCaptures => this.queryCaptures;
+
+            internal void ParseUrl(string routeUrl, IReadOnlyCollection<ParameterInfo> parameters)
+            {
+                ParameterData ConvertParameter(ParameterInfo info)
+                {
+                    return new ParameterData
+                    {
+                        HasBodyAttribute = info.GetCustomAttribute(typeof(FromBodyAttribute)) != null,
+                        IsOptional = info.IsOptional,
+                        Name = info.Name,
+                        ParameterType = info.ParameterType
+                    };
+                }
+
+                IReadOnlyDictionary<string, ParameterData> dictionary =
+                    parameters.Select(ConvertParameter)
+                              .ToDictionary(pd => pd.Name, StringComparer.Ordinal);
+
+                this.ParseUrl(routeUrl, dictionary);
+            }
 
             protected override void OnCaptureSegment(Type parameterType, string name)
             {

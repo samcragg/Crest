@@ -12,8 +12,7 @@
     internal sealed class UrlValidator : UrlParser
     {
         private readonly SyntaxNodeAnalysisContext context;
-        private readonly ISet<string> optionalParameters;
-        private readonly IReadOnlyDictionary<string, Type> parameterNames;
+        private readonly IReadOnlyDictionary<string, ParameterData> parameters;
         private readonly IReadOnlyDictionary<string, ParameterSyntax> parameterSyntax;
         private SyntaxToken currentNode;
 
@@ -22,15 +21,10 @@
             this.context = context;
 
             this.parameterSyntax = parameters.ToDictionary(ps => ps.Identifier.Text);
-            this.optionalParameters = new SortedSet<string>(
+            this.parameters =
                 this.parameterSyntax.Values
-                    .Where(ps => ps.Default != null)
-                    .Select(ps => ps.Identifier.Text));
-
-            // We don't actually need the type of the parameter
-            this.parameterNames = this.parameterSyntax.Keys.ToDictionary(
-                k => k,
-                _ => typeof(object));
+                    .Select(ConvertParameter)
+                    .ToDictionary(pd => pd.Name, StringComparer.Ordinal);
         }
 
         public void Analyze(AttributeSyntax attribute)
@@ -38,7 +32,7 @@
             string url = this.GetRouteUrl(attribute);
             if (url != string.Empty)
             {
-                this.ParseUrl(url, this.parameterNames, this.optionalParameters);
+                this.ParseUrl(url, this.parameters);
             }
         }
 
@@ -78,6 +72,15 @@
         {
         }
 
+        private static ParameterData ConvertParameter(ParameterSyntax syntax)
+        {
+            return new ParameterData
+            {
+                IsOptional = syntax.Default != null,
+                Name = syntax.Identifier.Text
+            };
+        }
+
         private static DiagnosticDescriptor GetDiagnostic(ErrorType error)
         {
             switch (error)
@@ -114,14 +117,15 @@
         private string GetRouteUrl(AttributeSyntax attribute)
         {
             AttributeArgumentSyntax argument = attribute.ArgumentList.Arguments.FirstOrDefault();
-            var literal = argument?.Expression as LiteralExpressionSyntax;
-            if (literal == null)
+            if (argument?.Expression is LiteralExpressionSyntax literal)
+            {
+                this.currentNode = literal.Token;
+                return this.currentNode.ValueText;
+            }
+            else
             {
                 return string.Empty;
             }
-
-            this.currentNode = literal.Token;
-            return this.currentNode.ValueText;
         }
 
         private void RaiseError(ErrorType error, Location location)
