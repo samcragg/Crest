@@ -81,7 +81,7 @@
 
             //after applying all of the code fixes, compare the resulting string to the inputted one
             string actual = await GetStringFromDocument(document);
-            newSource.Should().Be(actual);
+            NormalizeLineEndings(newSource).Should().Be(NormalizeLineEndings(actual));
         }
 
         private static async Task<Document> ApplyFix(Document document, CodeAction codeAction)
@@ -125,6 +125,11 @@
             SyntaxNode root = await simplifiedDoc.GetSyntaxRootAsync();
             root = Formatter.Format(root, Formatter.Annotation, simplifiedDoc.Project.Solution.Workspace);
             return root.GetText().ToString();
+        }
+
+        private static string NormalizeLineEndings(string value)
+        {
+            return value.Replace("\r\n", "\n");
         }
     }
 }
