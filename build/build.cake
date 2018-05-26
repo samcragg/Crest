@@ -3,6 +3,7 @@
 #load "utilities.cake"
 
 const string CoverageResults = "./coverage.xml";
+const string MainSolution = "../Crest.sln";
 
 string configuration = Argument("configuration", "Release");
 bool isLocalBuild = BuildSystem.IsLocalBuild;
@@ -14,25 +15,37 @@ var msBuildSettings = new DotNetCoreMSBuildSettings
     NoLogo = true
 };
 
-string[] solutions = new[]
+var buildSettings = new DotNetCoreBuildSettings
 {
-    "../Crest.sln",
-    "../tools/Crest.OpenApi.Generator.sln"
+    Configuration = configuration,
+    MSBuildSettings = msBuildSettings,
+    NoRestore = true
+};
+
+var testSettings = new DotNetCoreTestSettings
+{
+    Configuration = configuration,
+    NoBuild = true,
+    NoRestore = true
 };
 
 Task("Build")
     .Does(() =>
 {
-    var buildSettings = new DotNetCoreBuildSettings
-    {
-        Configuration = configuration,
-        MSBuildSettings = msBuildSettings,
-        NoRestore = true
-    };
+    DotNetCoreBuild(MainSolution, buildSettings);
+});
 
-    foreach (string solution in solutions)
+Task("BuildAndTestTools")
+    .Does(() =>
+{
+    foreach (var solution in GetFiles("../tools/*.sln"))
     {
-        DotNetCoreBuild(solution, buildSettings);
+        DotNetCoreBuild(solution.FullPath, buildSettings);
+    }
+
+    foreach (var project in GetFiles("../tools/*.UnitTests/*.csproj"))
+    {
+        DotNetCoreTest(project.FullPath, testSettings);
     }
 });
 
@@ -65,6 +78,7 @@ Task("Pack")
         "../src/Crest.Host/Crest.Host.csproj",
         "../src/Crest.Host.AspNetCore/Crest.Host.AspNetCore.csproj",
         "../src/Crest.OpenApi/Crest.OpenApi.csproj",
+        "../tools/Crest.Analyzers/Crest.Analyzers.csproj",
         "../tools/Crest.OpenApi.Generator/Crest.OpenApi.Generator.csproj"
     };
 
@@ -87,9 +101,18 @@ Task("Pack")
 Task("RestorePackages")
     .Does(() =>
 {
-    foreach (string solution in solutions)
+    DotNetCoreRestore(MainSolution);
+
+    // We have to use the old style restore for the VSIX project so that the
+    // tasks are downloaded for the rest of the dotnet commands to work
+    NuGetRestore("../tools/Crest.Analyzers.Vsix/packages.config", new NuGetRestoreSettings
     {
-        DotNetCoreRestore(solution);
+        PackagesDirectory = "../tools/packages"
+    });
+
+    foreach (var solution in GetFiles("../tools/*.sln"))
+    {
+        DotNetCoreRestore(solution.FullPath);
     }
 });
 
@@ -113,13 +136,24 @@ Task("RestoreSwaggerUI")
     }
 });
 
-Task("Test")
+Task("TestOnly")
+    .Does(() =>
+{
+    foreach (var project in GetFiles("../test/**/*.csproj"))
+    {
+        DotNetCoreTest(project.FullPath, testSettings);
+    }
+});
+
+
+Task("TestWithCover")
     .Does(() =>
 {
     var coverSettings = new OpenCoverSettings
     {
         MergeOutput = true,
-        OldStyle = true
+        OldStyle = true,
+        ReturnTargetCodeOffset = 0
     };
 
     coverSettings.Filters.UnionWith(new[]
@@ -130,13 +164,6 @@ Task("Test")
         "-[*]FastExpressionCompiler.*",
         "-[*]*.Logging.*"
     });
-
-    var testSettings = new DotNetCoreTestSettings
-    {
-        Configuration = configuration,
-        NoBuild = true,
-        NoRestore = true
-    };
 
     // As we're merging the output from each test project, delete the previous
     // runs result
@@ -155,9 +182,9 @@ Task("Test")
     }
 });
 
-Task("TestReport")
+Task("TestCoverReport")
     .WithCriteria(isLocalBuild)
-    .IsDependentOn("Test")
+    .IsDependentOn("TestWithCover")
     .Does(() =>
 {
     ReportGenerator(CoverageResults, "./coverage_report");
@@ -172,9 +199,9 @@ Task("TestReport")
     }
 });
 
-Task("TestUpload")
+Task("TestCoverReportUpload")
     .WithCriteria(!isLocalBuild)
-    .IsDependentOn("Test")
+    .IsDependentOn("TestWithCover")
     .Does(() =>
 {
     var coverallsSettings = new CoverallsNetSettings
@@ -201,12 +228,18 @@ Task("Restore")
     .IsDependentOn("RestorePackages")
     .IsDependentOn("RestoreSwaggerUI");
 
+Task("BuildAndTest")
+    .IsDependentOn("Build")
+    .IsDependentOn("TestOnly")
+    .IsDependentOn("BuildAndTestTools");
+
 Task("Default")
     .IsDependentOn("Restore")
     .IsDependentOn("Build")
-    .IsDependentOn("Test")
-    .IsDependentOn("TestReport")
-    .IsDependentOn("TestUpload")
+    .IsDependentOn("BuildAndTestTools")
+    .IsDependentOn("TestWithCover")
+    .IsDependentOn("TestCoverReport")
+    .IsDependentOn("TestCoverReportUpload")
     .IsDependentOn("Pack");
 
 RunTarget(target);

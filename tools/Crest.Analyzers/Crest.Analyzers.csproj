@@ -2,24 +2,14 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard1.3</TargetFramework>
-    <IncludeBuildOutput>false</IncludeBuildOutput>
-    <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
-  </PropertyGroup>
-  
-  <PropertyGroup>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <PackageId>Crest.Analyzers</PackageId>
-    <PackageVersion>1.0.0</PackageVersion>
-    <Authors>Samuel Cragg</Authors>
-    <PackageLicenseUrl>https://github.com/samcragg/Crest/blob/master/LICENSE</PackageLicenseUrl>
-    <PackageProjectUrl>https://github.com/samcragg/Crest</PackageProjectUrl>
-    <RepositoryUrl>https://github.com/samcragg/Crest</RepositoryUrl>
-    <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
     <Description>Allows the analyzing of routes inside a project that uses the Crest framework.</Description>
-    <Copyright>Copyright 2018</Copyright>
     <PackageTags>Crest, analyzers</PackageTags>
-    <NoPackageAnalysis>true</NoPackageAnalysis>
   </PropertyGroup>
-  
+
+  <Import Project="..\..\src\CrestPackage.targets" />
+
   <ItemGroup>
     <Folder Include="Crest.Host\" />
     <Compile Include="..\..\src\Crest.Host\Routing\UrlParser.cs" Link="Crest.Host\UrlParser.cs" />
