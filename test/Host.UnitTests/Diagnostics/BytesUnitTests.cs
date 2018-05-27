@@ -7,7 +7,7 @@
 
     public class BytesUnitTests
     {
-        private BytesUnit bytes;
+        private readonly BytesUnit bytes;
 
         public BytesUnitTests()
         {

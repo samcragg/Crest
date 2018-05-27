@@ -6,7 +6,7 @@
 
     public class CounterTests
     {
-        private Counter counter;
+        private readonly Counter counter;
 
         public CounterTests()
         {

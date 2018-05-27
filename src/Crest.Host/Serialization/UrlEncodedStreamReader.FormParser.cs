@@ -16,10 +16,10 @@ namespace Crest.Host.Serialization
     {
         private struct FormParser
         {
-            private StringBuffer buffer;
+            private readonly StringBuffer buffer;
+            private readonly List<Pair> pairs;
             private bool inValue;
             private string key;
-            private List<Pair> pairs;
 
             public FormParser(StreamIterator iterator, StringBuffer buffer)
                 : this()
