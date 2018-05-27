@@ -8,6 +8,8 @@ namespace Crest.Host.IO
     using System;
     using System.Collections.Generic;
     using System.IO;
+    using System.Threading;
+    using System.Threading.Tasks;
 
     /// <summary>
     /// Gets a stream that stores its contents in memory in a series of blocks.
@@ -77,6 +79,30 @@ namespace Crest.Host.IO
         }
 
         /// <inheritdoc />
+        public override async Task CopyToAsync(
+            Stream destination,
+            int bufferSize,
+            CancellationToken cancellationToken)
+        {
+            int blockIndex = DivRem(this.position, BlockStreamPool.DefaultBlockSize, out int blockOffset);
+            int remaining = this.length - this.position;
+            while (remaining > 0)
+            {
+                byte[] block = this.blocks[blockIndex];
+                int available = BlockStreamPool.DefaultBlockSize - blockOffset;
+
+                int amount = Math.Min(available, remaining);
+                await destination.WriteAsync(block, blockOffset, amount).ConfigureAwait(false);
+
+                blockIndex++;
+                blockOffset = 0;
+                remaining -= amount;
+            }
+
+            this.position = this.length;
+        }
+
+        /// <inheritdoc />
         public override void Flush()
         {
             this.ThrowIfDisposed();
@@ -112,6 +138,22 @@ namespace Crest.Host.IO
 
             this.position += read;
             return read;
+        }
+
+        /// <inheritdoc />
+        public override int ReadByte()
+        {
+            this.ThrowIfDisposed();
+
+            if (this.position >= this.length)
+            {
+                return -1;
+            }
+
+            int index = this.position++;
+            int blockIndex = index / BlockStreamPool.DefaultBlockSize;
+            int byteIndex = index - (blockIndex * BlockStreamPool.DefaultBlockSize);
+            return this.blocks[blockIndex][byteIndex];
         }
 
         /// <inheritdoc />
@@ -169,10 +211,33 @@ namespace Crest.Host.IO
                 blockIndex++;
                 blockOffset = 0;
                 remaining -= amount;
+                offset += amount;
             }
 
             this.position += count;
             this.length = Math.Max(this.position, this.length);
+        }
+
+        /// <inheritdoc />
+        public override Task WriteAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken)
+        {
+            // Like MemoryStream, we optimize this method so it's sync (this
+            // method is called when another stream is copied to this stream
+            // asynchronously)
+            if (cancellationToken.IsCancellationRequested)
+            {
+                return Task.FromCanceled(cancellationToken);
+            }
+
+            try
+            {
+                this.Write(buffer, offset, count);
+                return Task.CompletedTask;
+            }
+            catch (Exception ex)
+            {
+                return Task.FromException(ex);
+            }
         }
 
         /// <inheritdoc />

@@ -14,7 +14,7 @@ namespace Crest.Host.IO
     /// <summary>
     /// Manages the internal buffers for the <see cref="BlockStream"/> classes.
     /// </summary>
-    internal sealed class BlockStreamPool
+    internal class BlockStreamPool
     {
         /// <summary>
         /// The size, in bytes, of the blocks.
@@ -33,7 +33,7 @@ namespace Crest.Host.IO
         /// Gets a new stream that uses the blocks from this instance.
         /// </summary>
         /// <returns>A new stream.</returns>
-        public Stream GetStream()
+        public virtual Stream GetStream()
         {
             return new BlockStream(this);
         }
@@ -42,7 +42,7 @@ namespace Crest.Host.IO
         /// Gets a byte buffer.
         /// </summary>
         /// <returns>A byte array.</returns>
-        internal byte[] GetBlock()
+        internal virtual byte[] GetBlock()
         {
             if (ImmutableInterlocked.TryPop(ref this.pool, out byte[] block))
             {
@@ -62,7 +62,7 @@ namespace Crest.Host.IO
         /// Returns the blocks returned by <see cref="GetBlock"/> to the pool.
         /// </summary>
         /// <param name="blocks">The byte arrays returned from this instance.</param>
-        internal void ReturnBlocks(IReadOnlyCollection<byte[]> blocks)
+        internal virtual void ReturnBlocks(IReadOnlyCollection<byte[]> blocks)
         {
 #if DEBUG
             // Be paranoid in debug builds - verify the block looks like on of ours...

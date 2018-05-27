@@ -1,9 +1,14 @@
 ﻿namespace Host.UnitTests.IO
 {
     using System;
+    using System.Collections.Generic;
     using System.IO;
+    using System.Linq;
+    using System.Threading;
+    using System.Threading.Tasks;
     using Crest.Host.IO;
     using FluentAssertions;
+    using NSubstitute;
     using Xunit;
 
     public class BlockStreamTests
@@ -13,7 +18,9 @@
 
         public BlockStreamTests()
         {
-            this.pool = new BlockStreamPool();
+            this.pool = Substitute.For<BlockStreamPool>();
+            this.pool.GetBlock().Returns(_ => new byte[BlockStreamPool.DefaultBlockSize]);
+
             this.stream = new BlockStream(this.pool);
         }
 
@@ -71,20 +78,41 @@
             }
         }
 
+        public sealed class CopyToAsync : BlockStreamTests
+        {
+            [Fact]
+            public async Task ShouldCopyFromTheCurrentPosition()
+            {
+                byte[] data = new byte[BlockStreamPool.DefaultBlockSize + 1];
+                data[data.Length - 2] = 1;
+                data[data.Length - 1] = 2;
+                this.stream.Write(data, 0, data.Length);
+
+                this.stream.Position = data.Length - 2;
+
+                using (var destination = new MemoryStream())
+                {
+                    await this.stream.CopyToAsync(destination);
+
+                    destination.ToArray().Should().Equal(1, 2);
+                }
+            }
+        }
+
         public sealed class Dispose : BlockStreamTests
         {
             [Fact]
             public void ShouldReleaseTheMemoryToThePool()
             {
-                // This block will be recycled
-                byte[] block = this.pool.GetBlock();
-                this.pool.ReturnBlocks(new[] { block });
+                byte[] block = new byte[BlockStreamPool.DefaultBlockSize];
+                this.pool.GetBlock().Returns(block);
 
                 // Write something to force it to grab a block
                 this.stream.Write(new byte[10], 0, 10);
                 this.stream.Dispose();
 
-                this.pool.GetBlock().Should().BeSameAs(block);
+                this.pool.Received().ReturnBlocks(
+                    Arg.Do<IReadOnlyCollection<byte[]>>(a => a.Should().ContainSingle().Which.Should().BeSameAs(block)));
             }
         }
 
@@ -159,6 +187,39 @@
 
                 byte[] buffer = new byte[1];
                 this.stream.Invoking(s => s.Read(buffer, 0, 1))
+                    .Should().Throw<ObjectDisposedException>();
+            }
+        }
+
+        public sealed class ReadByte : BlockStreamTests
+        {
+            [Fact]
+            public void ShouldReturnMinusOneWhenAtTheEndOfTheStream()
+            {
+                int result = this.stream.ReadByte();
+
+                result.Should().Be(-1);
+            }
+
+            [Fact]
+            public void ShouldReturnTheByteAtTheCurrentPosition()
+            {
+                byte[] data = new byte[BlockStreamPool.DefaultBlockSize + 1];
+                data[data.Length - 1] = 1;
+                this.stream.Write(data, 0, data.Length);
+
+                this.stream.Position = data.Length - 1;
+                int result = this.stream.ReadByte();
+
+                result.Should().Be(1);
+            }
+
+            [Fact]
+            public void ShouldThrowIfDisposed()
+            {
+                this.stream.Dispose();
+
+                this.stream.Invoking(s => { _ = s.ReadByte(); })
                     .Should().Throw<ObjectDisposedException>();
             }
         }
@@ -245,6 +306,42 @@
                 byte[] buffer = new byte[1];
                 this.stream.Invoking(s => s.Write(buffer, 0, 1))
                     .Should().Throw<ObjectDisposedException>();
+            }
+        }
+
+        public sealed class WriteAsync : BlockStreamTests
+        {
+            [Fact]
+            public void ShouldReturnCanceledIfTheTokenIsAlreadyCanceled()
+            {
+                byte[] buffer = new byte[1];
+                var token = new CancellationToken(canceled: true);
+
+                Task result = this.stream.WriteAsync(buffer, 0, 1, token);
+
+                result.IsCanceled.Should().BeTrue();
+            }
+
+            [Fact]
+            public void ShouldThrowIfDisposed()
+            {
+                this.stream.Dispose();
+
+                byte[] buffer = new byte[1];
+                this.stream.Awaiting(s => s.WriteAsync(buffer, 0, 1))
+                    .Should().Throw<ObjectDisposedException>();
+            }
+
+            [Fact]
+            public void ShouldWriteTheDataSyncronously()
+            {
+                Task result = this.stream.WriteAsync(new byte[] { 1, 2 }, 0, 2);
+                result.IsCompleted.Should().BeTrue();
+
+                byte[] buffer = new byte[2];
+                this.stream.Position = 0;
+                this.stream.Read(buffer, 0, 2);
+                buffer.Should().Equal(1, 2);
             }
         }
     }
