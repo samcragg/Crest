@@ -1,5 +1,6 @@
 ﻿namespace Host.UnitTests
 {
+    using Crest.Host.IO;
     using Crest.Host.Serialization;
 
     public static class ModuleInitializer

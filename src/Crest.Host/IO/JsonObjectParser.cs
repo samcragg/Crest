@@ -33,6 +33,7 @@ namespace Crest.Host.IO
         public JsonObjectParser(string json)
         {
             this.iterator = new StringIterator(json);
+            this.iterator.MoveNext(); // Point to the start
         }
 
         /// <summary>

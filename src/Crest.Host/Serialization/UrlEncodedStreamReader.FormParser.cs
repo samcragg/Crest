@@ -8,6 +8,7 @@ namespace Crest.Host.Serialization
     using System;
     using System.Collections.Generic;
     using System.Runtime.CompilerServices;
+    using Crest.Host.IO;
 
     /// <content>
     /// Contains the nested <see cref="FormParser"/> struct.

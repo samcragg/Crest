@@ -1,11 +1,11 @@
-﻿namespace Host.UnitTests.Serialization
+﻿namespace Host.UnitTests.IO
 {
     using System;
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
     using System.Text;
-    using Crest.Host.Serialization;
+    using Crest.Host.IO;
     using FluentAssertions;
     using NSubstitute;
     using Xunit;

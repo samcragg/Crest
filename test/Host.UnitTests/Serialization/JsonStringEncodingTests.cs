@@ -3,6 +3,7 @@
     using System;
     using System.IO;
     using System.Text;
+    using Crest.Host.IO;
     using Crest.Host.Serialization;
     using FluentAssertions;
     using Xunit;
