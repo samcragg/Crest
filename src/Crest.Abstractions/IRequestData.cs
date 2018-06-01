@@ -7,6 +7,7 @@ namespace Crest.Abstractions
 {
     using System;
     using System.Collections.Generic;
+    using System.IO;
     using System.Reflection;
 
     /// <summary>
@@ -14,6 +15,11 @@ namespace Crest.Abstractions
     /// </summary>
     public interface IRequestData
     {
+        /// <summary>
+        /// Gets the body sent with the request.
+        /// </summary>
+        Stream Body { get; }
+
         /// <summary>
         /// Gets the method to be invoked that handles the matched route.
         /// </summary>

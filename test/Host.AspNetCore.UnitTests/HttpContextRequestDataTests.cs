@@ -2,6 +2,7 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.IO;
     using System.Reflection;
     using Crest.Host.AspNetCore;
     using FluentAssertions;
@@ -13,6 +14,14 @@
     {
         public sealed class Constructor : HttpContextRequestDataTests
         {
+            [Fact]
+            public void ShouldAssignTheBodyProperty()
+            {
+                var data = new HttpContextRequestData(null, null, CreateContext());
+
+                data.Body.Should().NotBeNull();
+            }
+
             [Fact]
             public void ShouldAssignTheHandlerProperty()
             {
@@ -55,6 +64,7 @@
             {
                 Uri url = new Uri(urlString);
                 HttpContext context = Substitute.For<HttpContext>();
+                context.Request.Body = Substitute.For<Stream>();
                 context.Request.Host = new HostString(url.Host, url.Port);
                 context.Request.Path = new PathString(url.AbsolutePath);
                 context.Request.QueryString = new QueryString(url.Query);

@@ -7,6 +7,7 @@ namespace Crest.Host.AspNetCore
 {
     using System;
     using System.Collections.Generic;
+    using System.IO;
     using System.Reflection;
     using Crest.Abstractions;
     using Microsoft.AspNetCore.Http;
@@ -24,12 +25,16 @@ namespace Crest.Host.AspNetCore
         /// <param name="context">The current request context.</param>
         public HttpContextRequestData(MethodInfo handler, IReadOnlyDictionary<string, object> parameters, HttpContext context)
         {
+            this.Body = context.Request.Body;
             this.Context = context;
             this.Handler = handler;
             this.Headers = new HeadersAdapter(context.Request.Headers);
             this.Parameters = parameters;
             this.Url = ConvertToUri(context.Request);
         }
+
+        /// <inheritdoc />
+        public Stream Body { get; }
 
         /// <inheritdoc />
         public MethodInfo Handler { get; }
