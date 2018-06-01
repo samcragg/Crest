@@ -44,6 +44,9 @@
     <Compile Update="Conversion/HtmlConverter.ObjectWalker.cs">
       <DependentUpon>HtmlConverter.cs</DependentUpon>
     </Compile>
+    <Compile Update="Conversion/HttpHeaderParser.Tokens.cs">
+      <DependentUpon>HttpHeaderParser.cs</DependentUpon>
+    </Compile>
     <Compile Update="Conversion/TimeSpanConverter.DecimalSeparator.cs">
       <DependentUpon>TimeSpanConverter.cs</DependentUpon>
     </Compile>
