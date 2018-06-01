@@ -218,5 +218,20 @@
                 result.Should().Be("YY");
             }
         }
+
+        public sealed class Truncate : StringBufferTests
+        {
+            [Fact]
+            public void ShouldRemoveAllTheCharacters()
+            {
+                this.AppendMultiple('X', 2);
+                this.AppendMultiple('Y', LengthToForceMultipleBuffers);
+
+                this.buffer.Truncate(LengthToForceMultipleBuffers);
+                string result = this.buffer.ToString();
+
+                result.Should().Be("XX");
+            }
+        }
     }
 }

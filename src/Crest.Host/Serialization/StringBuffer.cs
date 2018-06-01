@@ -185,6 +185,15 @@ namespace Crest.Host.Serialization
             TrimEnd(this, ref this.totalLength, predicate);
         }
 
+        /// <summary>
+        /// Removes the specified number of characters from the end of the buffer.
+        /// </summary>
+        /// <param name="amount">The number of characters to remove.</param>
+        public void Truncate(int amount)
+        {
+            Truncate(this, ref this.totalLength, amount);
+        }
+
         private static unsafe void CopyTo(StringBuffer tail, in Span<char> destination)
         {
             int destinationOffset = destination.Length;
@@ -269,6 +278,20 @@ namespace Crest.Host.Serialization
 
             buffer.start += count;
             totalLength -= count;
+        }
+
+        private static void Truncate(StringBuffer buffer, ref int totalLength, int amount)
+        {
+            int count = Math.Min(buffer.offset - buffer.start, amount);
+            buffer.offset -= count;
+            totalLength -= count;
+            amount -= count;
+
+            // Did we trim the whole chunk?
+            if ((buffer.previous != null) && (amount > 0))
+            {
+                Truncate(buffer.previous, ref totalLength, amount);
+            }
         }
 
         private void PrependBlock()
