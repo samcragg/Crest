@@ -47,6 +47,9 @@
     <Compile Update="Conversion/HttpHeaderParser.Tokens.cs">
       <DependentUpon>HttpHeaderParser.cs</DependentUpon>
     </Compile>
+    <Compile Update="Conversion/MultipartParser.BodyPart.cs">
+      <DependentUpon>MultipartParser.cs</DependentUpon>
+    </Compile>
     <Compile Update="Conversion/TimeSpanConverter.DecimalSeparator.cs">
       <DependentUpon>TimeSpanConverter.cs</DependentUpon>
     </Compile>
