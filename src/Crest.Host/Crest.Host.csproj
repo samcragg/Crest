@@ -38,6 +38,12 @@
     <Compile Update="Conversion/DoubleConverter.NumberInfo.cs">
       <DependentUpon>DoubleConverter.cs</DependentUpon>
     </Compile>
+    <Compile Update="Conversion/FileDataFactory.ByteIterator.cs">
+      <DependentUpon>FileDataFactory.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Conversion/FileDataFactory.FileData.cs">
+      <DependentUpon>FileDataFactory.cs</DependentUpon>
+    </Compile>
     <Compile Update="Conversion/GuidConverter.GuidBytes.cs">
       <DependentUpon>GuidConverter.cs</DependentUpon>
     </Compile>
