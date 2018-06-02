@@ -6,6 +6,7 @@
     using System.Globalization;
     using System.Linq;
     using System.Reflection;
+    using Crest.Abstractions;
     using Crest.Host;
     using Crest.Host.Routing;
     using FluentAssertions;
@@ -16,17 +17,32 @@
     {
         private readonly NodeBuilder builder = new NodeBuilder();
 
-        private static ParameterInfo CreateParameter<T>(string name)
+        private static RouteMetadata CreateRoute<T>(string route, int min, int max, params string[] parameters)
         {
-            return CreateParameter(typeof(T), name);
+            return CreateRoute(route, min, max, typeof(T), parameters);
         }
 
-        private static ParameterInfo CreateParameter(Type type, string name)
+        private static RouteMetadata CreateRoute(string route, int min, int max, Type type, params string[] parameters)
         {
-            ParameterInfo param = Substitute.For<ParameterInfo>();
-            param.Name.Returns(name);
-            param.ParameterType.Returns(type);
-            return param;
+            ParameterInfo CreateParameter(string name)
+            {
+                ParameterInfo param = Substitute.For<ParameterInfo>();
+                param.Name.Returns(name);
+                param.ParameterType.Returns(type);
+                return param;
+            }
+
+            ParameterInfo[] fakeParameters = parameters.Select(CreateParameter).ToArray();
+            MethodInfo method = Substitute.For<MethodInfo>();
+            method.GetParameters().Returns(fakeParameters);
+
+            return new RouteMetadata
+            {
+                RouteUrl = route,
+                MaximumVersion = max,
+                MinimumVersion = min,
+                Method = method
+            };
         }
 
         public sealed class Parse : NodeBuilderTests
@@ -34,36 +50,32 @@
             [Fact]
             public void ShouldAllowDifferentVersionsOfTheSameRoute()
             {
-                ParameterInfo param1 = CreateParameter<string>("param1");
-                ParameterInfo param2 = CreateParameter<string>("param2");
+                RouteMetadata firstVersion = CreateRoute<string>("/{param1}/", 1, 1, "param1");
+                RouteMetadata secondVersion = CreateRoute<string>("/{param2}/", 2, 2, "param2");
 
-                this.builder.Parse("1:1", "/{param1}/", new[] { param1 });
+                this.builder.Parse(firstVersion);
 
                 // Not ambiguous as it's a different version
-                Action action = () => this.builder.Parse("2:2", "/{param2}/", new[] { param2 });
-                action.Should().NotThrow();
+                this.builder.Invoking(b => b.Parse(secondVersion))
+                    .Should().NotThrow();
             }
 
             [Fact]
             public void ShouldAllowOverloadingByType()
             {
-                ParameterInfo intParam = CreateParameter<int>("intParam");
-                ParameterInfo stringParam = CreateParameter<string>("stringParam");
+                RouteMetadata intRoute = CreateRoute<int>("/{intParam}/", 1, 1, "intParam");
+                RouteMetadata stringRoute = CreateRoute<string>("/{stringParam}/", 1, 1, "stringParam");
 
-                this.builder.Parse("", "/{intParam}/", new[] { intParam });
+                this.builder.Parse(intRoute);
 
-                Action action = () => this.builder.Parse("", "/{stringParam}/", new[] { stringParam });
-                action.Should().NotThrow();
+                this.builder.Invoking(b => b.Parse(stringRoute))
+                    .Should().NotThrow();
             }
 
             [Fact]
             public void ShouldCaptureBooleans()
             {
-                ParameterInfo capture = CreateParameter<bool>("capture");
-
-                NodeMatchResult match = GetMatch(
-                    this.builder.Parse("", "/{capture}/", new[] { capture }),
-                    "true");
+                NodeMatchResult match = this.GetMatchFor(typeof(bool), "true");
 
                 match.Success.Should().BeTrue();
                 match.Value.Should().Be(true);
@@ -72,15 +84,11 @@
             [Fact]
             public void ShouldCaptureGuids()
             {
-                var guid = Guid.NewGuid();
-                ParameterInfo capture = CreateParameter<Guid>("capture");
-
-                NodeMatchResult match = GetMatch(
-                    this.builder.Parse("", "/{capture}/", new[] { capture }),
-                    guid.ToString());
+                const string GuidValue = "A000CEAB-610F-40E0-8A8D-9FDADB177809";
+                NodeMatchResult match = this.GetMatchFor(typeof(Guid), GuidValue);
 
                 match.Success.Should().BeTrue();
-                match.Value.Should().Be(guid);
+                match.Value.Should().Be(new Guid(GuidValue));
             }
 
             [Theory]
@@ -94,11 +102,7 @@
             [InlineData(typeof(ushort), "1", (ushort)1)]
             public void ShouldCaptureIntegerTypes(Type type, string value, object expected)
             {
-                ParameterInfo capture = CreateParameter(type, "capture");
-
-                NodeMatchResult match = GetMatch(
-                    this.builder.Parse("", "/{capture}/", new[] { capture }),
-                    value);
+                NodeMatchResult match = this.GetMatchFor(type, value);
 
                 match.Success.Should().BeTrue();
                 match.Value.Should().BeOfType(type);
@@ -108,11 +112,7 @@
             [Fact]
             public void ShouldCaptureTypesWithTypeConverters()
             {
-                ParameterInfo capture = CreateParameter<CustomData>("capture");
-
-                NodeMatchResult match = GetMatch(
-                    this.builder.Parse("", "/{capture}/", new[] { capture }),
-                    "custom_data");
+                NodeMatchResult match = this.GetMatchFor(typeof(CustomData), "custom_data");
 
                 match.Success.Should().BeTrue();
                 match.Value.Should().BeOfType<CustomData>()
@@ -122,15 +122,15 @@
             [Fact]
             public void ShouldReturnNodesThatMatchTheRoute()
             {
-                ParameterInfo captureParameter = CreateParameter<string>("capture");
+                RouteMetadata route = CreateRoute<string>("/literal/{capture}/", 1, 1, "capture");
 
-                NodeBuilder.IParseResult result = this.builder.Parse("", "/literal/{capture}/", new[] { captureParameter });
+                NodeBuilder.IParseResult result = this.builder.Parse(route);
                 StringSegment[] segments = UrlParser.GetSegments("/literal/string_value").ToArray();
 
+                result.Nodes.Should().HaveCount(2);
                 NodeMatchResult literal = result.Nodes[0].Match(segments[0]);
                 NodeMatchResult capture = result.Nodes[1].Match(segments[1]);
 
-                result.Nodes.Should().HaveCount(2);
                 literal.Success.Should().BeTrue();
                 capture.Success.Should().BeTrue();
                 capture.Value.Should().Be("string_value");
@@ -141,10 +141,10 @@
             {
                 ILookup<string, string> lookup = new[] { ("key", "value") }.ToLookup(x => x.Item1, x => x.Item2);
                 var dictionary = new Dictionary<string, object>();
-                ParameterInfo captureParameter = CreateParameter<string>("capture");
-                captureParameter.Attributes.Returns(ParameterAttributes.Optional);
+                RouteMetadata route = CreateRoute<string>("/literal?key={capture}", 1, 1, "capture");
+                route.Method.GetParameters()[0].Attributes.Returns(ParameterAttributes.Optional);
 
-                NodeBuilder.IParseResult result = this.builder.Parse("", "/literal?key={capture}", new[] { captureParameter });
+                NodeBuilder.IParseResult result = this.builder.Parse(route);
                 QueryCapture query = result.QueryCaptures.Single();
 
                 query.ParseParameters(lookup, dictionary);
@@ -155,16 +155,15 @@
             [Fact]
             public void ShouldThrowForAmbiguousRoutes()
             {
-                ParameterInfo param1 = CreateParameter<string>("param1");
-                ParameterInfo param2 = CreateParameter<string>("param2");
+                RouteMetadata firstVersion = CreateRoute<string>("/{param1}/", 1, 1, "param1");
+                RouteMetadata secondVersion = CreateRoute<string>("/{param2}/", 1, 1, "param2");
 
-                this.builder.Parse("", "/{param1}/", new[] { param1 });
+                this.builder.Parse(firstVersion);
 
                 // Although the parameter has a different name, it's the same type
                 // so ambiguous
-                Action action = () => this.builder.Parse("", "/{param2}/", new[] { param2 });
-
-                action.Should().Throw<InvalidOperationException>();
+                this.builder.Invoking(b => b.Parse(secondVersion))
+                    .Should().Throw<InvalidOperationException>();
             }
 
             [Theory]
@@ -178,18 +177,19 @@
             [InlineData("/{unkownParameter}", "parameter")]
             public void ShouldThrowFormatExceptionForParsingErrors(string url, string error)
             {
-                ParameterInfo param = CreateParameter<string>("param");
+                RouteMetadata route = CreateRoute<string>(url, 1, 1, "param");
 
                 // No need to test the parsing, as that's handled by UrlParse,
                 // just test that we don't silently ignore parameter errors
-                Action action = () => this.builder.Parse("", url, new[] { param });
-
-                action.Should().Throw<FormatException>()
-                      .WithMessage("*" + error + "*");
+                this.builder.Invoking(b => b.Parse(route))
+                    .Should().Throw<FormatException>()
+                    .WithMessage("*" + error + "*");
             }
 
-            private static NodeMatchResult GetMatch(NodeBuilder.IParseResult result, string value)
+            private NodeMatchResult GetMatchFor(Type type, string value)
             {
+                RouteMetadata route = CreateRoute("/{capture}/", 1, 1, type, "capture");
+                NodeBuilder.IParseResult result = this.builder.Parse(route);
                 return result.Nodes.Single().Match(new StringSegment(value));
             }
         }

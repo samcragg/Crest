@@ -6,7 +6,6 @@
 namespace Crest.Host.Routing
 {
     using System.Collections.Generic;
-    using System.Globalization;
     using System.Linq;
     using System.Reflection;
     using Crest.Abstractions;
@@ -40,10 +39,7 @@ namespace Crest.Host.Routing
 
             foreach (RouteMetadata metadata in routes)
             {
-                NodeBuilder.IParseResult result = builder.Parse(
-                    MakeVersion(metadata),
-                    metadata.RouteUrl,
-                    metadata.Method.GetParameters());
+                NodeBuilder.IParseResult result = builder.Parse(metadata);
 
                 var target = new Target(metadata.Method, result.QueryCaptures);
                 this.AddRoute(ref target, result.Nodes, metadata);
@@ -111,13 +107,6 @@ namespace Crest.Host.Routing
 
             parameters = null;
             return null;
-        }
-
-        private static string MakeVersion(RouteMetadata metadata)
-        {
-            string from = metadata.MinimumVersion.ToString(CultureInfo.InvariantCulture);
-            string to = metadata.MaximumVersion.ToString(CultureInfo.InvariantCulture);
-            return string.Concat(from, ":", to);
         }
 
         private static void SaveQueryParameters(ILookup<string, string> query, ref Target target, ref RouteNode<Versions>.MatchResult match)

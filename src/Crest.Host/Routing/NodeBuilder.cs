@@ -7,9 +7,9 @@ namespace Crest.Host.Routing
 {
     using System;
     using System.Collections.Generic;
-    using System.Linq;
-    using System.Reflection;
+    using System.Globalization;
     using System.Text;
+    using Crest.Abstractions;
 
     /// <summary>
     /// Allows the creation of nodes used to match a route whilst checking for
@@ -39,16 +39,14 @@ namespace Crest.Host.Routing
         /// <summary>
         /// Parses the specified route into a sequence of nodes.
         /// </summary>
-        /// <param name="version">The version information.</param>
-        /// <param name="routeUrl">The route URL to add.</param>
-        /// <param name="parameters">The parameters to capture.</param>
+        /// <param name="route">The route information.</param>
         /// <returns>The parsed nodes.</returns>
-        public IParseResult Parse(string version, string routeUrl, IReadOnlyCollection<ParameterInfo> parameters)
+        public IParseResult Parse(RouteMetadata route)
         {
             var parser = new NodeParser(this.specializedCaptureNodes);
-            parser.ParseUrl(routeUrl, parameters);
+            parser.ParseUrl(route.RouteUrl, route.Method.GetParameters());
 
-            string normalizedUrl = GetNormalizedRoute(version, routeUrl, parser.Nodes);
+            string normalizedUrl = GetNormalizedRoute(route, parser.Nodes);
             if (!this.normalizedUrls.Add(normalizedUrl))
             {
                 throw new InvalidOperationException("The route produces an ambiguous match.");
@@ -74,10 +72,17 @@ namespace Crest.Host.Routing
             }
         }
 
-        private static string GetNormalizedRoute(string versionInfo, string routeUrl, IEnumerable<IMatchNode> nodes)
+        private static void AppendVersion(StringBuilder buffer, RouteMetadata metadata)
         {
-            var builder = new StringBuilder(routeUrl.Length * 2);
-            builder.Append(versionInfo);
+            buffer.Append(metadata.MinimumVersion.ToString(CultureInfo.InvariantCulture))
+                  .Append(':')
+                  .Append(metadata.MaximumVersion.ToString(CultureInfo.InvariantCulture));
+        }
+
+        private static string GetNormalizedRoute(RouteMetadata route, IEnumerable<IMatchNode> nodes)
+        {
+            var builder = new StringBuilder(route.RouteUrl.Length * 2);
+            AppendVersion(builder, route);
 
             foreach (IMatchNode node in nodes)
             {
