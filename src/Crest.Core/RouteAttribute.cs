@@ -22,6 +22,12 @@ namespace Crest.Core
         }
 
         /// <summary>
+        /// Gets a value indicating whether the method can accept parameters
+        /// from the request body or not.
+        /// </summary>
+        public virtual bool CanReadBody => false;
+
+        /// <summary>
         /// Gets the route to match.
         /// </summary>
         public string Route { get; }

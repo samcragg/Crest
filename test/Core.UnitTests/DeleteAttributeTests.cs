@@ -6,6 +6,17 @@
 
     public class DeleteAttributeTests
     {
+        public sealed class CanReadBody : DeleteAttributeTests
+        {
+            [Fact]
+            public void ShouldReturnFalse()
+            {
+                var attribute = new DeleteAttribute(string.Empty);
+
+                attribute.CanReadBody.Should().BeFalse();
+            }
+        }
+
         public sealed class Route : DeleteAttributeTests
         {
             private const string ExampleRoute = "example/route";

@@ -23,6 +23,9 @@ namespace Crest.Core
         }
 
         /// <inheritdoc />
+        public override bool CanReadBody => true;
+
+        /// <inheritdoc />
         public override string Verb => "POST";
     }
 }

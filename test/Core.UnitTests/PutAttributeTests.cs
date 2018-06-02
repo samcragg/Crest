@@ -6,6 +6,17 @@
 
     public class PutAttributeTests
     {
+        public sealed class CanReadBody : PutAttributeTests
+        {
+            [Fact]
+            public void ShouldReturnTrue()
+            {
+                var attribute = new PutAttribute(string.Empty);
+
+                attribute.CanReadBody.Should().BeTrue();
+            }
+        }
+
         public sealed class Route : PutAttributeTests
         {
             private const string ExampleRoute = "example/route";
