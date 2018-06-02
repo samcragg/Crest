@@ -167,6 +167,10 @@
                 [Version(1)]
                 Task MultipleRoutes();
 
+                [Post("Route")]
+                [Version(1)]
+                Task PutMethod();
+
                 [Get("Version")]
                 [Version(2, 3)]
                 Task VersionedRoute();
@@ -229,6 +233,17 @@
                         .Select(rm => rm.RouteUrl);
 
                 routes.Should().BeEquivalentTo("Route1", "Route2");
+            }
+
+            [Fact]
+            public void ShouldReturnIfTheBodyCanBeRead()
+            {
+                RouteMetadata metadata =
+                    this.service.GetRoutes(typeof(IHasRoutes))
+                        .Where(rm => rm.Method.Name == nameof(IHasRoutes.PutMethod))
+                        .Single();
+
+                metadata.CanReadBody.Should().BeTrue();
             }
 
             [Fact]

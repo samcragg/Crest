@@ -103,6 +103,7 @@ namespace Crest.Host.Engine
 
                     yield return new RouteMetadata
                     {
+                        CanReadBody = route.CanReadBody,
                         MaximumVersion = version.To,
                         Method = method,
                         MinimumVersion = version.From,

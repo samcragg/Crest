@@ -14,6 +14,12 @@ namespace Crest.Abstractions
     public sealed class RouteMetadata
     {
         /// <summary>
+        /// Gets or sets a value indicating whether the method can accept
+        /// parameters from the request body or not.
+        /// </summary>
+        public bool CanReadBody { get; set; }
+
+        /// <summary>
         /// Gets or sets the factory to use to create an instance of the object
         /// that <see cref="Method"/> is invoked on.
         /// </summary>
