@@ -7,6 +7,7 @@ namespace Crest.Host.Routing
 {
     using System;
     using System.Collections.Generic;
+    using System.Linq;
 
     /// <summary>
     /// Allows the parsing of URLs.
@@ -18,14 +19,35 @@ namespace Crest.Host.Routing
     /// </remarks>
     internal abstract partial class UrlParser
     {
+        private readonly bool canReadBody;
+
         private readonly HashSet<string> capturedParameters =
-            new HashSet<string>(StringComparer.Ordinal);
+                    new HashSet<string>(StringComparer.Ordinal);
+
+        private IReadOnlyDictionary<string, ParameterData> currentParameters;
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="UrlParser"/> class.
+        /// </summary>
+        /// <param name="canReadBody">
+        /// Determines whether parameters can be read from the request body.
+        /// </param>
+        protected UrlParser(bool canReadBody)
+        {
+            this.canReadBody = canReadBody;
+        }
 
         /// <summary>
         /// Represents the error found during parsing.
         /// </summary>
         protected enum ErrorType
         {
+            /// <summary>
+            /// Indicates a parameter has been marked as FromBody, however,
+            /// appears as a capture.
+            /// </summary>
+            CannotBeMarkedAsFromBody,
+
             /// <summary>
             /// Indicates a parameter is captured multiple times.
             /// </summary>
@@ -40,6 +62,12 @@ namespace Crest.Host.Routing
             /// Indicates that a query key does not specify a capture value.
             /// </summary>
             MissingQueryValue,
+
+            /// <summary>
+            /// Indicates that multiple parameters have been specified as
+            /// coming from the request body.
+            /// </summary>
+            MultipleBodyParameters,
 
             /// <summary>
             /// Indicates that a parameter captured by a query parameter wasn't
@@ -109,6 +137,13 @@ namespace Crest.Host.Routing
         }
 
         /// <summary>
+        /// Called when a parameter is captured for the request body.
+        /// </summary>
+        /// <param name="parameterType">The type of the parameter being captured.</param>
+        /// <param name="name">The name of the captured parameter.</param>
+        protected abstract void OnCaptureBody(Type parameterType, string name);
+
+        /// <summary>
         /// Called when a capture segment is parsed.
         /// </summary>
         /// <param name="parameterType">The type of the parameter being captured.</param>
@@ -149,17 +184,19 @@ namespace Crest.Host.Routing
         /// Parses the specified URL, matching the specified parameters.
         /// </summary>
         /// <param name="routeUrl">The URL to parse.</param>
-        /// <param name="parameters">The parameter names and information.</param>
+        /// <param name="parameters">The parameter information.</param>
         protected virtual void ParseUrl(
             string routeUrl,
-            IReadOnlyDictionary<string, ParameterData> parameters)
+            IEnumerable<ParameterData> parameters)
         {
             this.capturedParameters.Clear();
 
-            if (this.ParsePath(routeUrl, parameters) &&
-                this.ParseQuery(routeUrl, parameters))
+            this.currentParameters = parameters.ToDictionary(pd => pd.Name, StringComparer.Ordinal);
+
+            if (this.ParsePath(routeUrl) &&
+                this.ParseQuery(routeUrl))
             {
-                this.CheckAllParametersAreCaptured(parameters);
+                this.CheckAllParametersAreCaptured();
             }
         }
 
@@ -180,20 +217,65 @@ namespace Crest.Host.Routing
             }
         }
 
-        private void CheckAllParametersAreCaptured(IReadOnlyDictionary<string, ParameterData> parameters)
+        private bool AddBoodyParameterToCaptures()
         {
-            foreach (string name in parameters.Keys)
+            if (this.canReadBody)
             {
-                if (!this.capturedParameters.Contains(name))
+                ParameterData bodyParameter = null;
+
+                // If the HTTP verb allows reading from the body and we have a
+                // single parameter, we assume it will be read from the body without
+                // having to specify [FromBody] on it
+                if ((this.capturedParameters.Count == 0) && (this.currentParameters.Count == 1))
                 {
-                    this.OnError(ErrorType.ParameterNotFound, name);
+                    bodyParameter = this.currentParameters.Values.First();
+                }
+                else
+                {
+                    // We've already checked that captured parameters aren't
+                    // marked as FromBody
+                    List<ParameterData> bodyParameters =
+                        this.currentParameters.Values
+                            .Where(x => x.HasBodyAttribute)
+                            .ToList();
+
+                    if (bodyParameters.Count > 1)
+                    {
+                        this.OnError(ErrorType.MultipleBodyParameters, bodyParameters[1].Name);
+                        return false;
+                    }
+
+                    bodyParameter = bodyParameters.FirstOrDefault();
+                }
+
+                if (bodyParameter != null)
+                {
+                    this.capturedParameters.Add(bodyParameter.Name);
+                    this.OnCaptureBody(bodyParameter.ParameterType, bodyParameter.Name);
+                }
+            }
+
+            return true;
+        }
+
+        private void CheckAllParametersAreCaptured()
+        {
+            if (!this.AddBoodyParameterToCaptures())
+            {
+                return;
+            }
+
+            foreach (ParameterData parameter in this.currentParameters.Values)
+            {
+                if (!this.capturedParameters.Contains(parameter.Name))
+                {
+                    this.OnError(ErrorType.ParameterNotFound, parameter.Name);
                     break;
                 }
             }
         }
 
         private bool GetQueryParameter(
-            IReadOnlyDictionary<string, ParameterData> parameters,
             StringSegment value,
             out string parameterName,
             out Type parameterType)
@@ -216,11 +298,7 @@ namespace Crest.Host.Routing
                     return false;
             }
 
-            ParameterData parameter = this.GetValidParameter(
-                parameters,
-                value,
-                parameterName);
-
+            ParameterData parameter = this.GetValidParameter(value, parameterName);
             if ((parameter != null) && parameter.IsOptional)
             {
                 parameterType = parameter.ParameterType;
@@ -234,12 +312,9 @@ namespace Crest.Host.Routing
             }
         }
 
-        private ParameterData GetValidParameter(
-            IReadOnlyDictionary<string, ParameterData> parameters,
-            StringSegment declaration,
-            string name)
+        private ParameterData GetValidParameter(StringSegment declaration, string name)
         {
-            if (!parameters.TryGetValue(name, out ParameterData parameter))
+            if (!this.currentParameters.TryGetValue(name, out ParameterData parameter))
             {
                 this.OnError(
                     ErrorType.UnknownParameter,
@@ -256,10 +331,16 @@ namespace Crest.Host.Routing
                 return null;
             }
 
+            if (parameter.HasBodyAttribute)
+            {
+                this.OnError(ErrorType.CannotBeMarkedAsFromBody, name);
+                return null;
+            }
+
             return parameter;
         }
 
-        private bool ParsePath(string routeUrl, IReadOnlyDictionary<string, ParameterData> parameters)
+        private bool ParsePath(string routeUrl)
         {
             foreach (StringSegment segment in GetSegments(routeUrl))
             {
@@ -267,7 +348,6 @@ namespace Crest.Host.Routing
                 if (type == SegmentType.Capture)
                 {
                     ParameterData parameter = this.GetValidParameter(
-                        parameters,
                         segment,
                         segmentValue);
 
@@ -287,7 +367,7 @@ namespace Crest.Host.Routing
             return true;
         }
 
-        private bool ParseQuery(string url, IReadOnlyDictionary<string, ParameterData> parameters)
+        private bool ParseQuery(string url)
         {
             foreach (StringSegment segment in GetKeyValues(url))
             {
@@ -305,7 +385,6 @@ namespace Crest.Host.Routing
                 }
 
                 if (!this.GetQueryParameter(
-                    parameters,
                     new StringSegment(segment.String, segment.Start + separator + 1, segment.End),
                     out string parameterName,
                     out Type parameterType))

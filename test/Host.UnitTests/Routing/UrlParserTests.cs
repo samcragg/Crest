@@ -28,6 +28,16 @@
         public sealed class ParseUrl : UrlParserTests
         {
             [Fact]
+            public void ShouldAllowImplicitBodyParameters()
+            {
+                this.parser.ParseUrl("/", new FakeParameter("body"));
+
+                (Type type, string name) = this.parser.Body.Should().ContainSingle().Subject;
+                type.Should().Be(typeof(int));
+                name.Should().Be("body");
+            }
+
+            [Fact]
             public void ShouldCaptureLiterals()
             {
                 this.parser.ParseUrl("/literal/");
@@ -40,8 +50,9 @@
             {
                 this.parser.ParseUrl("/{capture}/", new FakeParameter("capture"));
 
-                this.parser.Captures.Single().type.Should().Be(typeof(int));
-                this.parser.Captures.Single().name.Should().Be("capture");
+                (Type type, string name) = this.parser.Captures.Should().ContainSingle().Subject;
+                type.Should().Be(typeof(int));
+                name.Should().Be("capture");
             }
 
             [Fact]
@@ -60,13 +71,18 @@
             }
 
             [Fact]
+            public void ShouldCheckCapturesAreNotMarkedAsFromBody()
+            {
+                this.parser.ParseUrl(
+                    "/{parameter}/",
+                    new FakeParameter("parameter") { HasBodyAttribute = true });
+
+                this.parser.ErrorParameters.Single().Should().Be("parameter");
+            }
+
+            [Fact]
             public void ShouldCheckForDuplicateParameters()
             {
-                var parameters = new Dictionary<string, Type>
-                {
-                    { "parameter", typeof(int) }
-                };
-
                 this.parser.ParseUrl("/{parameter}/{parameter}", new FakeParameter("parameter"));
 
                 this.parser.ErrorParameters.Single().Should().Be("parameter");
@@ -89,6 +105,17 @@
             }
 
             [Fact]
+            public void ShouldCheckForMultipleBodyParameters()
+            {
+                this.parser.ParseUrl(
+                    "/",
+                    new FakeParameter("parameter1") { HasBodyAttribute = true },
+                    new FakeParameter("parameter2") { HasBodyAttribute = true });
+
+                this.parser.ErrorParameters.Single().Should().Be("parameter2");
+            }
+
+            [Fact]
             public void ShouldCheckForUnescapedBraces()
             {
                 this.parser.ParseUrl("/123}/");
@@ -100,9 +127,11 @@
             [Fact]
             public void ShouldCheckForUnmatchedParameters()
             {
-                this.parser.ParseUrl("/literal", new FakeParameter("parameter"));
+                var noBodyParametersParser = new FakeUrlParser(canReadBody: false);
 
-                this.parser.ErrorParameters.Single().Should().Be("parameter");
+                noBodyParametersParser.ParseUrl("/literal", new FakeParameter("parameter"));
+
+                noBodyParametersParser.ErrorParameters.Single().Should().Be("parameter");
             }
 
             [Fact]
@@ -156,6 +185,8 @@
                 this.Name = name;
             }
 
+            public bool HasBodyAttribute { get; set; }
+
             public bool IsOptional { get; set; }
 
             public string Name { get; }
@@ -165,6 +196,11 @@
         {
             private string routeUrl;
 
+            public FakeUrlParser(bool canReadBody = true) : base(canReadBody)
+            {
+            }
+
+            internal List<(Type type, string name)> Body { get; } = new List<(Type type, string name)>();
             internal List<(Type type, string name)> Captures { get; } = new List<(Type type, string name)>();
             internal List<string> ErrorParameters { get; } = new List<string>();
             internal List<string> ErrorParts { get; } = new List<string>();
@@ -178,10 +214,16 @@
                     routeUrl,
                     parameters.Select(p => new ParameterData
                     {
+                        HasBodyAttribute = p.HasBodyAttribute,
                         IsOptional = p.IsOptional,
                         Name = p.Name,
                         ParameterType = typeof(int)
-                    }).ToDictionary(pd => pd.Name));
+                    }));
+            }
+
+            protected override void OnCaptureBody(Type parameterType, string name)
+            {
+                this.Body.Add((parameterType, name));
             }
 
             protected override void OnCaptureSegment(Type parameterType, string name)

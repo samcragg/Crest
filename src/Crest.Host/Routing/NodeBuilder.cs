@@ -43,7 +43,7 @@ namespace Crest.Host.Routing
         /// <returns>The parsed nodes.</returns>
         public IParseResult Parse(RouteMetadata route)
         {
-            var parser = new NodeParser(this.specializedCaptureNodes);
+            var parser = new NodeParser(route.CanReadBody, this.specializedCaptureNodes);
             parser.ParseUrl(route.RouteUrl, route.Method.GetParameters());
 
             string normalizedUrl = GetNormalizedRoute(route, parser.Nodes);

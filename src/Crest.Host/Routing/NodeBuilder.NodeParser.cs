@@ -23,7 +23,10 @@ namespace Crest.Host.Routing
             private readonly List<QueryCapture> queryCaptures = new List<QueryCapture>();
             private readonly IReadOnlyDictionary<Type, Func<string, IMatchNode>> specializedCaptureNodes;
 
-            internal NodeParser(IReadOnlyDictionary<Type, Func<string, IMatchNode>> specializedCaptureNodes)
+            internal NodeParser(
+                bool canReadBody,
+                IReadOnlyDictionary<Type, Func<string, IMatchNode>> specializedCaptureNodes)
+                : base(canReadBody)
             {
                 this.specializedCaptureNodes = specializedCaptureNodes;
             }
@@ -45,11 +48,12 @@ namespace Crest.Host.Routing
                     };
                 }
 
-                IReadOnlyDictionary<string, ParameterData> dictionary =
-                    parameters.Select(ConvertParameter)
-                              .ToDictionary(pd => pd.Name, StringComparer.Ordinal);
+                this.ParseUrl(routeUrl, parameters.Select(ConvertParameter));
+            }
 
-                this.ParseUrl(routeUrl, dictionary);
+            protected override void OnCaptureBody(Type parameterType, string name)
+            {
+                throw new NotImplementedException();
             }
 
             protected override void OnCaptureSegment(Type parameterType, string name)
