@@ -5,6 +5,7 @@
 
 namespace Crest.Host.Routing
 {
+    using System;
     using System.Collections.Generic;
 
     /// <content>
@@ -17,6 +18,11 @@ namespace Crest.Host.Routing
         /// </summary>
         internal interface IParseResult
         {
+            /// <summary>
+            /// Gets the parameter that the request body is injected into.
+            /// </summary>
+            KeyValuePair<string, Type>? BodyParameter { get; }
+
             /// <summary>
             /// Gets the list of node that were parsed.
             /// </summary>

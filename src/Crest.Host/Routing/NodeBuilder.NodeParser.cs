@@ -31,6 +31,8 @@ namespace Crest.Host.Routing
                 this.specializedCaptureNodes = specializedCaptureNodes;
             }
 
+            public KeyValuePair<string, Type>? BodyParameter { get; private set; }
+
             public IReadOnlyList<IMatchNode> Nodes => this.nodes;
 
             public IReadOnlyList<QueryCapture> QueryCaptures => this.queryCaptures;
@@ -53,7 +55,7 @@ namespace Crest.Host.Routing
 
             protected override void OnCaptureBody(Type parameterType, string name)
             {
-                throw new NotImplementedException();
+                this.BodyParameter = new KeyValuePair<string, Type>(name, parameterType);
             }
 
             protected override void OnCaptureSegment(Type parameterType, string name)

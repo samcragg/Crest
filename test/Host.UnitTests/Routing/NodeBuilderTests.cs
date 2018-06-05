@@ -153,6 +153,18 @@
             }
 
             [Fact]
+            public void ShouldReturnTheBodyParameter()
+            {
+                RouteMetadata route = CreateRoute<string>("/", 1, 1, "bodyParameter");
+                route.CanReadBody = true;
+
+                NodeBuilder.IParseResult result = this.builder.Parse(route);
+
+                result.BodyParameter.Value.Key.Should().Be("bodyParameter");
+                result.BodyParameter.Value.Value.Should().Be(typeof(string));
+            }
+
+            [Fact]
             public void ShouldThrowForAmbiguousRoutes()
             {
                 RouteMetadata firstVersion = CreateRoute<string>("/{param1}/", 1, 1, "param1");
