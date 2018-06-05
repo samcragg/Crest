@@ -13,6 +13,17 @@ declares your API routes.
 
 The following are reported as errors by the analyzer:
 
+### CannotBeMarkedAsFromBody
+
+Parameters that are captured in the URL cannot be marked as coming from the
+request body. The following would trigger the error as the parameter both
+appears in the URL and has the `FromBody` attribute applied to it:
+
+```C#
+[Put("/{id}")]
+Task Method([FromBody]int id);
+```
+
 ### DuplicateCapture
 
 A parameter capture can only appear once in the route, for example, the
@@ -64,6 +75,19 @@ following when applied to the above:
 [Version(1)]
 Task Method();
 ```
+
+### MultipleBodyParameters
+
+Only a single parameter can be marked as soming from the request body, so this
+error is raised when more than one parameter is marked as `FromBody`:
+
+```C#
+[Put("/")]
+Task Method([FromBody]int id, [FromBody]string name);
+```
+
+If multiple values are required from the request body, these should be
+encapsulated in a plain old data object.
 
 ### MustBeOptional
 

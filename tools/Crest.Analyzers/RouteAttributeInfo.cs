@@ -1,5 +1,6 @@
 ﻿namespace Crest.Analyzers
 {
+    using System;
     using System.Collections.Generic;
     using System.Linq;
     using Microsoft.CodeAnalysis;
@@ -12,6 +13,19 @@
     /// </summary>
     internal static class RouteAttributeInfo
     {
+        /// <summary>
+        /// Gets the FromBody attribute applied to a parameter, if any.
+        /// </summary>
+        /// <param name="syntax">The parameter being analyzed.</param>
+        /// <returns>The attribute if found; otherwise, <c>null</c>.</returns>
+        public static AttributeSyntax GetFromBody(ParameterSyntax syntax)
+        {
+            return syntax.AttributeLists
+                         .SelectMany(a => a.Attributes)
+                         .Where(a => string.Equals("FromBody", GetAttributeName(a), StringComparison.Ordinal))
+                         .FirstOrDefault();
+        }
+
         /// <summary>
         /// Gets the HTTP verb represented by the attribute.
         /// </summary>

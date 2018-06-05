@@ -12,11 +12,15 @@
     internal sealed class UrlValidator : UrlParser
     {
         private readonly SyntaxNodeAnalysisContext context;
-        private readonly IReadOnlyDictionary<string, ParameterData> parameters;
+        private readonly IReadOnlyList<ParameterData> parameters;
         private readonly IReadOnlyDictionary<string, ParameterSyntax> parameterSyntax;
         private SyntaxToken currentNode;
 
-        public UrlValidator(SyntaxNodeAnalysisContext context, IEnumerable<ParameterSyntax> parameters)
+        public UrlValidator(
+            bool canReadBody,
+            SyntaxNodeAnalysisContext context,
+            IEnumerable<ParameterSyntax> parameters)
+            : base(canReadBody)
         {
             this.context = context;
 
@@ -24,7 +28,7 @@
             this.parameters =
                 this.parameterSyntax.Values
                     .Select(ConvertParameter)
-                    .ToDictionary(pd => pd.Name, StringComparer.Ordinal);
+                    .ToList();
         }
 
         public void Analyze(AttributeSyntax attribute)
@@ -34,6 +38,10 @@
             {
                 this.ParseUrl(url, this.parameters);
             }
+        }
+
+        protected override void OnCaptureBody(Type parameterType, string name)
+        {
         }
 
         protected override void OnCaptureSegment(Type parameterType, string name)
@@ -76,6 +84,7 @@
         {
             return new ParameterData
             {
+                HasBodyAttribute = RouteAttributeInfo.GetFromBody(syntax) != null,
                 IsOptional = syntax.Default != null,
                 Name = syntax.Identifier.Text
             };
@@ -85,6 +94,9 @@
         {
             switch (error)
             {
+                case ErrorType.CannotBeMarkedAsFromBody:
+                    return RouteAnalyzer.CannotBeMarkedAsFromBodyRule;
+
                 case ErrorType.DuplicateParameter:
                     return RouteAnalyzer.DuplicateCaptureRule;
 
@@ -93,6 +105,9 @@
 
                 case ErrorType.MissingQueryValue:
                     return RouteAnalyzer.MissingQueryValueRule;
+
+                case ErrorType.MultipleBodyParameters:
+                    return RouteAnalyzer.MultipleBodyParametersRule;
 
                 case ErrorType.MustBeOptional:
                     return RouteAnalyzer.MustBeOptionalRule;

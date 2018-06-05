@@ -8,6 +8,52 @@
     public sealed class RouteAnalyzerTests : DiagnosticVerifier<RouteAnalyzer>
     {
         [Fact]
+        public void ShouldAllowExplicitBodyParameters()
+        {
+            const string Source = Code.Usings + Code.FromBodyAttribute + Code.PutAttribute + @"
+interface IRoute
+{
+    [Put(""/{parameter}"")]
+    Task Method(string parameter, [FromBody]string requestBody);
+}";
+
+            VerifyDiagnostic(Source);
+        }
+
+        [Fact]
+        public void ShouldAllowImplicitBodyParameters()
+        {
+            const string Source = Code.Usings + Code.PutAttribute + @"
+interface IRoute
+{
+    [Put(""/"")]
+    Task Method(string requestBody);
+}";
+
+            VerifyDiagnostic(Source);
+        }
+
+        [Fact]
+        public void ShouldCheckForCapturesMarkedAsFromBody()
+        {
+            const string Source = Code.Usings + Code.FromBodyAttribute + Code.GetAttribute + @"
+            interface IRoute
+            {
+                [Get(""/{parameter}"")]
+                Task Method([FromBody]string parameter);
+            }";
+
+            var expected = new DiagnosticResult
+            {
+                Id = RouteAnalyzer.CannotBeMarkedAsFromBodyId,
+                Severity = DiagnosticSeverity.Error,
+                Locations = new[] { new DiagnosticResultLocation(line: 5, column: 29) }
+            };
+
+            VerifyDiagnostic(Source, expected);
+        }
+
+        [Fact]
         public void ShouldCheckForDuplicateCaptures()
         {
             const string Source = Code.Usings + Code.GetAttribute + @"
@@ -62,6 +108,26 @@ interface IRoute
                 Id = RouteAnalyzer.MissingQueryValueId,
                 Severity = DiagnosticSeverity.Error,
                 Locations = new[] { new DiagnosticResultLocation(line: 4, column: 18) }
+            };
+
+            VerifyDiagnostic(Source, expected);
+        }
+
+        [Fact]
+        public void ShouldCheckForMultipleFromBodyParameters()
+        {
+            const string Source = Code.Usings + Code.FromBodyAttribute + Code.PutAttribute + @"
+            interface IRoute
+            {
+                [Put(""/"")]
+                Task Method([FromBody]string p1, [FromBody]string p2);
+            }";
+
+            var expected = new DiagnosticResult
+            {
+                Id = RouteAnalyzer.MultipleBodyParametersId,
+                Severity = DiagnosticSeverity.Error,
+                Locations = new[] { new DiagnosticResultLocation(line: 5, column: 50) }
             };
 
             VerifyDiagnostic(Source, expected);

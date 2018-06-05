@@ -9,14 +9,26 @@
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     public sealed class RouteAnalyzer : DiagnosticAnalyzer
     {
+        public const string CannotBeMarkedAsFromBodyId = "CannotBeMarkedAsFromBody";
         public const string DuplicateCaptureId = "DuplicateCapture";
         public const string MissingClosingBraceId = "MissingClosingBrace";
         public const string MissingQueryValueId = "MissingQueryValue";
+        public const string MultipleBodyParametersId = "MultipleBodyParameters";
         public const string MustBeOptionalId = "MustBeOptional";
         public const string MustCaptureQueryValueId = "MustCaptureQueryValue";
         public const string ParameterNotFoundId = "ParameterNotFound";
         public const string UnescapedBraceId = "UnescapedBrace";
         public const string UnknownParameterId = "UnknownParameter";
+
+        internal static readonly DiagnosticDescriptor CannotBeMarkedAsFromBodyRule =
+            new DiagnosticDescriptor(
+                CannotBeMarkedAsFromBodyId,
+                "Parameter marked as FromBody",
+                "Captured parameter cannot be marked as FromBody",
+                "Syntax",
+                DiagnosticSeverity.Error,
+                isEnabledByDefault: true,
+                description: "Parameter is captured in the URL so cannot come from the request body.");
 
         internal static readonly DiagnosticDescriptor DuplicateCaptureRule =
             new DiagnosticDescriptor(
@@ -47,6 +59,16 @@
                 DiagnosticSeverity.Error,
                 isEnabledByDefault: true,
                 description: "Query parameters must consist of a key and capture value.");
+
+        internal static readonly DiagnosticDescriptor MultipleBodyParametersRule =
+            new DiagnosticDescriptor(
+                MultipleBodyParametersId,
+                "Multiple FromBody parameters",
+                "Multiple FromBody parameters are not allowed",
+                "Syntax",
+                DiagnosticSeverity.Error,
+                isEnabledByDefault: true,
+                description: "Only one parameter can be marked as coming from the request body.");
 
         internal static readonly DiagnosticDescriptor MustBeOptionalRule =
             new DiagnosticDescriptor(
@@ -100,9 +122,11 @@
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics =>
             ImmutableArray.Create(
+                CannotBeMarkedAsFromBodyRule,
                 DuplicateCaptureRule,
                 MissingClosingBraceRule,
                 MissingQueryValueRule,
+                MultipleBodyParametersRule,
                 MustBeOptionalRule,
                 MustCaptureQueryValueRule,
                 ParameterNotFoundRule,
@@ -117,10 +141,18 @@
         private void AnalyzeNode(SyntaxNodeAnalysisContext context)
         {
             var method = (MethodDeclarationSyntax)context.Node;
-            var validator = new UrlValidator(context, method.ParameterList.Parameters);
+            UrlValidator validator = null;
 
             foreach (AttributeSyntax attribute in RouteAttributeInfo.GetRouteAttributes(method))
             {
+                if (validator == null)
+                {
+                    validator = new UrlValidator(
+                        RouteAttributeInfo.VerbUsesBody(attribute),
+                        context,
+                        method.ParameterList.Parameters);
+                }
+
                 validator.Analyze(attribute);
             }
         }
