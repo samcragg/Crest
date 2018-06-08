@@ -18,6 +18,10 @@ namespace Crest.Host.Serialization
     {
         private struct SerializerInfo
         {
+            public readonly Func<Stream, object> DeserializeArrayMethod;
+
+            public readonly Func<Stream, object> DeserializeObjectMethod;
+
             public readonly Action<Stream, object> SerializeArrayMethod;
 
             public readonly Action<Stream, object> SerializeObjectMethod;
@@ -28,6 +32,14 @@ namespace Crest.Host.Serialization
             {
                 ConstructorInfo constructor =
                     serializer.GetConstructor(new[] { typeof(Stream), typeof(SerializationMode) });
+
+                this.DeserializeArrayMethod = CreateDeserializeMethodCall(
+                    constructor,
+                    typeof(ITypeSerializer).GetMethod(nameof(ITypeSerializer.ReadArray)));
+
+                this.DeserializeObjectMethod = CreateDeserializeMethodCall(
+                    constructor,
+                    typeof(ITypeSerializer).GetMethod(nameof(ITypeSerializer.Read)));
 
                 this.SerializeArrayMethod = CreateSerializeMethodCall(
                     constructor,
@@ -40,6 +52,22 @@ namespace Crest.Host.Serialization
                     value => value);
 
                 this.SerializerType = serializer;
+            }
+
+            private static Func<Stream, object> CreateDeserializeMethodCall(
+                ConstructorInfo constructor,
+                MethodInfo method)
+            {
+                ParameterExpression stream = Expression.Parameter(typeof(Stream));
+                ConstantExpression deserialize = Expression.Constant(SerializationMode.Deserialize);
+
+                var lambda = Expression.Lambda<Func<Stream, object>>(
+                    Expression.Call(
+                        Expression.New(constructor, stream, deserialize),
+                        method),
+                    stream);
+
+                return lambda.Compile();
             }
 
             private static Action<Stream, object> CreateSerializeMethodCall(

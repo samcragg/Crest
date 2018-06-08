@@ -42,6 +42,25 @@ namespace Crest.Host.Serialization
         }
 
         /// <inheritdoc />
+        public object Deserialize(Stream stream, Type type)
+        {
+            if (!this.GetSerializerInfo(ref type, out bool isArray, out SerializerInfo info))
+            {
+                this.GetSerializerFor(type);
+                info = this.knownTypes[type];
+            }
+
+            if (isArray)
+            {
+                return info.DeserializeArrayMethod(stream);
+            }
+            else
+            {
+                return info.DeserializeObjectMethod(stream);
+            }
+        }
+
+        /// <inheritdoc />
         public Type GetSerializerFor(Type classType)
         {
             if (this.GetSerializerInfo(ref classType, out _, out SerializerInfo info))

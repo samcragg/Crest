@@ -16,6 +16,14 @@ namespace Crest.Host.Serialization
     internal interface ISerializerGenerator<TBase>
     {
         /// <summary>
+        /// Deserializes the specified type from the stream.
+        /// </summary>
+        /// <param name="stream">The input to deserialized value.</param>
+        /// <param name="type">The type to deserialize.</param>
+        /// <returns>The deserialized object.</returns>
+        object Deserialize(Stream stream, Type type);
+
+        /// <summary>
         /// Gets a serializer for the specific type, generating a type if one
         /// doesn't already exist.
         /// </summary>

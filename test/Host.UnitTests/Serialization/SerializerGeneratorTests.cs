@@ -29,6 +29,13 @@
             SerializerGenerator.ModuleBuilder = assemblyBuilder.DefineDynamicModule("Module");
         }
 
+        public enum TestEnum
+        {
+            Value = 123
+        }
+
+        private SerializerGenerator<_SerializerBase> Generator => this.generator.Value;
+
         public class _SerializerBase : FakeSerializerBase
         {
             internal static Type LastGeneratedType;
@@ -38,6 +45,8 @@
             {
                 StreamWriter = this.Writer;
                 LastGeneratedType = this.GetType();
+                SetupSerializer?.Invoke(this);
+                SetupSerializer = null;
             }
 
             protected _SerializerBase(_SerializerBase parent)
@@ -50,7 +59,62 @@
             // in parallel
             public static new bool OutputEnumNames { get; set; }
 
+            internal static Action<FakeSerializerBase> SetupSerializer { get; set; }
+
             internal static ValueWriter StreamWriter { get; private set; }
+        }
+
+        public sealed class Deserialize : SerializerGeneratorTests
+        {
+            [Fact]
+            public void ShouldDeserializeArrays()
+            {
+                _SerializerBase.SetupSerializer =
+                    s => s.SetArray(r => r.ReadInt32(), 1, 2, 3);
+
+                object result = this.Generator.Deserialize(Stream.Null, typeof(int[]));
+
+                result.Should().BeOfType<int[]>()
+                      .Which.Should().Equal(1, 2, 3);
+            }
+
+            [Fact]
+            public void ShouldDeserializeEnumsAsStrings()
+            {
+                _SerializerBase.OutputEnumNames = true;
+                _SerializerBase.SetupSerializer =
+                    s => s.Reader.ReadString().Returns(nameof(TestEnum.Value));
+
+                object result = this.Generator.Deserialize(Stream.Null, typeof(TestEnum));
+
+                result.Should().BeOfType<TestEnum>()
+                      .Which.Should().Be(TestEnum.Value);
+            }
+
+            [Fact]
+            public void ShouldDeserializeEnumsAsValues()
+            {
+                _SerializerBase.OutputEnumNames = false;
+                _SerializerBase.SetupSerializer =
+                    s => s.Reader.ReadInt32().Returns((int)TestEnum.Value);
+
+                object result = this.Generator.Deserialize(Stream.Null, typeof(TestEnum));
+
+                result.Should().BeOfType<TestEnum>()
+                      .Which.Should().Be(TestEnum.Value);
+            }
+
+            [Fact]
+            public void ShouldDeserializePrimitives()
+            {
+                _SerializerBase.SetupSerializer =
+                    s => s.Reader.ReadInt32().Returns(123);
+
+                object result = this.Generator.Deserialize(Stream.Null, typeof(int));
+
+                result.Should().BeOfType<int>()
+                      .Which.Should().Be(123);
+            }
         }
 
         public sealed class GetSerializerFor : SerializerGeneratorTests
@@ -133,20 +197,15 @@
 
         public sealed class Serialize : SerializerGeneratorTests
         {
-            public enum TestEnum
-            {
-                Value = 123
-            }
-
             [Fact]
             public void ShouldCacheTheGeneratedTypes()
             {
                 // We wont run in parallel with any other test that will touch
                 // the static variable
-                this.generator.Value.Serialize(Stream.Null, new SimpleType());
+                this.Generator.Serialize(Stream.Null, new SimpleType());
                 Type first = _SerializerBase.LastGeneratedType;
 
-                this.generator.Value.Serialize(Stream.Null, new SimpleType());
+                this.Generator.Serialize(Stream.Null, new SimpleType());
                 Type second = _SerializerBase.LastGeneratedType;
 
                 second.Should().Be(first);
@@ -155,14 +214,14 @@
             [Fact]
             public void ShouldEnsureThereAreNoCyclicDependencies()
             {
-                this.generator.Value.Invoking(x => x.Serialize(Stream.Null, new CyclicReference()))
+                this.Generator.Invoking(x => x.Serialize(Stream.Null, new CyclicReference()))
                     .Should().Throw<InvalidOperationException>();
             }
 
             [Fact]
             public void ShouldSerializeArrays()
             {
-                this.generator.Value.Serialize(Stream.Null, new[] { 1, 2, 3 });
+                this.Generator.Serialize(Stream.Null, new[] { 1, 2, 3 });
 
                 Received.InOrder(() =>
                 {
@@ -177,7 +236,7 @@
             {
                 _SerializerBase.OutputEnumNames = true;
 
-                this.generator.Value.Serialize(Stream.Null, TestEnum.Value);
+                this.Generator.Serialize(Stream.Null, TestEnum.Value);
 
                 _SerializerBase.StreamWriter.Received().WriteString(nameof(TestEnum.Value));
             }
@@ -187,7 +246,7 @@
             {
                 _SerializerBase.OutputEnumNames = false;
 
-                this.generator.Value.Serialize(Stream.Null, TestEnum.Value);
+                this.Generator.Serialize(Stream.Null, TestEnum.Value);
 
                 _SerializerBase.StreamWriter.Received().WriteInt32((int)TestEnum.Value);
             }
@@ -195,13 +254,9 @@
             [Fact]
             public void ShouldSerializePrimitives()
             {
-                this.generator.Value.Serialize(Stream.Null, 123);
+                this.Generator.Serialize(Stream.Null, 123);
 
                 _SerializerBase.StreamWriter.Received().WriteInt32(123);
-            }
-
-            public struct InvalidStruct
-            {
             }
 
             public class CyclicReference
