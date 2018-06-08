@@ -31,6 +31,12 @@ namespace Crest.Host.Conversion
         }
 
         /// <inheritdoc />
+        public bool CanRead => false;
+
+        /// <inheritdoc />
+        public bool CanWrite => true;
+
+        /// <inheritdoc />
         public string ContentType => HtmlMimeType;
 
         /// <inheritdoc />
@@ -49,6 +55,12 @@ namespace Crest.Host.Conversion
         /// <inheritdoc />
         public void Prime(Type type)
         {
+        }
+
+        /// <inheritdoc />
+        public object ReadFrom(Stream stream, Type type)
+        {
+            throw new NotSupportedException();
         }
 
         /// <inheritdoc />

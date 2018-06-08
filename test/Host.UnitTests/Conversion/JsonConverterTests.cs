@@ -20,6 +20,26 @@
             this.converter = new JsonConverter(this.serializer);
         }
 
+        public sealed class CanRead : JsonConverterTests
+        {
+            [Fact]
+            public void ShouldReturnTrue()
+            {
+                this.converter.CanRead
+                    .Should().BeTrue();
+            }
+        }
+
+        public sealed class CanWrite : JsonConverterTests
+        {
+            [Fact]
+            public void ShouldReturnTrue()
+            {
+                this.converter.CanWrite
+                    .Should().BeTrue();
+            }
+        }
+
         public sealed class ContentType : JsonConverterTests
         {
             [Fact]
@@ -60,6 +80,21 @@
             }
         }
 
+        public sealed class ReadFrom : JsonConverterTests
+        {
+            [Fact]
+            public void ShouldDeserializeTheValue()
+            {
+                var instance = new SimpleObject();
+                this.serializer.Deserialize(Stream.Null, typeof(SimpleObject))
+                    .Returns(instance);
+
+                object result = this.converter.ReadFrom(Stream.Null, typeof(SimpleObject));
+
+                result.Should().BeSameAs(instance);
+            }
+        }
+
         public sealed class WriteTo : JsonConverterTests
         {
             [Fact]
@@ -82,11 +117,11 @@
 
                 this.serializer.Received().Serialize(Stream.Null, instance);
             }
+        }
 
-            private class SimpleObject
-            {
-                public int IntegerProperty { get; set; }
-            }
+        private class SimpleObject
+        {
+            public int IntegerProperty { get; set; }
         }
     }
 }

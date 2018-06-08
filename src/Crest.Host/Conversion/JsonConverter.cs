@@ -30,6 +30,12 @@ namespace Crest.Host.Conversion
         }
 
         /// <inheritdoc />
+        public bool CanRead => true;
+
+        /// <inheritdoc />
+        public bool CanWrite => true;
+
+        /// <inheritdoc />
         public string ContentType => JsonMimeType;
 
         /// <inheritdoc />
@@ -48,6 +54,12 @@ namespace Crest.Host.Conversion
         public void Prime(Type type)
         {
             this.generator.GetSerializerFor(type);
+        }
+
+        /// <inheritdoc />
+        public object ReadFrom(Stream stream, Type type)
+        {
+            return this.generator.Deserialize(stream, type);
         }
 
         /// <inheritdoc />

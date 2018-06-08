@@ -15,6 +15,16 @@ namespace Crest.Abstractions
     public interface IContentConverter
     {
         /// <summary>
+        /// Gets a value indicating whether this instance can read values.
+        /// </summary>
+        bool CanRead { get; }
+
+        /// <summary>
+        /// Gets a value indicating whether this instance can write values.
+        /// </summary>
+        bool CanWrite { get; }
+
+        /// <summary>
         /// Gets the MIME type of the serialized content.
         /// </summary>
         string ContentType { get; }
@@ -46,6 +56,14 @@ namespace Crest.Abstractions
         /// </summary>
         /// <param name="type">The type of the return value.</param>
         void Prime(Type type);
+
+        /// <summary>
+        /// Reads the specified type from the stream.
+        /// </summary>
+        /// <param name="stream">Where to read the object from.</param>
+        /// <param name="type">The type of object to read.</param>
+        /// <returns>The object read from the stream.</returns>
+        object ReadFrom(Stream stream, Type type);
 
         /// <summary>
         /// Writes the specified object to the stream.

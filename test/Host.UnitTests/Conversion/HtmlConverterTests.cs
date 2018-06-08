@@ -20,6 +20,26 @@
             this.converter = new HtmlConverter(this.templateProvider);
         }
 
+        public sealed class CanRead : HtmlConverterTests
+        {
+            [Fact]
+            public void ShouldReturnFalse()
+            {
+                this.converter.CanRead
+                    .Should().BeFalse();
+            }
+        }
+
+        public sealed class CanWrite : HtmlConverterTests
+        {
+            [Fact]
+            public void ShouldReturnTrue()
+            {
+                this.converter.CanWrite
+                    .Should().BeTrue();
+            }
+        }
+
         public sealed class ContentType : HtmlConverterTests
         {
             [Fact]
@@ -61,6 +81,16 @@
             public void ShouldReturnAPositiveNumber()
             {
                 this.converter.Priority.Should().BePositive();
+            }
+        }
+
+        public sealed class ReadFrom : HtmlConverterTests
+        {
+            [Fact]
+            public void ShouldThrowNotSupported()
+            {
+                this.converter.Invoking(c => c.ReadFrom(null, null))
+                    .Should().Throw<NotSupportedException>();
             }
         }
 
