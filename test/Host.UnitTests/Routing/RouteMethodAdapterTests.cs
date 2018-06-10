@@ -1,4 +1,4 @@
-﻿namespace Host.UnitTests
+﻿namespace Host.UnitTests.Routing
 {
     using System;
     using System.Collections.Generic;
@@ -144,6 +144,22 @@
                 result(new Dictionary<string, object> { { "value", 1234 } });
 
                 instance.Received().SingleParameter(1234);
+            }
+
+            [Fact]
+            public void ShouldPassInTheCapturedParametersForIValueProviders()
+            {
+                IFakeInterface instance = Substitute.For<IFakeInterface>();
+                IValueProvider valueProvider = Substitute.For<IValueProvider>();
+                valueProvider.Value.Returns(123);
+
+                RouteMethod result = this.adapter.CreateMethod(
+                    () => instance,
+                    typeof(IFakeInterface).GetMethod(nameof(IFakeInterface.SingleParameter)));
+
+                result(new Dictionary<string, object> { { "value", valueProvider } });
+
+                instance.Received().SingleParameter(123);
             }
 
             [Fact]
