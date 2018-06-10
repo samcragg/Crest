@@ -7,7 +7,6 @@ namespace Crest.Host.Routing
 {
     using System;
     using System.Collections.Generic;
-    using System.Linq;
     using System.Linq.Expressions;
     using System.Reflection;
     using System.Threading.Tasks;
@@ -18,6 +17,8 @@ namespace Crest.Host.Routing
     /// </summary>
     internal sealed class RouteMethodAdapter
     {
+        private readonly List<Expression> body = new List<Expression>();
+
         private readonly MethodInfo convertGenericTaskMethod =
             typeof(RouteMethodAdapter).GetMethod(nameof(ConvertGenericTask), BindingFlags.NonPublic | BindingFlags.Static);
 
@@ -32,6 +33,12 @@ namespace Crest.Host.Routing
 
         private readonly MethodInfo serviceProviderGetservice =
             typeof(IServiceProvider).GetMethod(nameof(IServiceProvider.GetService));
+
+        private readonly MethodInfo valueProviderGetValue =
+            typeof(IValueProvider).GetProperty(nameof(IValueProvider.Value)).GetGetMethod();
+
+        private ParameterExpression localValue;
+        private ParameterExpression localValueProvider;
 
         /// <summary>
         /// Creates an adapter for the specified method.
@@ -55,14 +62,15 @@ namespace Crest.Host.Routing
             ParameterExpression instance = Expression.Parameter(method.DeclaringType, nameof(instance));
 
             var locals = new List<ParameterExpression>();
-            List<Expression> body = this.LoadParameters(locals, captures, method.GetParameters()).ToList();
+            this.body.Clear();
+            this.AddLoadParameters(locals, captures, method.GetParameters());
 
             locals.Add(instance);
-            body.Add(this.CreateInstance(captures, instance, factory));
-            body.Add(this.InvokeMethod(locals, instance, method));
+            this.body.Add(this.CreateInstance(captures, instance, factory));
+            this.body.Add(this.InvokeMethod(locals, instance, method));
 
             return Expression.Lambda<RouteMethod>(
-                Expression.Block(locals, body),
+                Expression.Block(locals, this.body),
                 captures).Compile();
         }
 
@@ -96,12 +104,90 @@ namespace Crest.Host.Routing
             }
         }
 
+        private void AddLoadParameters(IList<ParameterExpression> locals, Expression captures, ParameterInfo[] parameters)
+        {
+            this.localValue = Expression.Variable(typeof(object));
+            this.localValueProvider = Expression.Variable(typeof(IValueProvider));
+
+            foreach (ParameterInfo parameter in parameters)
+            {
+                // T parameter = GetCapturedValue(captures);
+                ParameterExpression local = Expression.Parameter(parameter.ParameterType, parameter.Name);
+                locals.Add(local);
+                this.AssignCapturedValue(local, captures, parameter);
+            }
+
+            // IMPORTANT: Add these at the end so that the locals are declared
+            // in the same order as the parameters
+            locals.Add(this.localValue);
+            locals.Add(this.localValueProvider);
+        }
+
+        private void AssignCapturedValue(ParameterExpression parameterValue, Expression captures, ParameterInfo parameter)
+        {
+            if (parameter.IsOptional)
+            {
+                // If it's optional it can't be a body parameter, so assign it
+                // directly:
+                //
+                // object localValue;
+                // if (captures.TryGetValue("parameter", out localValue))
+                //     parameter = (T)localValue
+                // else
+                //     parameter = DefaultValue
+                this.body.Add(
+                    Expression.Assign(
+                        parameterValue,
+                        Expression.Condition(
+                            Expression.Call(
+                                captures,
+                                this.dictionaryTryGetValue,
+                                Expression.Constant(parameter.Name),
+                                this.localValue),
+                            Expression.Convert(this.localValue, parameter.ParameterType),
+                            GetDefaultValue(parameter))));
+            }
+            else
+            {
+                // localValue = captures["parameter"]
+                Expression capturedValue = Expression.Call(
+                    captures,
+                    this.dictionaryGetValue,
+                    Expression.Constant(parameter.Name));
+                this.ConvertAndAssignValue(parameterValue, capturedValue, parameter.ParameterType);
+            }
+        }
+
+        private void ConvertAndAssignValue(ParameterExpression parameter, Expression getValue, Type type)
+        {
+            // object value = ??
+            // IValueProvider provider = value as IValueProvider
+            this.body.Add(Expression.Assign(this.localValue, getValue));
+            this.body.Add(Expression.Assign(
+                this.localValueProvider,
+                Expression.TypeAs(this.localValue, typeof(IValueProvider))));
+
+            // if (provider == null)
+            //     parameter = (T)value
+            // else
+            //     parameter = (T)provider.Value
+            this.body.Add(
+                Expression.Assign(
+                    parameter,
+                    Expression.Condition(
+                        Expression.Equal(this.localValueProvider, Expression.Constant(null)),
+                        Expression.Convert(this.localValue, type),
+                        Expression.Convert(
+                            Expression.Property(this.localValueProvider, this.valueProviderGetValue),
+                            type))));
+        }
+
         private Expression CreateInstance(Expression captures, Expression instance, Func<object> factory)
         {
             Expression createInstance;
             if (factory != null)
             {
-                // (T)factory();
+                // (T)factory()
                 createInstance = Expression.Convert(
                     Expression.Invoke(Expression.Constant(factory)),
                     instance.Type);
@@ -126,44 +212,8 @@ namespace Crest.Host.Routing
                     instance.Type);
             }
 
-            // T instance = (T)factory();
+            // T instance = (T)factory()
             return Expression.Assign(instance, createInstance);
-        }
-
-        private Expression GetCapturedValue(ref ParameterExpression temp, Expression captures, ParameterInfo parameter)
-        {
-            if (parameter.IsOptional)
-            {
-                // object temp;
-                // if (captures.TryGetValue("parameter", out temp)) {
-                //     (T)temp;
-                // } else {
-                //     DefaultValue;
-                // }
-                if (temp == null)
-                {
-                    temp = Expression.Parameter(typeof(object));
-                }
-
-                return Expression.Condition(
-                    Expression.Call(
-                        captures,
-                        this.dictionaryTryGetValue,
-                        Expression.Constant(parameter.Name),
-                        temp),
-                    Expression.Convert(temp, parameter.ParameterType),
-                    GetDefaultValue(parameter));
-            }
-            else
-            {
-                // (T)captures["parameter"]
-                return Expression.Convert(
-                    Expression.Call(
-                        captures,
-                        this.dictionaryGetValue,
-                        Expression.Constant(parameter.Name)),
-                    parameter.ParameterType);
-            }
         }
 
         private MethodInfo GetConvertReturnTypeMethod(Type returnType)
@@ -194,25 +244,6 @@ namespace Crest.Host.Routing
             Expression callMethod = Expression.Call(instance, method, parameterExpressions);
             MethodInfo convertMethod = this.GetConvertReturnTypeMethod(method.ReturnType);
             return Expression.Call(convertMethod, callMethod);
-        }
-
-        private IEnumerable<Expression> LoadParameters(IList<ParameterExpression> locals, Expression captures, ParameterInfo[] parameters)
-        {
-            ParameterExpression temp = null;
-            foreach (ParameterInfo parameter in parameters)
-            {
-                // T parameter = GetCapturedValue(captures);
-                ParameterExpression local = Expression.Parameter(parameter.ParameterType, parameter.Name);
-                locals.Add(local);
-                yield return Expression.Assign(
-                    local,
-                    this.GetCapturedValue(ref temp, captures, parameter));
-            }
-
-            if (temp != null)
-            {
-                locals.Add(temp);
-            }
         }
     }
 }
