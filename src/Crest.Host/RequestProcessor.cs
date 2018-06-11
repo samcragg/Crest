@@ -37,7 +37,7 @@ namespace Crest.Host
         private readonly MatchResult notFound;
         private readonly IResponseStatusGenerator responseGenerator;
         private readonly IServiceLocator serviceLocator;
-        private readonly BlockStreamPool streamPool = new BlockStreamPool();
+        private readonly BlockStreamPool streamPool = new BlockStreamPool(); // TODO: This should be from the service locator...
 
         /// <summary>
         /// Initializes a new instance of the <see cref="RequestProcessor"/> class.
@@ -122,6 +122,12 @@ namespace Crest.Host
             if (method == null)
             {
                 throw new InvalidOperationException("Request data contains an invalid method.");
+            }
+
+            IResponseData response = await this.UpdateBodyParameter(request);
+            if (response != null)
+            {
+                return response;
             }
 
             object result = await method(request.Parameters).ConfigureAwait(false);
@@ -375,6 +381,29 @@ namespace Crest.Host
                 converter.ContentType,
                 (int)HttpStatusCode.OK,
                 convert);
+        }
+
+        private async Task<IResponseData> UpdateBodyParameter(IRequestData request)
+        {
+            RequestBodyPlaceholder requestBody =
+                request.Parameters.Values
+                       .OfType<RequestBodyPlaceholder>()
+                       .FirstOrDefault();
+
+            if (requestBody != null)
+            {
+                bool success = await requestBody.UpdateRequest(
+                    this.converterFactory,
+                    this.streamPool,
+                    request).ConfigureAwait(false);
+
+                if (!success)
+                {
+                    return await this.responseGenerator.NotAcceptableAsync(request).ConfigureAwait(false);
+                }
+            }
+
+            return null;
         }
     }
 }

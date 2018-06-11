@@ -41,7 +41,7 @@ namespace Crest.Host.Routing
             {
                 NodeBuilder.IParseResult result = builder.Parse(metadata);
 
-                var target = new Target(metadata.Method, result.QueryCaptures);
+                var target = new Target(metadata.Method, result);
                 this.AddRoute(ref target, result.Nodes, metadata);
 
                 RouteMethod lambda = adapter.CreateMethod(metadata.Factory, metadata.Method);
@@ -91,14 +91,9 @@ namespace Crest.Host.Routing
                     Target target = match.Value.Match(version);
                     if (target.Method != null)
                     {
-                        // We need to store this in the parameters now so we
-                        // can update it in the RequestProcessor with a scoped
-                        // service provider
-                        match.Captures.Add(
-                            ServiceProviderPlaceholder.Key,
-                            new ServiceProviderPlaceholder());
+                        AddPlaceholders(target, match.Captures);
+                        SaveQueryParameters(query, target, match);
 
-                        SaveQueryParameters(query, ref target, ref match);
                         parameters = match.Captures;
                         return target.Method;
                     }
@@ -109,7 +104,21 @@ namespace Crest.Host.Routing
             return null;
         }
 
-        private static void SaveQueryParameters(ILookup<string, string> query, ref Target target, ref RouteNode<Versions>.MatchResult match)
+        private static void AddPlaceholders(in Target target, IDictionary<string, object> captures)
+        {
+            // We need to store this in the parameters now so we can update it
+            // in the RequestProcessor with a scoped service provider
+            captures.Add(ServiceProviderPlaceholder.Key, new ServiceProviderPlaceholder());
+
+            if (target.HasBodyParameter)
+            {
+                captures.Add(
+                    target.BodyParameter,
+                    new RequestBodyPlaceholder(target.BodyType));
+            }
+        }
+
+        private static void SaveQueryParameters(ILookup<string, string> query, in Target target, in RouteNode<Versions>.MatchResult match)
         {
             if (target.QueryCaptures != null)
             {

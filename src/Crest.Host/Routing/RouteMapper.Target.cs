@@ -5,6 +5,7 @@
 
 namespace Crest.Host.Routing
 {
+    using System;
     using System.Collections.Generic;
     using System.Reflection;
 
@@ -15,11 +16,22 @@ namespace Crest.Host.Routing
     {
         private struct Target
         {
-            public Target(MethodInfo method, IReadOnlyList<QueryCapture> captures)
+            public Target(MethodInfo method, NodeBuilder.IParseResult result)
             {
+                KeyValuePair<string, Type> body = result.BodyParameter.GetValueOrDefault();
+                IReadOnlyList<QueryCapture> captures = result.QueryCaptures;
+
+                this.BodyParameter = body.Key;
+                this.BodyType = body.Value;
                 this.Method = method;
                 this.QueryCaptures = (captures.Count > 0) ? captures : null;
             }
+
+            public string BodyParameter { get; }
+
+            public Type BodyType { get; }
+
+            public bool HasBodyParameter => this.BodyParameter != null;
 
             public MethodInfo Method { get; }
 
