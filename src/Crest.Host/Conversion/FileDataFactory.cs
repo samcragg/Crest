@@ -10,7 +10,7 @@ namespace Crest.Host.Conversion
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
-    using System.Threading.Tasks;
+    using System.Reflection;
     using Crest.Abstractions;
     using Crest.Core;
     using Crest.Host.IO;
@@ -19,57 +19,78 @@ namespace Crest.Host.Conversion
     /// <summary>
     /// Creates objects representing the uploaded files in a request.
     /// </summary>
-    internal partial class FileDataFactory
+    internal sealed partial class FileDataFactory : IContentConverter
     {
         private const string ContentDispositionHeader = "Content-Disposition";
         private const string ContentTypeHeader = "Content-Type";
         private const string DefaultContentType = "text/plain"; // RFC7578 §4.4
         private static readonly ILog Logger = LogProvider.For<FileDataFactory>();
         private readonly ArrayPool<byte> bytePool;
-        private readonly BlockStreamPool streamPool;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="FileDataFactory"/> class.
         /// </summary>
         /// <param name="bytePool">Used to obtain temporary byte buffers.</param>
-        /// <param name="streamPool">Used to obtain temporary stream buffers.</param>
-        public FileDataFactory(ArrayPool<byte> bytePool, BlockStreamPool streamPool)
+        public FileDataFactory(ArrayPool<byte> bytePool)
         {
             this.bytePool = bytePool;
-            this.streamPool = streamPool;
         }
 
-        /// <summary>
-        /// Extracts the file data from the request.
-        /// </summary>
-        /// <param name="request">
-        /// Contains information about the current request.
-        /// </param>
-        /// <returns>
-        /// A task that represents the asynchronous operation. The value of the
-        /// <c>TResult</c> parameter contains the extracted files.
-        /// </returns>
-        public virtual async Task<IFileData[]> CreateFilesAsync(IRequestData request)
+        /// <inheritdoc />
+        public bool CanRead => true;
+
+        /// <inheritdoc />
+        public bool CanWrite => false;
+
+        /// <inheritdoc />
+        public string ContentType => throw new NotSupportedException();
+
+        /// <inheritdoc />
+        public IEnumerable<string> Formats
         {
-            string boundary = ParseBoundary(request.Headers);
-            if (boundary == null)
+            get
             {
-                Logger.Warn("No boundary parameter found.");
-                return new IFileData[0];
+                yield return "multipart/*";
             }
+        }
 
-            if (request.Body.CanSeek)
+        /// <inheritdoc />
+        public int Priority => 600;
+
+        /// <inheritdoc />
+        public void Prime(Type type)
+        {
+        }
+
+        /// <inheritdoc />
+        public object ReadFrom(IReadOnlyDictionary<string, string> headers, Stream stream, Type type)
+        {
+            IFileData[] files = this.CreateFiles(headers, stream);
+
+            // Handle the scenario where the method parameter is IEnumerable<IFileData>
+            if (type.IsAssignableFrom(typeof(IFileData[])))
             {
-                return this.ParseStream(boundary, request.Body);
+                return files;
             }
-
-            using (Stream buffer = this.streamPool.GetStream())
+            else if (files.Length > 0)
             {
-                await request.Body.CopyToAsync(buffer).ConfigureAwait(false);
-                buffer.Position = 0;
+                if (files.Length > 1)
+                {
+                    Logger.Info("Multiple files have been sent, however, only the first file has been used for processing.");
+                }
 
-                return this.ParseStream(boundary, buffer);
+                return files[0];
             }
+            else
+            {
+                return null;
+            }
+        }
+
+        /// <inheritdoc />
+        public void WriteTo(Stream stream, object obj)
+        {
+            throw new NotSupportedException();
         }
 
         private static string FindParameter(HttpHeaderParser parser, string parameter)
@@ -171,13 +192,21 @@ namespace Crest.Host.Conversion
             return new FileData(data, headers);
         }
 
-        private IFileData[] ParseStream(string boundary, Stream body)
+        private IFileData[] CreateFiles(IReadOnlyDictionary<string, string> headers, Stream body)
         {
+            string boundary = ParseBoundary(headers);
+            if (boundary == null)
+            {
+                Logger.Warn("No boundary parameter found.");
+                return new IFileData[0];
+            }
+
             // We need to call ToList as the Parse method is lazy and uses the
             // same stream that we use when converting the parts and since we
             // change the position of the stream, that will upset the parser
             var parser = new MultipartParser(boundary, body);
             List<MultipartParser.BodyPart> parts = parser.Parse().ToList();
+
             var files = new IFileData[parts.Count];
             for (int i = 0; i < files.Length; i++)
             {

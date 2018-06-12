@@ -5,11 +5,8 @@
     using System.Collections.Generic;
     using System.IO;
     using System.Text;
-    using System.Threading.Tasks;
-    using Crest.Abstractions;
     using Crest.Core;
     using Crest.Host.Conversion;
-    using Crest.Host.IO;
     using FluentAssertions;
     using NSubstitute;
     using Xunit;
@@ -20,81 +17,120 @@
         private const string NewLine = "\r\n";
         private readonly ArrayPool<byte> bytePool;
         private readonly FileDataFactory factory;
-        private readonly BlockStreamPool streamPool;
 
         private FileDataFactoryTests()
         {
             this.bytePool = Substitute.For<ArrayPool<byte>>();
             this.bytePool.Rent(0).ReturnsForAnyArgs(ci => new byte[ci.Arg<int>()]);
 
-            this.streamPool = Substitute.For<BlockStreamPool>();
-            this.streamPool.GetStream().Returns(_ => new MemoryStream());
-
-            this.factory = new FileDataFactory(this.bytePool, this.streamPool);
+            this.factory = new FileDataFactory(this.bytePool);
         }
 
-        private static IRequestData CreateRequest(string body)
-        {
-            IRequestData request = Substitute.For<IRequestData>();
-            SetContentType(request, "multipart/mixed; boundary=" + BoundaryText);
-
-            byte[] bytes = Encoding.ASCII.GetBytes(body);
-            request.Body.Returns(new MemoryStream(bytes, writable: false));
-
-            return request;
-        }
-
-        private static void SetContentType(IRequestData request, string value)
-        {
-            request.Headers.Returns(new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
-            {
-                ["Content-Type"] = value
-            });
-        }
-
-        public sealed class CreateFilesAsync : FileDataFactoryTests
+        public sealed class CanRead : FileDataFactoryTests
         {
             [Fact]
-            public void ShouldBufferTheStream()
+            public void ShouldReturnTrue()
+            {
+                this.factory.CanRead
+                    .Should().BeTrue();
+            }
+        }
+
+        public sealed class CanWrite : FileDataFactoryTests
+        {
+            [Fact]
+            public void ShouldReturnFalse()
+            {
+                this.factory.CanWrite
+                    .Should().BeFalse();
+            }
+        }
+
+        public sealed class ContentType : FileDataFactoryTests
+        {
+            [Fact]
+            public void ShouldThrowNotSupportedException()
+            {
+                this.factory.Invoking(x => _ = x.ContentType)
+                    .Should().Throw<NotSupportedException>();
+            }
+        }
+
+        public sealed class Formats : FileDataFactoryTests
+        {
+            [Fact]
+            public void ShouldIncludeAnyMultipartType()
+            {
+                this.factory.Formats.Should().Contain(
+                    "multipart/*");
+            }
+        }
+
+        public sealed class Prime : FileDataFactoryTests
+        {
+            [Fact]
+            public void ShouldNotThrowAnException()
+            {
+                this.factory.Invoking(x => x.Prime(typeof(int)))
+                    .Should().NotThrow();
+            }
+        }
+
+        public sealed class Priority : FileDataFactoryTests
+        {
+            [Fact]
+            public void ShouldReturnAPositiveNumber()
+            {
+                this.factory.Priority.Should().BePositive();
+            }
+        }
+
+        public sealed class ReadFrom : FileDataFactoryTests
+        {
+            [Fact]
+            public void ShouldReturnAnEmptyArrayIfNoBoundaryHeaderIsPresent()
+            {
+                object result = this.factory.ReadFrom(
+                    new Dictionary<string, string>(),
+                    null,
+                    typeof(IFileData[]));
+
+                result.Should().BeAssignableTo<IFileData[]>().Which.Should().BeEmpty();
+            }
+
+            [Fact]
+            public void ShouldReturnAnEmptyArrayIfNotAMultipartType()
+            {
+                IReadOnlyDictionary<string, string> headers = CreateContentType("text/plain;boundary=" + BoundaryText);
+
+                object result = this.factory.ReadFrom(
+                    headers,
+                    null,
+                    typeof(IFileData[]));
+
+                result.Should().BeAssignableTo<IFileData[]>().Which.Should().BeEmpty();
+            }
+
+            [Fact]
+            public void ShouldReturnForIEnumerableTypes()
             {
                 const string Body =
                     "--" + BoundaryText + NewLine +
                     NewLine +
-                    "Part" + NewLine +
+                    "First part" + NewLine +
+                    "--" + BoundaryText + NewLine +
+                    NewLine +
+                    "Second part" + NewLine +
                     "--" + BoundaryText + "--";
 
-                IRequestData request = Substitute.For<IRequestData>();
-                SetContentType(request, "multipart/mixed; boundary=" + BoundaryText);
-                request.Body.Returns(new NonSeekableStream(Body));
+                object result = this.ReadBody(Body, typeof(IEnumerable<IFileData>));
 
-                Func<Task> action = () => this.factory.CreateFilesAsync(request);
-
-                action.Should().NotThrow();
+                result.Should().BeAssignableTo<IEnumerable<IFileData>>()
+                      .Which.Should().HaveCount(2);
             }
 
             [Fact]
-            public async Task ShouldReturnAnEmptyArrayIfNoBoundaryHeaderIsPresent()
-            {
-                IRequestData request = Substitute.For<IRequestData>();
-
-                IFileData[] result = await this.factory.CreateFilesAsync(request);
-
-                result.Should().BeEmpty();
-            }
-
-            [Fact]
-            public async Task ShouldReturnAnEmptyArrayIfNotAMultipartType()
-            {
-                IRequestData request = Substitute.For<IRequestData>();
-                SetContentType(request, "text/plain;boundary=" + BoundaryText);
-
-                IFileData[] result = await this.factory.CreateFilesAsync(request);
-
-                result.Should().BeEmpty();
-            }
-
-            [Fact]
-            public async Task ShouldReturnMultipleParts()
+            public void ShouldReturnMultipleParts()
             {
                 const string Body =
                     "--" + BoundaryText + NewLine +
@@ -107,8 +143,7 @@
                     "Second part" + NewLine +
                     "--" + BoundaryText + "--";
 
-                IFileData[] result = await this.factory.CreateFilesAsync(
-                    CreateRequest(Body));
+                IFileData[] result = this.GetFiles(Body);
 
                 result.Should().HaveCount(2);
                 Encoding.ASCII.GetString(result[0].Contents).Should().Be("First part");
@@ -116,7 +151,18 @@
             }
 
             [Fact]
-            public async Task ShouldReturnTextContentTypeWhenNoneIsSpecified()
+            public void ShouldReturnNullForSingleParameterTypesWhenThereAreNoFiles()
+            {
+                object result = this.factory.ReadFrom(
+                    new Dictionary<string, string>(),
+                    null,
+                    typeof(IFileData));
+
+                result.Should().BeNull();
+            }
+
+            [Fact]
+            public void ShouldReturnTextContentTypeWhenNoneIsSpecified()
             {
                 const string Body =
                     "--" + BoundaryText + NewLine +
@@ -124,15 +170,14 @@
                     "Part" + NewLine +
                     "--" + BoundaryText + "--";
 
-                IFileData[] result = await this.factory.CreateFilesAsync(
-                    CreateRequest(Body));
+                IFileData[] result = this.GetFiles(Body);
 
                 result.Should().ContainSingle().Which
                       .ContentType.Should().Be("text/plain");
             }
 
             [Fact]
-            public async Task ShouldReturnTheFilename()
+            public void ShouldReturnTheFilename()
             {
                 const string Body =
                     "--" + BoundaryText + NewLine +
@@ -141,15 +186,34 @@
                     "Part" + NewLine +
                     "--" + BoundaryText + "--";
 
-                IFileData[] result = await this.factory.CreateFilesAsync(
-                    CreateRequest(Body));
+                IFileData[] result = this.GetFiles(Body);
 
                 result.Should().ContainSingle().Which
                       .Filename.Should().Be("myFile.txt");
             }
 
             [Fact]
-            public async Task ShouldReturnTheHeaders()
+            public void ShouldReturnTheFirstFileForSingleParameters()
+            {
+                const string Body =
+                    "--" + BoundaryText + NewLine +
+                    "Content-Disposition: inline; filename=\"first.txt\"" + NewLine +
+                    NewLine +
+                    NewLine +
+                    "--" + BoundaryText + NewLine +
+                    "Content-Disposition: inline; filename=\"second.txt\"" + NewLine +
+                    NewLine +
+                    NewLine +
+                    "--" + BoundaryText + "--";
+
+                object result = this.ReadBody(Body, typeof(IFileData));
+
+                result.Should().BeAssignableTo<IFileData>()
+                      .Which.Filename.Should().Be("first.txt");
+            }
+
+            [Fact]
+            public void ShouldReturnTheHeaders()
             {
                 const string HeaderName = "Content-Disposition";
                 const string HeaderValue = "inline; filesize=1024";
@@ -160,31 +224,36 @@
                     "Part" + NewLine +
                     "--" + BoundaryText + "--";
 
-                IFileData[] result = await this.factory.CreateFilesAsync(
-                    CreateRequest(Body));
+                IFileData[] result = this.GetFiles(Body);
 
                 result.Should().ContainSingle().Which
                       .Headers[HeaderName].Should().Be(HeaderValue);
             }
 
-            private class NonSeekableStream : MemoryStream
+            private static Dictionary<string, string> CreateContentType(string value)
             {
-                public NonSeekableStream(string data)
-                    : base(Encoding.ASCII.GetBytes(data), writable: false)
+                return new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
                 {
-                }
+                    ["Content-Type"] = value
+                };
+            }
 
-                public override bool CanSeek => false;
+            private IFileData[] GetFiles(string body)
+            {
+                return (IFileData[])this.ReadBody(body, typeof(IFileData[]));
+            }
 
-                public override long Position
+            private object ReadBody(string body, Type type)
+            {
+                IReadOnlyDictionary<string, string> headers = CreateContentType("multipart/mixed; boundary=" + BoundaryText);
+
+                byte[] bytes = Encoding.ASCII.GetBytes(body);
+                using (var stream = new MemoryStream(bytes, writable: false))
                 {
-                    get => throw new NotSupportedException();
-                    set => throw new NotSupportedException();
-                }
-
-                public override long Seek(long offset, SeekOrigin loc)
-                {
-                    throw new NotSupportedException();
+                    return this.factory.ReadFrom(
+                        headers,
+                        stream,
+                        type);
                 }
             }
         }
