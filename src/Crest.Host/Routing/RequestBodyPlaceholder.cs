@@ -6,6 +6,7 @@
 namespace Crest.Host.Routing
 {
     using System;
+    using System.IO;
     using System.Threading.Tasks;
     using Crest.Abstractions;
     using Crest.Host.IO;
@@ -27,27 +28,28 @@ namespace Crest.Host.Routing
         }
 
         /// <inheritdoc />
-        public object Value { get; private set; }
+        public virtual object Value { get; private set; }
 
         /// <summary>
         /// Updates the parameters in the request with the value in the body.
         /// </summary>
-        /// <param name="converterFactory">
-        /// Used to get the converter for the request data.
-        /// </param>
+        /// <param name="converter">Used to convert the request data.</param>
         /// <param name="streamPool">Used to obtain temporary streams.</param>
         /// <param name="request">Contains the request data.</param>
         /// <returns>
         /// <c>true</c> if the conversion was successful; otherwise, <c>false</c>.
         /// </returns>
-        internal async Task<bool> UpdateRequest(
-            IContentConverterFactory converterFactory,
+        internal virtual async Task<bool> UpdateRequestAsync(
+            IContentConverter converter,
             BlockStreamPool streamPool,
             IRequestData request)
         {
-            // TODO:
-            await Task.Yield();
-            return false;
+            using (Stream buffer = streamPool.GetStream())
+            {
+                await request.Body.CopyToAsync(buffer).ConfigureAwait(false);
+                buffer.Position = 0;
+                return true;
+            }
         }
     }
 }

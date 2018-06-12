@@ -124,7 +124,7 @@ namespace Crest.Host
                 throw new InvalidOperationException("Request data contains an invalid method.");
             }
 
-            IResponseData response = await this.UpdateBodyParameter(request);
+            IResponseData response = await this.UpdateBodyParameterAsync(request, converter);
             if (response != null)
             {
                 return response;
@@ -383,7 +383,7 @@ namespace Crest.Host
                 convert);
         }
 
-        private async Task<IResponseData> UpdateBodyParameter(IRequestData request)
+        private async Task<IResponseData> UpdateBodyParameterAsync(IRequestData request, IContentConverter converter)
         {
             RequestBodyPlaceholder requestBody =
                 request.Parameters.Values
@@ -392,8 +392,8 @@ namespace Crest.Host
 
             if (requestBody != null)
             {
-                bool success = await requestBody.UpdateRequest(
-                    this.converterFactory,
+                bool success = await requestBody.UpdateRequestAsync(
+                    converter,
                     this.streamPool,
                     request).ConfigureAwait(false);
 

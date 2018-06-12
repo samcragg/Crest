@@ -307,6 +307,18 @@
             }
 
             [Fact]
+            public async Task ShouldInvokeNotAcceptableIfUnableToUpdateTheRequstBodyPlaceholder()
+            {
+                RequestBodyPlaceholder placeholder = Substitute.For<RequestBodyPlaceholder>(typeof(object));
+                placeholder.UpdateRequestAsync(null, null, null).ReturnsForAnyArgs(false);
+                this.request.Parameters.Returns(new Dictionary<string, object> { ["body"] = placeholder });
+
+                await this.processor.InvokeHandlerAsync(this.request, null);
+
+                await this.responseGenerator.ReceivedWithAnyArgs().NotAcceptableAsync(null);
+            }
+
+            [Fact]
             public async Task ShouldInvokeNotFoundStatusCodeHandler()
             {
                 this.mapper.GetAdapter(this.request.Handler)
@@ -341,6 +353,17 @@
                 }
 
                 this.converter.Received().WriteTo(Arg.Any<Stream>(), "Response");
+            }
+
+            [Fact]
+            public async Task ShouldUpdateRequestBodyPlaceholders()
+            {
+                RequestBodyPlaceholder placeholder = Substitute.For<RequestBodyPlaceholder>(typeof(object));
+                this.request.Parameters.Returns(new Dictionary<string, object> { ["body"] = placeholder });
+
+                await this.processor.InvokeHandlerAsync(this.request, null);
+
+                await placeholder.ReceivedWithAnyArgs().UpdateRequestAsync(null, null, null);
             }
         }
 
