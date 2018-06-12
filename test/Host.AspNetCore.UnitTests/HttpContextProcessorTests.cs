@@ -29,7 +29,7 @@
             this.mapper.FindOverride(null, null).ReturnsNullForAnyArgs();
 
             IContentConverterFactory factory = Substitute.For<IContentConverterFactory>();
-            factory.GetConverter(null).ReturnsForAnyArgs(this.converter);
+            factory.GetConverterForAccept(null).ReturnsForAnyArgs(this.converter);
 
             IServiceLocator serviceLocator = Substitute.For<IServiceLocator>();
             serviceLocator.GetService(typeof(IContentConverterFactory))

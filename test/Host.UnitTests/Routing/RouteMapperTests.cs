@@ -22,6 +22,9 @@
         private static readonly MethodInfo ExampleMethodInfo =
             typeof(RouteMapperTests).GetMethod(nameof(ExampleMethod), BindingFlags.Instance | BindingFlags.NonPublic);
 
+        private static readonly MethodInfo MethodWithBodyParameterInfo =
+            typeof(RouteMapperTests).GetMethod(nameof(MethodWithBodyParameter), BindingFlags.Instance | BindingFlags.NonPublic);
+
         private readonly IEnumerable<DirectRouteMetadata> noDirectRoutes = Enumerable.Empty<DirectRouteMetadata>();
         private readonly IEnumerable<RouteMetadata> noRoutes = Enumerable.Empty<RouteMetadata>();
 
@@ -50,6 +53,11 @@
         }
 
         private Task ExampleMethod2()
+        {
+            throw new NotImplementedException();
+        }
+
+        private Task MethodWithBodyParameter(string body)
         {
             throw new NotImplementedException();
         }
@@ -208,10 +216,26 @@
             }
 
             [Fact]
+            public void ShouldIncludeTheRequestBodyPlaceholder()
+            {
+                RouteMetadata[] routes = new[] { CreateRoute("GET", "/route") };
+                routes[0].CanReadBody = true;
+                routes[0].Method = MethodWithBodyParameterInfo;
+
+                var mapper = new RouteMapper(routes, this.noDirectRoutes);
+                MethodInfo route = mapper.Match(
+                    "GET",
+                    "/v1/route",
+                    this.query,
+                    out IReadOnlyDictionary<string, object> parameters);
+
+                parameters.Keys.Should().Contain("body");
+            }
+
+            [Fact]
             public void ShouldIncludeTheServiceProviderPlaceholder()
             {
                 RouteMetadata[] routes = new[] { CreateRoute("GET", "/route") };
-                routes[0].Method = ExampleMethodInfo;
 
                 var mapper = new RouteMapper(routes, this.noDirectRoutes);
                 MethodInfo route = mapper.Match(

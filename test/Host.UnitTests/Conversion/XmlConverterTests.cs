@@ -58,8 +58,7 @@
                 // https://www.iana.org/assignments/media-types/application/xml
                 // https://www.iana.org/assignments/media-types/text/xml
                 this.converter.Formats.Should().Contain(
-                    "application/xml",
-                    "text/xml");
+                    new[] { "application/xml", "text/xml" });
             }
         }
 

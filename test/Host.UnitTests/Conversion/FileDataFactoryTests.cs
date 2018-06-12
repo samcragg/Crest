@@ -61,8 +61,7 @@
             [Fact]
             public void ShouldIncludeAnyMultipartType()
             {
-                this.factory.Formats.Should().Contain(
-                    "multipart/*");
+                this.factory.Formats.Should().Contain("multipart/*");
             }
         }
 
@@ -255,6 +254,16 @@
                         stream,
                         type);
                 }
+            }
+        }
+
+        public sealed class WriteTo : FileDataFactoryTests
+        {
+            [Fact]
+            public void ShouldThrowNotSupportedException()
+            {
+                this.factory.Invoking(x => x.WriteTo(null, null))
+                    .Should().Throw<NotSupportedException>();
             }
         }
     }
