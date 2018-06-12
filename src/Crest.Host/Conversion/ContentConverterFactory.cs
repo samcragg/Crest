@@ -44,7 +44,7 @@ namespace Crest.Host.Conversion
         }
 
         /// <inheritdoc />
-        public IContentConverter GetConverter(string accept)
+        public IContentConverter GetConverterForAccept(string accept)
         {
             if (string.IsNullOrWhiteSpace(accept))
             {
@@ -56,10 +56,29 @@ namespace Crest.Host.Conversion
 
             foreach (MediaRange range in ranges)
             {
-                IContentConverter converter = this.FindConverter(range);
+                IContentConverter converter = this.FindConverterForAccept(range);
                 if (converter != null)
                 {
                     return converter;
+                }
+            }
+
+            return null;
+        }
+
+        /// <inheritdoc />
+        public IContentConverter GetConverterFromContentType(string content)
+        {
+            if (!string.IsNullOrEmpty(content))
+            {
+                var range = new MediaRange(new StringSegment(content));
+                for (int i = 0; i < this.converters.Length; i++)
+                {
+                    IContentConverter converter = this.converters[i];
+                    if (converter.CanRead && this.ranges[i].MediaTypesMatch(range))
+                    {
+                        return converter;
+                    }
                 }
             }
 
@@ -95,17 +114,21 @@ namespace Crest.Host.Conversion
             return ranges;
         }
 
-        private IContentConverter FindConverter(MediaRange accept)
+        private IContentConverter FindConverterForAccept(MediaRange accept)
         {
             IContentConverter bestConverter = null;
             int bestQuality = 0;
-            for (int i = 0; i < this.ranges.Length; i++)
+            for (int i = 0; i < this.converters.Length; i++)
             {
-                MediaRange range = this.ranges[i];
-                if (range.MediaTypesMatch(accept) && (range.Quality > bestQuality))
+                IContentConverter converter = this.converters[i];
+                if (converter.CanWrite)
                 {
-                    bestQuality = range.Quality;
-                    bestConverter = this.converters[i];
+                    MediaRange range = this.ranges[i];
+                    if (range.MediaTypesMatch(accept) && (range.Quality > bestQuality))
+                    {
+                        bestQuality = range.Quality;
+                        bestConverter = this.converters[i];
+                    }
                 }
             }
 

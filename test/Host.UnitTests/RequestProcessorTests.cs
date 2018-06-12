@@ -251,8 +251,7 @@
             [Fact]
             public async Task ShouldReturnNotAcceptableIfNoConverter()
             {
-                this.converterFactory.GetConverter(null)
-                    .ReturnsForAnyArgs((IContentConverter)null);
+                this.converterFactory.GetConverterForAccept(null).ReturnsNullForAnyArgs();
                 IRequestData request = Substitute.For<IRequestData>();
 
                 await this.processor.HandleRequestAsync(this.simpleMatch, r => request);

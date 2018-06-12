@@ -20,7 +20,19 @@ namespace Crest.Abstractions
         /// A content converter that can be used to serialize the reply or
         /// <c>null</c> if none was found.
         /// </returns>
-        IContentConverter GetConverter(string accept);
+        IContentConverter GetConverterForAccept(string accept);
+
+        /// <summary>
+        /// Gets a content converter for the specified content type header.
+        /// </summary>
+        /// <param name="content">
+        /// The value of the requests content type header.
+        /// </param>
+        /// <returns>
+        /// A content converter that can be used to deserialize the request or
+        /// <c>null</c> if none was found.
+        /// </returns>
+        IContentConverter GetConverterFromContentType(string content);
 
         /// <summary>
         /// Notifies the converters of a type that is expected to be returned.

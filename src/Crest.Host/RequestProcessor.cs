@@ -279,7 +279,7 @@ namespace Crest.Host
         private IContentConverter GetConverter(IRequestData request)
         {
             request.Headers.TryGetValue("Accept", out string accept);
-            return this.converterFactory.GetConverter(accept);
+            return this.converterFactory.GetConverterForAccept(accept);
         }
 
         private async Task<IResponseData> GetErrorResponseAsync(IRequestData request, Exception exception)
