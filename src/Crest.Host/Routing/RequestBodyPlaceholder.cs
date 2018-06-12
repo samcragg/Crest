@@ -6,6 +6,7 @@
 namespace Crest.Host.Routing
 {
     using System;
+    using System.Collections.Generic;
     using System.IO;
     using System.Threading.Tasks;
     using Crest.Abstractions;
@@ -44,12 +45,29 @@ namespace Crest.Host.Routing
             BlockStreamPool streamPool,
             IRequestData request)
         {
-            using (Stream buffer = streamPool.GetStream())
+            if (request.Body.CanSeek)
             {
-                await request.Body.CopyToAsync(buffer).ConfigureAwait(false);
-                buffer.Position = 0;
-                return true;
+                this.UpdateValue(converter, request.Headers, request.Body);
             }
+            else
+            {
+                using (Stream buffer = streamPool.GetStream())
+                {
+                    await request.Body.CopyToAsync(buffer).ConfigureAwait(false);
+                    buffer.Position = 0;
+                    this.UpdateValue(converter, request.Headers, buffer);
+                }
+            }
+
+            return true;
+        }
+
+        private void UpdateValue(
+            IContentConverter converter,
+            IReadOnlyDictionary<string, string> headers,
+            Stream stream)
+        {
+            this.Value = converter.ReadFrom(headers, stream, this.type);
         }
     }
 }

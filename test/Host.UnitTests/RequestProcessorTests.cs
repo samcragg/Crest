@@ -306,6 +306,21 @@
             }
 
             [Fact]
+            public async Task ShouldInvokeNotAcceptableIfNoConverterFoundForBody()
+            {
+                this.converterFactory.GetConverterFromContentType(null)
+                    .ReturnsNullForAnyArgs();
+
+                RequestBodyPlaceholder placeholder = Substitute.For<RequestBodyPlaceholder>(typeof(object));
+                this.request.Parameters.Returns(new Dictionary<string, object> { ["body"] = placeholder });
+                this.request.Headers.Returns(new Dictionary<string, string>());
+
+                await this.processor.InvokeHandlerAsync(this.request, null);
+
+                await this.responseGenerator.ReceivedWithAnyArgs().NotAcceptableAsync(null);
+            }
+
+            [Fact]
             public async Task ShouldInvokeNotAcceptableIfUnableToUpdateTheRequstBodyPlaceholder()
             {
                 RequestBodyPlaceholder placeholder = Substitute.For<RequestBodyPlaceholder>(typeof(object));

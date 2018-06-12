@@ -124,7 +124,7 @@ namespace Crest.Host
                 throw new InvalidOperationException("Request data contains an invalid method.");
             }
 
-            IResponseData response = await this.UpdateBodyParameterAsync(request, converter);
+            IResponseData response = await this.UpdateBodyParameterAsync(request);
             if (response != null)
             {
                 return response;
@@ -383,8 +383,16 @@ namespace Crest.Host
                 convert);
         }
 
-        private async Task<IResponseData> UpdateBodyParameterAsync(IRequestData request, IContentConverter converter)
+        private async Task<IResponseData> UpdateBodyParameterAsync(IRequestData request)
         {
+            request.Headers.TryGetValue("Content-Type", out string contentType);
+            IContentConverter converter =
+                this.converterFactory.GetConverterFromContentType(contentType);
+            if (converter == null)
+            {
+                return await this.responseGenerator.NotAcceptableAsync(request).ConfigureAwait(false);
+            }
+
             RequestBodyPlaceholder requestBody =
                 request.Parameters.Values
                        .OfType<RequestBodyPlaceholder>()
