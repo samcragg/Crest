@@ -89,7 +89,7 @@
             [Fact]
             public void ShouldThrowNotSupported()
             {
-                this.converter.Invoking(c => c.ReadFrom(null, null))
+                this.converter.Invoking(c => c.ReadFrom(null, null, null))
                     .Should().Throw<NotSupportedException>();
             }
         }

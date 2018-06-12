@@ -92,7 +92,7 @@
                 this.serializer.Deserialize(Stream.Null, typeof(SimpleObject))
                     .Returns(instance);
 
-                object result = this.converter.ReadFrom(Stream.Null, typeof(SimpleObject));
+                object result = this.converter.ReadFrom(null, Stream.Null, typeof(SimpleObject));
 
                 result.Should().BeSameAs(instance);
             }

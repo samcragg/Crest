@@ -58,7 +58,7 @@ namespace Crest.Host.Conversion
         }
 
         /// <inheritdoc />
-        public object ReadFrom(Stream stream, Type type)
+        public object ReadFrom(IReadOnlyDictionary<string, string> headers, Stream stream, Type type)
         {
             return this.generator.Deserialize(stream, type);
         }

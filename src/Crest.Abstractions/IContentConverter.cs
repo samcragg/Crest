@@ -60,10 +60,11 @@ namespace Crest.Abstractions
         /// <summary>
         /// Reads the specified type from the stream.
         /// </summary>
+        /// <param name="headers">Contains the request headers.</param>
         /// <param name="stream">Where to read the object from.</param>
         /// <param name="type">The type of object to read.</param>
         /// <returns>The object read from the stream.</returns>
-        object ReadFrom(Stream stream, Type type);
+        object ReadFrom(IReadOnlyDictionary<string, string> headers, Stream stream, Type type);
 
         /// <summary>
         /// Writes the specified object to the stream.
