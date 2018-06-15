@@ -385,33 +385,32 @@ namespace Crest.Host
 
         private async Task<IResponseData> UpdateBodyParameterAsync(IRequestData request)
         {
-            request.Headers.TryGetValue("Content-Type", out string contentType);
-            IContentConverter converter =
-                this.converterFactory.GetConverterFromContentType(contentType);
-            if (converter == null)
-            {
-                return await this.responseGenerator.NotAcceptableAsync(request).ConfigureAwait(false);
-            }
-
             RequestBodyPlaceholder requestBody =
                 request.Parameters.Values
                        .OfType<RequestBodyPlaceholder>()
                        .FirstOrDefault();
 
-            if (requestBody != null)
+            if (requestBody == null)
+            {
+                return null;
+            }
+
+            request.Headers.TryGetValue("Content-Type", out string contentType);
+            IContentConverter converter = this.converterFactory.GetConverterFromContentType(contentType);
+            if (converter != null)
             {
                 bool success = await requestBody.UpdateRequestAsync(
                     converter,
                     this.streamPool,
                     request).ConfigureAwait(false);
 
-                if (!success)
+                if (success)
                 {
-                    return await this.responseGenerator.NotAcceptableAsync(request).ConfigureAwait(false);
+                    return null;
                 }
             }
 
-            return null;
+            return await this.responseGenerator.NotAcceptableAsync(request).ConfigureAwait(false);
         }
     }
 }

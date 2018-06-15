@@ -373,6 +373,7 @@
             public async Task ShouldUpdateRequestBodyPlaceholders()
             {
                 RequestBodyPlaceholder placeholder = Substitute.For<RequestBodyPlaceholder>(typeof(object));
+                placeholder.UpdateRequestAsync(null, null, null).ReturnsForAnyArgs(true);
                 this.request.Parameters.Returns(new Dictionary<string, object> { ["body"] = placeholder });
 
                 await this.processor.InvokeHandlerAsync(this.request, null);
