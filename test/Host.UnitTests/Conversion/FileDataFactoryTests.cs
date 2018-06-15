@@ -15,16 +15,7 @@
     {
         private const string BoundaryText = "boundary.text";
         private const string NewLine = "\r\n";
-        private readonly ArrayPool<byte> bytePool;
-        private readonly FileDataFactory factory;
-
-        private FileDataFactoryTests()
-        {
-            this.bytePool = Substitute.For<ArrayPool<byte>>();
-            this.bytePool.Rent(0).ReturnsForAnyArgs(ci => new byte[ci.Arg<int>()]);
-
-            this.factory = new FileDataFactory(this.bytePool);
-        }
+        private FileDataFactory factory = new FileDataFactory();
 
         public sealed class CanRead : FileDataFactoryTests
         {
@@ -158,6 +149,28 @@
                     typeof(IFileData));
 
                 result.Should().BeNull();
+            }
+
+            [Fact]
+            public void ShouldReturnRentedBytePools()
+            {
+                byte[] buffer = new byte[1024];
+                ArrayPool<byte> bytePool = Substitute.For<ArrayPool<byte>>();
+                bytePool.Rent(0).ReturnsForAnyArgs(ci => buffer);
+                FileDataFactory.BytePool = bytePool;
+
+                this.factory = new FileDataFactory();
+
+                const string Body =
+                    "--" + BoundaryText + NewLine +
+                    "Content-type: text/plain" + NewLine +
+                    NewLine +
+                    "Body" + NewLine +
+                    "--" + BoundaryText + "--";
+
+                this.GetFiles(Body);
+
+                bytePool.Received().Return(buffer);
             }
 
             [Fact]

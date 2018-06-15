@@ -25,16 +25,6 @@ namespace Crest.Host.Conversion
         private const string ContentTypeHeader = "Content-Type";
         private const string DefaultContentType = "text/plain"; // RFC7578 §4.4
         private static readonly ILog Logger = LogProvider.For<FileDataFactory>();
-        private readonly ArrayPool<byte> bytePool;
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="FileDataFactory"/> class.
-        /// </summary>
-        /// <param name="bytePool">Used to obtain temporary byte buffers.</param>
-        public FileDataFactory(ArrayPool<byte> bytePool)
-        {
-            this.bytePool = bytePool;
-        }
 
         /// <inheritdoc />
         public bool CanRead => true;
@@ -56,6 +46,15 @@ namespace Crest.Host.Conversion
 
         /// <inheritdoc />
         public int Priority => 600;
+
+        /// <summary>
+        /// Gets or sets the resource pool for obtaining byte arrays.
+        /// </summary>
+        /// <remarks>
+        /// This is exposed for unit testing and defaults to
+        /// <see cref="ArrayPool{T}.Shared"/>.
+        /// </remarks>
+        internal static ArrayPool<byte> BytePool { get; set; } = ArrayPool<byte>.Shared;
 
         /// <inheritdoc />
         public void Prime(Type type)
@@ -219,7 +218,7 @@ namespace Crest.Host.Conversion
         private IReadOnlyDictionary<string, string> ReadHeaders(Stream body, int start, int end)
         {
             int length = end - start;
-            byte[] headerBytes = this.bytePool.Rent(length);
+            byte[] headerBytes = BytePool.Rent(length);
 
             try
             {
@@ -231,7 +230,7 @@ namespace Crest.Host.Conversion
             }
             finally
             {
-                this.bytePool.Return(headerBytes);
+                BytePool.Return(headerBytes);
             }
         }
     }
