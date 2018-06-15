@@ -81,9 +81,20 @@
             [Fact]
             public void ShouldDisposeOfTheContainer()
             {
-                this.locator.Dispose();
+                var rootService = new ServiceLocator(this.container, null);
+
+                rootService.Dispose();
 
                 this.container.Received().Dispose();
+            }
+
+            [Fact]
+            public void ShouldDisposeOfTheScope()
+            {
+                this.locator.Dispose();
+
+                this.scope.Received().Dispose();
+                this.container.DidNotReceive().Dispose();
             }
 
             [Fact]

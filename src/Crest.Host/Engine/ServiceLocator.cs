@@ -210,12 +210,22 @@ namespace Crest.Host.Engine
         {
             if (!this.IsDisposed)
             {
+                // Important! When we dispose of the scope, it will dispose us
+                // (as we're registered in it) so make sure we set this to true
+                // so that we don't dispose the scope in an infinite loop.
+                this.IsDisposed = true;
+
                 if (disposing)
                 {
-                    this.container.Dispose();
+                    if (this.scope != null)
+                    {
+                        this.scope.Dispose();
+                    }
+                    else
+                    {
+                        this.container.Dispose();
+                    }
                 }
-
-                this.IsDisposed = true;
             }
         }
 
