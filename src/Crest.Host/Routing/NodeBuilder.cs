@@ -72,9 +72,11 @@ namespace Crest.Host.Routing
             }
         }
 
-        private static void AppendVersion(StringBuilder buffer, RouteMetadata metadata)
+        private static void AppendVerbAndVersion(StringBuilder buffer, RouteMetadata metadata)
         {
-            buffer.Append(metadata.MinimumVersion.ToString(CultureInfo.InvariantCulture))
+            buffer.Append(metadata.Verb)
+                  .Append(':')
+                  .Append(metadata.MinimumVersion.ToString(CultureInfo.InvariantCulture))
                   .Append(':')
                   .Append(metadata.MaximumVersion.ToString(CultureInfo.InvariantCulture));
         }
@@ -82,7 +84,7 @@ namespace Crest.Host.Routing
         private static string GetNormalizedRoute(RouteMetadata route, IEnumerable<IMatchNode> nodes)
         {
             var builder = new StringBuilder(route.RouteUrl.Length * 2);
-            AppendVersion(builder, route);
+            AppendVerbAndVersion(builder, route);
 
             foreach (IMatchNode node in nodes)
             {

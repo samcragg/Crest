@@ -73,6 +73,21 @@
             }
 
             [Fact]
+            public void ShouldAllowOverloadingByVerb()
+            {
+                RouteMetadata deleteRoute = CreateRoute<int>("/{intParam}/", 1, 1, "intParam");
+                deleteRoute.Verb = "DELETE";
+
+                RouteMetadata getRoute = CreateRoute<int>("/{intParam}/", 1, 1, "intParam");
+                getRoute.Verb = "GET";
+
+                this.builder.Parse(deleteRoute);
+
+                this.builder.Invoking(b => b.Parse(getRoute))
+                    .Should().NotThrow();
+            }
+
+            [Fact]
             public void ShouldCaptureBooleans()
             {
                 NodeMatchResult match = this.GetMatchFor(typeof(bool), "true");
