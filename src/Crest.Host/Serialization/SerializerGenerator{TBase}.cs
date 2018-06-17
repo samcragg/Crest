@@ -9,6 +9,7 @@ namespace Crest.Host.Serialization
     using System.Collections.Generic;
     using System.IO;
     using System.Reflection;
+    using Crest.Host.Engine;
 
     /// <summary>
     /// Generates serializers at runtime for specific types.
@@ -16,6 +17,7 @@ namespace Crest.Host.Serialization
     /// <typeparam name="TBase">
     /// The type of the base class the generated serializers will inherit.
     /// </typeparam>
+    [SingleInstance] // This is a cache
     internal sealed partial class SerializerGenerator<TBase> : SerializerGenerator, ISerializerGenerator<TBase>
     {
         private readonly ClassSerializerGenerator classSerializer;

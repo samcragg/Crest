@@ -9,7 +9,6 @@
     using Crest.Core;
     using Crest.Host.Diagnostics;
     using Crest.Host.Engine;
-    using Crest.Host.Serialization;
     using FluentAssertions;
     using NSubstitute;
     using Xunit;
@@ -28,19 +27,6 @@
             this.service = new DiscoveryService(this.executingAssembly);
         }
 
-        public class FakeTypeFactory : ITypeFactory
-        {
-            public bool CanCreate(Type type)
-            {
-                return false;
-            }
-
-            public object Create(Type type, IServiceProvider serviceProvider)
-            {
-                return null;
-            }
-        }
-
         public sealed class Constructor : DiscoveryServiceTests
         {
             [Fact]
@@ -51,6 +37,19 @@
                 IEnumerable<Type> result = discoverService.GetDiscoveredTypes();
 
                 result.Should().NotBeEmpty();
+            }
+        }
+
+        public class FakeTypeFactory : ITypeFactory
+        {
+            public bool CanCreate(Type type)
+            {
+                return false;
+            }
+
+            public object Create(Type type, IServiceProvider serviceProvider)
+            {
+                return null;
             }
         }
 
@@ -282,11 +281,16 @@
             }
 
             [Fact]
-            public void ShouldReturnTrueForSerializerGeneratorClasses()
+            public void ShouldReturnTrueIfTheClassIsMarkedAsSingleInstance()
             {
-                bool result = this.service.IsSingleInstance(typeof(SerializerGenerator<>));
+                bool result = this.service.IsSingleInstance(typeof(MySingleton));
 
                 result.Should().BeTrue();
+            }
+
+            [SingleInstance]
+            private class MySingleton
+            {
             }
         }
     }

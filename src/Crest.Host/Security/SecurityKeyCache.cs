@@ -11,10 +11,12 @@ namespace Crest.Host.Security
     using System.Security.Cryptography;
     using System.Security.Cryptography.X509Certificates;
     using System.Threading.Tasks;
+    using Crest.Host.Engine;
 
     /// <summary>
     /// Caches the values of security keys.
     /// </summary>
+    [SingleInstance] // This is a cache
     internal partial class SecurityKeyCache
     {
         private readonly KeyProvider[] keyProviders;
