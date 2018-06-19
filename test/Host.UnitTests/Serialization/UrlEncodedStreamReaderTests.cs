@@ -120,6 +120,17 @@
             }
         }
 
+        public sealed class ReadByte : UrlEncodedStreamReaderTests
+        {
+            [Fact]
+            public void ShouldIgnoreWhiteSpace()
+            {
+                byte result = ReadValue("key= 123 ", r => r.ReadByte());
+
+                result.Should().Be(123);
+            }
+        }
+
         public sealed class ReadChar : UrlEncodedStreamReaderTests
         {
             [Theory]

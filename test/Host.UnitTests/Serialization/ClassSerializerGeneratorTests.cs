@@ -351,6 +351,19 @@
             }
 
             [Fact]
+            public void ShouldReadFromMultipleProperties()
+            {
+                FakeSerializerBase serializer = this.CreateSerializer<MultipleProperties>();
+                serializer.Properties.Add(nameof(MultipleProperties.Value9));
+                serializer.Reader.ReadInt32().Returns(1);
+
+                object result = ((ITypeSerializer)serializer).Read();
+
+                result.Should().BeOfType<MultipleProperties>()
+                      .Which.Value9.Should().Be(1);
+            }
+
+            [Fact]
             public void ShouldReadNestedTypes()
             {
                 this.nestedSerializerType = this.generator.GenerateFor(typeof(PrimitiveProperty));
@@ -595,6 +608,19 @@
             public class EnumProperty
             {
                 public FakeLongEnum Value { get; set; }
+            }
+
+            public class MultipleProperties
+            {
+                public int Value1 { get; set; }
+                public int Value2 { get; set; }
+                public int Value3 { get; set; }
+                public int Value4 { get; set; }
+                public int Value5 { get; set; }
+                public int Value6 { get; set; }
+                public int Value7 { get; set; }
+                public int Value8 { get; set; }
+                public int Value9 { get; set; }
             }
 
             public class NoDefaultConstructor

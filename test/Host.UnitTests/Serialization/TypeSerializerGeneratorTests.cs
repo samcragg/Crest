@@ -1,6 +1,7 @@
 ﻿namespace Host.UnitTests.Serialization
 {
     using System;
+    using System.Reflection;
     using System.Reflection.Emit;
     using Crest.Host.Serialization;
     using Crest.Host.Serialization.Internal;
@@ -9,6 +10,65 @@
 
     public class TypeSerializerGeneratorTests
     {
+        public sealed class EmitCallBeginMethodWithTypeMetadata : TypeSerializerGeneratorTests
+        {
+            private const string GeneratedMethodName = "GeneratedMethod";
+
+            [Fact]
+            public void ShouldLoadNullIfThereIsNoGetTypeMetadataMethod()
+            {
+                TypeBuilder typeBuilder =
+                    EmitHelper.CreateTypeBuilder<ClassWithNoGetTypeMetadata>();
+
+                MethodBuilder methodBuilder = CreateMethod(typeBuilder);
+                ILGenerator ilGenerator = methodBuilder.GetILGenerator();
+
+                var generator = new FakeTypeSerializeGenerator(
+                    (ModuleBuilder)typeBuilder.Module,
+                    typeof(ClassWithNoGetTypeMetadata));
+
+                generator.EmitCallBeginMethodWithTypeMetadata(
+                    typeBuilder,
+                    ilGenerator,
+                    typeof(ClassWithNoGetTypeMetadata).GetMethod(nameof(ClassWithNoGetTypeMetadata.CallWithMetadata)));
+                ilGenerator.Emit(OpCodes.Ret);
+
+                ClassWithNoGetTypeMetadata instance = InvokeGeneratedMethod<ClassWithNoGetTypeMetadata>(typeBuilder);
+
+                instance.Metadata.Should().BeNull();
+            }
+
+            private static T InvokeGeneratedMethod<T>(TypeBuilder typeBuilder)
+            {
+                TypeInfo typeInfo = typeBuilder.CreateTypeInfo();
+                object instance = Activator.CreateInstance(typeInfo.AsType());
+
+                typeInfo.GetMethod(GeneratedMethodName)
+                        .Invoke(instance, null);
+
+                return (T)instance;
+            }
+
+            private MethodBuilder CreateMethod(TypeBuilder typeBuilder)
+            {
+                MethodBuilder method = typeBuilder.DefineMethod(
+                    GeneratedMethodName,
+                    MethodAttributes.HideBySig | MethodAttributes.Public,
+                    CallingConventions.HasThis);
+                return method;
+            }
+
+            public class ClassWithNoGetTypeMetadata : PrimitiveSerializer
+            {
+                internal string Metadata { get; private set; }
+
+                public void CallWithMetadata(string metadata)
+                {
+                    this.Metadata = metadata;
+                }
+            }
+        }
+
         public sealed class EmitConstructor : TypeSerializerGeneratorTests
         {
             [Fact]
@@ -51,96 +111,96 @@
                 {
                 }
             }
+        }
 
-            private abstract class PrimitiveSerializer : IClassSerializer<string>
+        public abstract class PrimitiveSerializer : IClassSerializer<string>
+        {
+            public ValueReader Reader => null;
+
+            public ValueWriter Writer => null;
+
+            public static string GetMetadata()
             {
-                public ValueReader Reader => null;
+                return null;
+            }
 
-                public ValueWriter Writer => null;
+            public void BeginRead(string metadata)
+            {
+            }
 
-                public static string GetMetadata()
-                {
-                    return null;
-                }
+            public void EndRead()
+            {
+            }
 
-                public void BeginRead(string metadata)
-                {
-                }
+            void IPrimitiveSerializer<string>.BeginWrite(string metadata)
+            {
+            }
 
-                public void EndRead()
-                {
-                }
+            void IPrimitiveSerializer<string>.EndWrite()
+            {
+            }
 
-                void IPrimitiveSerializer<string>.BeginWrite(string metadata)
-                {
-                }
+            void IPrimitiveSerializer<string>.Flush()
+            {
+            }
 
-                void IPrimitiveSerializer<string>.EndWrite()
-                {
-                }
+            bool IArraySerializer.ReadBeginArray(Type elementType)
+            {
+                return false;
+            }
 
-                void IPrimitiveSerializer<string>.Flush()
-                {
-                }
+            void IClassSerializer<string>.ReadBeginClass(string metadata)
+            {
+            }
 
-                bool IArraySerializer.ReadBeginArray(Type elementType)
-                {
-                    return false;
-                }
+            string IClassSerializer<string>.ReadBeginProperty()
+            {
+                return null;
+            }
 
-                void IClassSerializer<string>.ReadBeginClass(string metadata)
-                {
-                }
+            bool IArraySerializer.ReadElementSeparator()
+            {
+                return false;
+            }
 
-                string IClassSerializer<string>.ReadBeginProperty()
-                {
-                    return null;
-                }
+            void IArraySerializer.ReadEndArray()
+            {
+            }
 
-                bool IArraySerializer.ReadElementSeparator()
-                {
-                    return false;
-                }
+            void IClassSerializer<string>.ReadEndClass()
+            {
+            }
 
-                void IArraySerializer.ReadEndArray()
-                {
-                }
+            void IClassSerializer<string>.ReadEndProperty()
+            {
+            }
 
-                void IClassSerializer<string>.ReadEndClass()
-                {
-                }
+            void IArraySerializer.WriteBeginArray(Type elementType, int size)
+            {
+            }
 
-                void IClassSerializer<string>.ReadEndProperty()
-                {
-                }
+            void IClassSerializer<string>.WriteBeginClass(string metadata)
+            {
+            }
 
-                void IArraySerializer.WriteBeginArray(Type elementType, int size)
-                {
-                }
+            void IClassSerializer<string>.WriteBeginProperty(string propertyMetadata)
+            {
+            }
 
-                void IClassSerializer<string>.WriteBeginClass(string metadata)
-                {
-                }
+            void IArraySerializer.WriteElementSeparator()
+            {
+            }
 
-                void IClassSerializer<string>.WriteBeginProperty(string propertyMetadata)
-                {
-                }
+            void IArraySerializer.WriteEndArray()
+            {
+            }
 
-                void IArraySerializer.WriteElementSeparator()
-                {
-                }
+            void IClassSerializer<string>.WriteEndClass()
+            {
+            }
 
-                void IArraySerializer.WriteEndArray()
-                {
-                }
-
-                void IClassSerializer<string>.WriteEndClass()
-                {
-                }
-
-                void IClassSerializer<string>.WriteEndProperty()
-                {
-                }
+            void IClassSerializer<string>.WriteEndProperty()
+            {
             }
         }
 
@@ -151,9 +211,20 @@
             {
             }
 
+            public void EmitCallBeginMethodWithTypeMetadata(
+                TypeBuilder builder,
+                ILGenerator generator,
+                MethodInfo method)
+            {
+                EmitCallBeginMethodWithTypeMetadata(
+                    new TypeSerializerBuilder(this, builder, typeof(int)),
+                    generator,
+                    method);
+            }
+
             public void EmitConstructor(Type parameter)
             {
-                base.EmitConstructor(null, null, parameter);
+                EmitConstructor(null, null, parameter);
             }
         }
     }
