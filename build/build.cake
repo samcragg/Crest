@@ -25,6 +25,7 @@ var buildSettings = new DotNetCoreBuildSettings
 var testSettings = new DotNetCoreTestSettings
 {
     Configuration = configuration,
+    Filter = "Category!=Integration",
     NoBuild = true,
     NoRestore = true
 };
