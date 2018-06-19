@@ -79,6 +79,22 @@
             }
         }
 
+        public sealed class EndRead : XmlSerializerBaseDeserializeTests
+        {
+            [Fact]
+            public void ShouldMovePastTheEndElement()
+            {
+                this.SetStreamTo("<first></first><second>2</second>");
+
+                this.Serializer.BeginRead("first");
+                this.Serializer.EndRead();
+                this.Serializer.BeginRead("second");
+                int content = this.Serializer.Reader.ReadInt32();
+
+                content.Should().Be(2);
+            }
+        }
+
         public sealed class ReadBeginArray : XmlSerializerBaseDeserializeTests
         {
             [Fact]

@@ -1,5 +1,6 @@
 ﻿namespace Host.UnitTests.Serialization.Internal
 {
+    using System;
     using System.ComponentModel;
     using System.IO;
     using System.Text;
@@ -166,6 +167,30 @@
                     typeof(SpecialͣChar));
 
                 result.Should().Be("Special_x0363_Char");
+            }
+
+            // http://www.w3.org/TR/xmlschema11-2/
+            [Theory]
+            [InlineData(typeof(bool), "boolean")]
+            [InlineData(typeof(byte), "unsignedByte")]
+            [InlineData(typeof(DateTime), "dateTime")]
+            [InlineData(typeof(decimal), "decimal")]
+            [InlineData(typeof(double), "double")]
+            [InlineData(typeof(float), "float")]
+            [InlineData(typeof(int), "int")]
+            [InlineData(typeof(long), "long")]
+            [InlineData(typeof(sbyte), "byte")]
+            [InlineData(typeof(short), "short")]
+            [InlineData(typeof(string), "string")]
+            [InlineData(typeof(uint), "unsignedInt")]
+            [InlineData(typeof(ulong), "unsignedLong")]
+            [InlineData(typeof(ushort), "unsignedShort")]
+            [InlineData(typeof(TimeSpan), "duration")]
+            public void ShouldReturnXmlSchemaNames(Type type, string expected)
+            {
+                string result = XmlSerializerBase.GetTypeMetadata(type);
+
+                result.Should().Be(expected);
             }
 
             private class SpecialͣChar

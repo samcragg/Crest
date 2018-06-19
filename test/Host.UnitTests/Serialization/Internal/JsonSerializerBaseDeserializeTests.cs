@@ -29,6 +29,16 @@
             this.stream.Position = 0;
         }
 
+        public sealed class BeginRead : JsonSerializerBaseDeserializeTests
+        {
+            [Fact]
+            public void ShouldNotThrowAnyException()
+            {
+                this.Serializer.Invoking(x => x.BeginRead(null))
+                    .Should().NotThrow();
+            }
+        }
+
         public sealed class Constructor : JsonSerializerBaseDeserializeTests
         {
             [Fact]
@@ -51,6 +61,16 @@
                 fakeSerializer.Dispose();
 
                 mockStream.Received().Dispose();
+            }
+        }
+
+        public sealed class EndRead : JsonSerializerBaseDeserializeTests
+        {
+            [Fact]
+            public void ShouldNotThrowAnyException()
+            {
+                this.Serializer.Invoking(x => x.EndRead())
+                    .Should().NotThrow();
             }
         }
 

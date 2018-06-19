@@ -28,6 +28,16 @@
             this.stream.Position = 0;
         }
 
+        public sealed class BeginRead : UrlEncodedSerializerBaseDeserializeTests
+        {
+            [Fact]
+            public void ShouldNotThrowAnyException()
+            {
+                this.Serializer.Invoking(x => x.BeginRead(null))
+                    .Should().NotThrow();
+            }
+        }
+
         public sealed class Constructor : UrlEncodedSerializerBaseDeserializeTests
         {
             [Fact]
@@ -36,6 +46,16 @@
                 var copy = new FakeUrlSerializerBase(this.Serializer);
 
                 copy.Reader.Should().BeSameAs(this.Serializer.Reader);
+            }
+        }
+
+        public sealed class EndRead : UrlEncodedSerializerBaseDeserializeTests
+        {
+            [Fact]
+            public void ShouldNotThrowAnyException()
+            {
+                this.Serializer.Invoking(x => x.EndRead())
+                    .Should().NotThrow();
             }
         }
 
@@ -97,6 +117,18 @@
             }
 
             [Fact]
+            public void ShouldReturnNullWhenThereAreNoMoreProperties()
+            {
+                this.SetStreamTo("A=x");
+                this.Serializer.ReadBeginProperty();
+                this.Serializer.ReadEndProperty();
+
+                string result = this.Serializer.ReadBeginProperty();
+
+                result.Should().BeNull();
+            }
+
+            [Fact]
             public void ShouldReturnTheKeyPart()
             {
                 this.SetStreamTo("0.A=x");
@@ -130,6 +162,26 @@
                 bool result = this.Serializer.ReadElementSeparator();
 
                 result.Should().BeTrue();
+            }
+        }
+
+        public sealed class ReadEndArray : UrlEncodedSerializerBaseDeserializeTests
+        {
+            [Fact]
+            public void ShouldNotThrowAnyException()
+            {
+                this.Serializer.Invoking(x => x.ReadEndArray())
+                    .Should().NotThrow();
+            }
+        }
+
+        public sealed class ReadEndClass : UrlEncodedSerializerBaseDeserializeTests
+        {
+            [Fact]
+            public void ShouldNotThrowAnyException()
+            {
+                this.Serializer.Invoking(x => x.ReadEndClass())
+                    .Should().NotThrow();
             }
         }
 

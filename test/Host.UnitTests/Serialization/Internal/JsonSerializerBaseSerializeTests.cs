@@ -24,6 +24,16 @@
             return this.stream.ToArray();
         }
 
+        public sealed class BeginWrite : JsonSerializerBaseSerializeTests
+        {
+            [Fact]
+            public void ShouldNotThrowAnyException()
+            {
+                this.serializer.Invoking(x => x.BeginWrite(null))
+                    .Should().NotThrow();
+            }
+        }
+
         public sealed class Constructor : JsonSerializerBaseSerializeTests
         {
             [Fact]
@@ -42,6 +52,16 @@
                 var instance = new FakeJsonSerializerBase(parent);
 
                 instance.Writer.Should().BeSameAs(parent.Writer);
+            }
+        }
+
+        public sealed class EndWrite : JsonSerializerBaseSerializeTests
+        {
+            [Fact]
+            public void ShouldNotThrowAnyException()
+            {
+                this.serializer.Invoking(x => x.EndWrite())
+                    .Should().NotThrow();
             }
         }
 
@@ -200,6 +220,16 @@
                 byte[] written = this.GetWrittenData();
 
                 written.Should().Equal((byte)'}');
+            }
+        }
+
+        public sealed class WriteEndProperty : JsonSerializerBaseSerializeTests
+        {
+            [Fact]
+            public void ShouldNotThrowAnyException()
+            {
+                this.serializer.Invoking(x => x.WriteEndProperty())
+                    .Should().NotThrow();
             }
         }
 
