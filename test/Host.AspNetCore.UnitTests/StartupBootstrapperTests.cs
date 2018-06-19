@@ -16,9 +16,16 @@
 
         private StartupBootstrapperTests()
         {
+            object CreateType(Type type)
+            {
+                return type.IsInterface ?
+                    Substitute.For(new[] { type }, new object[0]) :
+                    null;
+            }
+
             IServiceLocator serviceLocator = Substitute.For<IServiceLocator>();
             serviceLocator.GetService(null)
-                .ReturnsForAnyArgs(ci => Substitute.For(new[] { (Type)ci[0] }, new object[0]));
+                .ReturnsForAnyArgs(ci => CreateType(ci.Arg<Type>()));
 
             this.startup = new StartupBootstrapper(serviceLocator);
         }

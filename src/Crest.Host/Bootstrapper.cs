@@ -130,6 +130,11 @@ namespace Crest.Host
             this.serviceRegister.RegisterInitializer(
                 configuration.CanConfigure,
                 instance => configuration.InitializeInstance(instance, this.serviceLocator));
+
+            // HACK: Temporary code to allow the integration tests to pass until
+            //       https://github.com/samcragg/Crest/issues/10 is implemented
+            var cache = (Security.SecurityKeyCache)this.serviceLocator.GetService(typeof(Security.SecurityKeyCache));
+            cache?.UpdateCacheAsync();
         }
 
         /// <summary>

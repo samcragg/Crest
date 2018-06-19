@@ -75,19 +75,23 @@ namespace Crest.Host.Serialization
                 MethodInfo method,
                 Func<ParameterExpression, Expression> loadValue)
             {
+                MethodInfo flushMethod = typeof(ITypeSerializer).GetMethod(nameof(ITypeSerializer.Flush));
+                ParameterExpression instance = Expression.Variable(constructor.DeclaringType);
                 ParameterExpression stream = Expression.Parameter(typeof(Stream));
                 ConstantExpression serialize = Expression.Constant(SerializationMode.Serialize);
                 ParameterExpression value = Expression.Parameter(typeof(object));
 
-                var lambda = Expression.Lambda<Action<Stream, object>>(
-                    Expression.Call(
-                        Expression.New(constructor, stream, serialize),
-                        method,
-                        loadValue(value)),
-                    stream,
-                    value);
+                // var x = new Serializer()
+                // x.method(loadValue)
+                // x.Flush()
+                Expression body = Expression.Block(
+                    new[] { instance },
+                    Expression.Assign(instance, Expression.New(constructor, stream, serialize)),
+                    Expression.Call(instance, method, loadValue(value)),
+                    Expression.Call(instance, flushMethod));
 
-                return lambda.Compile();
+                return Expression.Lambda<Action<Stream, object>>(body, stream, value)
+                       .Compile();
             }
         }
     }
