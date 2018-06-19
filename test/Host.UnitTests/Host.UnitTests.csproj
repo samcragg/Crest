@@ -2,13 +2,13 @@
   <PropertyGroup>
     <TargetFramework>netcoreapp2.0</TargetFramework>
     <RuntimeFrameworkVersion>2.0.3</RuntimeFrameworkVersion>
+    <LangVersion>latest</LangVersion>
   </PropertyGroup>
 
   <!-- This is required so that OpenCover can analyse the output -->
   <PropertyGroup>
     <DebugType>full</DebugType>
     <DebugSymbols>True</DebugSymbols>
-    <LangVersion>latest</LangVersion>
   </PropertyGroup>
 
   <ItemGroup>

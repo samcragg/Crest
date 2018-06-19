@@ -11,32 +11,11 @@
     {
         private const string GeneratedMethodName = "Method";
         private readonly JumpTableGenerator generator;
-        private readonly TypeBuilder typeBuilder = CreateTypeBuilder();
+        private readonly TypeBuilder typeBuilder = EmitHelper.CreateTypeBuilder<object>();
 
         private JumpTableGeneratorTests()
         {
             this.generator = new JumpTableGenerator(s => s.GetHashCode());
-        }
-
-        private static TypeBuilder CreateTypeBuilder()
-        {
-            var assemblyBuilder = AssemblyBuilder.DefineDynamicAssembly(
-                new AssemblyName(nameof(JumpTableGeneratorTests) + "_DynamicAssembly"),
-                AssemblyBuilderAccess.RunAndCollect);
-
-            TypeBuilder typeBuilder =
-                assemblyBuilder.DefineDynamicModule("Module").DefineType(
-                    "TestType",
-                    TypeAttributes.AnsiClass | TypeAttributes.AutoClass |
-                    TypeAttributes.BeforeFieldInit | TypeAttributes.Public);
-
-            typeBuilder.DefineDefaultConstructor(
-                MethodAttributes.HideBySig |
-                MethodAttributes.Public |
-                MethodAttributes.RTSpecialName |
-                MethodAttributes.SpecialName);
-
-            return typeBuilder;
         }
 
         private void AddMapping(string key, string returnValue)

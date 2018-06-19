@@ -135,28 +135,6 @@
                 return method;
             }
 
-            private static TypeBuilder CreateTypeBuilder<TBase>()
-            {
-                var assemblyBuilder = AssemblyBuilder.DefineDynamicAssembly(
-                                    new AssemblyName(nameof(ArrayDeserializeEmitterTests) + "_DynamicAssembly"),
-                                    AssemblyBuilderAccess.RunAndCollect);
-
-                TypeBuilder typeBuilder =
-                    assemblyBuilder.DefineDynamicModule("Module").DefineType(
-                        "TestType",
-                        TypeAttributes.AnsiClass | TypeAttributes.AutoClass |
-                        TypeAttributes.BeforeFieldInit | TypeAttributes.Public,
-                        typeof(TBase));
-
-                typeBuilder.DefineDefaultConstructor(
-                    MethodAttributes.HideBySig |
-                    MethodAttributes.Public |
-                    MethodAttributes.RTSpecialName |
-                    MethodAttributes.SpecialName);
-
-                return typeBuilder;
-            }
-
             private static T[] InvokeGeneratedMethod<T>(_ArraySerializerBase instance)
             {
                 return (T[])instance.GetType()
@@ -167,7 +145,7 @@
             private _ArraySerializerBase GenerateDeserializer<T>(string readMethod)
             {
                 // Create the dynamic assembly related types
-                TypeBuilder typeBuilder = CreateTypeBuilder<_ArraySerializerBase>();
+                TypeBuilder typeBuilder = EmitHelper.CreateTypeBuilder<_ArraySerializerBase>();
                 MethodBuilder method = CreateMethod(typeBuilder, returnType: typeof(T[]));
 
                 // Create the method
