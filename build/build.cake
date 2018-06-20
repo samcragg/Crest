@@ -69,6 +69,24 @@ Task("ExcludeDryIocFromStyleCop")
     }
 });
 
+Task("IntegrationTests")
+    .IsDependentOn("Build")
+    .Does(() =>
+{
+    var settings = new DotNetCoreTestSettings
+    {
+        Configuration = configuration,
+        Filter = "Category=Integration",
+        NoBuild = true,
+        NoRestore = true
+    };
+
+    foreach (var project in GetFiles("../test/**/*.csproj"))
+    {
+        DotNetCoreTest(project.FullPath, settings);
+    }
+});
+
 Task("Pack")
     .Does(() =>
 {
@@ -137,17 +155,25 @@ Task("RestoreSwaggerUI")
     }
 });
 
-Task("TestOnly")
+Task("ShowTestReport")
+    .WithCriteria(isLocalBuild)
+    .IsDependentOn("TestWithCover")
     .Does(() =>
 {
-    foreach (var project in GetFiles("../test/**/*.csproj"))
+    ReportGenerator(CoverageResults, "./coverage_report");
+    if (IsRunningOnWindows())
     {
-        DotNetCoreTest(project.FullPath, testSettings);
+        StartAndReturnProcess(
+            "cmd",
+            new ProcessSettings
+            {
+                Arguments = ProcessArgumentBuilder.FromString("/c start ./coverage_report/index.htm")
+            });
     }
 });
 
-
 Task("TestWithCover")
+    .IsDependentOn("Build")
     .Does(() =>
 {
     var coverSettings = new OpenCoverSettings
@@ -183,24 +209,18 @@ Task("TestWithCover")
     }
 });
 
-Task("TestCoverReport")
-    .WithCriteria(isLocalBuild)
-    .IsDependentOn("TestWithCover")
+Task("UnitTests")
+    .IsDependentOn("Build")
     .Does(() =>
 {
-    ReportGenerator(CoverageResults, "./coverage_report");
-    if (IsRunningOnWindows())
+    foreach (var project in GetFiles("../test/**/*.csproj"))
     {
-        StartAndReturnProcess(
-            "cmd",
-            new ProcessSettings
-            {
-                Arguments = ProcessArgumentBuilder.FromString("/c start ./coverage_report/index.htm")
-            });
+        DotNetCoreTest(project.FullPath, testSettings);
     }
 });
 
-Task("TestCoverReportUpload")
+
+Task("UploadTestReport")
     .WithCriteria(!isLocalBuild)
     .IsDependentOn("TestWithCover")
     .Does(() =>
@@ -229,18 +249,14 @@ Task("Restore")
     .IsDependentOn("RestorePackages")
     .IsDependentOn("RestoreSwaggerUI");
 
-Task("BuildAndTest")
-    .IsDependentOn("Build")
-    .IsDependentOn("TestOnly")
-    .IsDependentOn("BuildAndTestTools");
-
 Task("Default")
     .IsDependentOn("Restore")
     .IsDependentOn("Build")
     .IsDependentOn("BuildAndTestTools")
     .IsDependentOn("TestWithCover")
-    .IsDependentOn("TestCoverReport")
-    .IsDependentOn("TestCoverReportUpload")
+    .IsDependentOn("IntegrationTests")
+    .IsDependentOn("ShowTestReport")
+    .IsDependentOn("UploadTestReport")
     .IsDependentOn("Pack");
 
 RunTarget(target);
