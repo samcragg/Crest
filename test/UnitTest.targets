@@ -2,7 +2,7 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <!-- Package properties -->
   <PropertyGroup>
-    <RuntimeFrameworkVersion>2.0.7</RuntimeFrameworkVersion>
+    <RuntimeFrameworkVersion>2.0.3</RuntimeFrameworkVersion>
   </PropertyGroup>
 
   <!-- This is required so that OpenCover can analyse the output -->
