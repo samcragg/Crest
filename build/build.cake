@@ -73,17 +73,15 @@ Task("IntegrationTests")
     .IsDependentOn("Build")
     .Does(() =>
 {
-    var settings = new DotNetCoreTestSettings
-    {
-        Configuration = configuration,
-        Filter = "Category=Integration",
-        NoBuild = true,
-        NoRestore = true
-    };
-
+    // Use xunit runner to avoid messages about no tests discovered in the
+    // unit test projects
     foreach (var project in GetFiles("../test/**/*.csproj"))
     {
-        DotNetCoreTest(project.FullPath, settings);
+        DotNetCoreTool(
+            projectPath: project.FullPath, 
+            command: "xunit", 
+            arguments: "-configuration " + configuration + " -nobuild -nologo -stoponfail -trait \"Category=Integration\""
+        );
     }
 });
 
@@ -232,7 +230,7 @@ Task("UploadTestReport")
         CommitEmail = EnvironmentVariable("APPVEYOR_REPO_COMMIT_AUTHOR_EMAIL"),
         CommitId = EnvironmentVariable("APPVEYOR_REPO_COMMIT"),
         CommitMessage = EnvironmentVariable("APPVEYOR_REPO_COMMIT_MESSAGE"),
-        JobId = int.Parse(EnvironmentVariable("APPVEYOR_BUILD_NUMBER"), System.Globalization.CultureInfo.InvariantCulture),
+        JobId = EnvironmentVariable("APPVEYOR_BUILD_NUMBER"),
         RepoTokenVariable = "COVERALLS_REPO_TOKEN",
         ServiceName = "appveyor",
         UseRelativePaths = true
