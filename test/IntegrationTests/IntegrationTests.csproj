@@ -5,14 +5,12 @@
     <LangVersion>latest</LangVersion>
   </PropertyGroup>
 
+  <Import Project="..\UnitTest.targets" />
+  <Import Project="..\UnitTestPackages.targets" />
+
   <ItemGroup>
     <ProjectReference Include="..\..\src\Crest.Host.AspNetCore\Crest.Host.AspNetCore.csproj" />
-    <PackageReference Include="FluentAssertions" Version="5.4.0" />
-    <PackageReference Include="FluentAssertions.Analyzers" Version="0.10.1" />
-    <PackageReference Include="Microsoft.AspNetCore.TestHost" Version="2.1.0" />
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.7.2" />
-    <PackageReference Include="xunit" Version="2.3.1" />
-    <PackageReference Include="xunit.runner.visualstudio" Version="2.3.1" />
+    <PackageReference Include="Microsoft.AspNetCore.TestHost" Version="2.1.1" />
   </ItemGroup>
 
 </Project>
