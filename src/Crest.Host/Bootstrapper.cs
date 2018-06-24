@@ -10,8 +10,10 @@ namespace Crest.Host
     using System.Linq;
     using System.Reflection;
     using Crest.Abstractions;
+    using Crest.Host.Diagnostics;
     using Crest.Host.Engine;
     using Crest.Host.Routing;
+    using Microsoft.Extensions.DependencyModel;
 
     /// <summary>
     /// Allows the configuration of the Crest framework during application
@@ -135,6 +137,18 @@ namespace Crest.Host
             //       https://github.com/samcragg/Crest/issues/10 is implemented
             var cache = (Security.SecurityKeyCache)this.serviceLocator.GetService(typeof(Security.SecurityKeyCache));
             cache?.UpdateCacheAsync();
+        }
+
+        /// <summary>
+        /// Overrides the default dependency context.
+        /// </summary>
+        /// <param name="context">
+        /// The dependency context used for discovering types.
+        /// </param>
+        [CLSCompliant(false)]
+        protected void SetDependencyContext(DependencyContext context)
+        {
+            ExecutingAssembly.DependencyContext = context;
         }
 
         /// <summary>

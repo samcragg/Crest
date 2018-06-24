@@ -6,8 +6,10 @@
     using System.Threading.Tasks;
     using Crest.Abstractions;
     using Crest.Host;
+    using Crest.Host.Diagnostics;
     using Crest.Host.Engine;
     using FluentAssertions;
+    using Microsoft.Extensions.DependencyModel;
     using NSubstitute;
     using Xunit;
 
@@ -236,6 +238,26 @@
             }
         }
 
+        [Collection("ExecutingAssembly.DependencyContext")]
+        public sealed class SetDependencyContext : BootstrapperTests
+        {
+            [Fact]
+            public void ShouldUpdateTheExecutingAssembly()
+            {
+                var context = new DependencyContext(
+                    new TargetInfo("framework", "runtime", "", false),
+                    CompilationOptions.Default,
+                    new CompilationLibrary[0],
+                    new RuntimeLibrary[0],
+                    new RuntimeFallbacks[0]);
+
+                this.bootstrapper.SetDependencyContext(context);
+
+                ExecutingAssembly.DependencyContext.Should().BeSameAs(context);
+
+            }
+        }
+
         public sealed class ThrowIfDisposed : BootstrapperTests
         {
             [Fact]
@@ -265,6 +287,11 @@
             internal new void Initialize()
             {
                 base.Initialize();
+            }
+
+            internal new void SetDependencyContext(DependencyContext dependencyContext)
+            {
+                base.SetDependencyContext(dependencyContext);
             }
 
             internal new void ThrowIfDisposed()

@@ -4,6 +4,7 @@
     using Crest.Host.AspNetCore;
     using FluentAssertions;
     using Microsoft.AspNetCore.Hosting;
+    using Microsoft.Extensions.DependencyInjection;
     using NSubstitute;
     using Xunit;
 
@@ -22,13 +23,13 @@
             [Fact]
             public void ShouldRegisterTheStartupClass()
             {
+                IServiceCollection services = Substitute.For<IServiceCollection>();
                 IWebHostBuilder builder = Substitute.For<IWebHostBuilder>();
+                builder.ConfigureServices(Arg.Do<Action<IServiceCollection>>(action => action(services)));
 
                 CrestWebHostBuilderExtensions.UseCrest(builder);
 
-                builder.Received().UseSetting(
-                    WebHostDefaults.ApplicationKey,
-                    Arg.Any<string>());
+                services.Received().Add(Arg.Is<ServiceDescriptor>(sd => sd.ServiceType == typeof(IStartup)));
             }
 
             [Fact]

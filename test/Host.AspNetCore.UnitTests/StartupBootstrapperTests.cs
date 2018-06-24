@@ -7,6 +7,7 @@
     using Microsoft.AspNetCore.Builder;
     using Microsoft.AspNetCore.Http;
     using Microsoft.Extensions.DependencyInjection;
+    using Microsoft.Extensions.DependencyModel;
     using NSubstitute;
     using Xunit;
 
@@ -63,7 +64,7 @@
             [Fact]
             public void ShouldSetTheServiceLocator()
             {
-                using (var bootstrapper = new StartupBootstrapper())
+                using (var bootstrapper = new StartupBootstrapper(DependencyContext.Default))
                 {
                     bootstrapper.ServiceLocator.Should().NotBeNull();
                 }

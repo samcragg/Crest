@@ -9,18 +9,25 @@
     using Microsoft.Extensions.DependencyModel;
     using Xunit;
 
+    [Collection("ExecutingAssembly.DependencyContext")]
     public class ExecutingAssemblyTests
     {
-        private readonly ExecutingAssembly executingAssembly = new ExecutingAssembly(typeof(DiscoveryServiceTests).GetTypeInfo().Assembly);
+        private readonly ExecutingAssembly executingAssembly = new ExecutingAssembly();
+
+        public ExecutingAssemblyTests()
+        {
+            ExecutingAssembly.DependencyContext = DependencyContext.Load(
+                typeof(ExecutingAssemblyTests).GetTypeInfo().Assembly);
+        }
 
         public sealed class DependencyContextProperty : ExecutingAssemblyTests
         {
             [Fact]
-            public void ShouldBeEqualToTheDefaultContext()
+            public void ShouldBeEqualToTheDefaultContextIfSetToNull()
             {
-                var executingAssembly = new ExecutingAssembly();
+                ExecutingAssembly.DependencyContext = null;
 
-                DependencyContext result = executingAssembly.DependencyContext;
+                DependencyContext result = ExecutingAssembly.DependencyContext;
 
                 result.Should().BeSameAs(DependencyContext.Default);
             }

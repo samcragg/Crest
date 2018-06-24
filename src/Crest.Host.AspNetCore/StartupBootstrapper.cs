@@ -11,6 +11,7 @@ namespace Crest.Host.AspNetCore
     using Microsoft.AspNetCore.Builder;
     using Microsoft.AspNetCore.Hosting;
     using Microsoft.Extensions.DependencyInjection;
+    using Microsoft.Extensions.DependencyModel;
 
     /// <summary>
     /// Adapts the ASP .NET pipeline for the Crest framework.
@@ -20,8 +21,10 @@ namespace Crest.Host.AspNetCore
         /// <summary>
         /// Initializes a new instance of the <see cref="StartupBootstrapper"/> class.
         /// </summary>
-        public StartupBootstrapper()
+        /// <param name="context">The context for the instance.</param>
+        public StartupBootstrapper(DependencyContext context)
         {
+            this.SetDependencyContext(context);
         }
 
         /// <summary>

@@ -6,6 +6,7 @@
     using Crest.Host.AspNetCore;
     using Microsoft.AspNetCore.Hosting;
     using Microsoft.AspNetCore.TestHost;
+    using Microsoft.Extensions.DependencyModel;
 
     public sealed class WebFixture : IDisposable
     {
@@ -13,8 +14,12 @@
 
         public WebFixture()
         {
+            // When running these tests under the xunit runner, the
+            // DependencyContext gives details about the xunit console
+            // application rather than us, so ensure we're using a context
+            // that includes this assembly
             var builder = new WebHostBuilder();
-            builder.UseCrest();
+            builder.UseCrest(DependencyContext.Load(typeof(WebFixture).Assembly));
             this.server = new TestServer(builder);
         }
 
