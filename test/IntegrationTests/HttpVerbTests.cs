@@ -1,7 +1,6 @@
 ﻿namespace IntegrationTests
 {
     using System.Net.Http;
-    using System.Net.Http.Headers;
     using System.Threading.Tasks;
     using FluentAssertions;
     using IntegrationTests.Services;
@@ -29,13 +28,10 @@
                 var message = new HttpRequestMessage(
                     new HttpMethod(verb),
                     "/v1/" + HttpVerbs.Endpoint);
-                message.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
 
-                HttpResponseMessage response = await client.SendAsync(message);
-                response.IsSuccessStatusCode.Should().BeTrue();
+                string content = await this.fixture.GetResultAsStringAsync(client, message);
 
-                string content = await response.Content.ReadAsStringAsync();
-                content.Should().BeEquivalentTo("\"" + verb + "\""); // Make it a JSON string
+                content.Should().BeEquivalentTo(verb);
             }
         }
     }

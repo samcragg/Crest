@@ -1,26 +1,24 @@
 ﻿namespace IntegrationTests
 {
-    using System;
     using System.Net.Http;
     using System.Net.Http.Headers;
+    using System.Threading.Tasks;
     using Crest.Host.AspNetCore;
+    using FluentAssertions;
     using Microsoft.AspNetCore.Hosting;
     using Microsoft.AspNetCore.TestHost;
-    using Microsoft.Extensions.DependencyModel;
+    using Newtonsoft.Json;
 
-    public sealed class WebFixture : IDisposable
+    public sealed class WebFixture
     {
-        private readonly TestServer server;
+        private static readonly object LockObj = new object();
+        private static readonly TestServer Server;
 
-        public WebFixture()
+        static WebFixture()
         {
-            // When running these tests under the xunit runner, the
-            // DependencyContext gives details about the xunit console
-            // application rather than us, so ensure we're using a context
-            // that includes this assembly
             var builder = new WebHostBuilder();
-            builder.UseCrest(DependencyContext.Load(typeof(WebFixture).Assembly));
-            this.server = new TestServer(builder);
+            builder.UseCrest();
+            Server = new TestServer(builder);
         }
 
         public HttpClient CreateAuthenticatedClient()
@@ -33,7 +31,7 @@
             //   "name": "John Doe",
             //   "iat": 1516239022
             // }
-            HttpClient client = this.server.CreateClient();
+            HttpClient client = this.CreateClient();
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(
                 "Bearer",
                 "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.ehDbi89WbFLgwiO45D8pNFARD2GBAwKogGhGf75YCw0");
@@ -43,12 +41,20 @@
 
         public HttpClient CreateClient()
         {
-            return this.server.CreateClient();
+            lock (LockObj)
+            {
+                return Server.CreateClient();
+            }
         }
 
-        public void Dispose()
+        public async Task<string> GetResultAsStringAsync(HttpClient client, HttpRequestMessage request)
         {
-            this.server.Dispose();
+            request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+            HttpResponseMessage response = await client.SendAsync(request);
+            response.IsSuccessStatusCode.Should().BeTrue();
+
+            string json = await response.Content.ReadAsStringAsync();
+            return JsonConvert.DeserializeObject<string>(json);
         }
     }
 }

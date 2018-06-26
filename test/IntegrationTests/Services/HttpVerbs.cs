@@ -4,7 +4,7 @@
 
     public sealed class HttpVerbs : IHttpVerbs
     {
-        internal const string Endpoint = "endpoint";
+        internal const string Endpoint = "/endpoint";
 
         public Task<string> DeleteMethod()
         {
