@@ -73,15 +73,23 @@ Task("IntegrationTests")
     .IsDependentOn("Build")
     .Does(() =>
 {
-    // Use xunit runner to avoid messages about no tests discovered in the
-    // unit test projects
+    // Verbosity = DotNetCoreVerbosity.Quiet doesn't seem to work, so we'll add
+    // it ourselves
+    var settings = new DotNetCoreTestSettings
+    {
+        ArgumentCustomization = args => args.Append("--verbosity quiet"),
+        Configuration = configuration,
+        Filter = "Category=Integration",
+        NoBuild = true,
+        NoRestore = true
+    };
+
     foreach (var project in GetFiles("../test/**/*.csproj"))
     {
-        DotNetCoreTool(
-            projectPath: project.FullPath, 
-            command: "xunit", 
-            arguments: "-configuration " + configuration + " -nobuild -nologo -stoponfail -trait \"Category=Integration\""
-        );
+        // Specify the path to the test adapter to avoid a warning that no tests
+        // were discovered because we filtered them all out
+        settings.TestAdapterPath = project.GetDirectory().CombineWithFilePath("./bin/" + configuration + "/netcoreapp2.0/").FullPath;
+        DotNetCoreTest(project.FullPath, settings);
     }
 });
 
