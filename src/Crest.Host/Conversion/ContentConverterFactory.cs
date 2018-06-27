@@ -10,6 +10,7 @@ namespace Crest.Host.Conversion
     using System.Linq;
     using Crest.Abstractions;
     using Crest.Host.Engine;
+    using Crest.Host.Logging;
 
     /// <summary>
     /// Creates a <see cref="IContentConverter"/> based on the request information.
@@ -18,6 +19,7 @@ namespace Crest.Host.Conversion
     internal sealed class ContentConverterFactory : IContentConverterFactory
     {
         private const string DefaultAcceptType = @"application/json";
+        private static readonly ILog Logger = LogProvider.For<ContentConverterFactory>();
         private readonly IContentConverter[] converters;
         private readonly MediaRange[] ranges;
 
@@ -90,7 +92,7 @@ namespace Crest.Host.Conversion
         {
             Check.IsNotNull(type, nameof(type));
 
-            System.Diagnostics.Trace.TraceInformation("Generating serializers for '{0}'", type.FullName);
+            Logger.InfoFormat("Generating serializers for '{type}'", type.FullName);
             foreach (IContentConverter converter in this.converters)
             {
                 converter.Prime(type);

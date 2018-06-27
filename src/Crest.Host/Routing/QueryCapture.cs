@@ -8,12 +8,14 @@ namespace Crest.Host.Routing
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using Crest.Host.Logging;
 
     /// <summary>
     /// Allows the capturing of values from the URL query.
     /// </summary>
     internal abstract partial class QueryCapture
     {
+        private static readonly ILog Logger = LogProvider.For<QueryCapture>();
         private readonly IQueryValueConverter converter;
         private readonly string queryKey;
 

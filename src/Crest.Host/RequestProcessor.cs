@@ -13,7 +13,6 @@ namespace Crest.Host
     using System.Reflection;
     using System.Threading.Tasks;
     using Crest.Abstractions;
-    using Crest.Host.Diagnostics;
     using Crest.Host.Engine;
     using Crest.Host.IO;
     using Crest.Host.Logging;
@@ -291,8 +290,8 @@ namespace Crest.Host
             }
             catch (Exception ex)
             {
-                TraceSources.Routing.TraceError(
-                    "An exception occurred handling the request: {0}:{1}",
+                Logger.ErrorFormat(
+                    "An exception occurred handling the request: {errorType}:{errorMessage}",
                     ex.GetType().Name,
                     ex.Message);
 
@@ -302,8 +301,8 @@ namespace Crest.Host
                 }
                 catch (Exception inner)
                 {
-                    TraceSources.Routing.TraceError(
-                        "An exception occurred handling an exception: {0}:{1}",
+                    Logger.ErrorFormat(
+                        "An exception occurred handling an exception: {errorType}:{errorMessage}",
                         inner.GetType().Name,
                         inner.Message);
                 }
@@ -314,8 +313,7 @@ namespace Crest.Host
 
         private void PrimeConverterFactory()
         {
-            TraceSources.Routing.TraceInformation(
-                "Priming converter factory with known return types.");
+            Logger.Info("Priming converter factory with known return types.");
 
             bool ReturnsGenericTask(MethodInfo method)
             {
