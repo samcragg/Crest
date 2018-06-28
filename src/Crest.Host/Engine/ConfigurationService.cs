@@ -45,15 +45,15 @@ namespace Crest.Host.Engine
         }
 
         /// <inheritdoc />
-        public Task InitializeProviders(IEnumerable<Type> discoveredTypes)
+        public Task InitializeProvidersAsync(IEnumerable<Type> discoveredTypes)
         {
             List<Type> knownTypes =
                 discoveredTypes.Where(this.CanConfigure).ToList();
 
-            Task[] tasks = new Task[this.providers.Length];
+            var tasks = new Task[this.providers.Length];
             for (int i = 0; i < tasks.Length; i++)
             {
-                tasks[i] = this.providers[i].Initialize(knownTypes);
+                tasks[i] = this.providers[i].InitializeAsync(knownTypes);
             }
 
             return Task.WhenAll(tasks);

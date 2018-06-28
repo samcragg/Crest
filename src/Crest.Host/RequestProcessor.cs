@@ -28,7 +28,7 @@ namespace Crest.Host
         private static readonly ILog Logger = LogProvider.For<RequestProcessor>();
 
         private static readonly MatchResult NoMatch = new MatchResult(
-            typeof(RequestProcessor).GetMethod(nameof(OverrideMethodAdapter), BindingFlags.NonPublic | BindingFlags.Static),
+            typeof(RequestProcessor).GetMethod(nameof(OverrideMethodAdapterAsync), BindingFlags.NonPublic | BindingFlags.Static),
             new Dictionary<string, object>());
 
         private readonly IContentConverterFactory converterFactory;
@@ -269,7 +269,7 @@ namespace Crest.Host
         /// <returns>A task that represents the asynchronous operation.</returns>
         protected internal abstract Task WriteResponseAsync(IRequestData request, IResponseData response);
 
-        private static Task OverrideMethodAdapter()
+        private static Task OverrideMethodAdapterAsync()
         {
             throw new InvalidOperationException(
                 "The request matched an override method and, therefore, this method MUST not be called.");

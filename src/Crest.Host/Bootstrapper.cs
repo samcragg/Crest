@@ -128,7 +128,7 @@ namespace Crest.Host
             this.RouteMapper = new RouteMapper(routes, this.GetDirectRoutes());
 
             IConfigurationService configuration = this.serviceLocator.GetConfigurationService();
-            configuration.InitializeProviders(types).Wait();
+            configuration.InitializeProvidersAsync(types).Wait();
             this.serviceRegister.RegisterInitializer(
                 configuration.CanConfigure,
                 instance => configuration.InitializeInstance(instance, this.serviceLocator));

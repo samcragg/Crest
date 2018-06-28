@@ -43,7 +43,7 @@
             }
         }
 
-        public sealed class Initialize : JsonConfigurationProviderTests
+        public sealed class InitializeAsync : JsonConfigurationProviderTests
         {
             [Fact]
             public async Task ShouldDefaultToProductionIfNoEnvironmentSet()
@@ -51,7 +51,7 @@
                 Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", string.Empty);
                 this.provider = new JsonConfigurationProvider(this.reader, this.watcher, this.generator);
 
-                await this.provider.Initialize(new Type[0]);
+                await this.provider.InitializeAsync(new Type[0]);
 
                 await this.reader.Received().ReadAllBytesAsync("appsettings.Production.json");
             }
@@ -59,7 +59,7 @@
             [Fact]
             public async Task ShouldLoadTheEnvironmentSettings()
             {
-                await this.provider.Initialize(new Type[0]);
+                await this.provider.InitializeAsync(new Type[0]);
 
                 await this.reader.Received().ReadAllBytesAsync(EnvironmentSettingsFile);
             }
@@ -67,7 +67,7 @@
             [Fact]
             public async Task ShouldLoadTheGlobalSettings()
             {
-                await this.provider.Initialize(new Type[0]);
+                await this.provider.InitializeAsync(new Type[0]);
 
                 await this.reader.Received().ReadAllBytesAsync(GlobalSettingsFile);
             }
@@ -80,7 +80,7 @@
                     this.reader.ReadAllBytesAsync(GlobalSettingsFile)
                         .Returns(Encoding.ASCII.GetBytes(@"{""myConfig"":{}}"));
 
-                    await this.provider.Initialize(new[]
+                    await this.provider.InitializeAsync(new[]
                     {
                         typeof(DuplicateClass1.MyConfig),
                         typeof(DuplicateClass2.MyConfig)
@@ -99,7 +99,7 @@
                     this.reader.ReadAllBytesAsync(null)
                         .ReturnsForAnyArgs<byte[]>(_ => throw new IOException());
 
-                    await this.provider.Initialize(new Type[0]);
+                    await this.provider.InitializeAsync(new Type[0]);
 
                     logger.LogLevel.Should().Be(LogLevel.Error);
                     logger.Message.Should().MatchEquivalentOf("*unable to read*");
@@ -114,7 +114,7 @@
                     this.generator.CreatePopulateMethod(null, null)
                         .ReturnsForAnyArgs(_ => throw new FormatException());
 
-                    await this.provider.Initialize(new[] { typeof(string) });
+                    await this.provider.InitializeAsync(new[] { typeof(string) });
 
                     logger.LogLevel.Should().Be(LogLevel.Error);
                     logger.Message.Should().MatchEquivalentOf("*invalid json*");
@@ -129,7 +129,7 @@
                     this.reader.ReadAllBytesAsync(GlobalSettingsFile)
                         .Returns(Encoding.ASCII.GetBytes(@"{""myConfig"":{}}"));
 
-                    await this.provider.Initialize(new Type[0]);
+                    await this.provider.InitializeAsync(new Type[0]);
 
                     logger.LogLevel.Should().Be(LogLevel.Warn);
                     logger.Message.Should().MatchEquivalentOf("*found*");
@@ -154,14 +154,6 @@
         public sealed class Inject : JsonConfigurationProviderTests
         {
             [Fact]
-            public void ShouldIgnoreTypesItCantHandle()
-            {
-                Action action = () => this.provider.Inject(new object());
-
-                action.Should().NotThrow();
-            }
-
-            [Fact]
             public async Task ShouldApplyGlobalSettings()
             {
                 byte[] global = Encoding.ASCII.GetBytes(@"{""myConfig"":null}");
@@ -170,11 +162,19 @@
                 this.generator.CreatePopulateMethod(null, null)
                     .ReturnsForAnyArgs(x => ((MyConfig)x).Value = "global");
 
-                await this.provider.Initialize(new[] { typeof(MyConfig) });
+                await this.provider.InitializeAsync(new[] { typeof(MyConfig) });
                 var instance = new MyConfig();
                 this.provider.Inject(instance);
 
                 instance.Value.Should().Be("global");
+            }
+
+            [Fact]
+            public void ShouldIgnoreTypesItCantHandle()
+            {
+                Action action = () => this.provider.Inject(new object());
+
+                action.Should().NotThrow();
             }
 
             [Fact]
@@ -192,7 +192,7 @@
                         return x => ((MyConfig)x).Value = ci.Arg<string>();
                     });
 
-                await this.provider.Initialize(new[] { typeof(MyConfig) });
+                await this.provider.InitializeAsync(new[] { typeof(MyConfig) });
                 var instance = new MyConfig();
                 this.provider.Inject(instance);
 

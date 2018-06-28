@@ -44,7 +44,7 @@ namespace Crest.Host.AspNetCore
         {
             this.Initialize();
             var processor = new HttpContextProcessor(this);
-            app.Use(_ => processor.HandleRequest);
+            app.Use(_ => processor.HandleRequestAsync);
         }
 
         /// <inheritdoc />

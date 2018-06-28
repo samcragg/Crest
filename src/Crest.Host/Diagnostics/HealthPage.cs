@@ -61,7 +61,7 @@ namespace Crest.Host.Diagnostics
         /// </summary>
         /// <param name="stream">The stream to write the data to.</param>
         /// <returns>A task that represents the asynchronous operation.</returns>
-        public virtual async Task WriteTo(Stream stream)
+        public virtual async Task WriteToAsync(Stream stream)
         {
             char[] htmlTempalte = this.template.Template.ToCharArray();
             int insertIndex = this.template.ContentLocation;
@@ -71,17 +71,17 @@ namespace Crest.Host.Diagnostics
                 await writer.WriteLineAsync(htmlTempalte, 0, insertIndex).ConfigureAwait(false);
                 await writer.WriteLineAsync("<h1>Service Health</h1>").ConfigureAwait(false);
 
-                await this.WriteSummary(writer).ConfigureAwait(false);
+                await this.WriteSummaryAsync(writer).ConfigureAwait(false);
 
                 // TODO: Write the stats (no. of requests, av. timings)
-                await this.WriteAssemblies(writer).ConfigureAwait(false);
+                await this.WriteAssembliesAsync(writer).ConfigureAwait(false);
 
                 int count = htmlTempalte.Length - insertIndex;
                 await writer.WriteAsync(htmlTempalte, insertIndex, count).ConfigureAwait(false);
             }
         }
 
-        private static async Task WriteTableRow(TextWriter writer, string label, string value)
+        private static async Task WriteTableRowAsync(TextWriter writer, string label, string value)
         {
             await writer.WriteAsync("<tr><td>").ConfigureAwait(false);
             await writer.WriteAsync(label).ConfigureAwait(false);
@@ -90,7 +90,7 @@ namespace Crest.Host.Diagnostics
             await writer.WriteLineAsync("</td></tr>").ConfigureAwait(false);
         }
 
-        private async Task WriteAssemblies(StreamWriter writer)
+        private async Task WriteAssembliesAsync(StreamWriter writer)
         {
             await writer.WriteLineAsync("<h2>Assemblies</h2><p>").ConfigureAwait(false);
 
@@ -105,7 +105,7 @@ namespace Crest.Host.Diagnostics
             await writer.WriteAsync("</p>").ConfigureAwait(false);
         }
 
-        private async Task WriteSummary(TextWriter writer)
+        private async Task WriteSummaryAsync(TextWriter writer)
         {
             string FormatBytes(long value)
             {
@@ -122,37 +122,37 @@ namespace Crest.Host.Diagnostics
             await writer.WriteLineAsync("<h2>Summary</h2>").ConfigureAwait(false);
             await writer.WriteLineAsync("<table>").ConfigureAwait(false);
 
-            await WriteTableRow(
+            await WriteTableRowAsync(
                 writer,
                 "System time",
                 this.time.GetUtc().ToString("u", CultureInfo.InvariantCulture)).ConfigureAwait(false);
 
-            await WriteTableRow(
+            await WriteTableRowAsync(
                 writer,
                 "Machine name",
                 Environment.MachineName).ConfigureAwait(false);
 
-            await WriteTableRow(
+            await WriteTableRowAsync(
                 writer,
                 "Process uptime",
                 FormatTime(this.process.UpTime)).ConfigureAwait(false);
 
-            await WriteTableRow(
+            await WriteTableRowAsync(
                 writer,
                 "CPU time (application)",
                 FormatTime(this.process.ApplicationCpuTime)).ConfigureAwait(false);
 
-            await WriteTableRow(
+            await WriteTableRowAsync(
                 writer,
                 "CPU time (system)",
                 FormatTime(this.process.SystemCpuTime)).ConfigureAwait(false);
 
-            await WriteTableRow(
+            await WriteTableRowAsync(
                 writer,
                 "Memory (private)",
                 FormatBytes(this.process.PrivateMemory)).ConfigureAwait(false);
 
-            await WriteTableRow(
+            await WriteTableRowAsync(
                 writer,
                 "Memory (working)",
                 FormatBytes(this.process.WorkingMemory)).ConfigureAwait(false);

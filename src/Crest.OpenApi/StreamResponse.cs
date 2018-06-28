@@ -33,7 +33,7 @@ namespace Crest.OpenApi
         public StreamResponse(Func<Stream> source)
         {
             this.source = source;
-            this.copyCompressed = CopyGzip; // This coppies the stream without modifying it
+            this.copyCompressed = CopyGzipAsync; // This copies the stream without modifying it
             this.Headers = new SortedDictionary<string, string>();
         }
 
@@ -71,7 +71,7 @@ namespace Crest.OpenApi
         public int StatusCode => (int)HttpStatusCode.OK;
 
         /// <inheritdoc />
-        public Func<Stream, Task> WriteBody => this.CopyStream;
+        public Func<Stream, Task> WriteBody => this.CopyStreamAsync;
 
         private static Func<Stream, Stream, Task> ChooseCompression(string acceptEncoding, out string contentEncoding)
         {
@@ -81,20 +81,20 @@ namespace Crest.OpenApi
                 if (normalized == "gzip")
                 {
                     contentEncoding = "gzip";
-                    return CopyGzip;
+                    return CopyGzipAsync;
                 }
                 else if (normalized == "deflate")
                 {
                     contentEncoding = "deflate";
-                    return CopyDeflate;
+                    return CopyDeflateAsync;
                 }
             }
 
             contentEncoding = null;
-            return CopyDecompressed;
+            return CopyDecompressedAsync;
         }
 
-        private static async Task CopyDecompressed(Stream source, Stream destination)
+        private static async Task CopyDecompressedAsync(Stream source, Stream destination)
         {
             using (var gzip = new GZipStream(source, CompressionMode.Decompress))
             {
@@ -102,7 +102,7 @@ namespace Crest.OpenApi
             }
         }
 
-        private static async Task CopyDeflate(Stream source, Stream destination)
+        private static async Task CopyDeflateAsync(Stream source, Stream destination)
         {
             const int GZipHeaderBytes = 10;
             const int GZipFooterBytes = 8;
@@ -127,12 +127,12 @@ namespace Crest.OpenApi
             }
         }
 
-        private static Task CopyGzip(Stream source, Stream destination)
+        private static Task CopyGzipAsync(Stream source, Stream destination)
         {
             return source.CopyToAsync(destination);
         }
 
-        private async Task CopyStream(Stream destination)
+        private async Task CopyStreamAsync(Stream destination)
         {
             using (Stream sourceStream = this.source())
             {

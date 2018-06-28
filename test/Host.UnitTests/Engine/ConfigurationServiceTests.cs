@@ -71,26 +71,26 @@
             }
         }
 
-        public sealed class InitializeProviders : ConfigurationServiceTests
+        public sealed class InitializeProvidersAsync : ConfigurationServiceTests
         {
             [Fact]
             public async Task ShouldInitializeTheProviders()
             {
-                await this.service.InitializeProviders(new Type[0]);
+                await this.service.InitializeProvidersAsync(new Type[0]);
 
-                await this.provider.ReceivedWithAnyArgs().Initialize(null);
+                await this.provider.ReceivedWithAnyArgs().InitializeAsync(null);
             }
 
             [Fact]
             public async Task ShouldPassTheConfigurableClassesToTheProviders()
             {
                 Type[] types = new[] { typeof(ConfigurationServiceTests), typeof(FakeConfiguration) };
-                await this.provider.Initialize(Arg.Do<IEnumerable<Type>>(t =>
+                await this.provider.InitializeAsync(Arg.Do<IEnumerable<Type>>(t =>
                 {
                     t.Should().BeEquivalentTo(typeof(FakeConfiguration));
                 }));
 
-                await this.service.InitializeProviders(types);
+                await this.service.InitializeProvidersAsync(types);
             }
         }
 

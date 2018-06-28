@@ -49,7 +49,7 @@ namespace Crest.Host.Engine
         /// <inheritdoc />
         public Task<IResponseData> InternalErrorAsync(Exception exception)
         {
-            return this.FindResponse(
+            return this.FindResponseAsync(
                 h => h.InternalErrorAsync(exception),
                 InternalError);
         }
@@ -57,7 +57,7 @@ namespace Crest.Host.Engine
         /// <inheritdoc />
         public Task<IResponseData> NoContentAsync(IRequestData request, IContentConverter converter)
         {
-            return this.FindResponse(
+            return this.FindResponseAsync(
                 h => h.NoContentAsync(request, converter),
                 NoContent);
         }
@@ -65,7 +65,7 @@ namespace Crest.Host.Engine
         /// <inheritdoc />
         public Task<IResponseData> NotAcceptableAsync(IRequestData request)
         {
-            return this.FindResponse(
+            return this.FindResponseAsync(
                 h => h.NotAcceptableAsync(request),
                 NotAcceptable);
         }
@@ -73,12 +73,12 @@ namespace Crest.Host.Engine
         /// <inheritdoc />
         public Task<IResponseData> NotFoundAsync(IRequestData request, IContentConverter converter)
         {
-            return this.FindResponse(
+            return this.FindResponseAsync(
                 h => h.NotFoundAsync(request, converter),
                 NotFound);
         }
 
-        private async Task<IResponseData> FindResponse(
+        private async Task<IResponseData> FindResponseAsync(
             Func<StatusCodeHandler, Task<IResponseData>> method,
             IResponseData defaultResponse)
         {

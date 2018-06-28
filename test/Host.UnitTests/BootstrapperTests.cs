@@ -121,7 +121,7 @@
 
                 this.bootstrapper.Initialize();
 
-                configurationService.ReceivedWithAnyArgs().InitializeProviders(null);
+                configurationService.ReceivedWithAnyArgs().InitializeProvidersAsync(null);
             }
 
             [Fact]
@@ -254,7 +254,6 @@
                 this.bootstrapper.SetDependencyContext(context);
 
                 ExecutingAssembly.DependencyContext.Should().BeSameAs(context);
-
             }
         }
 

@@ -74,6 +74,8 @@ namespace Crest.Host.Routing
                 captures).Compile();
         }
 
+#pragma warning disable UseAsyncSuffix
+
         private static Task<object> ConvertGenericTask<T>(Task<T> value)
         {
             return value.ContinueWith<object>(
@@ -91,6 +93,8 @@ namespace Crest.Host.Routing
                 },
                 TaskContinuationOptions.ExecuteSynchronously);
         }
+
+#pragma warning restore UseAsyncSuffix
 
         private static Expression GetDefaultValue(ParameterInfo parameter)
         {

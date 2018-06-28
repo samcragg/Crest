@@ -7,8 +7,4 @@
   </PropertyGroup>
 
   <Import Project="..\CrestPackage.targets" />
-
-  <ItemGroup>
-    <PackageReference Include="StyleCop.Analyzers" Version="1.0.2" PrivateAssets="All" />
-  </ItemGroup>
 </Project>

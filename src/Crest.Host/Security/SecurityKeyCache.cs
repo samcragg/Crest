@@ -121,7 +121,7 @@ namespace Crest.Host.Security
             }
         }
 
-        private static async Task UpdateProvider(KeyProvider provider)
+        private static async Task UpdateProviderAsync(KeyProvider provider)
         {
             Task<X509Certificate2[]> certificatesTask = provider.Provider.GetCertificatesAsync();
             Task<byte[][]> keysTask = provider.Provider.GetSecretKeysAsync();
@@ -162,7 +162,7 @@ namespace Crest.Host.Security
                     Task updateTask = provider.UpdateTask;
                     if (updateTask == null)
                     {
-                        updateTask = UpdateProvider(provider);
+                        updateTask = UpdateProviderAsync(provider);
                         provider.UpdateTask = updateTask;
                     }
 

@@ -64,7 +64,7 @@ namespace Crest.Host.Engine
         }
 
         /// <inheritdoc />
-        public async Task Initialize(IEnumerable<Type> knownTypes)
+        public async Task InitializeAsync(IEnumerable<Type> knownTypes)
         {
             foreach (Type type in knownTypes)
             {

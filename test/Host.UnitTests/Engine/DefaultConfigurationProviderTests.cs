@@ -15,7 +15,7 @@
             [Fact]
             public async Task ShouldHandleTypesWithNoDefaultProperties()
             {
-                await this.provider.Initialize(new[] { typeof(NoDefaultProperties) });
+                await this.provider.InitializeAsync(new[] { typeof(NoDefaultProperties) });
                 var instance = new NoDefaultProperties();
 
                 this.provider.Inject(instance);
@@ -26,7 +26,7 @@
             [Fact]
             public async Task ShouldSetNestedProperties()
             {
-                await this.provider.Initialize(new[] { typeof(HasNestedProperties) });
+                await this.provider.InitializeAsync(new[] { typeof(HasNestedProperties) });
                 var instance = new HasNestedProperties();
 
                 this.provider.Inject(instance);
@@ -37,7 +37,7 @@
             [Fact]
             public async Task ShouldSetTheDefaultValuesOfProperties()
             {
-                await this.provider.Initialize(new[] { typeof(HasDefaultProperties) });
+                await this.provider.InitializeAsync(new[] { typeof(HasDefaultProperties) });
                 var instance = new HasDefaultProperties();
 
                 this.provider.Inject(instance);
@@ -71,7 +71,7 @@
             [Fact]
             public void ShouldReturnAPositiveValue()
             {
-                provider.Order.Should().BePositive();
+                this.provider.Order.Should().BePositive();
             }
         }
     }

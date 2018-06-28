@@ -35,7 +35,7 @@ namespace Crest.Abstractions
         /// to <see cref="Inject(object)"/>.
         /// </param>
         /// <returns>The result of the asynchronous operation.</returns>
-        Task Initialize(IEnumerable<Type> knownTypes);
+        Task InitializeAsync(IEnumerable<Type> knownTypes);
 
         /// <summary>
         /// Injects the configuration properties into an existing object.

@@ -25,7 +25,7 @@ namespace Crest.Host.Engine
         public int Order => 100;
 
         /// <inheritdoc />
-        public Task Initialize(IEnumerable<Type> knownTypes)
+        public Task InitializeAsync(IEnumerable<Type> knownTypes)
         {
             return Task.Run(() =>
             {

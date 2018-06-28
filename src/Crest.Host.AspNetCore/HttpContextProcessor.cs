@@ -31,7 +31,7 @@ namespace Crest.Host.AspNetCore
         /// </summary>
         /// <param name="context">The HTTP request.</param>
         /// <returns>A task that represents the asynchronous operation.</returns>
-        public Task HandleRequest(HttpContext context)
+        public Task HandleRequestAsync(HttpContext context)
         {
             MatchResult result = this.Match(
                 context.Request.Method,

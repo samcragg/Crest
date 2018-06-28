@@ -41,6 +41,6 @@ namespace Crest.Abstractions
         /// All the types that have been discovered at runtime.
         /// </param>
         /// <returns>The result of the asynchronous operation.</returns>
-        Task InitializeProviders(IEnumerable<Type> discoveredTypes);
+        Task InitializeProvidersAsync(IEnumerable<Type> discoveredTypes);
     }
 }

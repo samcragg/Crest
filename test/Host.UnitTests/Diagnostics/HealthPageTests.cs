@@ -27,13 +27,13 @@
         {
             using (var stream = new MemoryStream())
             {
-                await this.health.WriteTo(stream);
+                await this.health.WriteToAsync(stream);
 
                 return Encoding.UTF8.GetString(stream.ToArray());
             }
         }
 
-        public sealed class WriteTo : HealthPageTests
+        public sealed class WriteToAsync : HealthPageTests
         {
             [Fact]
             public async Task ShouldOutputTheCpuUsage()

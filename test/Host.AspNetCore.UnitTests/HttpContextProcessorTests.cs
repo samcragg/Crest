@@ -43,7 +43,7 @@
             this.processor = new HttpContextProcessor(this.bootstrapper);
         }
 
-        public sealed class HandleRequest : HttpContextProcessorTests
+        public sealed class HandleRequestAsync : HttpContextProcessorTests
         {
             [Fact]
             public async Task ShouldReturn200ForFoundRoutes()
@@ -63,7 +63,7 @@
                         return method;
                     });
 
-                await this.processor.HandleRequest(context);
+                await this.processor.HandleRequestAsync(context);
 
                 context.Response.StatusCode.Should().Be(200);
             }
@@ -86,7 +86,7 @@
                         return method;
                     });
 
-                await this.processor.HandleRequest(context);
+                await this.processor.HandleRequestAsync(context);
 
                 context.Response.Body.Length.Should().Be(1);
             }
@@ -109,7 +109,7 @@
                 this.mapper.FindOverride("GET", "/route")
                     .Returns(method);
 
-                await this.processor.HandleRequest(context);
+                await this.processor.HandleRequestAsync(context);
 
                 context.Response.Headers["Header"].ToString()
                        .Should().Be("Value");

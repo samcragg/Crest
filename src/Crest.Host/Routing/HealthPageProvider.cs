@@ -32,7 +32,7 @@ namespace Crest.Host.Routing
             // TODO: Only enable this if we're in debug mode
             OverrideMethod health = (request, _) =>
             {
-                return Task.FromResult<IResponseData>(new ResponseData("text/html", 200, this.page.WriteTo));
+                return Task.FromResult<IResponseData>(new ResponseData("text/html", 200, this.page.WriteToAsync));
             };
 
             yield return new DirectRouteMetadata { Method = health, RouteUrl = "/health", Verb = "GET" };

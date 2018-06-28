@@ -178,9 +178,9 @@
                     .Returns(new[] { configurationProvider });
 
                 IConfigurationService result = this.locator.GetConfigurationService();
-                await result.InitializeProviders(new Type[0]);
+                await result.InitializeProvidersAsync(new Type[0]);
 
-                await configurationProvider.ReceivedWithAnyArgs().Initialize(null);
+                await configurationProvider.ReceivedWithAnyArgs().InitializeAsync(null);
             }
         }
 

@@ -45,7 +45,7 @@
                 IResponseData response = await metadata.Method(request, converter);
                 await response.WriteBody(stream);
 
-                await this.page.Received().WriteTo(stream);
+                await this.page.Received().WriteToAsync(stream);
             }
         }
     }
