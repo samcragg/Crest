@@ -15,7 +15,7 @@
 
         public RsaSignatureValidatorTests()
         {
-            this.cache = Substitute.For<SecurityKeyCache>(new object[] { new ISecurityKeyProvider[0] });
+            this.cache = Substitute.For<SecurityKeyCache>();
             this.validator = new RsaSignatureValidator(this.cache);
 
             using (X509Certificate2 cert = CertificateHelper.GetCertificate("TestRsaCert.pfx"))

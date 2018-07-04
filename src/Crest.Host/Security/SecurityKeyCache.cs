@@ -37,6 +37,16 @@ namespace Crest.Host.Security
         }
 
         /// <summary>
+        /// Initializes a new instance of the <see cref="SecurityKeyCache"/> class.
+        /// </summary>
+        /// <remarks>
+        /// This constructor is only used to allow the type to be mocked in unit tests.
+        /// </remarks>
+        protected SecurityKeyCache()
+        {
+        }
+
+        /// <summary>
         /// Gets the known Elliptic Curve parameters.
         /// </summary>
         /// <returns>A sequence of valid Elliptic Curve parameters.</returns>
@@ -69,7 +79,6 @@ namespace Crest.Host.Security
         /// <returns>
         /// A task that represents the asynchronous update operation.
         /// </returns>
-        // TODO: This is not called :(
         public virtual Task UpdateCacheAsync()
         {
             unsafe

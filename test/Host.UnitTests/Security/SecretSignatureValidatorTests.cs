@@ -16,7 +16,7 @@
 
         public SecretSignatureValidatorTests()
         {
-            this.cache = Substitute.For<SecurityKeyCache>(new object[] { new ISecurityKeyProvider[0] });
+            this.cache = Substitute.For<SecurityKeyCache>();
             this.validator = new SecretSignatureValidator(this.cache);
             this.cache.GetSecretKeys().Returns(new[] { this.secretKey });
         }

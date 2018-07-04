@@ -64,6 +64,10 @@ the provider it will remember the current value for the version. It will then
 only ask for the certificates/keys from that provider again when it returns a
 different value from this property.
 
+The certificates will be asked for at startup and then every one minute after,
+therefore, if the certificate/secret key information has changed it can take up
+to a minute before those changes are picked up by the framework.
+
 ## Disabling authentication
 
 If you want to disable JWT authentication so that all requests are treated as
