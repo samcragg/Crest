@@ -9,6 +9,7 @@ namespace Crest.Host
     using System.Collections.Generic;
     using System.Linq;
     using System.Reflection;
+    using System.Threading.Tasks;
     using Crest.Abstractions;
     using Crest.Host.Diagnostics;
     using Crest.Host.Engine;
@@ -121,22 +122,23 @@ namespace Crest.Host
         {
             IDiscoveryService discovery = this.serviceLocator.GetDiscoveryService();
             IReadOnlyCollection<Type> types = this.RegisterTypes(discovery, discovery.GetDiscoveredTypes());
+            var discoveredTypes = new DiscoveredTypes(types);
+            this.serviceRegister.RegisterFactory(typeof(DiscoveredTypes), () => discoveredTypes);
+
             this.RegisterTypes(discovery, this.GetDefaultOptionalServices(discovery, types));
 
             List<RouteMetadata> routes =
                 types.SelectMany(discovery.GetRoutes).ToList();
             this.RouteMapper = new RouteMapper(routes, this.GetDirectRoutes());
 
-            IConfigurationService configuration = this.serviceLocator.GetConfigurationService();
-            configuration.InitializeProvidersAsync(types).Wait();
-            this.serviceRegister.RegisterInitializer(
-                configuration.CanConfigure,
-                instance => configuration.InitializeInstance(instance, this.serviceLocator));
+            IStartupInitializer[] initializers = this.serviceLocator.GetInitializers();
+            var tasks = new Task[initializers.Length];
+            for (int i = 0; i < tasks.Length; i++)
+            {
+                tasks[i] = initializers[i].InitializeAsync(this.serviceRegister, this.serviceLocator);
+            }
 
-            // HACK: Temporary code to allow the integration tests to pass until
-            //       https://github.com/samcragg/Crest/issues/10 is implemented
-            var cache = (Security.SecurityKeyCache)this.serviceLocator.GetService(typeof(Security.SecurityKeyCache));
-            cache?.UpdateCacheAsync();
+            Task.WaitAll(tasks);
         }
 
         /// <summary>

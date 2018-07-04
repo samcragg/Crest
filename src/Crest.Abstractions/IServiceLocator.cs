@@ -32,12 +32,6 @@ namespace Crest.Abstractions
         IPreRequestPlugin[] GetBeforeRequestPlugins();
 
         /// <summary>
-        /// Gets the service to use for providing configuration data.
-        /// </summary>
-        /// <returns>An object implementing <see cref="IConfigurationService"/>.</returns>
-        IConfigurationService GetConfigurationService();
-
-        /// <summary>
         /// Gets the registered plugins to call to obtain direct routes.
         /// </summary>
         /// <returns>A sequence of registered plugins.</returns>
@@ -54,6 +48,12 @@ namespace Crest.Abstractions
         /// </summary>
         /// <returns>A sequence of registered plugins.</returns>
         IErrorHandlerPlugin[] GetErrorHandlers();
+
+        /// <summary>
+        /// Gets the services that need to be called during application startup.
+        /// </summary>
+        /// <returns>A sequence of registered initializers.</returns>
+        IStartupInitializer[] GetInitializers();
 
         /// <summary>
         /// Gets the service to use to register services.

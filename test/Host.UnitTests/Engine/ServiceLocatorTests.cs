@@ -158,29 +158,28 @@
             }
         }
 
-        public sealed class GetConfigurationService : ServiceLocatorTests
+        public sealed class GetInitializers : ServiceLocatorTests
         {
             [Fact]
             public void ShouldCheckForDisposed()
             {
                 this.locator.Dispose();
 
-                Action action = () => this.locator.GetConfigurationService();
+                Action action = () => this.locator.GetInitializers();
 
                 action.Should().Throw<ObjectDisposedException>();
             }
 
             [Fact]
-            public async Task ShouldGetTheProvidersFromTheContainer()
+            public void ShouldGetTheProvidersFromTheContainer()
             {
-                IConfigurationProvider configurationProvider = Substitute.For<IConfigurationProvider>();
-                this.container.Resolve(typeof(IEnumerable<IConfigurationProvider>))
-                    .Returns(new[] { configurationProvider });
+                var initializers = new IStartupInitializer[0];
+                this.container.Resolve(typeof(IStartupInitializer[]))
+                    .Returns(initializers);
 
-                IConfigurationService result = this.locator.GetConfigurationService();
-                await result.InitializeProvidersAsync(new Type[0]);
+                IStartupInitializer[] result = this.locator.GetInitializers();
 
-                await configurationProvider.ReceivedWithAnyArgs().InitializeAsync(null);
+                result.Should().BeSameAs(initializers);
             }
         }
 

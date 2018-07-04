@@ -90,17 +90,6 @@ namespace Crest.Host.Engine
         }
 
         /// <inheritdoc />
-        public IConfigurationService GetConfigurationService()
-        {
-            this.ThrowIfDisposed();
-
-            IEnumerable<IConfigurationProvider> providers =
-                this.Resolve<IEnumerable<IConfigurationProvider>>();
-
-            return new ConfigurationService(providers);
-        }
-
-        /// <inheritdoc />
         public IDirectRouteProvider[] GetDirectRouteProviders()
         {
             this.ThrowIfDisposed();
@@ -122,6 +111,14 @@ namespace Crest.Host.Engine
             this.ThrowIfDisposed();
 
             return this.Resolve<IErrorHandlerPlugin[]>();
+        }
+
+        /// <inheritdoc />
+        public IStartupInitializer[] GetInitializers()
+        {
+            this.ThrowIfDisposed();
+
+            return this.Resolve<IStartupInitializer[]>();
         }
 
         /// <inheritdoc />

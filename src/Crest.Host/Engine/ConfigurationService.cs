@@ -16,6 +16,7 @@ namespace Crest.Host.Engine
     /// <summary>
     /// Provides instances of classes that have been marked as configuration.
     /// </summary>
+    [OverridableService]
     internal sealed class ConfigurationService : IConfigurationService
     {
         private readonly IConfigurationProvider[] providers;

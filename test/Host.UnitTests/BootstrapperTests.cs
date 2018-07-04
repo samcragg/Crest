@@ -94,34 +94,15 @@
             }
 
             [Fact]
-            public void ShouldInitializeClassesWithTheConfigurationService()
+            public void ShouldInvokeStartupInitializers()
             {
-                IConfigurationService configurationService = Substitute.For<IConfigurationService>();
-                this.serviceLocator.GetConfigurationService()
-                    .Returns(configurationService);
-
-                // Force the passed in lambdas to be invoked
-                object toInitialize = new FakeClass();
-                this.serviceRegister.RegisterInitializer(
-                    Arg.Do<Func<Type, bool>>(x => x(typeof(FakeClass))),
-                    Arg.Do<Action<object>>(x => x(toInitialize)));
+                IStartupInitializer startup = Substitute.For<IStartupInitializer>();
+                this.serviceLocator.GetInitializers()
+                    .Returns(new[] { startup });
 
                 this.bootstrapper.Initialize();
 
-                configurationService.Received().CanConfigure(typeof(FakeClass));
-                configurationService.Received().InitializeInstance(toInitialize, this.serviceLocator);
-            }
-
-            [Fact]
-            public void ShouldInitializeTheConfigurationService()
-            {
-                IConfigurationService configurationService = Substitute.For<IConfigurationService>();
-                this.serviceLocator.GetConfigurationService()
-                    .Returns(configurationService);
-
-                this.bootstrapper.Initialize();
-
-                configurationService.ReceivedWithAnyArgs().InitializeProvidersAsync(null);
+                startup.ReceivedWithAnyArgs().InitializeAsync(null, null);
             }
 
             [Fact]
@@ -154,6 +135,15 @@
                 this.bootstrapper.Initialize();
 
                 direct.Received().GetDirectRoutes();
+            }
+
+            [Fact]
+            public void ShouldRegisterDiscoveredTypes()
+            {
+                this.bootstrapper.Initialize();
+
+                this.serviceRegister.Received()
+                    .RegisterFactory(typeof(DiscoveredTypes), Arg.Any<Func<object>>());
             }
 
             [Fact]
