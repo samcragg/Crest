@@ -11,12 +11,12 @@
     <PackageType>DotNetCliTool</PackageType>
   </PropertyGroup>
 
+  <Import Project="..\..\src\CrestAnalyzers.targets" />
   <Import Project="..\..\src\CrestPackage.targets" />
 
   <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.CommandLineUtils" Version="1.1.1" />
     <PackageReference Include="Microsoft.Extensions.DependencyModel" Version="2.1.0" />
-    <PackageReference Include="StyleCop.Analyzers" Version="1.0.2" PrivateAssets="All" />
     <PackageReference Include="System.ComponentModel.Primitives" Version="4.3.0" />
     <PackageReference Include="System.Diagnostics.TraceSource" Version="4.3.0" />
     <PackageReference Include="System.Runtime.Loader" Version="4.3.0" />

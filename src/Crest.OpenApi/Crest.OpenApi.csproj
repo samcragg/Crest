@@ -6,6 +6,7 @@
     <PackageId>Crest.OpenApi</PackageId>
   </PropertyGroup>
   
+  <Import Project="..\CrestAnalyzers.targets" />
   <Import Project="..\CrestPackage.targets" />
   
   <ItemGroup>

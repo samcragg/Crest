@@ -11,16 +11,4 @@
     <DebugType>full</DebugType>
     <DebugSymbols>True</DebugSymbols>
   </PropertyGroup>
-
-  <!-- Code analysis files -->
-  <ItemGroup>
-    <AdditionalFiles Include="$(MSBuildThisFileDirectory)\stylecop.json" />
-    <Compile Include="$(MSBuildThisFileDirectory)\GlobalSuppressions.cs" />
-  </ItemGroup>
-  
-  <!-- Analyzers -->
-  <ItemGroup>
-    <PackageReference Include="AsyncUsageAnalyzers" Version="1.0.0-alpha003" PrivateAssets="All" />
-    <PackageReference Include="StyleCop.Analyzers" Version="1.0.2" PrivateAssets="All" />
-  </ItemGroup>
 </Project>
