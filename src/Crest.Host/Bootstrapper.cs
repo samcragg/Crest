@@ -131,14 +131,12 @@ namespace Crest.Host
                 types.SelectMany(discovery.GetRoutes).ToList();
             this.RouteMapper = new RouteMapper(routes, this.GetDirectRoutes());
 
-            IStartupInitializer[] initializers = this.serviceLocator.GetInitializers();
-            var tasks = new Task[initializers.Length];
-            for (int i = 0; i < tasks.Length; i++)
-            {
-                tasks[i] = initializers[i].InitializeAsync(this.serviceRegister, this.serviceLocator);
-            }
+            // Queue this up in case any of the initializers capture the current
+            // context we don't want to block this thread
+            var initializeTask = Task.Run(
+                () => this.RunInitializersAsync(this.serviceLocator.GetInitializers()));
 
-            Task.WaitAll(tasks);
+            initializeTask.GetAwaiter().GetResult();
         }
 
         /// <summary>
@@ -230,6 +228,22 @@ namespace Crest.Host
             // Normal probably has the most types in it, so fold the others into it
             normal.AddRange(custom);
             return normal;
+        }
+
+        private async Task RunInitializersAsync(IStartupInitializer[] initializers)
+        {
+            // Force execution to return to the caller so that when we start
+            // the tasks we'll be on a different thread that they can
+            // schedule the continuations on
+            await Task.Yield();
+
+            var tasks = new Task[initializers.Length];
+            for (int i = 0; i < tasks.Length; i++)
+            {
+                tasks[i] = initializers[i].InitializeAsync(this.serviceRegister, this.serviceLocator);
+            }
+
+            await Task.WhenAll(tasks).ConfigureAwait(false);
         }
     }
 }

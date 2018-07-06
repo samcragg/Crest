@@ -210,6 +210,38 @@
             }
         }
 
+        [CollectionDefinition(nameof(Initialize_SingleThreaded), DisableParallelization = true)]
+        public sealed class Initialize_SingleThreaded : BootstrapperTests
+        {
+            [Fact]
+            public void ShouldNotDeadlockWaitingForTheInitializers()
+            {
+                bool taskFinished = false;
+                async Task WaitAndCaptureContext()
+                {
+                    await Task.Delay(10);
+                    taskFinished = true;
+                }
+
+                IStartupInitializer startup = Substitute.For<IStartupInitializer>();
+                this.serviceLocator.GetInitializers()
+                    .Returns(new[] { startup });
+
+                startup.InitializeAsync(null, null)
+                    .ReturnsForAnyArgs(_ => WaitAndCaptureContext());
+
+                SingleThreadSynchronizationContext.Run(async () =>
+                {
+                    // Return control to the SingleThreadSynchronizationContext
+                    // so that it can add its continuation
+                    await Task.Yield();
+                    this.bootstrapper.Initialize();
+                });
+
+                taskFinished.Should().BeTrue();
+            }
+        }
+
         public sealed class ServiceLocatorProperty : BootstrapperTests
         {
             [Fact]
