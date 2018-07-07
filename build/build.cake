@@ -1,8 +1,7 @@
-#addin nuget:?package=Cake.Coveralls
 #addin nuget:?package=Cake.Npm
 #load "utilities.cake"
 
-const string CoverageResults = "./coverage.xml";
+const string CoverageFolder = "./coverage_results/";
 const string MainSolution = "../Crest.sln";
 
 string configuration = Argument("configuration", "Release");
@@ -84,13 +83,13 @@ Task("IntegrationTests")
         NoRestore = true
     };
 
-    foreach (var project in GetFiles("../test/**/*.csproj"))
+    Parallel.ForEach(GetFiles("../test/**/*.csproj"), project =>
     {
         // Specify the path to the test adapter to avoid a warning that no tests
         // were discovered because we filtered them all out
         settings.TestAdapterPath = project.GetDirectory().CombineWithFilePath("./bin/" + configuration + "/netcoreapp2.0/").FullPath;
         DotNetCoreTest(project.FullPath, settings);
-    }
+    });
 });
 
 Task("Pack")
@@ -117,10 +116,10 @@ Task("Pack")
         VersionSuffix = version
     };
 
-    foreach (string project in projects)
+    Parallel.ForEach(projects, project =>
     {
          DotNetCorePack(project, packSettings);
-    }
+    });
 });
 
 Task("RestorePackages")
@@ -166,7 +165,7 @@ Task("ShowTestReport")
     .IsDependentOn("TestWithCover")
     .Does(() =>
 {
-    ReportGenerator(CoverageResults, "./coverage_report");
+    ReportGenerator(GetFiles(CoverageFolder + "*.xml"), "./coverage_report");
     if (IsRunningOnWindows())
     {
         StartAndReturnProcess(
@@ -184,7 +183,7 @@ Task("TestWithCover")
 {
     var coverSettings = new OpenCoverSettings
     {
-        MergeOutput = true,
+        LogLevel = OpenCoverLogLevel.Warn,
         OldStyle = true,
         ReturnTargetCodeOffset = 0
     };
@@ -198,21 +197,17 @@ Task("TestWithCover")
         "-[*]*.Logging.*"
     });
 
-    // As we're merging the output from each test project, delete the previous
-    // runs result
-    if (FileExists(CoverageResults))
-    {
-        DeleteFile(CoverageResults);
-    }
+    EnsureDirectoryExists(CoverageFolder);
+    CleanDirectory(CoverageFolder);
 
-    foreach (var project in GetFiles("../test/**/*.csproj"))
+    Parallel.ForEach(GetFiles("../test/**/*.csproj"), project =>
     {
         OpenCover(
             c => c.DotNetCoreTest(project.FullPath, testSettings),
-            CoverageResults,
+            CoverageFolder + project.GetFilenameWithoutExtension() + ".xml",
             coverSettings
         );
-    }
+    });
 });
 
 Task("UnitTests")
@@ -225,29 +220,29 @@ Task("UnitTests")
     }
 });
 
-
 Task("UploadTestReport")
     .WithCriteria(!isLocalBuild)
     .IsDependentOn("TestWithCover")
     .Does(() =>
 {
-    var coverallsSettings = new CoverallsNetSettings
-    {
-        CommitAuthor = EnvironmentVariable("APPVEYOR_REPO_COMMIT_AUTHOR"),
-        CommitBranch = EnvironmentVariable("APPVEYOR_REPO_BRANCH"),
-        CommitEmail = EnvironmentVariable("APPVEYOR_REPO_COMMIT_AUTHOR_EMAIL"),
-        CommitId = EnvironmentVariable("APPVEYOR_REPO_COMMIT"),
-        CommitMessage = EnvironmentVariable("APPVEYOR_REPO_COMMIT_MESSAGE"),
-        JobId = EnvironmentVariable("APPVEYOR_BUILD_NUMBER"),
-        RepoTokenVariable = "COVERALLS_REPO_TOKEN",
-        ServiceName = "appveyor",
-        UseRelativePaths = true
-    };
+    Information("Installing tool");
+    var toolPath = new DirectoryPath("./tools/coveralls");
+    StartProcess("dotnet", "tool install coveralls.net --version 1.0.0 --tool-path \"" + toolPath.FullPath + "\"");
 
-    CoverallsNet(
-        CoverageResults,
-        CoverallsNetReportType.OpenCover,
-        coverallsSettings);
+    Information("Uploading reports");
+    var inputFiles = string.Join(";", GetFiles(CoverageFolder + "*.xml").Select(f => "opencover=" + f.FullPath));
+
+    var arguments = "--multiple";
+    arguments += " --input " + inputFiles;
+    arguments += " --useRelativePaths";
+    arguments += " --commitId " + EnvironmentVariable("APPVEYOR_REPO_COMMIT");
+    arguments += " --commitBranch " + EnvironmentVariable("APPVEYOR_REPO_BRANCH");
+    arguments += " --commitAuthor \"" + EnvironmentVariable("APPVEYOR_REPO_COMMIT_AUTHOR") + "\"";
+    arguments += " --commitEmail " + EnvironmentVariable("APPVEYOR_REPO_COMMIT_AUTHOR_EMAIL");
+    arguments += " --commitMessage \"" + EnvironmentVariable("APPVEYOR_REPO_COMMIT_MESSAGE") + "\"";
+    arguments += " --jobId " + EnvironmentVariable("APPVEYOR_BUILD_NUMBER");
+    arguments += " --repoTokenVariable COVERALLS_REPO_TOKEN";
+    StartProcess(toolPath.CombineWithFilePath("csmacnz.Coveralls.exe"), arguments);
 });
 
 Task("Restore")

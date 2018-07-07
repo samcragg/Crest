@@ -87,6 +87,7 @@ Generated_Code/
 coverage.xml
 build/node_modules/
 build/coverage_report/
+build/coverage_results/
 build/tools/**
 !build/tools/packages.config
 **/BenchmarkDotNet.Artifacts
