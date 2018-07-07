@@ -185,6 +185,7 @@ Task("TestWithCover")
     {
         LogLevel = OpenCoverLogLevel.Warn,
         OldStyle = true,
+        Register = "Path64",
         ReturnTargetCodeOffset = 0
     };
 
@@ -199,6 +200,8 @@ Task("TestWithCover")
 
     EnsureDirectoryExists(CoverageFolder);
     CleanDirectory(CoverageFolder);
+
+    StartProcess("regsvr32", "/s /n /i:user ./tools/OpenCover/tools/x64/OpenCover.Profiler.dll");
 
     Parallel.ForEach(GetFiles("../test/**/*.csproj"), project =>
     {
