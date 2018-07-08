@@ -148,7 +148,12 @@ namespace Crest.Host.Routing
                 this.verbs.Add(metadata.Verb, parent);
             }
 
-            RouteNode<Versions> node = parent.Root.Add(matches, 0);
+            RouteNode<Versions> node = parent.Root;
+            if (matches.Count > 0)
+            {
+                node = node.Add(matches, 0);
+            }
+
             if (node.Value == null)
             {
                 node.Value = new Versions();

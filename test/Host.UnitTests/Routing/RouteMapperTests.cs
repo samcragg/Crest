@@ -248,6 +248,16 @@
             }
 
             [Fact]
+            public void ShouldMatchEmptyRoutes()
+            {
+                var mapper = new RouteMapper(new[] { CreateRoute("GET", "/") }, this.noDirectRoutes);
+
+                MethodInfo route = mapper.Match("GET", "/v1/", this.query, out _);
+
+                route.Should().NotBeNull();
+            }
+
+            [Fact]
             public void ShouldMatchTheRoute()
             {
                 var mapper = new RouteMapper(new[] { CreateRoute("GET", "/route") }, this.noDirectRoutes);
