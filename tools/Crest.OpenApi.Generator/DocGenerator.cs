@@ -57,7 +57,7 @@ namespace Crest.OpenApi.Generator
             Trace.Information("Compressing '{0}'...", Path.GetFileName(path));
 
             using (Stream source = File.OpenRead(path))
-            using (Stream destination = File.OpenWrite(path + ".gz"))
+            using (Stream destination = File.Create(path + ".gz"))
             using (Stream compress = new GZipStream(destination, CompressionLevel.Optimal))
             {
                 source.CopyTo(compress);
@@ -66,9 +66,9 @@ namespace Crest.OpenApi.Generator
 
         private void CreateJsonFile(int version, string path)
         {
-            Trace.Information("Writing '{0}'", path);
+            Trace.Information("Creating '{0}'", path);
 
-            using (var file = new StreamWriter(File.OpenWrite(path), this.defaultEncoding))
+            using (var file = new StreamWriter(File.Create(path), this.defaultEncoding))
             {
                 var writer = new OpenApiWriter(this.xmlDoc, file, version);
                 writer.WriteHeader(this.assembly);
