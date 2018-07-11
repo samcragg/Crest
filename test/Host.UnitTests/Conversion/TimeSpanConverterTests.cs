@@ -33,6 +33,7 @@
             [InlineData("P0")]
             [InlineData("0:1")]
             [InlineData("0:1:2.")]
+            [InlineData("0.:1:2")]
             public void ShouldNotReadInvalidFormats(string input)
             {
                 ParseResult<TimeSpan> result =

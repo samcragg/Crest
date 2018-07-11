@@ -54,6 +54,23 @@
         public sealed class Parse : MultipartParserTests
         {
             [Fact]
+            public void ShouldAllowHyphensInTheBody()
+            {
+                this.SetStream(
+                    "--" + Boundary + NewLine +
+                    NewLine +
+                    "-Body" + NewLine +
+                    "--" + Boundary + "--" + NewLine +
+                    NewLine +
+                    "This is the epilogue.  It is also to be ignored.");
+
+                IEnumerable<MultipartParser.BodyPart> result = this.parser.Parse();
+                string text = this.GetPartBody(result.Single());
+
+                text.Should().Be("-Body");
+            }
+
+            [Fact]
             public void ShouldIgnoreEpilogue()
             {
                 this.SetStream(

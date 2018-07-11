@@ -27,12 +27,16 @@
                 result.IsSuccess.Should().BeFalse();
             }
 
-            // The first character is invalid and represent the next ASCII
+            // The first character is invalid and represents the next ASCII
             // character above the valid range for a digit
             [Theory]
             [InlineData(":2345678-1234-1234-1234-123456789012")]
             [InlineData("G2345678-1234-1234-1234-123456789012")]
             [InlineData("g2345678-1234-1234-1234-123456789012")]
+            [InlineData("12345678-X234-1234-1234-123456789012")]
+            [InlineData("12345678-1234-X234-1234-123456789012")]
+            [InlineData("12345678-1234-1234-X234-123456789012")]
+            [InlineData("12345678-1234-1234-1234-X23456789012")]
             public void ShouldNotReadInvalidHexValues(string value)
             {
                 ParseResult<Guid> result = GuidConverter.TryReadGuid(value.AsSpan());

@@ -197,6 +197,14 @@
 
                 result.Should().Be("string value");
             }
+
+            [Fact]
+            public void ShouldAllowEqualsWithinTheString()
+            {
+                string result = ReadValue("key=string=value", r => r.ReadString());
+
+                result.Should().Be("string=value");
+            }
         }
     }
 }

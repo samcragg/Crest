@@ -140,10 +140,15 @@
             [Fact]
             public void ShouldRegisterDiscoveredTypes()
             {
-                this.bootstrapper.Initialize();
+                Func<object> factory = null;
+                this.serviceRegister.RegisterFactory(
+                    typeof(DiscoveredTypes),
+                    Arg.Do<Func<object>>(x => factory = x));
 
-                this.serviceRegister.Received()
-                    .RegisterFactory(typeof(DiscoveredTypes), Arg.Any<Func<object>>());
+                this.bootstrapper.Initialize();
+                object result = factory();
+
+                result.Should().BeOfType<DiscoveredTypes>();
             }
 
             [Fact]
