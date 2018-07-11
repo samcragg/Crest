@@ -53,7 +53,7 @@ namespace Crest.Host.Serialization
             {
                 this.generator = this.CreateWriteMethod();
 
-                // T instance = (T)parameter;
+                // T instance = (T)parameter
                 this.generator.DeclareLocal(this.builder.SerializedType);
                 this.generator.EmitLoadArgument(1); // Argument 0 is 'this', 1 is the value
                 this.generator.Emit(OpCodes.Castclass, this.builder.SerializedType);
@@ -95,7 +95,7 @@ namespace Crest.Host.Serialization
                 {
                     if (this.writeEnumNames)
                     {
-                        // ((object)e).ToString();
+                        // ((object)e).ToString()
                         this.generator.Emit(OpCodes.Box, type);
                         this.generator.EmitCall(
                             OpCodes.Callvirt,
@@ -226,7 +226,7 @@ namespace Crest.Host.Serialization
                         _ => this.EmitLoadPropertyValue(property));
                 }
 
-                // this.WriteEndProperty();
+                // this.WriteEndProperty()
                 this.generator.EmitLoadArgument(0);
                 this.generator.EmitCall(
                     this.owner.BaseClass,

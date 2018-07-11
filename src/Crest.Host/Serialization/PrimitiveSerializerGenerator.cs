@@ -93,7 +93,7 @@ namespace Crest.Host.Serialization
 
             if (CanBeNull(type))
             {
-                // if (this.Reader.ReadNull())
+                // if this.Reader.ReadNull() then
                 generator.EmitLoadArgument(0);
                 generator.EmitCall(baseClass, methods.PrimitiveSerializer.GetReader);
                 generator.EmitCall(typeof(ValueReader), methods.ValueReader.ReadNull);
@@ -104,7 +104,7 @@ namespace Crest.Host.Serialization
                 generator.Emit(OpCodes.Br_S, end);
             }
 
-            // this.Reader.ReadXXX();
+            // this.Reader.ReadXXX()
             generator.MarkLabel(notNull);
             readValue(generator, Nullable.GetUnderlyingType(type) ?? type);
             generator.MarkLabel(end);

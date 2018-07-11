@@ -8,7 +8,7 @@
   
   <!-- Analyzers -->
   <ItemGroup>
-    <PackageReference Include="AsyncUsageAnalyzers" Version="1.0.0-alpha003" PrivateAssets="All" />
+    <PackageReference Include="SonarAnalyzer.CSharp" Version="7.3.0.5690" PrivateAssets="All" />
     <PackageReference Include="StyleCop.Analyzers" Version="1.0.2" PrivateAssets="All" />
   </ItemGroup>
 </Project>

@@ -9,7 +9,7 @@ namespace Crest.Host.Serialization.Internal
     /// Allows the serialization of a primitive type to/from a stream.
     /// </summary>
     /// <typeparam name="T">The type of metadata to store about properties.</typeparam>
-    public interface IPrimitiveSerializer<T>
+    public interface IPrimitiveSerializer<in T>
         where T : class
     {
         /// <summary>

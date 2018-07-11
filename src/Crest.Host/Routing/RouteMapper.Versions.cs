@@ -58,7 +58,9 @@ namespace Crest.Host.Routing
                 SplitVersion(range, out int from, out int to);
 
                 // Use bitwise and to avoid a branch...
+#pragma warning disable S2178 // Short-circuit logic should be used in boolean contexts
                 return (from <= version) & (version <= to);
+#pragma warning restore S2178
             }
 
             private static long MakeVersion(long from, long to)

@@ -3,6 +3,11 @@
 // Licensed under the MIT license. See LICENSE file in the project root for
 // full license information.
 
+// "IDisposable" should be implemented correctly
+// This class would be sealed but is left open to allow it to be mocked for
+// unit testing
+#pragma warning disable S3881
+
 namespace Crest.Host.IO
 {
     using System;
@@ -41,7 +46,7 @@ namespace Crest.Host.IO
         /// <summary>
         /// Releases the resources used by this instance.
         /// </summary>
-        public virtual void Dispose()
+        public void Dispose()
         {
             this.watcher.Dispose();
         }

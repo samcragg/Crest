@@ -230,7 +230,7 @@ namespace Crest.Host.Serialization
                     // return 404), no need to worry about whether it's a
                     // nullable enum or not.
                     //
-                    // (UnderlyingType)arg;
+                    // (UnderlyingType)arg
                     g.EmitLoadArgument(1);
                     g.Emit(OpCodes.Unbox_Any, underlyingType);
                 });
@@ -283,7 +283,7 @@ namespace Crest.Host.Serialization
                     // pipeline and no need for casting as the value is already
                     // boxed into an object.
                     //
-                    // arg.ToString();
+                    // arg.ToString()
                     g.EmitLoadArgument(1);
                     g.EmitCall(OpCodes.Callvirt, this.Methods.Object.ToString, null);
                 });

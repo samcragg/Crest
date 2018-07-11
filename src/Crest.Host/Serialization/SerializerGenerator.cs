@@ -24,6 +24,14 @@ namespace Crest.Host.Serialization
         }
 
         /// <summary>
+        /// Initializes a new instance of the <see cref="SerializerGenerator"/> class.
+        /// </summary>
+        protected SerializerGenerator()
+        {
+            // Constructor required for Sonar, along with this comment...
+        }
+
+        /// <summary>
         /// Gets or sets the module where types will be defined.
         /// </summary>
         /// <remarks>

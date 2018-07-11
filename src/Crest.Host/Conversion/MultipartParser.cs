@@ -138,7 +138,12 @@ namespace Crest.Host.Conversion
         private bool ReadDashBoundary()
         {
             // dash-boundary := "--" boundary
-            if ((this.ReadByte() != '-') || (this.ReadByte() != '-'))
+            if (this.ReadByte() != '-')
+            {
+                return false;
+            }
+
+            if (this.ReadByte() != '-')
             {
                 return false;
             }

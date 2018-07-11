@@ -29,7 +29,6 @@ namespace Crest.Host.Routing
         /// <inheritdoc />
         public IEnumerable<DirectRouteMetadata> GetDirectRoutes()
         {
-            // TODO: Only enable this if we're in debug mode
             OverrideMethod health = (request, _) =>
             {
                 return Task.FromResult<IResponseData>(new ResponseData("text/html", 200, this.page.WriteToAsync));

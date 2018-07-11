@@ -103,7 +103,8 @@ namespace Crest.Host.Serialization.Internal
         /// <inheritdoc />
         public void Dispose()
         {
-            this.reader.Dispose();
+            this.Dispose(true);
+            GC.SuppressFinalize(this);
         }
 
         /// <inheritdoc />
@@ -276,6 +277,21 @@ namespace Crest.Host.Serialization.Internal
         public void WriteEndProperty()
         {
             this.writer.WriteEndElement();
+        }
+
+        /// <summary>
+        /// Called to clean up resources by the class.
+        /// </summary>
+        /// <param name="disposing">
+        /// Indicates whether the method was invoked from the <see cref="Dispose()"/>
+        /// implementation or from the finalizer.
+        /// </param>
+        protected virtual void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                this.reader.Dispose();
+            }
         }
 
         private static string GetPrimitiveName(Type type)

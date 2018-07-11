@@ -84,11 +84,13 @@ namespace Crest.Host.Serialization
                 // var x = new Serializer()
                 // x.method(loadValue)
                 // x.Flush()
-                Expression body = Expression.Block(
-                    new[] { instance },
+                var expressions = new Expression[]
+                {
                     Expression.Assign(instance, Expression.New(constructor, stream, serialize)),
                     Expression.Call(instance, method, loadValue(value)),
-                    Expression.Call(instance, flushMethod));
+                    Expression.Call(instance, flushMethod)
+                };
+                Expression body = Expression.Block(new[] { instance }, expressions);
 
                 return Expression.Lambda<Action<Stream, object>>(body, stream, value)
                        .Compile();

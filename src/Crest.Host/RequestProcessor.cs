@@ -36,7 +36,7 @@ namespace Crest.Host
         private readonly MatchResult notFound;
         private readonly IResponseStatusGenerator responseGenerator;
         private readonly IServiceLocator serviceLocator;
-        private readonly BlockStreamPool streamPool = new BlockStreamPool(); // TODO: This should be from the service locator...
+        private readonly BlockStreamPool streamPool = new BlockStreamPool();
 
         /// <summary>
         /// Initializes a new instance of the <see cref="RequestProcessor"/> class.

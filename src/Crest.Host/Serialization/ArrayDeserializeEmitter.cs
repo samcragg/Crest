@@ -17,26 +17,18 @@ namespace Crest.Host.Serialization
     {
         // This class generates the following code to read an array:
         //
-        //     ArrayBuffer<int> buffer = default;
-        //     if (this.ReadBeginArray())
-        //     {
+        //     ArrayBuffer<int> buffer = default
+        //     if this.ReadBeginArray() then
         //         do
-        //         {
-        //             if (this.Reader.ReadNull())
-        //             {
-        //                 buffer.Add(null);
-        //             }
+        //             if this.Reader.ReadNull() then
+        //                 buffer.Add(null)
         //             else
-        //             {
-        //                 buffer.Add(this.Read());
-        //             }
-        //         }
-        //         while (this.ReadElementSeparator());
+        //                 buffer.Add(this.Read())
+        //         while this.ReadElementSeparator()
         //
-        //         this.ReadEndArray();
-        //     }
+        //         this.ReadEndArray()
         //
-        //     T[] array = buffer.ToArray();
+        //     T[] array = buffer.ToArray()
         private readonly Type baseClass;
         private readonly ILGenerator generator;
         private readonly Methods methods;
@@ -83,28 +75,28 @@ namespace Crest.Host.Serialization
             Type arrayBufferType = typeof(ArrayBuffer<>).MakeGenericType(elementType);
             LocalBuilder arrayBuffer = this.CreateLocal(arrayBufferType);
 
-            // ArrayBuffer<elementType> buffer = default;
+            // ArrayBuffer<elementType> buffer = default
             this.generator.Emit(OpCodes.Ldloca_S, arrayBuffer.LocalIndex);
             this.generator.Emit(OpCodes.Initobj, arrayBufferType);
 
-            // if (this.ReadBeginArray(elementType)
+            // if this.ReadBeginArray(elementType then
             Label endIf = this.EmitCallReadBeginArray(elementType);
 
-            // do {
+            // do
             Label loopStart = this.generator.DefineLabel();
             this.generator.MarkLabel(loopStart);
 
-            // buffer.Add(ReadElement(...));
+            // buffer.Add(ReadElement(...))
             this.EmitReadElement(arrayBufferType, arrayBuffer.LocalIndex, elementType);
 
-            // } while (this.ReadElementSeparator());
+            // while this.ReadElementSeparator()
             this.EmitReadElementSeparator(loopStart);
 
-            // this.ReadEndArray();
+            // this.ReadEndArray()
             this.generator.EmitLoadArgument(0);
             this.generator.EmitCall(this.baseClass, this.methods.ArraySerializer.ReadEndArray);
 
-            // T[] array = buffer.ToArray();
+            // T[] array = buffer.ToArray()
             this.generator.MarkLabel(endIf);
             this.generator.Emit(OpCodes.Ldloca_S, arrayBuffer.LocalIndex);
             this.generator.EmitCall(
@@ -156,7 +148,7 @@ namespace Crest.Host.Serialization
 
         private void EmitReadElementSeparator(Label loopStart)
         {
-            // if (this.ReadElementSeparator()) goto loopStart
+            // if this.ReadElementSeparator() then goto loopStart
             this.generator.EmitLoadArgument(0);
             this.generator.EmitCall(this.baseClass, this.methods.ArraySerializer.ReadElementSeparator);
             this.generator.Emit(OpCodes.Brtrue, loopStart);
@@ -167,7 +159,7 @@ namespace Crest.Host.Serialization
             Label elseIf = this.generator.DefineLabel();
             Label endIf = this.generator.DefineLabel();
 
-            // if (this.Reader.ReadNull())
+            // if this.Reader.ReadNull() then
             this.generator.EmitLoadArgument(0);
             this.generator.EmitCall(this.baseClass, this.methods.PrimitiveSerializer.GetReader);
             this.generator.EmitCall(typeof(ValueReader), this.methods.ValueReader.ReadNull);
@@ -181,7 +173,7 @@ namespace Crest.Host.Serialization
             this.generator.Emit(OpCodes.Br_S, endIf);
 
             // else // i.e. ReadNull was false so we can read a value
-            //    (T?)this.Reader.ReadXXX();
+            //    (T?)this.Reader.ReadXXX()
             this.generator.MarkLabel(elseIf);
             this.EmitReadValueElement(underlyingType);
 
@@ -195,7 +187,7 @@ namespace Crest.Host.Serialization
             Label elseIf = this.generator.DefineLabel();
             Label endIf = this.generator.DefineLabel();
 
-            // if (this.Reader.ReadNull())
+            // if this.Reader.ReadNull() then
             this.generator.EmitLoadArgument(0);
             this.generator.EmitCall(this.baseClass, this.methods.PrimitiveSerializer.GetReader);
             this.generator.EmitCall(typeof(ValueReader), this.methods.ValueReader.ReadNull);
@@ -205,8 +197,7 @@ namespace Crest.Host.Serialization
             this.generator.Emit(OpCodes.Ldnull);
             this.generator.Emit(OpCodes.Br_S, endIf);
 
-            // else
-            //    this.Reader.ReadXXX();
+            // else this.Reader.ReadXXX()
             this.generator.MarkLabel(elseIf);
             this.ReadValue(this.generator, elementType);
             this.generator.MarkLabel(endIf);

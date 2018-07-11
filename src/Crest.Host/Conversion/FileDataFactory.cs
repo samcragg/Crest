@@ -59,6 +59,7 @@ namespace Crest.Host.Conversion
         /// <inheritdoc />
         public void Prime(Type type)
         {
+            // Nothing to prime as we know the type we'll convert to
         }
 
         /// <inheritdoc />

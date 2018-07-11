@@ -99,17 +99,17 @@ namespace Crest.OpenApi.Generator
 
         private IReadOnlyDictionary<string, string> GetQueryParameters(string route)
         {
-            var parameters = new Dictionary<string, string>(StringComparer.Ordinal);
+            var foundParameters = new Dictionary<string, string>(StringComparer.Ordinal);
             int queryStart = route.IndexOf('?') + 1;
             if ((queryStart > 0) && (queryStart < route.Length))
             {
                 foreach (Match match in this.queryParameters.Matches(route, queryStart))
                 {
-                    parameters[match.Groups["parameter"].Value] = match.Groups["name"].Value;
+                    foundParameters[match.Groups["parameter"].Value] = match.Groups["name"].Value;
                 }
             }
 
-            return parameters;
+            return foundParameters;
         }
 
         private void WriteMetaData(MethodInfo method, MethodDescription documentation)

@@ -111,8 +111,6 @@ namespace Crest.Host.Routing
                 switch (error)
                 {
                     case ErrorType.DuplicateParameter:
-                    default:
-                        Assert(error == ErrorType.DuplicateParameter, "Unknown enum value");
                         return "Parameter is captured multiple times";
 
                     case ErrorType.MissingClosingBrace:
@@ -133,7 +131,8 @@ namespace Crest.Host.Routing
                     case ErrorType.UnescapedBrace:
                         return "Unescaped braces are not allowed";
 
-                    case ErrorType.UnknownParameter:
+                    default:
+                        Assert(error == ErrorType.UnknownParameter, "Unknown enum value");
                         return "Unable to find parameter called: " + value;
                 }
             }

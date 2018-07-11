@@ -77,30 +77,28 @@ namespace Crest.Host.Conversion
         /// </returns>
         internal bool MediaTypesMatch(MediaRange other)
         {
-            if ((this.typeStart != AnyMatch) && (other.typeStart != AnyMatch))
-            {
-                if (!this.ComparePart(
+            if ((this.typeStart != AnyMatch) &&
+                (other.typeStart != AnyMatch) &&
+                !this.ComparePart(
                     this.typeStart,
                     this.typeEnd,
                     other,
                     other.typeStart,
                     other.typeEnd))
-                {
-                    return false;
-                }
+            {
+                return false;
             }
 
-            if ((this.subTypeStart != AnyMatch) && (other.subTypeStart != AnyMatch))
-            {
-                if (!this.ComparePart(
+            if ((this.subTypeStart != AnyMatch) &&
+                (other.subTypeStart != AnyMatch) &&
+                !this.ComparePart(
                     this.subTypeStart,
                     this.subTypeEnd,
                     other,
                     other.subTypeStart,
                     other.subTypeEnd))
-                {
-                    return false;
-                }
+            {
+                return false;
             }
 
             return true;
@@ -204,14 +202,12 @@ namespace Crest.Host.Conversion
         private static bool ParseQualityParameter(string value, int start, int end, out int quality)
         {
             // Smallest value is three characters, e.g. 'q=1'
-            if (start <= end - 3)
+            if ((start <= end - 3) &&
+                ((value[start] == 'q') || (value[start] == 'Q')) &&
+                (value[start + 1] == '='))
             {
-                if (((value[start] == 'q') || (value[start] == 'Q')) &&
-                    (value[start + 1] == '='))
-                {
-                    quality = ParseQualityValue(value, start + 2, end);
-                    return true;
-                }
+                quality = ParseQualityValue(value, start + 2, end);
+                return true;
             }
 
             quality = 0;
@@ -241,15 +237,11 @@ namespace Crest.Host.Conversion
             if (index < end)
             {
                 c = value[index];
-                if (c == '.')
+                if ((c == '.') &&
+                    TryAddDigit(value, index + 1, end, 100, ref result) &&
+                    TryAddDigit(value, index + 2, end, 10, ref result))
                 {
-                    if (TryAddDigit(value, index + 1, end, 100, ref result))
-                    {
-                        if (TryAddDigit(value, index + 2, end, 10, ref result))
-                        {
-                            TryAddDigit(value, index + 3, end, 1, ref result);
-                        }
-                    }
+                    TryAddDigit(value, index + 3, end, 1, ref result);
                 }
             }
 

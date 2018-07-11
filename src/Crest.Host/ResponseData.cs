@@ -28,7 +28,7 @@ namespace Crest.Host
         {
             this.ContentType = content;
             this.StatusCode = code;
-            this.WriteBody = body ?? EmptyWriteBodyAsync;
+            this.WriteBody = body ?? (_ => Task.CompletedTask);
         }
 
         /// <inheritdoc />
@@ -47,10 +47,5 @@ namespace Crest.Host
         /// Gets the headers to send with the response.
         /// </summary>
         internal IDictionary<string, string> Headers => this.headers;
-
-        private static Task EmptyWriteBodyAsync(Stream stream)
-        {
-            return Task.CompletedTask;
-        }
     }
 }

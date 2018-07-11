@@ -6,7 +6,6 @@
 namespace Crest.Host.IO
 {
     using System.Text;
-    using Crest.Host.Serialization;
 
     /// <content>
     /// Contains the nested helper <see cref="Utf8Enumerator"/> class.
@@ -16,26 +15,23 @@ namespace Crest.Host.IO
         private class Utf8Enumerator : ICharIterator
         {
             private readonly char[] characters;
-            private int index = -1;
 
             public Utf8Enumerator(byte[] bytes)
             {
-                // TODO: We could decode the UTF-8 ourselves to save allocating
-                //       another array...
                 this.characters = Encoding.UTF8.GetChars(bytes);
                 this.MoveNext();
             }
 
             public char Current { get; private set; }
 
-            public int Position => this.index;
+            public int Position { get; private set; } = -1;
 
             public bool MoveNext()
             {
-                this.index++;
-                if (this.index < this.characters.Length)
+                this.Position++;
+                if (this.Position < this.characters.Length)
                 {
-                    this.Current = this.characters[this.index];
+                    this.Current = this.characters[this.Position];
                     return true;
                 }
                 else

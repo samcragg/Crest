@@ -21,7 +21,6 @@ namespace Crest.OpenApi.Generator
         private readonly OperationObjectWriter operations;
         private readonly TagWriter tags;
         private readonly int version;
-        private readonly XmlDocParser xmlDoc;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="OpenApiWriter"/> class.
@@ -33,11 +32,10 @@ namespace Crest.OpenApi.Generator
             : base(writer)
         {
             this.version = version;
-            this.xmlDoc = xmlDoc;
-            this.definitions = new DefinitionWriter(this.xmlDoc, writer);
+            this.definitions = new DefinitionWriter(xmlDoc, writer);
             this.info = new InfoObjectWriter(writer);
-            this.tags = new TagWriter(this.xmlDoc, writer);
-            this.operations = new OperationObjectWriter(this.xmlDoc, this.definitions, this.tags, writer);
+            this.tags = new TagWriter(xmlDoc, writer);
+            this.operations = new OperationObjectWriter(xmlDoc, this.definitions, this.tags, writer);
         }
 
         /// <summary>
@@ -75,13 +73,13 @@ namespace Crest.OpenApi.Generator
             this.WriteRaw(",\"paths\":{");
 
             // Sort and group routes by to allow DELETE and POST of the same URL
-            IEnumerable<IGrouping<string, RouteInformation>> operations =
+            IEnumerable<IGrouping<string, RouteInformation>> routeGroups =
                 routes.Where(this.RouteIsAvailable)
                       .GroupBy(r => NormalizeRoute(r.Route))
                       .OrderBy(g => g.Key, StringComparer.OrdinalIgnoreCase);
 
             this.WriteList(
-                operations,
+                routeGroups,
                 operation => this.WriteOperation(operation.Key, operation));
 
             this.Write('}');

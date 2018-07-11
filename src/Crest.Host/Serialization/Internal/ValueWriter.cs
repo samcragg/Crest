@@ -209,7 +209,6 @@ namespace Crest.Host.Serialization.Internal
         /// The maximum number of bytes that will be written.
         /// </param>
         /// <returns>The buffer to write to.</returns>
-        // TODO: Switch to Span when converters are updated
         protected abstract ArraySegment<byte> RentBuffer(int maximumSize);
 
         private void AppendAscii(string value)

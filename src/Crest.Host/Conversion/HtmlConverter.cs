@@ -55,6 +55,8 @@ namespace Crest.Host.Conversion
         /// <inheritdoc />
         public void Prime(Type type)
         {
+            // Nothing to prime as converting to HTML isn't our focus so we
+            // just reflect over the properties
         }
 
         /// <inheritdoc />

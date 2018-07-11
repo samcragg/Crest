@@ -53,10 +53,10 @@ namespace Crest.Host.Conversion
                 accept = DefaultAcceptType;
             }
 
-            List<MediaRange> ranges = ParseRanges(accept);
-            ranges.Sort((a, b) => b.Quality.CompareTo(a.Quality)); // Reverse sort
+            List<MediaRange> parsedRanges = ParseRanges(accept);
+            parsedRanges.Sort((a, b) => b.Quality.CompareTo(a.Quality)); // Reverse sort
 
-            foreach (MediaRange range in ranges)
+            foreach (MediaRange range in parsedRanges)
             {
                 IContentConverter converter = this.FindConverterForAccept(range);
                 if (converter != null)
@@ -101,19 +101,19 @@ namespace Crest.Host.Conversion
 
         private static List<MediaRange> ParseRanges(string accept)
         {
-            var ranges = new List<MediaRange>();
+            var mediaRanges = new List<MediaRange>();
 
             int start = 0;
             int end = accept.IndexOf(',') + 1;
             while (end > 0)
             {
-                ranges.Add(new MediaRange(new StringSegment(accept, start, end)));
+                mediaRanges.Add(new MediaRange(new StringSegment(accept, start, end)));
                 start = end;
                 end = accept.IndexOf(',', start) + 1;
             }
 
-            ranges.Add(new MediaRange(new StringSegment(accept, start, accept.Length)));
-            return ranges;
+            mediaRanges.Add(new MediaRange(new StringSegment(accept, start, accept.Length)));
+            return mediaRanges;
         }
 
         private IContentConverter FindConverterForAccept(MediaRange accept)

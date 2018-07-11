@@ -81,21 +81,25 @@ namespace Crest.Host.Serialization.Internal
         /// <inheritdoc />
         public void BeginRead(byte[] metadata)
         {
+            // We don't need to do anything
         }
 
         /// <inheritdoc />
         public void BeginWrite(byte[] metadata)
         {
+            // We don't need to do anything
         }
 
         /// <inheritdoc />
         public void EndRead()
         {
+            // We don't need to do anything
         }
 
         /// <inheritdoc />
         public void EndWrite()
         {
+            // We don't need to do anything
         }
 
         /// <inheritdoc />
@@ -127,12 +131,10 @@ namespace Crest.Host.Serialization.Internal
         /// <inheritdoc />
         public string ReadBeginProperty()
         {
-            if (this.propertyIndex > 0)
+            if ((this.propertyIndex > 0) &&
+                !this.reader.MoveToNextSibling())
             {
-                if (!this.reader.MoveToNextSibling())
-                {
-                    return null;
-                }
+                return null;
             }
 
             this.propertyIndex++;
@@ -160,11 +162,13 @@ namespace Crest.Host.Serialization.Internal
         /// <inheritdoc />
         public void ReadEndArray()
         {
+            // We don't need to do anything
         }
 
         /// <inheritdoc />
         public void ReadEndClass()
         {
+            // We don't need to do anything
         }
 
         /// <inheritdoc />
@@ -183,6 +187,7 @@ namespace Crest.Host.Serialization.Internal
         /// <inheritdoc />
         public void WriteBeginClass(byte[] metadata)
         {
+            // We don't need to do anything
         }
 
         /// <inheritdoc />
@@ -210,6 +215,7 @@ namespace Crest.Host.Serialization.Internal
         /// <inheritdoc />
         public void WriteEndClass()
         {
+            // We don't need to do anything
         }
 
         /// <inheritdoc />

@@ -149,8 +149,8 @@ namespace Crest.Host.Serialization
         /// <inheritdoc />
         internal override string GetCurrentPosition()
         {
-            var lineInfo = (IXmlLineInfo)this.reader;
-            return $"line: {lineInfo.LineNumber}, column: {lineInfo.LinePosition}";
+            var lineInfo = this.reader as IXmlLineInfo;
+            return $"line: {lineInfo?.LineNumber}, column: {lineInfo?.LinePosition}";
         }
 
         /// <summary>

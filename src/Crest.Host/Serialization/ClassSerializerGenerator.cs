@@ -36,10 +36,6 @@ namespace Crest.Host.Serialization
             : base(module, baseClass)
         {
             this.generateSerializer = generateSerializer;
-
-            Type classSerializerInterface = GetGenericInterfaceImplementation(
-                baseClass.GetTypeInfo(),
-                typeof(IClassSerializer<>));
         }
 
         /// <summary>
@@ -151,7 +147,7 @@ namespace Crest.Host.Serialization
         {
             var writeMethod = new WriteMethodEmitter(this, builder, metadata);
             writeMethod.WriteProperties(properties);
-            this.EmitWriteArray(builder, writeMethod.GeneratedMethod);
+            this.EmitWriteArray(builder);
 
             var readMethod = new ReadMethodEmitter(this, builder, writeMethod.NestedSerializerFields);
             readMethod.EmitReadMethod(GetProperties(builder.SerializedType));
@@ -188,7 +184,7 @@ namespace Crest.Host.Serialization
             generator.Emit(OpCodes.Ret);
         }
 
-        private void EmitWriteArray(TypeSerializerBuilder builder, MethodInfo generatedMethod)
+        private void EmitWriteArray(TypeSerializerBuilder builder)
         {
             MethodBuilder methodBuilder = builder.CreatePublicVirtualMethod(
                     nameof(ITypeSerializer.WriteArray));

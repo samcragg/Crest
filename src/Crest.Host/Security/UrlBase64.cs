@@ -13,7 +13,6 @@ namespace Crest.Host.Security
     /// </summary>
     internal static class UrlBase64
     {
-        private const string InvalidBase64String = "Invalid Base64 data.";
         private const byte InvalidCharacater = byte.MaxValue;
         private static readonly byte[] Lookup = new byte[128];
         private static readonly ILog Logger = LogProvider.GetLogger(typeof(UrlBase64));

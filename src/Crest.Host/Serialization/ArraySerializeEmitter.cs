@@ -17,32 +17,21 @@ namespace Crest.Host.Serialization
     {
         // This class generates the following code:
         //
-        //     this.WriteBeginArray(typeof(T), array.Length);
-        //     if (array.Length > 0)
-        //     {
-        //         if (array[0] != null)
-        //         {
-        //             this.Write(array[0]);
-        //         }
+        //     this.WriteBeginArray(typeof(T), array.Length)
+        //     if array.Length > 0 then
+        //         if array[0] is not null then
+        //             this.Write(array[0])
         //         else
-        //         {
-        //             this.WriteNull();
-        //         }
+        //             this.WriteNull()
         //
-        //         for (int i = 1; i < array.Length; i++)
-        //         {
-        //             this.WriteElementSeparator();
-        //             if (array[i] != null)
-        //             {
-        //                 this.Write(array[i]);
-        //             }
+        //         for i = 1 to array.Length
+        //             this.WriteElementSeparator()
+        //             if array[i] is not null then
+        //                 this.Write(array[i])
         //             else
-        //             {
-        //                 this.WriteNull();
-        //             }
-        //         }
-        //     }
-        //     this.WriteEndArray(typeof(T));
+        //                 this.WriteNull()
+        //
+        //     this.WriteEndArray(typeof(T))
         private readonly Type baseClass;
         private readonly ILGenerator generator;
         private readonly Methods methods;
@@ -97,7 +86,7 @@ namespace Crest.Host.Serialization
             this.EmitWriteElement(elementType, g => g.Emit(OpCodes.Ldc_I4_0));
             this.EmitForLoop(elementType);
 
-            // this.WriteEndArray();
+            // this.WriteEndArray()
             this.generator.MarkLabel(endIf);
             this.generator.EmitLoadArgument(0);
             this.generator.EmitCall(this.baseClass, this.methods.ArraySerializer.WriteEndArray);
@@ -105,7 +94,7 @@ namespace Crest.Host.Serialization
 
         private void CallWriteBeginArray(Type elementType)
         {
-            // this.WriteBeginArray(typeof(T), array.Length);
+            // this.WriteBeginArray(typeof(T), array.Length)
             this.generator.EmitLoadArgument(0);
             this.generator.EmitLoadTypeof(elementType);
             this.generator.EmitLoadLocal(this.arrayLocalIndex);
@@ -116,7 +105,7 @@ namespace Crest.Host.Serialization
 
         private void EmitForLoop(Type elementType)
         {
-            // for (int i = 1; i < array.Length; i++)
+            // for i = 1 to array.Length
             this.generator.EmitForLoop(
                 this.loopCounterLocalIndex,
                 g => g.Emit(OpCodes.Ldc_I4_1),
@@ -129,11 +118,11 @@ namespace Crest.Host.Serialization
                 },
                 g =>
                 {
-                    // this.WriteElementSeparator();
+                    // this.WriteElementSeparator()
                     g.EmitLoadArgument(0);
                     g.EmitCall(this.baseClass, this.methods.ArraySerializer.WriteElementSeparator);
 
-                    // this.Writer.WriteXXX(local[i]);
+                    // this.Writer.WriteXXX(local[i])
                     this.EmitWriteElement(elementType, gen => gen.EmitLoadLocal(this.loopCounterLocalIndex));
                 });
         }
@@ -200,7 +189,7 @@ namespace Crest.Host.Serialization
             // can call methods on it, as Nullable is a value type so the 'this'
             // pointer is the address of the memory location
             //
-            // if (array[index].HasValue)
+            // if array[index].HasValue then
             this.generator.EmitLoadLocal(this.arrayLocalIndex);
             loadIndex(this.generator);
             this.generator.Emit(OpCodes.Ldelema, elementType);
@@ -217,7 +206,7 @@ namespace Crest.Host.Serialization
             });
             this.generator.Emit(OpCodes.Br_S, endIfLabel);
 
-            // else // i.e. array[index] == null
+            // else array[index] is null
             this.generator.MarkLabel(elseLabel);
             this.EmitWriteNull();
             this.generator.MarkLabel(endIfLabel);
@@ -228,7 +217,7 @@ namespace Crest.Host.Serialization
             Label elseLabel = this.generator.DefineLabel();
             Label endIfLabel = this.generator.DefineLabel();
 
-            // if (array[index] != null) { Write(array[index]) }
+            // if array[index] is not null then Write(array[index])
             this.generator.EmitLoadLocal(this.arrayLocalIndex);
             loadIndex(this.generator);
             this.generator.EmitLoadElement(elementType);
@@ -236,7 +225,7 @@ namespace Crest.Host.Serialization
             this.EmitWriteElementValue(elementType, loadIndex);
             this.generator.Emit(OpCodes.Br_S, endIfLabel);
 
-            // else // i.e. array[index] == null
+            // else array[index] is null
             this.generator.MarkLabel(elseLabel);
             this.EmitWriteNull();
             this.generator.MarkLabel(endIfLabel);

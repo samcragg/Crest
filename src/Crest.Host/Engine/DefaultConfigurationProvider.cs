@@ -31,10 +31,10 @@ namespace Crest.Host.Engine
             {
                 foreach (Type type in knownTypes)
                 {
-                    Action<object> initialize = CreateInitializeDelegate(type);
-                    if (initialize != null)
+                    Action<object> initializeDelegate = CreateInitializeDelegate(type);
+                    if (initializeDelegate != null)
                     {
-                        this.initialize.Add(type, initialize);
+                        this.initialize.Add(type, initializeDelegate);
                     }
                 }
             });
@@ -59,11 +59,13 @@ namespace Crest.Host.Engine
             }
 
             ParameterExpression parameter = Expression.Parameter(typeof(object));
-            Expression body = Expression.Block(
-                new[] { instance },
+            var expressions = new Expression[]
+            {
                 Expression.Assign(instance, Expression.Convert(parameter, type)),
-                setProperties);
+                setProperties
+            };
 
+            Expression body = Expression.Block(new[] { instance }, expressions);
             return Expression.Lambda<Action<object>>(body, parameter).Compile();
         }
 
@@ -110,8 +112,8 @@ namespace Crest.Host.Engine
                 Expression setNestedProperties = SetDefaults(property.PropertyType, local);
                 if (setNestedProperties != null)
                 {
-                    // var local = instance.Property;
-                    // if (local != null) { SetDefaults(local); }
+                    // local = instance.Property
+                    // if local is not null then SetDefaults(local)
                     locals.Add(local);
                     body.Add(Expression.Assign(local, Expression.Property(instance, property)));
                     body.Add(Expression.IfThen(

@@ -156,10 +156,6 @@ namespace Crest.Host.Serialization
                     baseClass.GetTypeInfo(),
                     typeof(IClassSerializer<>));
 
-                Type primitiveSerializerInterface = TypeSerializerGenerator.GetGenericInterfaceImplementation(
-                    baseClass.GetTypeInfo(),
-                    typeof(IPrimitiveSerializer<>));
-
                 const BindingFlags PublicStatic = BindingFlags.FlattenHierarchy | BindingFlags.Public | BindingFlags.Static;
 
                 this.GetMetadata =

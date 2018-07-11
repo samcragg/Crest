@@ -3,6 +3,11 @@
 // Licensed under the MIT license. See LICENSE file in the project root for
 // full license information.
 
+// "Equals" and the comparison operators should be overridden when implementing "IComparable"
+// Since this is an internal type, the methods are not being added as they are
+// not used and we are in control of the class usage
+#pragma warning disable S1210
+
 namespace Crest.Host.Serialization
 {
     using System;
@@ -147,21 +152,21 @@ namespace Crest.Host.Serialization
                 // length / 2 indexes plus the ones at the start/end e.g.
                 // "1.2.3.4" has a length of 7
                 // (7/2) + 2 == 5
-                var indexes = new List<int>((value.Length / 2) + 2);
+                var separators = new List<int>((value.Length / 2) + 2);
                 int index = value.IndexOf('.');
                 int start = 0;
                 while (index >= 0)
                 {
                     if (index != start)
                     {
-                        indexes.Add(start);
+                        separators.Add(start);
                     }
 
                     start = index + 1;
                     index = value.IndexOf('.', start);
                 }
 
-                indexes.Add(start);
+                separators.Add(start);
 
                 // Avoid adding an empty element at the end if the string
                 // already ends with a dot
@@ -170,10 +175,10 @@ namespace Crest.Host.Serialization
                     // The index always points to the start of the next segment,
                     // which is after the dot, so add an index pointing to one
                     // past the end of the string for that last segment
-                    indexes.Add(value.Length + 1);
+                    separators.Add(value.Length + 1);
                 }
 
-                return indexes.ToArray();
+                return separators.ToArray();
             }
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]

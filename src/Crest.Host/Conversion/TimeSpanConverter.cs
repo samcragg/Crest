@@ -305,11 +305,16 @@ namespace Crest.Host.Conversion
 
         private static ParseResult<TimeSpan> ParseNetDuration(ReadOnlySpan<char> span, ref int index, int sign)
         {
+            ParseResult<TimeSpan> CreateError(string e)
+            {
+                return new ParseResult<TimeSpan>(e ?? InvalidFormat);
+            }
+
             string error = null;
             int days = 0;
             if (!ParseDigits(span, ref index, ref error, out int hours))
             {
-                goto ReturnError;
+                return CreateError(error);
             }
 
             if (ReadCharacter(span, ref index, '.'))
@@ -317,7 +322,7 @@ namespace Crest.Host.Conversion
                 days = hours;
                 if (!ParseDigits(span, ref index, ref error, out hours))
                 {
-                    goto ReturnError;
+                    return CreateError(error);
                 }
             }
 
@@ -326,7 +331,7 @@ namespace Crest.Host.Conversion
                 !ReadCharacter(span, ref index, ':') ||
                 !ParseDigits(span, ref index, ref error, out int seconds))
             {
-                goto ReturnError;
+                return CreateError(error);
             }
 
             long ticks =
@@ -340,16 +345,13 @@ namespace Crest.Host.Conversion
                 ticks += ParseFractions(span, ref index, ref error);
                 if (error != null)
                 {
-                    goto ReturnError;
+                    return CreateError(error);
                 }
             }
 
             return new ParseResult<TimeSpan>(
                 new TimeSpan(ticks * sign),
                 index);
-
-            ReturnError:
-            return new ParseResult<TimeSpan>(error ?? InvalidFormat);
         }
 
         private static Triplet ParseTriplet(

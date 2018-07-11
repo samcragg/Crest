@@ -72,8 +72,6 @@ namespace Crest.Host.Diagnostics
                 await writer.WriteLineAsync("<h1>Service Health</h1>").ConfigureAwait(false);
 
                 await this.WriteSummaryAsync(writer).ConfigureAwait(false);
-
-                // TODO: Write the stats (no. of requests, av. timings)
                 await this.WriteAssembliesAsync(writer).ConfigureAwait(false);
 
                 int count = htmlTempalte.Length - insertIndex;

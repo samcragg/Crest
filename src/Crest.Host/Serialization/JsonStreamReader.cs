@@ -17,7 +17,7 @@ namespace Crest.Host.Serialization
     internal sealed partial class JsonStreamReader : ValueReader, IDisposable
     {
         private readonly StringBuffer stringBuffer = new StringBuffer();
-        private StreamIterator iterator;
+        private readonly StreamIterator iterator;
         private int startPosition;
 
         /// <summary>

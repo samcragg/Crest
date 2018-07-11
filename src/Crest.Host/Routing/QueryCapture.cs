@@ -54,23 +54,23 @@ namespace Crest.Host.Routing
                 parameterType.GetElementType() :
                 parameterType;
 
-            IQueryValueConverter converter;
+            IQueryValueConverter valueConverter;
             if (getConverter(elementType, out Func<string, IQueryValueConverter> factoryMethod))
             {
-                converter = factoryMethod(parameterName);
+                valueConverter = factoryMethod(parameterName);
             }
             else
             {
-                converter = new GenericCaptureNode(parameterName, parameterType);
+                valueConverter = new GenericCaptureNode(parameterName, parameterType);
             }
 
             if (parameterType.IsArray)
             {
-                return new MultipleValues(queryKey, elementType, converter);
+                return new MultipleValues(queryKey, elementType, valueConverter);
             }
             else
             {
-                return new SingleValue(queryKey, converter);
+                return new SingleValue(queryKey, valueConverter);
             }
         }
 

@@ -9,7 +9,7 @@ namespace Crest.Host.Serialization.Internal
     /// Allows the serializing of types at runtime.
     /// </summary>
     /// <typeparam name="T">The type of metadata to store about properties.</typeparam>
-    public interface IClassSerializer<T> : IArraySerializer, IPrimitiveSerializer<T>
+    public interface IClassSerializer<in T> : IArraySerializer, IPrimitiveSerializer<T>
         where T : class
     {
         /// <summary>

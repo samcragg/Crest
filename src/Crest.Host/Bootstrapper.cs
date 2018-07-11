@@ -103,12 +103,9 @@ namespace Crest.Host
         {
             if (!this.IsDisposed)
             {
-                if (disposing)
+                if (disposing && this.serviceLocator is IDisposable disposable)
                 {
-                    if (this.serviceLocator is IDisposable disposable)
-                    {
-                        disposable.Dispose();
-                    }
+                    disposable.Dispose();
                 }
 
                 this.IsDisposed = true;
@@ -125,7 +122,7 @@ namespace Crest.Host
             var discoveredTypes = new DiscoveredTypes(types);
             this.serviceRegister.RegisterFactory(typeof(DiscoveredTypes), () => discoveredTypes);
 
-            this.RegisterTypes(discovery, this.GetDefaultOptionalServices(discovery, types));
+            this.RegisterTypes(discovery, this.GetDefaultOptionalServices(discovery));
 
             List<RouteMetadata> routes =
                 types.SelectMany(discovery.GetRoutes).ToList();
@@ -163,7 +160,7 @@ namespace Crest.Host
             }
         }
 
-        private IEnumerable<Type> GetDefaultOptionalServices(IDiscoveryService discovery, IReadOnlyCollection<Type> types)
+        private IEnumerable<Type> GetDefaultOptionalServices(IDiscoveryService discovery)
         {
             foreach (Type serviceType in discovery.GetOptionalServices())
             {

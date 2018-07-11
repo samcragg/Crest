@@ -96,12 +96,10 @@ namespace Crest.Host.Routing
 
         private static IntegerType GetIntegerType(Type type)
         {
-            if (string.Equals("System", type.Namespace, StringComparison.Ordinal))
+            if (string.Equals("System", type.Namespace, StringComparison.Ordinal) &&
+                Enum.TryParse(type.Name, out IntegerType integerType))
             {
-                if (Enum.TryParse(type.Name, out IntegerType integerType))
-                {
-                    return integerType;
-                }
+                return integerType;
             }
 
             throw new ArgumentException("Unknown integer type {0}", type.FullName);
@@ -134,7 +132,6 @@ namespace Crest.Host.Routing
                 case IntegerType.UInt32:
                     return (uint)value;
 
-                case IntegerType.UInt64:
                 default:
                     Assert(this.type == IntegerType.UInt64, "Unexpected value");
                     return (ulong)value;

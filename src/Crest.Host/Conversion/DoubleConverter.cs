@@ -17,7 +17,6 @@ namespace Crest.Host.Conversion
     {
         private const int Emin = 308;
         private const string InvalidFormat = "Invalid format";
-        private const int MaxExponentDigits = 3;
         private const int MaxSignificandDigits = 18;
 
         /// <summary>
@@ -74,7 +73,6 @@ namespace Crest.Host.Conversion
         {
             int originalIndex = index;
             ParseDigits(span, ref index, ref number);
-            int digits = index - originalIndex;
 
             // Is there a decimal part as well?
             T tokens = default;

@@ -88,7 +88,7 @@ namespace Crest.Host.Serialization
             Label forLoopBody = generator.DefineLabel();
             Label forLoopCheck = generator.DefineLabel();
 
-            // for (int i = startValue; ...; ...)
+            // i = startValue
             loadStartValue(generator);
             generator.EmitStoreLocal(counterIndex);
             generator.Emit(OpCodes.Br_S, forLoopCheck);
@@ -96,13 +96,13 @@ namespace Crest.Host.Serialization
             generator.MarkLabel(forLoopBody);
             body(generator);
 
-            // for (...; ...; i++)
+            // increment i
             generator.EmitLoadLocal(counterIndex);
             generator.Emit(OpCodes.Ldc_I4_1);
             generator.Emit(OpCodes.Add);
             generator.EmitStoreLocal(counterIndex);
 
-            // for (...; i < endValue; ...)
+            // while i < endValue
             generator.MarkLabel(forLoopCheck);
             generator.EmitLoadLocal(counterIndex);
             loadEndValue(generator);

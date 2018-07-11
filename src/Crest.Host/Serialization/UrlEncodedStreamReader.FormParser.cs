@@ -112,7 +112,7 @@ namespace Crest.Host.Serialization
                     case '=':
                         if (this.inValue)
                         {
-                            goto default;
+                            this.buffer.Append(c);
                         }
                         else
                         {

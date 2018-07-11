@@ -92,27 +92,32 @@ namespace Crest.Host.Serialization.Internal
         /// <inheritdoc />
         public void BeginRead(byte[] metadata)
         {
+            // We don't need to do anything
         }
 
         /// <inheritdoc />
         public void BeginWrite(byte[] metadata)
         {
+            // We don't need to do anything
         }
 
         /// <inheritdoc />
         public void Dispose()
         {
-            this.reader.Dispose();
+            this.Dispose(true);
+            GC.SuppressFinalize(this);
         }
 
         /// <inheritdoc />
         public void EndRead()
         {
+            // We don't need to do anything
         }
 
         /// <inheritdoc />
         public void EndWrite()
         {
+            // We don't need to do anything
         }
 
         /// <inheritdoc />
@@ -178,10 +183,8 @@ namespace Crest.Host.Serialization.Internal
         public void ReadEndProperty()
         {
             // This is slightly less strict and allows for trailing commas, i.e.
-            //
-            //     { "property":false, }
-            //
-            // is invalid JSON due to the trailing comma but we allow it
+            // { "property":false, } is invalid JSON due to the trailing comma
+            // but we allow it
             this.reader.TryReadToken(',');
         }
 
@@ -231,6 +234,22 @@ namespace Crest.Host.Serialization.Internal
         /// <inheritdoc />
         public void WriteEndProperty()
         {
+            // We don't need to do anything
+        }
+
+        /// <summary>
+        /// Called to clean up resources by the class.
+        /// </summary>
+        /// <param name="disposing">
+        /// Indicates whether the method was invoked from the <see cref="Dispose()"/>
+        /// implementation or from the finalizer.
+        /// </param>
+        protected virtual void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                this.reader.Dispose();
+            }
         }
 
         private static IEnumerable<byte> EncodeJsonString(string name)

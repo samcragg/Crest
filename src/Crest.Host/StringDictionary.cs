@@ -148,13 +148,13 @@ namespace Crest.Host
 
         private static bool EqualsOrdinalIgnoreCase(string strA, string strB)
         {
-            int length = strA.Length;
-            if (length != strB.Length)
+            int count = strA.Length;
+            if (count != strB.Length)
             {
                 return false;
             }
 
-            for (int i = 0; i < length; i++)
+            for (int i = 0; i < count; i++)
             {
                 // uppercase both chars - notice that we need just one compare per char
                 int charA = strA[i];
@@ -172,12 +172,12 @@ namespace Crest.Host
                 // Loops with return statements are slower (https://github.com/dotnet/coreclr/issues/9692)
                 if (charA != charB)
                 {
-                    length = -1;
+                    count = -1;
                     break;
                 }
             }
 
-            return length >= 0;
+            return count >= 0;
         }
 
         private void EnsureSpaceToAdd()

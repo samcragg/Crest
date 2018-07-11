@@ -15,7 +15,6 @@ namespace Crest.Host.Conversion
     internal static partial class DecimalConverter
     {
         private const string InvalidFormat = "Invalid format";
-        private const int MaxExponentDigits = 2;
         private const int MaximumScale = 28;
         private const int MaximumSignificantDigitsForDecimal = 29;
         private const int MaximumSignificantDigitsForLong = 20 - 1; // -1 so that we don't overflow
@@ -139,7 +138,7 @@ namespace Crest.Host.Conversion
                 if (number.Digits >= MaximumSignificantDigitsForLong)
                 {
                     // We need to add to both hi and lo now
-                    ParseDigitsWithOverflow(span, ref index, ref number, true);
+                    ParseDigitsWithOverflow(span, ref index, ref number);
                     break;
                 }
 
@@ -148,7 +147,7 @@ namespace Crest.Host.Conversion
             }
         }
 
-        private static void ParseDigitsWithOverflow(ReadOnlySpan<char> span, ref int index, ref NumberInfo number, bool canRound)
+        private static void ParseDigitsWithOverflow(ReadOnlySpan<char> span, ref int index, ref NumberInfo number)
         {
             bool skipDigits = false;
             for (; index < span.Length; index++)
@@ -202,7 +201,6 @@ namespace Crest.Host.Conversion
         {
             int originalIndex = index;
             ParseDigits(span, ref index, ref number);
-            int digits = index - originalIndex;
 
             // Is there a decimal part as well?
             if ((index < span.Length) && (span[index] == '.'))

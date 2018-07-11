@@ -51,18 +51,18 @@ namespace Crest.OpenApi.Generator
         /// <returns>The code to return to the console.</returns>
         public static int Main(string[] args)
         {
-            var application = new CommandLineApplication(throwOnUnexpectedArg: false)
+            var cla = new CommandLineApplication(throwOnUnexpectedArg: false)
             {
                 Name = "crest_open_api",
                 FullName = "Crest OpenAPI documentation generator.",
                 Description = "Generates OpenAPI JSON documentation for the Crest routes inside an assembly using information from the XML comments."
             };
 
-            var program = new Program(application);
+            var program = new Program(cla);
 
-            application.HelpOption("-?|-h|--help");
-            application.OnExecute(new Func<int>(program.OnExecute));
-            return application.Execute(args);
+            cla.HelpOption("-?|-h|--help");
+            cla.OnExecute(new Func<int>(program.OnExecute));
+            return cla.Execute(args);
         }
 
         private void CreateFiles(XmlDocParser xmlDoc)

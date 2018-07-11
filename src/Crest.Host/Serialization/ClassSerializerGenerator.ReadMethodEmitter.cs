@@ -49,10 +49,10 @@ namespace Crest.Host.Serialization
                 this.generator = method.GetILGenerator();
                 int instanceIndex = this.generator.DeclareLocal(this.builder.SerializedType).LocalIndex;
 
-                // T instance = new T();
+                // var instance = new T()
                 InitializeInstance(this.generator, this.builder.SerializedType, instanceIndex);
 
-                // this.BeginReadClass(metadata or null);
+                // this.BeginReadClass(metadata or null)
                 this.owner.EmitCallBeginMethodWithTypeMetadata(
                     this.builder,
                     this.generator,
@@ -61,14 +61,14 @@ namespace Crest.Host.Serialization
                 // instance.Property = this.Reader.ReadXXX()
                 this.EmitReadProperties(properties, instanceIndex);
 
-                // this.EndReadClass();
+                // this.EndReadClass()
                 this.generator.EmitLoadArgument(0);
                 this.generator.EmitCall(this.owner.BaseClass, this.owner.Methods.BaseClass.ReadEndClass);
 
                 // Because we're only deserializing reference types, there's no
                 // need to box the instance variable.
                 //
-                // return instance;
+                // return instance
                 this.generator.EmitLoadLocal(instanceIndex);
                 this.generator.Emit(OpCodes.Ret);
             }
@@ -88,7 +88,7 @@ namespace Crest.Host.Serialization
                     classType.GetConstructor(Type.EmptyTypes) ??
                     throw new InvalidOperationException(classType.Name + " must contain a public default constructor");
 
-                // T instance = new T();
+                // var instance = new T()
                 generator.Emit(OpCodes.Newobj, constructor);
                 generator.EmitStoreLocal(localIndex);
             }
@@ -139,7 +139,7 @@ namespace Crest.Host.Serialization
                 this.generator.Emit(OpCodes.Dup);
                 this.generator.EmitStoreLocal(nameIndex);
 
-                // if (name != null) goto start
+                // if name is not null then goto start
                 this.generator.Emit(OpCodes.Brtrue, startOfLoop);
             }
 
@@ -193,7 +193,7 @@ namespace Crest.Host.Serialization
                 Label elseLabel = this.generator.DefineLabel();
                 Label endLabel = this.generator.DefineLabel();
 
-                // if (reader.ReadNull())
+                // if reader.ReadNull() then
                 this.generator.EmitLoadArgument(0);
                 this.generator.EmitCall(this.owner.BaseClass, this.owner.Methods.PrimitiveSerializer.GetReader);
                 this.generator.EmitCall(typeof(ValueReader), this.owner.Methods.ValueReader.ReadNull);
@@ -201,15 +201,13 @@ namespace Crest.Host.Serialization
 
                 // We're setting the property in the caller, so just load the
                 // default value for a nullable<T> on the stack
-                //    default(Nullable<T>)
                 LocalBuilder nullable = this.GetOrAddLocal(nullableType);
                 this.generator.Emit(OpCodes.Ldloca_S, nullable.LocalIndex);
                 this.generator.Emit(OpCodes.Initobj, nullableType);
                 this.generator.EmitLoadLocal(nullable.LocalIndex);
                 this.generator.Emit(OpCodes.Br_S, endLabel);
 
-                // else
-                //    new Nullable<T>(x)
+                // else new Nullable<T>(x)
                 this.generator.MarkLabel(elseLabel);
                 this.EmitReadValue(underlyingType);
                 this.generator.Emit(OpCodes.Newobj, nullableType.GetConstructor(new[] { underlyingType }));
@@ -226,7 +224,7 @@ namespace Crest.Host.Serialization
                 Label readNextProperty = this.generator.DefineLabel();
                 this.generator.Emit(OpCodes.Br, readNextProperty);
 
-                // switch (name) { ... }
+                // switch name
                 Label startOfLoop = this.generator.DefineLabel();
                 Label endOfSwitch = this.generator.DefineLabel();
                 this.generator.MarkLabel(startOfLoop);
@@ -237,7 +235,7 @@ namespace Crest.Host.Serialization
                 this.generator.EmitLoadArgument(0);
                 this.generator.EmitCall(this.owner.BaseClass, this.owner.Methods.BaseClass.ReadEndProperty);
 
-                // while (name != null)
+                // while name is not null
                 this.generator.MarkLabel(readNextProperty);
                 this.EmitReadBeginProperty(nameIndex, startOfLoop);
             }

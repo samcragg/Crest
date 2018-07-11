@@ -203,21 +203,16 @@ namespace Crest.Host.Serialization
                 StringBuffer sb = tail;
                 do
                 {
-                    int start = sb.start;
-                    int length = sb.offset - start;
-                    destinationOffset -= length;
-
-                    //// TODO: When performance improves use this:
-                    //// var buffer = new Span<char>(sb.buffer, start, length);
-                    //// buffer.CopyTo(destination.Slice(destinatioinOffset));
-
+                    int sbStart = sb.start;
+                    int sbLength = sb.offset - sbStart;
+                    destinationOffset -= sbLength;
                     fixed (char* bufferPtr = sb.buffer)
                     {
                         Buffer.MemoryCopy(
-                            bufferPtr + start,
+                            bufferPtr + sbStart,
                             destPtr + destinationOffset,
                             destinationLengthBytes,
-                            length * sizeof(char));
+                            sbLength * sizeof(char));
                     }
 
                     sb = sb.previous;
@@ -252,14 +247,14 @@ namespace Crest.Host.Serialization
         private static void TrimStart(StringBuffer buffer, ref int totalLength, Func<char, bool> predicate)
         {
             // Start from the beginning chunk
-            StringBuffer previous = buffer.previous;
-            if (previous != null)
+            StringBuffer previousBuffer = buffer.previous;
+            if (previousBuffer != null)
             {
-                TrimStart(previous, ref totalLength, predicate);
+                TrimStart(previousBuffer, ref totalLength, predicate);
 
                 // If it didn't trim the whole chunk then there's no need for
                 // us to do anything on this one
-                if (previous.start < previous.offset)
+                if (previousBuffer.start < previousBuffer.offset)
                 {
                     return;
                 }

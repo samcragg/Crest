@@ -74,8 +74,6 @@ namespace Crest.Host.Routing
                 captures).Compile();
         }
 
-#pragma warning disable UseAsyncSuffix
-
         private static Task<object> ConvertGenericTask<T>(Task<T> value)
         {
             return value.ContinueWith<object>(
@@ -93,8 +91,6 @@ namespace Crest.Host.Routing
                 },
                 TaskContinuationOptions.ExecuteSynchronously);
         }
-
-#pragma warning restore UseAsyncSuffix
 
         private static Expression GetDefaultValue(ParameterInfo parameter)
         {
@@ -115,7 +111,7 @@ namespace Crest.Host.Routing
 
             foreach (ParameterInfo parameter in parameters)
             {
-                // T parameter = GetCapturedValue(captures);
+                // parameter = GetCapturedValue(captures)
                 ParameterExpression local = Expression.Parameter(parameter.ParameterType, parameter.Name);
                 locals.Add(local);
                 this.AssignCapturedValue(local, captures, parameter);
@@ -134,8 +130,8 @@ namespace Crest.Host.Routing
                 // If it's optional it can't be a body parameter, so assign it
                 // directly:
                 //
-                // object localValue;
-                // if (captures.TryGetValue("parameter", out localValue))
+                // object localValue
+                // if captures.TryGetValue("parameter", out localValue) then
                 //     parameter = (T)localValue
                 // else
                 //     parameter = DefaultValue
@@ -171,7 +167,7 @@ namespace Crest.Host.Routing
                 this.localValueProvider,
                 Expression.TypeAs(this.localValue, typeof(IValueProvider))));
 
-            // if (provider == null)
+            // if provider is null
             //     parameter = (T)value
             // else
             //     parameter = (T)provider.Value

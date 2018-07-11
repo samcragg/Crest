@@ -18,7 +18,6 @@ namespace Crest.Host.Conversion
         /// </summary>
         public const int MaximumTextLength = 36;
 
-        private const string InvalidHexadecimalCharacter = "Invalid hexadecimal character";
         private const string InvalidLength = "Invalid GUID length";
         private const string MissingHyphen = "Hyphens are in the incorrect location";
 
@@ -69,9 +68,9 @@ namespace Crest.Host.Conversion
 
             // NOTE: The GUID stores the first few bytes as integers/shorts in
             // the following format:
-            //     private int _a;
-            //     private short _b;
-            //     private short _c;
+            //     int _a
+            //     short _b
+            //     short _c
             // Therefore, switch the first few bytes around
             // int _a
             WriteHexPair(buffer, offset + 0, bytes.B3, bytes.B2);
@@ -174,6 +173,12 @@ namespace Crest.Host.Conversion
             return true;
         }
 
+        private static Guid InvalidHexadecimalCharacter(ref string error)
+        {
+            error = "Invalid hexadecimal character";
+            return default;
+        }
+
         private static Guid ParseGuid(in ReadOnlySpan<char> span, ref int index, ref string error)
         {
             void AdvanceIndex(bool skipHyphen, ref int i, int amount)
@@ -196,32 +201,32 @@ namespace Crest.Host.Conversion
 
             if (!GetHexInt32(span, index, index + 8, out uint a))
             {
-                goto InvalidHex;
+                return InvalidHexadecimalCharacter(ref error);
             }
 
             AdvanceIndex(hasHyphens, ref index, 8);
             if (!GetHexInt32(span, index, index + 4, out uint b))
             {
-                goto InvalidHex;
+                return InvalidHexadecimalCharacter(ref error);
             }
 
             AdvanceIndex(hasHyphens, ref index, 4);
             if (!GetHexInt32(span, index, index + 4, out uint c))
             {
-                goto InvalidHex;
+                return InvalidHexadecimalCharacter(ref error);
             }
 
             AdvanceIndex(hasHyphens, ref index, 4);
             if (!GetHexInt32(span, index, index + 4, out uint d))
             {
-                goto InvalidHex;
+                return InvalidHexadecimalCharacter(ref error);
             }
 
             AdvanceIndex(hasHyphens, ref index, 4);
             if (!GetHexInt32(span, index, index + 4, out uint e) ||
                 !GetHexInt32(span, index + 4, index + 12, out uint f))
             {
-                goto InvalidHex;
+                return InvalidHexadecimalCharacter(ref error);
             }
 
             index += 12;
@@ -237,10 +242,6 @@ namespace Crest.Host.Conversion
                 (byte)(f >> 16),
                 (byte)(f >> 8),
                 (byte)f);
-
-            InvalidHex:
-            error = InvalidHexadecimalCharacter;
-            return default;
         }
 
         private static void WriteHexPair(byte[] buffer, int offset, byte a, byte b)

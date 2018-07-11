@@ -149,7 +149,7 @@ namespace Crest.Host.Serialization
             // If the previous condition is false it will jump here
             this.generator.MarkLabel(previousTarget);
 
-            // if (!condition) goto next
+            // if not condition then goto next
             this.EmitCondition(this.generator, mapping.Key);
             this.generator.Emit(OpCodes.Brfalse, nextJump);
 
@@ -185,7 +185,7 @@ namespace Crest.Host.Serialization
             // Since we have a case for each bucket, no need to worry about
             // the default case
             //
-            // switch(GetHashCode % buckets)
+            // switch GetHashCode % buckets
             this.EmitGetHashCode(this.generator);
             this.generator.EmitLoadConstant(bucketCount);
             this.generator.Emit(OpCodes.Rem_Un);

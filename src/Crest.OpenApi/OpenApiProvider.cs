@@ -25,7 +25,6 @@ namespace Crest.OpenApi
         private const string Css = "text/css";
         private const string Html = "text/html";
         private const string Javascript = "application/javascript";
-        private const string Json = "application/json";
         private readonly IndexHtmlGenerator generator;
         private readonly IOAdapter io;
         private readonly SpecificationFileLocator specFiles;
