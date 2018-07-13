@@ -6,6 +6,7 @@
 namespace Crest.Host
 {
     using System;
+    using System.Buffers;
     using System.Collections;
     using System.Collections.Generic;
     using System.Linq;
@@ -35,14 +36,14 @@ namespace Crest.Host
                     if (separator < 0)
                     {
                         this.AddGroup(
-                            new StringSegment(query, start, index),
-                            default);
+                            query.AsSpan(start, index - start),
+                            ReadOnlySpan<char>.Empty);
                     }
                     else
                     {
                         this.AddGroup(
-                            new StringSegment(query, start, separator),
-                            new StringSegment(query, separator + 1, index));
+                            query.AsSpan(start, separator - start),
+                            query.AsSpan(separator + 1, index - separator - 1));
                     }
 
                     index++;
@@ -54,6 +55,15 @@ namespace Crest.Host
         /// Gets the number of keys in the query information.
         /// </summary>
         public int Count => this.groups.Count;
+
+        /// <summary>
+        /// Gets or sets the resource pool for obtaining byte arrays.
+        /// </summary>
+        /// <remarks>
+        /// This is exposed for unit testing and defaults to
+        /// <see cref="ArrayPool{T}.Shared"/>.
+        /// </remarks>
+        internal static ArrayPool<byte> BytePool { get; set; } = ArrayPool<byte>.Shared;
 
         /// <summary>
         /// Gets the values associated with the specified key in the query
@@ -103,9 +113,9 @@ namespace Crest.Host
             return this.GetEnumerator();
         }
 
-        private static byte DecodePercentageValue(StringSegment segment, int index)
+        private static byte DecodePercentageValue(in ReadOnlySpan<char> segment, int index)
         {
-            if ((index + 2) >= segment.Count)
+            if ((index + 2) >= segment.Length)
             {
                 throw new UriFormatException("Invalid percentage escaped data.");
             }
@@ -162,12 +172,24 @@ namespace Crest.Host
             return (int)value + 10;
         }
 
-        private static string UnescapeSegment(StringSegment segment)
+        private static string UnescapeSegment(in ReadOnlySpan<char> segment)
         {
-            int count = segment.Count;
-            byte[] buffer = new byte[count];
+            byte[] buffer = BytePool.Rent(segment.Length);
+            try
+            {
+                int length = UnescapeSegment(segment, buffer);
+                return Encoding.UTF8.GetString(buffer, 0, length);
+            }
+            finally
+            {
+                BytePool.Return(buffer);
+            }
+        }
+
+        private static int UnescapeSegment(in ReadOnlySpan<char> segment, byte[] buffer)
+        {
             int index = 0;
-            for (int i = 0; i < count; i++)
+            for (int i = 0; i < segment.Length; i++)
             {
                 char c = segment[i];
                 if (c == '%')
@@ -187,10 +209,10 @@ namespace Crest.Host
                 index++;
             }
 
-            return Encoding.UTF8.GetString(buffer, 0, index);
+            return index;
         }
 
-        private void AddGroup(StringSegment key, StringSegment value)
+        private void AddGroup(in ReadOnlySpan<char> key, in ReadOnlySpan<char> value)
         {
             string keyString = UnescapeSegment(key);
 

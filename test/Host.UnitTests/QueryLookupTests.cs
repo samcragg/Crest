@@ -10,51 +10,22 @@
 
     public class QueryLookupTests
     {
-        public sealed class Parsing : QueryLookupTests
-        {
-            [Fact]
-            public void ShouldHandleEmptyQueryStrings()
-            {
-                var lookup = new QueryLookup(string.Empty);
-
-                lookup.Should().BeEmpty();
-            }
-
-            [Fact]
-            public void ShouldHandleKeysWithoutValues()
-            {
-                var lookup = new QueryLookup("?key");
-
-                lookup.Contains("key").Should().BeTrue();
-            }
-
-            [Fact]
-            public void ShouldIgnoreTheCaseOfPercentageEscapedValues()
-            {
-                var lookup = new QueryLookup("?%2A=%2a");
-
-                lookup["*"].Single().Should().Be("*");
-            }
-
-            [Fact]
-            public void ShouldUnescapePrecentageEscapedKeys()
-            {
-                var lookup = new QueryLookup("?%41");
-
-                lookup.Contains("A").Should().BeTrue();
-            }
-
-            [Fact]
-            public void ShouldUnescapeSpacesEncodedAsPlus()
-            {
-                var lookup = new QueryLookup("?a+b=c+d");
-
-                lookup["a b"].Single().Should().Be("c d");
-            }
-        }
-
         public sealed class Constructor : QueryLookupTests
         {
+            [Fact]
+            public void ShouldReturnRentedBuffers()
+            {
+                lock (FakeArrayPool.LockObject)
+                {
+                    FakeArrayPool<byte>.Instance.Reset();
+
+                    var lookup = new QueryLookup("?key=value");
+
+                    FakeArrayPool<byte>.Instance.TotalAllocated.Should().Be(0);
+                    GC.KeepAlive(lookup);
+                }
+            }
+
             [Theory]
             [InlineData("%1")]
             [InlineData("%0G")]
@@ -211,6 +182,49 @@
                 enumerator.MoveNext().Should().BeTrue();
                 enumerator.MoveNext().Should().BeTrue();
                 enumerator.MoveNext().Should().BeFalse();
+            }
+        }
+
+        public sealed class Parsing : QueryLookupTests
+        {
+            [Fact]
+            public void ShouldHandleEmptyQueryStrings()
+            {
+                var lookup = new QueryLookup(string.Empty);
+
+                lookup.Should().BeEmpty();
+            }
+
+            [Fact]
+            public void ShouldHandleKeysWithoutValues()
+            {
+                var lookup = new QueryLookup("?key");
+
+                lookup.Contains("key").Should().BeTrue();
+            }
+
+            [Fact]
+            public void ShouldIgnoreTheCaseOfPercentageEscapedValues()
+            {
+                var lookup = new QueryLookup("?%2A=%2a");
+
+                lookup["*"].Single().Should().Be("*");
+            }
+
+            [Fact]
+            public void ShouldUnescapePrecentageEscapedKeys()
+            {
+                var lookup = new QueryLookup("?%41");
+
+                lookup.Contains("A").Should().BeTrue();
+            }
+
+            [Fact]
+            public void ShouldUnescapeSpacesEncodedAsPlus()
+            {
+                var lookup = new QueryLookup("?a+b=c+d");
+
+                lookup["a b"].Single().Should().Be("c d");
             }
         }
     }

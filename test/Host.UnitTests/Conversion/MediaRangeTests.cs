@@ -1,13 +1,38 @@
 ﻿namespace Host.UnitTests.Conversion
 {
     using System;
-    using Crest.Host;
     using Crest.Host.Conversion;
     using FluentAssertions;
     using Xunit;
 
     public class MediaRangeTests
     {
+        public sealed class Constructor : MediaRangeTests
+        {
+            [Fact]
+            public void ShouldThrowForInvalidQualityValues()
+            {
+                const string Invalid = "*/*;Q=2.0";
+
+                Action action = () => new MediaRange(Invalid, 0, Invalid.Length);
+
+                action.Should().Throw<ArgumentException>();
+            }
+
+            [Theory]
+            [InlineData("missing_separator")]
+            [InlineData("missing_sub_type/")]
+            [InlineData("not_allowed / spaces_here")]
+            [InlineData("")]
+            [InlineData(" ")]
+            public void ShouldThrowIfNotAValidMediaType(string input)
+            {
+                Action action = () => new MediaRange(input, 0, input.Length);
+
+                action.Should().Throw<ArgumentException>();
+            }
+        }
+
         public sealed class Parsing : MediaRangeTests
         {
             [Fact]
@@ -17,8 +42,8 @@
                 const string ValidCharacters = "!#$%&'*+-.^_`|~09azAZ";
                 const string MediaType = ValidCharacters + "/" + ValidCharacters;
 
-                var rangeA = new MediaRange(new StringSegment(MediaType));
-                var rangeB = new MediaRange(new StringSegment(MediaType));
+                var rangeA = new MediaRange(MediaType, 0, MediaType.Length);
+                var rangeB = new MediaRange(MediaType, 0, MediaType.Length);
 
                 rangeA.MediaTypesMatch(rangeB).Should().BeTrue();
             }
@@ -30,7 +55,7 @@
             [InlineData("*/*;p=1", 1000)]
             public void ShouldIgnoreParametersWhenParsingTheQuality(string input, int quality)
             {
-                var range = new MediaRange(new StringSegment(input));
+                var range = new MediaRange(input, 0, input.Length);
 
                 range.Quality.Should().Be(quality);
             }
@@ -43,8 +68,8 @@
             [InlineData("application/*", "text/plain", false)]
             public void ShouldMatchMediaTypes(string first, string second, bool expected)
             {
-                var rangeA = new MediaRange(new StringSegment(first));
-                var rangeB = new MediaRange(new StringSegment(second));
+                var rangeA = new MediaRange(first, 0, first.Length);
+                var rangeB = new MediaRange(second, 0, second.Length);
 
                 bool result = rangeA.MediaTypesMatch(rangeB);
 
@@ -66,41 +91,17 @@
             public void ShouldParseTheQuality(string input, int expected)
             {
                 string media = "*/*;q=" + input;
-                var range = new MediaRange(new StringSegment(media));
+                var range = new MediaRange(media, 0, media.Length);
                 range.Quality.Should().Be(expected);
-            }
-        }
-
-        public sealed class Constructor : MediaRangeTests
-        {
-            [Fact]
-            public void ShouldThrowForInvalidQualityValues()
-            {
-                Action action = () => new MediaRange(new StringSegment("*/*;Q=2.0"));
-
-                action.Should().Throw<ArgumentException>();
-            }
-
-            [Theory]
-            [InlineData("missing_separator")]
-            [InlineData("missing_sub_type/")]
-            [InlineData("not_allowed / spaces_here")]
-            [InlineData("")]
-            [InlineData(" ")]
-            public void ShouldThrowIfNotAValidMediaType(string input)
-            {
-                Action action = () => new MediaRange(new StringSegment(input));
-
-                action.Should().Throw<ArgumentException>();
             }
         }
 
         public sealed class Quality : MediaRangeTests
         {
             [Fact]
-            public void ShouldDefualtTo1000()
+            public void ShouldDefaultTo1000()
             {
-                var range = new MediaRange(new StringSegment("*/*"));
+                var range = new MediaRange("*/*", 0, 3);
 
                 range.Quality.Should().Be(1000);
             }

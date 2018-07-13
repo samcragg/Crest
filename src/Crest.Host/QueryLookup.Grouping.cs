@@ -9,6 +9,7 @@ namespace Crest.Host
     using System.Collections;
     using System.Collections.Generic;
     using System.Linq;
+    using static System.Diagnostics.Debug;
 
     /// <content>
     /// Contains the nested helper <see cref="Grouping"/> class.
@@ -79,10 +80,10 @@ namespace Crest.Host
                 throw new NotSupportedException();
             }
 
-            internal void Add(StringSegment value)
+            internal void Add(in ReadOnlySpan<char> value)
             {
-                System.Diagnostics.Debug.Assert(this.values == null, "Cannot add to a group that has been iterated over.");
-                var node = new DataNode(this.last, value);
+                Assert(this.values == null, "Cannot add to a group that has been iterated over.");
+                var node = new DataNode(this.last, UnescapeSegment(value));
                 this.last = node;
             }
 
@@ -107,7 +108,7 @@ namespace Crest.Host
                 node = this.last;
                 while (node != null)
                 {
-                    this.values[index] = UnescapeSegment(node.Value);
+                    this.values[index] = node.Value;
                     index--;
                     node = node.Previous;
                 }
@@ -117,7 +118,7 @@ namespace Crest.Host
 
             private sealed class DataNode
             {
-                internal DataNode(DataNode previous, StringSegment value)
+                internal DataNode(DataNode previous, string value)
                 {
                     this.Previous = previous;
                     this.Value = value;
@@ -125,7 +126,7 @@ namespace Crest.Host
 
                 internal DataNode Previous { get; }
 
-                internal StringSegment Value { get; }
+                internal string Value { get; }
             }
         }
     }

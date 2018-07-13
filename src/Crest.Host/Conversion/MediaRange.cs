@@ -25,25 +25,29 @@ namespace Crest.Host.Conversion
         /// <summary>
         /// Initializes a new instance of the <see cref="MediaRange"/> class.
         /// </summary>
-        /// <param name="range">The substring to parse.</param>
-        public MediaRange(StringSegment range)
+        /// <param name="value">The string to parse.</param>
+        /// <param name="offset">The start of the substring.</param>
+        /// <param name="length">The length of the substring.</param>
+        public MediaRange(string value, int offset, int length)
         {
+            this.originalString = value;
+            int end = offset + length;
+
             // https://tools.ietf.org/html/rfc7231#section-5.3.2
             // "*/*" / (type "/" "*") / (type "/" subtype)
-            int index = SkipWhitespace(range.String, range.Start, range.End);
-            this.originalString = range.String;
-
+            int index = SkipWhitespace(value, offset, end);
             this.typeStart = index;
-            index = SkipToken(this.originalString, index, range.End);
+
+            index = SkipToken(value, index, end);
             this.typeEnd = index;
-            if ((index == range.End) || (this.originalString[index] != '/'))
+            if ((index == end) || (value[index] != '/'))
             {
                 throw new ArgumentException(InvalidMediaType);
             }
 
             index++; // Skip the separator
             this.subTypeStart = index;
-            index = SkipToken(this.originalString, index, range.End);
+            index = SkipToken(value, index, end);
             this.subTypeEnd = index;
             if (this.subTypeEnd == this.subTypeStart)
             {
@@ -55,7 +59,7 @@ namespace Crest.Host.Conversion
             this.SquashAnyTypes(ref this.typeStart, this.typeEnd);
             this.SquashAnyTypes(ref this.subTypeStart, this.subTypeEnd);
 
-            this.Quality = FindQuality(this.originalString, index, range.End);
+            this.Quality = FindQuality(value, index, end);
         }
 
         /// <summary>

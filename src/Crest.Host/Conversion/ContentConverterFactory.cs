@@ -41,7 +41,8 @@ namespace Crest.Host.Conversion
             for (int i = 0; i < ordered.Count; i++)
             {
                 this.converters[i] = ordered[i].converter;
-                this.ranges[i] = new MediaRange(new StringSegment(ordered[i].format));
+                string format = ordered[i].format;
+                this.ranges[i] = new MediaRange(format, 0, format.Length);
             }
         }
 
@@ -73,7 +74,7 @@ namespace Crest.Host.Conversion
         {
             if (!string.IsNullOrEmpty(content))
             {
-                var range = new MediaRange(new StringSegment(content));
+                var range = new MediaRange(content, 0, content.Length);
                 for (int i = 0; i < this.converters.Length; i++)
                 {
                     IContentConverter converter = this.converters[i];
@@ -107,12 +108,12 @@ namespace Crest.Host.Conversion
             int end = accept.IndexOf(',') + 1;
             while (end > 0)
             {
-                mediaRanges.Add(new MediaRange(new StringSegment(accept, start, end)));
+                mediaRanges.Add(new MediaRange(accept, start, end - start));
                 start = end;
                 end = accept.IndexOf(',', start) + 1;
             }
 
-            mediaRanges.Add(new MediaRange(new StringSegment(accept, start, accept.Length)));
+            mediaRanges.Add(new MediaRange(accept, start, accept.Length - start));
             return mediaRanges;
         }
 
