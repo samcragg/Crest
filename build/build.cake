@@ -54,7 +54,7 @@ Task("ExcludeDryIocFromStyleCop")
     .Does(() =>
 {
     var packagesDirectory = GetNugetPackageDirectory();
-    var filePattern = packagesDirectory.FullPath + "/dryioc.internal/*/contentFiles/cs/any/*.cs";
+    var filePattern = packagesDirectory.FullPath + "/dryioc.internal/*/contentFiles/cs/*/DryIoc/*.cs";
     foreach (var file in GetFiles(filePattern))
     {
         var backup = file.GetDirectory().CombineWithFilePath("../" + file.GetFilename() + ".original");
