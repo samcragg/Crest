@@ -97,19 +97,18 @@ namespace Crest.Host.Conversion
         /// Converts a signed 64-bit integer to human readable text.
         /// </summary>
         /// <param name="buffer">The byte array to output to.</param>
-        /// <param name="offset">The index of where to start writing from.</param>
         /// <param name="value">The value to convert.</param>
         /// <returns>The number of bytes written.</returns>
-        public static int WriteInt64(byte[] buffer, int offset, long value)
+        public static int WriteInt64(in Span<byte> buffer, long value)
         {
             if (value < 0)
             {
-                buffer[offset] = (byte)'-';
-                return WriteUInt64(buffer, offset + 1, (ulong)-value) + 1;
+                buffer[0] = (byte)'-';
+                return WriteUInt64(buffer.Slice(1), (ulong)-value) + 1;
             }
             else
             {
-                return WriteUInt64(buffer, offset, (ulong)value);
+                return WriteUInt64(buffer, (ulong)value);
             }
         }
 
@@ -117,20 +116,19 @@ namespace Crest.Host.Conversion
         /// Converts an unsigned 64-bit integer to human readable text.
         /// </summary>
         /// <param name="buffer">The byte array to output to.</param>
-        /// <param name="offset">The index of where to start writing from.</param>
         /// <param name="value">The value to convert.</param>
         /// <returns>The number of bytes written.</returns>
-        public static int WriteUInt64(byte[] buffer, int offset, ulong value)
+        public static int WriteUInt64(in Span<byte> buffer, ulong value)
         {
             if (value == 0)
             {
-                buffer[offset] = (byte)'0';
+                buffer[0] = (byte)'0';
                 return 1;
             }
             else
             {
                 int digitCount = CountDigits(value);
-                int index = offset + digitCount;
+                int index = digitCount;
 
                 // 32 bit arithmetic seems faster than 64 bit, even on a 64-bit CPU!?
                 while (value > uint.MaxValue)
@@ -254,7 +252,7 @@ namespace Crest.Host.Conversion
             }
         }
 
-        private static void WriteUInt32(byte[] buffer, int index, uint value)
+        private static void WriteUInt32(in Span<byte> buffer, int index, uint value)
         {
             // Do all the digit pairs
             while (value > 9)

@@ -177,7 +177,7 @@
             private static string GetString(TimeSpan value)
             {
                 byte[] buffer = new byte[TimeSpanConverter.MaximumTextLength];
-                int length = TimeSpanConverter.WriteTimeSpan(buffer, 0, value);
+                int length = TimeSpanConverter.WriteTimeSpan(new Span<byte>(buffer), value);
                 return Encoding.UTF8.GetString(buffer, 0, length);
             }
         }

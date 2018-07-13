@@ -171,7 +171,7 @@ namespace Crest.Host.Serialization
         {
             int digits = IntegerConverter.CountDigits((uint)arrayIndex);
             byte[] text = new byte[digits];
-            IntegerConverter.WriteUInt64(text, 0, (uint)arrayIndex);
+            IntegerConverter.WriteUInt64(new Span<byte>(text), (uint)arrayIndex);
 
             this.keyParts.Add(text);
             this.keyLength += digits + 1;
@@ -184,11 +184,11 @@ namespace Crest.Host.Serialization
         }
 
         /// <inheritdoc />
-        protected override ArraySegment<byte> RentBuffer(int maximumSize)
+        protected override Span<byte> RentBuffer(int maximumSize)
         {
             this.WriteCurrentProperty();
-            this.EnsureBufferHasSpace(DateTimeConverter.MaximumTextLength);
-            return new ArraySegment<byte>(this.buffer, this.offset, BufferLength - this.offset);
+            this.EnsureBufferHasSpace(maximumSize);
+            return new Span<byte>(this.buffer, this.offset, BufferLength - this.offset);
         }
 
         private static int AppendUtf32(byte[] utf8Buffer, byte[] output, int offset, int utf32)

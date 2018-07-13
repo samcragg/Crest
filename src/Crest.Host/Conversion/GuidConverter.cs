@@ -51,20 +51,19 @@ namespace Crest.Host.Conversion
         /// Converts a GUID value to human readable text.
         /// </summary>
         /// <param name="buffer">The byte array to output to.</param>
-        /// <param name="offset">The index of where to start writing from.</param>
         /// <param name="value">The value to convert.</param>
         /// <returns>The number of bytes written.</returns>
-        public static int WriteGuid(byte[] buffer, int offset, Guid value)
+        public static int WriteGuid(in Span<byte> buffer, Guid value)
         {
             // Quicker than ToByteArray + saves memory allocation
             var bytes = default(GuidBytes);
             bytes.Guid = value;
 
             // The format will be: "12345678-0123-5678-0123-567890123456"
-            buffer[offset + 8] = (byte)'-';
-            buffer[offset + 13] = (byte)'-';
-            buffer[offset + 18] = (byte)'-';
-            buffer[offset + 23] = (byte)'-';
+            buffer[8] = (byte)'-';
+            buffer[13] = (byte)'-';
+            buffer[18] = (byte)'-';
+            buffer[23] = (byte)'-';
 
             // NOTE: The GUID stores the first few bytes as integers/shorts in
             // the following format:
@@ -73,20 +72,20 @@ namespace Crest.Host.Conversion
             //     short _c
             // Therefore, switch the first few bytes around
             // int _a
-            WriteHexPair(buffer, offset + 0, bytes.B3, bytes.B2);
-            WriteHexPair(buffer, offset + 4, bytes.B1, bytes.B0);
+            WriteHexPair(buffer, 0, bytes.B3, bytes.B2);
+            WriteHexPair(buffer, 4, bytes.B1, bytes.B0);
 
             // short _b
-            WriteHexPair(buffer, offset + 9, bytes.B5, bytes.B4);
+            WriteHexPair(buffer, 9, bytes.B5, bytes.B4);
 
             // short _c
-            WriteHexPair(buffer, offset + 14, bytes.B7, bytes.B6);
+            WriteHexPair(buffer, 14, bytes.B7, bytes.B6);
 
             // Back to bytes (e.g. byte _d)
-            WriteHexPair(buffer, offset + 19, bytes.B8, bytes.B9);
-            WriteHexPair(buffer, offset + 24, bytes.B10, bytes.B11);
-            WriteHexPair(buffer, offset + 28, bytes.B12, bytes.B13);
-            WriteHexPair(buffer, offset + 32, bytes.B14, bytes.B15);
+            WriteHexPair(buffer, 19, bytes.B8, bytes.B9);
+            WriteHexPair(buffer, 24, bytes.B10, bytes.B11);
+            WriteHexPair(buffer, 28, bytes.B12, bytes.B13);
+            WriteHexPair(buffer, 32, bytes.B14, bytes.B15);
 
             return MaximumTextLength;
         }
@@ -244,7 +243,7 @@ namespace Crest.Host.Conversion
                 (byte)f);
         }
 
-        private static void WriteHexPair(byte[] buffer, int offset, byte a, byte b)
+        private static void WriteHexPair(in Span<byte> buffer, int offset, byte a, byte b)
         {
             buffer[offset] = (byte)PrimitiveDigits.LowercaseHex[a >> 4];
             buffer[offset + 1] = (byte)PrimitiveDigits.LowercaseHex[a & 0xF];

@@ -108,9 +108,9 @@ namespace Crest.Host.Serialization
         }
 
         /// <inheritdoc />
-        protected override ArraySegment<byte> RentBuffer(int maximumSize)
+        protected override Span<byte> RentBuffer(int maximumSize)
         {
-            return new ArraySegment<byte>(this.byteBuffer);
+            return new Span<byte>(this.byteBuffer);
         }
 
         private static XmlWriterSettings CreateXmlWriterSettings()

@@ -146,16 +146,6 @@
 
         public sealed class WriteInt64 : IntegerConverterTests
         {
-            [Fact]
-            public void ShouldWriteAtTheSpecifiedOffset()
-            {
-                byte[] buffer = new byte[IntegerConverter.MaximumTextLength + 1];
-
-                IntegerConverter.WriteInt64(buffer, 1, -123);
-
-                buffer.Should().StartWith(new byte[] { 0, (byte)'-' });
-            }
-
             [Theory]
             [InlineData(long.MinValue)]
             [InlineData(0)]
@@ -165,7 +155,7 @@
                 byte[] buffer = new byte[IntegerConverter.MaximumTextLength];
                 string expected = value.ToString(NumberFormatInfo.InvariantInfo);
 
-                int length = IntegerConverter.WriteInt64(buffer, 0, value);
+                int length = IntegerConverter.WriteInt64(new Span<byte>(buffer), value);
 
                 buffer.Take(length).Should().Equal(Encoding.UTF8.GetBytes(expected));
             }
@@ -181,7 +171,7 @@
                 {
                     string expected = i.ToString(NumberFormatInfo.InvariantInfo);
 
-                    int length = IntegerConverter.WriteInt64(buffer, 0, i);
+                    int length = IntegerConverter.WriteInt64(new Span<byte>(buffer), i);
 
                     buffer.Take(length).Should().Equal(Encoding.UTF8.GetBytes(expected));
                 }
@@ -190,16 +180,6 @@
 
         public sealed class WriteUInt64 : IntegerConverterTests
         {
-            [Fact]
-            public void ShouldWriteAtTheSpecifiedOffset()
-            {
-                byte[] buffer = new byte[IntegerConverter.MaximumTextLength + 1];
-
-                IntegerConverter.WriteUInt64(buffer, 1, 123);
-
-                buffer.Should().StartWith(new byte[] { 0, (byte)'1' });
-            }
-
             [Theory]
             [InlineData(0)]
             [InlineData(ulong.MaxValue)]
@@ -208,7 +188,7 @@
                 byte[] buffer = new byte[IntegerConverter.MaximumTextLength];
                 string expected = value.ToString(NumberFormatInfo.InvariantInfo);
 
-                int length = IntegerConverter.WriteUInt64(buffer, 0, value);
+                int length = IntegerConverter.WriteUInt64(new Span<byte>(buffer), value);
 
                 buffer.Take(length).Should().Equal(Encoding.UTF8.GetBytes(expected));
             }
@@ -224,7 +204,7 @@
                 {
                     string expected = i.ToString(NumberFormatInfo.InvariantInfo);
 
-                    int length = IntegerConverter.WriteUInt64(buffer, 0, i);
+                    int length = IntegerConverter.WriteUInt64(new Span<byte>(buffer), i);
 
                     buffer.Take(length).Should().Equal(Encoding.UTF8.GetBytes(expected));
                 }

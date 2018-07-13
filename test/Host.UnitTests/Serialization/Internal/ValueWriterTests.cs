@@ -287,10 +287,10 @@
                 this.Bytes = this.buffer;
             }
 
-            protected override ArraySegment<byte> RentBuffer(int maximumSize)
+            protected override Span<byte> RentBuffer(int maximumSize)
             {
                 this.buffer = new byte[maximumSize];
-                return new ArraySegment<byte>(this.buffer);
+                return new Span<byte>(this.buffer);
             }
         }
     }

@@ -91,7 +91,7 @@ namespace Crest.Host.Serialization
         {
             this.EnsureBufferHasSpace(IntegerConverter.MaximumTextLength);
 
-            this.offset += IntegerConverter.WriteInt64(this.buffer, this.offset, value);
+            this.offset += IntegerConverter.WriteInt64(this.GetBufferAsSpan(), value);
         }
 
         /// <inheritdoc />
@@ -131,7 +131,7 @@ namespace Crest.Host.Serialization
         {
             this.EnsureBufferHasSpace(IntegerConverter.MaximumTextLength);
 
-            this.offset += IntegerConverter.WriteUInt64(this.buffer, this.offset, value);
+            this.offset += IntegerConverter.WriteUInt64(this.GetBufferAsSpan(), value);
         }
 
         /// <summary>
@@ -163,11 +163,11 @@ namespace Crest.Host.Serialization
         }
 
         /// <inheritdoc />
-        protected override ArraySegment<byte> RentBuffer(int maximumSize)
+        protected override Span<byte> RentBuffer(int maximumSize)
         {
-            this.EnsureBufferHasSpace(DateTimeConverter.MaximumTextLength + 2); // +2 for the surrounding quotes
+            this.EnsureBufferHasSpace(maximumSize + 2); // +2 for the surrounding quotes
             this.buffer[this.offset++] = (byte)'"';
-            return new ArraySegment<byte>(this.buffer, this.offset, BufferLength - this.offset);
+            return this.GetBufferAsSpan();
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -177,6 +177,12 @@ namespace Crest.Host.Serialization
             {
                 this.Flush();
             }
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private Span<byte> GetBufferAsSpan()
+        {
+            return new Span<byte>(this.buffer, this.offset, BufferLength - this.offset);
         }
 
         private void WriteRaw(string value)

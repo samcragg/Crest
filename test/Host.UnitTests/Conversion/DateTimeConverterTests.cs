@@ -161,20 +161,9 @@
                     DateTimeFormatInfo.InvariantInfo,
                     DateTimeStyles.AdjustToUniversal);
 
-                int length = DateTimeConverter.WriteDateTime(buffer, 0, dateTime);
+                int length = DateTimeConverter.WriteDateTime(new Span<byte>(buffer), dateTime);
 
                 buffer.Take(length).Should().Equal(Encoding.ASCII.GetBytes(value));
-            }
-
-            [Fact]
-            public void ShouldWriteAtTheSpecifiedOffset()
-            {
-                byte[] buffer = new byte[DateTimeConverter.MaximumTextLength + 1];
-                var dateTime = new DateTime(2017, 1, 1);
-
-                DateTimeConverter.WriteDateTime(buffer, 1, dateTime);
-
-                buffer.Should().StartWith(new byte[] { 0, (byte)'2' });
             }
         }
     }

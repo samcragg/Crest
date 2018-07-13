@@ -18,6 +18,7 @@ namespace Crest.Host.Conversion
         /// </summary>
         public const int MaximumTextLength = 28; // 1234-67-90T23:56:89.1234567Z
 
+        private const int DatePartLength = 10;
         private const string InvalidDateFormat = "Invalid date format, expected a format matching ISO 8601";
         private const int MaximumFractionPrecision = 7; // One tick == 0.0000001 seconds
         private const string OutsideOfRange = "The value describes an un-representable date/time";
@@ -62,17 +63,15 @@ namespace Crest.Host.Conversion
         /// Converts a date time value to human readable text.
         /// </summary>
         /// <param name="buffer">The byte array to output to.</param>
-        /// <param name="offset">The index of where to start writing from.</param>
         /// <param name="value">The value to convert.</param>
         /// <returns>The number of bytes written.</returns>
-        public static int WriteDateTime(byte[] buffer, int offset, DateTime value)
+        public static int WriteDateTime(in Span<byte> buffer, DateTime value)
         {
-            int index = offset;
-            index += AppendDate(buffer, index, value.Year, value.Month, value.Day);
+            const int TimePartLength = 9;
+            AppendDate(buffer, value.Year, value.Month, value.Day);
+            AppendTime(buffer, value.Hour, value.Minute, value.Second);
 
-            buffer[index++] = (byte)'T';
-            index += AppendTime(buffer, index, value.Hour, value.Minute, value.Second);
-
+            int index = DatePartLength + TimePartLength;
             int fraction = (int)(value.Ticks % TimeSpan.TicksPerSecond);
             if (fraction > 0)
             {
@@ -81,30 +80,28 @@ namespace Crest.Host.Conversion
             }
 
             buffer[index++] = (byte)'Z';
-            return index - offset;
+            return index;
         }
 
-        private static int AppendDate(byte[] buffer, int offset, int year, int month, int day)
+        private static void AppendDate(in Span<byte> buffer, int year, int month, int day)
         {
             int pair = year / 100;
-            buffer[offset] = (byte)PrimitiveDigits.Tens[pair];
-            buffer[offset + 1] = (byte)PrimitiveDigits.Units[pair];
+            buffer[0] = (byte)PrimitiveDigits.Tens[pair];
+            buffer[1] = (byte)PrimitiveDigits.Units[pair];
             pair = year % 100;
-            buffer[offset + 2] = (byte)PrimitiveDigits.Tens[pair];
-            buffer[offset + 3] = (byte)PrimitiveDigits.Units[pair];
+            buffer[2] = (byte)PrimitiveDigits.Tens[pair];
+            buffer[3] = (byte)PrimitiveDigits.Units[pair];
 
-            buffer[offset + 4] = (byte)'-';
-            buffer[offset + 5] = (byte)PrimitiveDigits.Tens[month];
-            buffer[offset + 6] = (byte)PrimitiveDigits.Units[month];
+            buffer[4] = (byte)'-';
+            buffer[5] = (byte)PrimitiveDigits.Tens[month];
+            buffer[6] = (byte)PrimitiveDigits.Units[month];
 
-            buffer[offset + 7] = (byte)'-';
-            buffer[offset + 8] = (byte)PrimitiveDigits.Tens[day];
-            buffer[offset + 9] = (byte)PrimitiveDigits.Units[day];
-
-            return 10;
+            buffer[7] = (byte)'-';
+            buffer[8] = (byte)PrimitiveDigits.Tens[day];
+            buffer[9] = (byte)PrimitiveDigits.Units[day];
         }
 
-        private static int AppendFractionsOfSeconds(byte[] buffer, int offset, int value)
+        private static int AppendFractionsOfSeconds(Span<byte> buffer, int offset, int value)
         {
             buffer[offset] = (byte)PrimitiveDigits.Units[value / 1000000];
 
@@ -123,20 +120,19 @@ namespace Crest.Host.Conversion
             return 7;
         }
 
-        private static int AppendTime(byte[] buffer, int offset, int hour, int minute, int second)
+        private static void AppendTime(in Span<byte> buffer, int hour, int minute, int second)
         {
-            buffer[offset] = (byte)PrimitiveDigits.Tens[hour];
-            buffer[offset + 1] = (byte)PrimitiveDigits.Units[hour];
+            buffer[DatePartLength] = (byte)'T';
+            buffer[DatePartLength + 1] = (byte)PrimitiveDigits.Tens[hour];
+            buffer[DatePartLength + 2] = (byte)PrimitiveDigits.Units[hour];
 
-            buffer[offset + 2] = (byte)':';
-            buffer[offset + 3] = (byte)PrimitiveDigits.Tens[minute];
-            buffer[offset + 4] = (byte)PrimitiveDigits.Units[minute];
+            buffer[DatePartLength + 3] = (byte)':';
+            buffer[DatePartLength + 4] = (byte)PrimitiveDigits.Tens[minute];
+            buffer[DatePartLength + 5] = (byte)PrimitiveDigits.Units[minute];
 
-            buffer[offset + 5] = (byte)':';
-            buffer[offset + 6] = (byte)PrimitiveDigits.Tens[second];
-            buffer[offset + 7] = (byte)PrimitiveDigits.Units[second];
-
-            return 8;
+            buffer[DatePartLength + 6] = (byte)':';
+            buffer[DatePartLength + 7] = (byte)PrimitiveDigits.Tens[second];
+            buffer[DatePartLength + 8] = (byte)PrimitiveDigits.Units[second];
         }
 
         private static bool ReadChar(in ReadOnlySpan<char> span, ref int index, char expected)

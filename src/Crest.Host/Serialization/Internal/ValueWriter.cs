@@ -48,8 +48,8 @@ namespace Crest.Host.Serialization.Internal
         /// <param name="value">The value to write to the stream.</param>
         public virtual void WriteDateTime(DateTime value)
         {
-            ArraySegment<byte> buffer = this.RentBuffer(DateTimeConverter.MaximumTextLength);
-            int length = DateTimeConverter.WriteDateTime(buffer.Array, buffer.Offset, value);
+            Span<byte> buffer = this.RentBuffer(DateTimeConverter.MaximumTextLength);
+            int length = DateTimeConverter.WriteDateTime(buffer, value);
             this.CommitBuffer(length);
         }
 
@@ -77,8 +77,8 @@ namespace Crest.Host.Serialization.Internal
         /// <param name="value">The value to write to the stream.</param>
         public virtual void WriteGuid(Guid value)
         {
-            ArraySegment<byte> buffer = this.RentBuffer(GuidConverter.MaximumTextLength);
-            int length = GuidConverter.WriteGuid(buffer.Array, buffer.Offset, value);
+            Span<byte> buffer = this.RentBuffer(GuidConverter.MaximumTextLength);
+            int length = GuidConverter.WriteGuid(buffer, value);
             this.CommitBuffer(length);
         }
 
@@ -106,8 +106,8 @@ namespace Crest.Host.Serialization.Internal
         /// <param name="value">The value to write to the stream.</param>
         public virtual void WriteInt64(long value)
         {
-            ArraySegment<byte> buffer = this.RentBuffer(IntegerConverter.MaximumTextLength);
-            int length = IntegerConverter.WriteInt64(buffer.Array, buffer.Offset, value);
+            Span<byte> buffer = this.RentBuffer(IntegerConverter.MaximumTextLength);
+            int length = IntegerConverter.WriteInt64(buffer, value);
             this.CommitBuffer(length);
         }
 
@@ -158,8 +158,8 @@ namespace Crest.Host.Serialization.Internal
         /// <param name="value">The value to write to the stream.</param>
         public virtual void WriteTimeSpan(TimeSpan value)
         {
-            ArraySegment<byte> buffer = this.RentBuffer(TimeSpanConverter.MaximumTextLength);
-            int length = TimeSpanConverter.WriteTimeSpan(buffer.Array, buffer.Offset, value);
+            Span<byte> buffer = this.RentBuffer(TimeSpanConverter.MaximumTextLength);
+            int length = TimeSpanConverter.WriteTimeSpan(buffer, value);
             this.CommitBuffer(length);
         }
 
@@ -190,8 +190,8 @@ namespace Crest.Host.Serialization.Internal
         [CLSCompliant(false)]
         public virtual void WriteUInt64(ulong value)
         {
-            ArraySegment<byte> buffer = this.RentBuffer(IntegerConverter.MaximumTextLength);
-            int length = IntegerConverter.WriteUInt64(buffer.Array, buffer.Offset, value);
+            Span<byte> buffer = this.RentBuffer(IntegerConverter.MaximumTextLength);
+            int length = IntegerConverter.WriteUInt64(buffer, value);
             this.CommitBuffer(length);
         }
 
@@ -209,7 +209,7 @@ namespace Crest.Host.Serialization.Internal
         /// The maximum number of bytes that will be written.
         /// </param>
         /// <returns>The buffer to write to.</returns>
-        protected abstract ArraySegment<byte> RentBuffer(int maximumSize);
+        protected abstract Span<byte> RentBuffer(int maximumSize);
 
         private void AppendAscii(string value)
         {
