@@ -100,7 +100,7 @@ namespace Crest.OpenApi
             {
                 Method = (r, c) => redirect,
                 RouteUrl = from,
-                Verb = "GET"
+                Verb = "GET",
             };
         }
 
@@ -154,7 +154,7 @@ namespace Crest.OpenApi
             {
                 Method = CreateResponse,
                 RouteUrl = route,
-                Verb = "GET"
+                Verb = "GET",
             };
         }
     }

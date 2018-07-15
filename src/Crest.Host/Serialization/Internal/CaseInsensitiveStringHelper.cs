@@ -12,7 +12,7 @@ namespace Crest.Host.Serialization.Internal
     /// </summary>
     /// <remarks>
     /// This class only takes into account uppercase ASCII letters (i.e. doesn't
-    /// follow the Unicode definition of uppercase/lowercase)
+    /// follow the Unicode definition of uppercase/lowercase).
     /// </remarks>
     public static class CaseInsensitiveStringHelper
     {

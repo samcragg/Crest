@@ -34,7 +34,7 @@ namespace Crest.Abstractions
         /// per <a href="http://www.w3.org/Protocols/rfc2616/rfc2616-sec4.html#sec4.2">RFC 2616</a>:
         /// &quot;It MUST be possible to combine the multiple header fields
         /// into one &quot;field-name: field-value&quot; pair, without changing
-        /// the semantics of the message.&quot;
+        /// the semantics of the message&quot;.
         /// </remarks>
         IReadOnlyDictionary<string, string> Headers { get; }
 

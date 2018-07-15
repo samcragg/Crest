@@ -16,7 +16,7 @@ namespace Crest.Host
     public abstract partial class RequestProcessor
     {
         /// <summary>
-        /// Gets the result of calling <see cref="Match(string, string, ILookup{string, string})"/>
+        /// Gets the result of calling <see cref="Match(string, string, ILookup{string, string})"/>.
         /// </summary>
         protected internal struct MatchResult
         {

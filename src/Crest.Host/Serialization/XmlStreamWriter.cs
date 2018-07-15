@@ -120,7 +120,7 @@ namespace Crest.Host.Serialization
                 CheckCharacters = false,
                 Encoding = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false),
                 NewLineHandling = NewLineHandling.None,
-                OmitXmlDeclaration = true
+                OmitXmlDeclaration = true,
             };
         }
 

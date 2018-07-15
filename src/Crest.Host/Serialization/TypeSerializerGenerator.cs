@@ -93,7 +93,7 @@ namespace Crest.Host.Serialization
         }
 
         /// <summary>
-        /// Creates a type based on the specified name,
+        /// Creates a type based on the specified name.
         /// </summary>
         /// <param name="serializedType">The type that will be serialized.</param>
         /// <param name="name">The name for the type.</param>

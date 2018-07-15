@@ -50,7 +50,7 @@ namespace Crest.Host.Routing
         /// <param name="index">The starting index of the first node to add.</param>
         /// <returns>
         /// The leaf node that can store the value for the route (i.e. the
-        /// <c>RouteNode</c> that represents the last item in <c>nodes</c>.)
+        /// <c>RouteNode</c> that represents the last item in <c>nodes</c>).
         /// </returns>
         public RouteNode<T> Add(IReadOnlyList<IMatchNode> nodes, int index)
         {

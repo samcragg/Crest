@@ -58,7 +58,7 @@ namespace Crest.Host.Serialization
         /// <remarks>
         /// The argument is the type of the value being read. When this method
         /// returns it is expected the value has been loaded onto the
-        /// evaluation stack as the correct type (i.e. not boxed)
+        /// evaluation stack as the correct type (i.e. not boxed).
         /// </remarks>
         public Action<ILGenerator, Type> ReadValue { get; set; }
 

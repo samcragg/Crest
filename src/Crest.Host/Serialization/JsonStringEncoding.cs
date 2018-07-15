@@ -108,7 +108,7 @@ namespace Crest.Host.Serialization
         }
 
         /// <summary>
-        /// Appends the specified UTF-32 code point as UTF-8 bytes
+        /// Appends the specified UTF-32 code point as UTF-8 bytes.
         /// </summary>
         /// <param name="utf32">The code point to encode.</param>
         /// <param name="buffer">The buffer to output the bytes to.</param>

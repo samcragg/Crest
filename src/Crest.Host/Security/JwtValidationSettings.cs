@@ -42,7 +42,7 @@ namespace Crest.Host.Security
             { "sub", "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier" },
             { "unique_name", "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name" },
             { "upn", "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/upn" },
-            { "website", "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/webpage" }
+            { "website", "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/webpage" },
         };
 
         /// <inheritdoc />

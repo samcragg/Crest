@@ -26,7 +26,7 @@ namespace Crest.Host.Routing
         }
 
         /// <summary>
-        /// Gets the value associated with the specified key,
+        /// Gets the value associated with the specified key.
         /// </summary>
         /// <param name="key">The key to locate.</param>
         /// <param name="value">Outputs the value, if any, to this parameter.</param>

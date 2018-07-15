@@ -13,7 +13,7 @@ namespace Crest.Host.Conversion
     using Crest.Host.Serialization.Internal;
 
     /// <summary>
-    /// Converts between .NET objects and JSON
+    /// Converts between .NET objects and JSON.
     /// </summary>
     internal sealed class JsonConverter : IContentConverter
     {

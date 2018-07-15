@@ -41,7 +41,7 @@ namespace Crest.Host.Engine
             ParameterExpression instance = Expression.Variable(type);
             var body = new List<Expression>
             {
-                Expression.Assign(instance, Expression.Convert(parameter, type))
+                Expression.Assign(instance, Expression.Convert(parameter, type)),
             };
 
             var parser = new JsonObjectParser(json);

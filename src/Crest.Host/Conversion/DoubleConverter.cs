@@ -54,7 +54,7 @@ namespace Crest.Host.Conversion
         /// fraction part.
         /// </summary>
         /// <typeparam name="T">
-        /// Used to check for the separator (see remarks)
+        /// Used to check for the separator (see remarks).
         /// </typeparam>
         /// <param name="span">Contains the characters to parse.</param>
         /// <param name="index">The index within the span to start parsing.</param>
@@ -66,7 +66,7 @@ namespace Crest.Host.Conversion
         /// We're abusing generics here to allow the decimal separator check to
         /// be inlined (passing in a delegate adds to memory pressure and also
         /// can't be inlined, yet the JIT is able to inline the call on the
-        /// generic type)
+        /// generic type).
         /// </remarks>
         internal static bool ParseSignificand<T>(ReadOnlySpan<char> span, ref int index, ref NumberInfo number)
             where T : struct, INumericTokens

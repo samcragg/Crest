@@ -183,7 +183,7 @@ namespace Crest.Host.Serialization
             {
                 var arrayEmitter = new ArraySerializeEmitter(this.generator, this.owner.BaseClass, this.owner.Methods)
                 {
-                    WriteValue = this.EmitSerializeValue
+                    WriteValue = this.EmitSerializeValue,
                 };
 
                 // var array = this.ArrayProperty

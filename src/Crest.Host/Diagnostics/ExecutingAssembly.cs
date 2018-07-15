@@ -22,7 +22,7 @@ namespace Crest.Host.Diagnostics
             {
                 "microsoft",
                 "newtonsoft",
-                "system"
+                "system",
             }, StringComparer.Ordinal);
 
         private static DependencyContext overrideContext;

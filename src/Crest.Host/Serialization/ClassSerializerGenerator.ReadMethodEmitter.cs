@@ -109,7 +109,7 @@ namespace Crest.Host.Serialization
                         g.EmitCall(OpCodes.Call, this.owner.Methods.CaseInsensitiveStringHelper.GetHashCode, null);
                     },
                     EndOfTable = endOfLoop,
-                    NoMatch = g => { }
+                    NoMatch = g => { },
                 };
 
                 foreach (PropertyInfo property in properties)
@@ -124,7 +124,7 @@ namespace Crest.Host.Serialization
             {
                 var arrayEmitter = new ArrayDeserializeEmitter(this.generator, this.owner.BaseClass, this.owner.Methods)
                 {
-                    CreateLocal = t => this.GetOrAddLocal(t)
+                    CreateLocal = t => this.GetOrAddLocal(t),
                 };
 
                 arrayEmitter.ReadValue = (_, t) => this.EmitReadValue(t);

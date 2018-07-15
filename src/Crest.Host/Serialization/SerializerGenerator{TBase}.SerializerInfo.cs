@@ -88,7 +88,7 @@ namespace Crest.Host.Serialization
                 {
                     Expression.Assign(instance, Expression.New(constructor, stream, serialize)),
                     Expression.Call(instance, method, loadValue(value)),
-                    Expression.Call(instance, flushMethod)
+                    Expression.Call(instance, flushMethod),
                 };
                 Expression body = Expression.Block(new[] { instance }, expressions);
 

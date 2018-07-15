@@ -29,7 +29,7 @@ namespace Crest.Host.Engine
                 "Microsoft",
                 "MS",
                 "Newtonsoft",
-                "System"
+                "System",
             }, StringComparer.Ordinal);
 
         private readonly ExecutingAssembly assemblyInfo;
@@ -108,7 +108,7 @@ namespace Crest.Host.Engine
                         Method = method,
                         MinimumVersion = version.From,
                         RouteUrl = route.Route,
-                        Verb = verb
+                        Verb = verb,
                     };
                 }
             }

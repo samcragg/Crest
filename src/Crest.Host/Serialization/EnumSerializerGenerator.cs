@@ -113,7 +113,7 @@ namespace Crest.Host.Serialization
             var arrayEmitter = new ArrayDeserializeEmitter(generator, this.BaseClass, this.Methods)
             {
                 CreateLocal = generator.DeclareLocal,
-                ReadValue = readValue
+                ReadValue = readValue,
             };
             arrayEmitter.EmitReadArray(builder.SerializedType.MakeArrayType());
 
@@ -204,7 +204,7 @@ namespace Crest.Host.Serialization
                     generator.EmitCall(this.BaseClass, this.Methods.PrimitiveSerializer.GetWriter);
                     loadElement(generator);
                     writeValue(generator);
-                }
+                },
             };
 
             generator.EmitLoadArgument(1); // 0 = this, 1 = array

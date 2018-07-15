@@ -35,7 +35,7 @@ namespace Crest.Host.IO
             {
                 NotifyFilter = NotifyFilters.LastWrite,
                 IncludeSubdirectories = false,
-                Path = AppContext.BaseDirectory
+                Path = AppContext.BaseDirectory,
             };
 
             this.watcher.Changed += this.OnFileSystemChanged;

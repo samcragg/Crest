@@ -12,7 +12,7 @@ namespace Crest.Host.Conversion
     using Crest.Abstractions;
 
     /// <summary>
-    /// Converts between .NET objects and HTML
+    /// Converts between .NET objects and HTML.
     /// </summary>
     internal partial class HtmlConverter : IContentConverter
     {

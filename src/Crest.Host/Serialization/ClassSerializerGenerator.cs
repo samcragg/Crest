@@ -177,7 +177,7 @@ namespace Crest.Host.Serialization
                         this.Methods.TypeSerializer.Read,
                         null);
                     generator.Emit(OpCodes.Castclass, builder.SerializedType);
-                }
+                },
             };
 
             arrayEmitter.EmitReadArray(builder.SerializedType.MakeArrayType());
@@ -204,7 +204,7 @@ namespace Crest.Host.Serialization
                         OpCodes.Call,
                         typeof(ITypeSerializer).GetMethod(nameof(ITypeSerializer.Write)),
                         null);
-                }
+                },
             };
 
             generator.EmitLoadArgument(1); // 0 = this, 1 = array

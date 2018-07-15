@@ -25,7 +25,7 @@ namespace Crest.OpenApi
         {
             this.Headers = new SortedDictionary<string, string>
             {
-                { "Location", redirectRoute }
+                { "Location", redirectRoute },
             };
         }
 

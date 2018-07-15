@@ -120,7 +120,7 @@ namespace Crest.Host.Conversion
 
         /// <summary>
         /// Parses the exponent value in a string representing a floating-point
-        /// value (e.g. e-123)
+        /// value (e.g. e-123).
         /// </summary>
         /// <param name="span">Contains the characters to parse.</param>
         /// <param name="index">The index within the span to start parsing.</param>

@@ -13,7 +13,7 @@ namespace Crest.Host.Conversion
     using Crest.Host.Serialization.Internal;
 
     /// <summary>
-    /// Converts between .NET objects and XML
+    /// Converts between .NET objects and XML.
     /// </summary>
     internal sealed class XmlConverter : IContentConverter
     {

@@ -32,7 +32,7 @@ namespace Crest.Host.Security
         /// Determines whether the specified JWT token is authentic or not.
         /// </summary>
         /// <param name="token">The JWT token string.</param>
-        /// <param name="payload">When this method returns, contains the payload of</param>
+        /// <param name="payload">When this method returns, contains the payload of.</param>
         /// <returns>
         /// <c>true</c> if token has been validly signed; otherwise, <c>false</c>.
         /// </returns>
@@ -161,7 +161,7 @@ namespace Crest.Host.Security
             return new JwtInformation
             {
                 PayloadStart = payloadStart,
-                SignatureStart = signatureStart
+                SignatureStart = signatureStart,
             };
         }
 

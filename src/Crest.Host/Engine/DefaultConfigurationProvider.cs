@@ -62,7 +62,7 @@ namespace Crest.Host.Engine
             var expressions = new Expression[]
             {
                 Expression.Assign(instance, Expression.Convert(parameter, type)),
-                setProperties
+                setProperties,
             };
 
             Expression body = Expression.Block(new[] { instance }, expressions);

@@ -18,6 +18,6 @@ namespace Crest.Host.Serialization.Internal
         /// <summary>
         /// The object should be written to the stream.
         /// </summary>
-        Serialize = 2
+        Serialize = 2,
     }
 }

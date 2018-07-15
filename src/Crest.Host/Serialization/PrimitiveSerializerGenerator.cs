@@ -139,7 +139,7 @@ namespace Crest.Host.Serialization
                     g.EmitLoadArgument(0);
                     g.EmitCall(this.BaseClass, this.Methods.PrimitiveSerializer.GetReader);
                     g.EmitCall(typeof(ValueReader), readMethod);
-                }
+                },
             };
             arrayEmitter.EmitReadArray(builder.SerializedType.MakeArrayType());
 
@@ -192,7 +192,7 @@ namespace Crest.Host.Serialization
                     generator.EmitCall(this.BaseClass, this.Methods.PrimitiveSerializer.GetWriter);
                     loadElement(generator); // This handles nullable types for us
                     generator.EmitCall(writeMethod.DeclaringType, writeMethod);
-                }
+                },
             };
 
             generator.EmitLoadArgument(1); // 0 = this, 1 = array

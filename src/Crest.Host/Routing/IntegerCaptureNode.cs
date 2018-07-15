@@ -39,7 +39,7 @@ namespace Crest.Host.Routing
             SByte,
             UInt16,
             UInt32,
-            UInt64
+            UInt64,
         }
 
         /// <inheritdoc />

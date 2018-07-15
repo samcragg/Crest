@@ -46,7 +46,7 @@ namespace Crest.Host.Routing
                         HasBodyAttribute = info.GetCustomAttribute(typeof(FromBodyAttribute)) != null,
                         IsOptional = info.IsOptional,
                         Name = info.Name,
-                        ParameterType = info.ParameterType
+                        ParameterType = info.ParameterType,
                     };
                 }
 

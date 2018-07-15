@@ -61,7 +61,7 @@ namespace Crest.Host.AspNetCore
                 Path = request.Path,
                 Port = request.Host.Port.GetValueOrDefault(-1),
                 Query = request.QueryString.Value,
-                Scheme = request.Scheme
+                Scheme = request.Scheme,
             };
 
             return builder.Uri;

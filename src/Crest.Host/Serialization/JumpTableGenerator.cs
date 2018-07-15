@@ -29,7 +29,7 @@ namespace Crest.Host.Serialization
             7, 11, 17, 23, 29, 37, 47, 59, 71, 89, 107, 131, 163, 197, 239, 293,
             353, 431, 521, 631, 761, 919, 1103, 1327, 1597, 1931, 2333, 2801,
             3371, 4049, 4861, 5839, 7013, 8419, 10103, 12143, 14591, 17519,
-            21023, 25229, 30293, 36353
+            21023, 25229, 30293, 36353,
         };
 
         private ILGenerator generator;
@@ -52,7 +52,7 @@ namespace Crest.Host.Serialization
         /// The action will be passed the generator that should be used to emit
         /// the instructions to and the key that is being compared. It should
         /// leave a value on the evaluation stack that can be used to branch if
-        /// false (e.g. 0/null for false)
+        /// false (e.g. 0/null for false).
         /// </remarks>
         public Action<ILGenerator, string> EmitCondition { get; set; }
 
@@ -122,7 +122,7 @@ namespace Crest.Host.Serialization
             {
                 Body = body,
                 HashCode = (uint)this.getHashCode(key),
-                Key = key
+                Key = key,
             });
         }
 

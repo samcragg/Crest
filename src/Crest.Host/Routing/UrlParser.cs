@@ -101,7 +101,7 @@ namespace Crest.Host.Routing
             Literal,
             Capture,
             PartialCapture,
-            Error
+            Error,
         }
 
         /// <summary>
