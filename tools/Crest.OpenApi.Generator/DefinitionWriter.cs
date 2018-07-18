@@ -16,7 +16,7 @@ namespace Crest.OpenApi.Generator
     /// Allows the writing of object definition.
     /// </summary>
     /// <remarks>
-    /// https://github.com/OAI/OpenAPI-Specification/blob/master/versions/2.0.md#definitionsObject
+    /// https://github.com/OAI/OpenAPI-Specification/blob/master/versions/2.0.md#definitionsObject.
     /// </remarks>
     internal sealed class DefinitionWriter : JsonWriter
     {

@@ -55,7 +55,7 @@ namespace Crest.OpenApi.Generator
             {
                 Name = "crest_open_api",
                 FullName = "Crest OpenAPI documentation generator.",
-                Description = "Generates OpenAPI JSON documentation for the Crest routes inside an assembly using information from the XML comments."
+                Description = "Generates OpenAPI JSON documentation for the Crest routes inside an assembly using information from the XML comments.",
             };
 
             var program = new Program(cla);

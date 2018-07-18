@@ -16,7 +16,7 @@ namespace Crest.OpenApi.Generator
     /// Allows the writing of a single API operation on a path.
     /// </summary>
     /// <remarks>
-    /// https://github.com/OAI/OpenAPI-Specification/blob/master/versions/2.0.md#operationObject
+    /// https://github.com/OAI/OpenAPI-Specification/blob/master/versions/2.0.md#operationObject.
     /// </remarks>
     internal sealed class OperationObjectWriter : JsonWriter
     {

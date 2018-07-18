@@ -14,7 +14,7 @@ namespace Crest.OpenApi.Generator
     /// Allows the writing of the OpenAPI information.
     /// </summary>
     /// <remarks>
-    /// https://github.com/OAI/OpenAPI-Specification/blob/master/versions/2.0.md#infoObject
+    /// https://github.com/OAI/OpenAPI-Specification/blob/master/versions/2.0.md#infoObject.
     /// </remarks>
     internal sealed class InfoObjectWriter : JsonWriter
     {

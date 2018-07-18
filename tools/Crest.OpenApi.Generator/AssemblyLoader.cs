@@ -41,7 +41,7 @@ namespace Crest.OpenApi.Generator
             {
                 new AppBaseCompilationAssemblyResolver(assemblyDirectory),
                 new ReferenceAssemblyPathResolver(),
-                new PackageCompilationAssemblyResolver()
+                new PackageCompilationAssemblyResolver(),
             });
 
             // Do this after we have assigned all the variables

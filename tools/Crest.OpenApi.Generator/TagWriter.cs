@@ -16,7 +16,7 @@ namespace Crest.OpenApi.Generator
     /// Allows the writing of tags.
     /// </summary>
     /// <remarks>
-    /// https://github.com/OAI/OpenAPI-Specification/blob/master/versions/2.0.md#tagObject
+    /// https://github.com/OAI/OpenAPI-Specification/blob/master/versions/2.0.md#tagObject.
     /// </remarks>
     internal sealed class TagWriter : JsonWriter
     {
@@ -52,7 +52,7 @@ namespace Crest.OpenApi.Generator
                 this.tags.Add(new TagItem
                 {
                     Name = name,
-                    Description = description?.Summary
+                    Description = description?.Summary,
                 });
             }
 
