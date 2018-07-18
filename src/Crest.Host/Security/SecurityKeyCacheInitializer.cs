@@ -16,7 +16,7 @@ namespace Crest.Host.Security
     /// </summary>
     internal sealed class SecurityKeyCacheInitializer : IStartupInitializer, IDisposable
     {
-        private static readonly ILog Logger = LogProvider.For<SecurityKeyCacheInitializer>();
+        private static readonly ILog Logger = Log.For<SecurityKeyCacheInitializer>();
         private readonly SecurityKeyCache cache;
         private readonly CancellationTokenSource cancellationToken = new CancellationTokenSource();
 

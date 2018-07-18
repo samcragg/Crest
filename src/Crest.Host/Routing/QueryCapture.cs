@@ -15,7 +15,7 @@ namespace Crest.Host.Routing
     /// </summary>
     internal abstract partial class QueryCapture
     {
-        private static readonly ILog Logger = LogProvider.For<QueryCapture>();
+        private static readonly ILog Logger = Log.For<QueryCapture>();
         private readonly IQueryValueConverter converter;
         private readonly string queryKey;
 

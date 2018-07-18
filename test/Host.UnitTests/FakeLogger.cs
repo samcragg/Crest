@@ -29,8 +29,8 @@
                 return true;
             };
 
-            LogProvider.SetCurrentLogProvider(Substitute.For<ILogProvider>());
-            LogProvider.CurrentLogProvider.GetLogger(null)
+            Log.CurrentLogProvider = Substitute.For<ILogProvider>();
+            Log.CurrentLogProvider.GetLogger(null)
                 .ReturnsForAnyArgs(logger);
         }
 

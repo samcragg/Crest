@@ -19,7 +19,7 @@ namespace Crest.Host.Conversion
     internal sealed class ContentConverterFactory : IContentConverterFactory
     {
         private const string DefaultAcceptType = @"application/json";
-        private static readonly ILog Logger = LogProvider.For<ContentConverterFactory>();
+        private static readonly ILog Logger = Log.For<ContentConverterFactory>();
         private readonly IContentConverter[] converters;
         private readonly MediaRange[] ranges;
 

@@ -19,7 +19,7 @@ namespace Crest.Host.Engine
     /// </summary>
     internal class JsonClassGenerator
     {
-        private static readonly ILog Logger = LogProvider.For<JsonClassGenerator>();
+        private static readonly ILog Logger = Log.For<JsonClassGenerator>();
 
         /// <summary>
         /// Creates an action that copies the specified JSON data to the

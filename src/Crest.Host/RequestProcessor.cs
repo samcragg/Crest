@@ -25,7 +25,7 @@ namespace Crest.Host
     public abstract partial class RequestProcessor
     {
         private static readonly Task<IResponseData> EmptyResponse = Task.FromResult<IResponseData>(null);
-        private static readonly ILog Logger = LogProvider.For<RequestProcessor>();
+        private static readonly ILog Logger = Log.For<RequestProcessor>();
 
         private static readonly MatchResult NoMatch = new MatchResult(
             typeof(RequestProcessor).GetMethod(nameof(OverrideMethodAdapterAsync), BindingFlags.NonPublic | BindingFlags.Static),

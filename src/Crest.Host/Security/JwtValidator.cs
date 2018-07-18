@@ -19,7 +19,7 @@ namespace Crest.Host.Security
     internal partial class JwtValidator
     {
         private const string JwtClaimProperty = "http://schemas.xmlsoap.org/ws/2005/05/identity/claimproperties/ShortTypeName";
-        private static readonly ILog Logger = LogProvider.For<JwtValidator>();
+        private static readonly ILog Logger = Log.For<JwtValidator>();
         private static readonly DateTime UnixEpoc = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
         private readonly IJwtSettings settings;
         private readonly ITimeProvider timeProvider;

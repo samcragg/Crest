@@ -16,7 +16,7 @@ namespace Crest.Host.Security
     /// </summary>
     internal partial class JwtSignatureVerifier
     {
-        private static readonly ILog Logger = LogProvider.For<JwtSignatureVerifier>();
+        private static readonly ILog Logger = Log.For<JwtSignatureVerifier>();
         private readonly ISignatureValidator[] validators;
 
         /// <summary>

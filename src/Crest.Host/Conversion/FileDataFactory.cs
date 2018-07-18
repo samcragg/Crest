@@ -24,7 +24,7 @@ namespace Crest.Host.Conversion
         private const string ContentDispositionHeader = "Content-Disposition";
         private const string ContentTypeHeader = "Content-Type";
         private const string DefaultContentType = "text/plain"; // RFC7578 §4.4
-        private static readonly ILog Logger = LogProvider.For<FileDataFactory>();
+        private static readonly ILog Logger = Log.For<FileDataFactory>();
 
         /// <inheritdoc />
         public bool CanRead => true;

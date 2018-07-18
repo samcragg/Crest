@@ -31,7 +31,7 @@ namespace Crest.Host.Security
         private static readonly AsyncLocal<ClaimsPrincipal> CurrentPrincipal =
             new AsyncLocal<ClaimsPrincipal>();
 
-        private static readonly ILog Logger = LogProvider.For<JwtHandlerPlugin>();
+        private static readonly ILog Logger = Log.For<JwtHandlerPlugin>();
         private static readonly Task<IResponseData> UnauthorizedRequest;
 
         private readonly IScopedServiceRegister serviceRegister;

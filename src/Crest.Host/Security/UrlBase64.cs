@@ -15,7 +15,7 @@ namespace Crest.Host.Security
     {
         private const byte InvalidCharacater = byte.MaxValue;
         private static readonly byte[] Lookup = new byte[128];
-        private static readonly ILog Logger = LogProvider.GetLogger(typeof(UrlBase64));
+        private static readonly ILog Logger = Log.For(typeof(UrlBase64));
 
         static UrlBase64()
         {

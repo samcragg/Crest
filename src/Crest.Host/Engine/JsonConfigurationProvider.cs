@@ -21,7 +21,7 @@ namespace Crest.Host.Engine
     internal sealed partial class JsonConfigurationProvider : IConfigurationProvider, IDisposable
     {
         private const string GlobalSettingsFile = "appsettings.json";
-        private static readonly ILog Logger = LogProvider.For<JsonConfigurationProvider>();
+        private static readonly ILog Logger = Log.For<JsonConfigurationProvider>();
 
         private readonly string environmentSettingsFile;
         private readonly JsonClassGenerator generator;
