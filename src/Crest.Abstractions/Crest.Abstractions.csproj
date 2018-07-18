@@ -1,6 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>netstandard1.6</TargetFramework>
+    <TargetFramework>netstandard2.0</TargetFramework>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <PackageId>Crest.Abstractions</PackageId>
@@ -8,8 +8,4 @@
 
   <Import Project="..\CrestAnalyzers.targets" />
   <Import Project="..\CrestPackage.targets" />
-
-  <ItemGroup>
-    <PackageReference Include="System.ComponentModel" Version="4.3.0" />
-  </ItemGroup>
 </Project>
