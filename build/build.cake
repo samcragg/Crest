@@ -195,6 +195,7 @@ Task("SonarBegin")
     string integrationReports = (new DirectoryPath(IntegrationTestCoverageFolder)).FullPath + "/*.xml";
     string unitTestReports = (new DirectoryPath(UnitTestCoverageFolder)).FullPath + "/*.xml";
     var arguments = "/k:\"crest\""
+    + " /d:sonar.log.level=WARN"
     + " /d:sonar.organization=\"samcragg-github\""
     + " /d:sonar.host.url=\"https://sonarcloud.io\""
     + " /d:sonar.login=\"" + EnvironmentVariable("SONAR_TOKEN") + "\""
