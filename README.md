@@ -2,7 +2,7 @@
 
 ![Icon](https://cdn.rawgit.com/samcragg/Crest/52010cbfabb5892d923d591a419122591a8085a1/docs/images/Icon.svg)
 
-[![Build status](https://ci.appveyor.com/api/projects/status/spal08yea33stdlw/branch/master?svg=true)](https://ci.appveyor.com/project/samcragg/crest/branch/master) [![Coverage Status](https://coveralls.io/repos/github/samcragg/Crest/badge.svg?branch=master)](https://coveralls.io/github/samcragg/Crest?branch=master) ![License](https://img.shields.io/github/license/samcragg/crest.svg)
+[![Build status](https://ci.appveyor.com/api/projects/status/spal08yea33stdlw/branch/master?svg=true)](https://ci.appveyor.com/project/samcragg/crest/branch/master) [![Coverage Status](https://coveralls.io/repos/github/samcragg/Crest/badge.svg?branch=master)](https://coveralls.io/github/samcragg/Crest?branch=master) [![sonarcloud status](https://sonarcloud.io/api/project_badges/measure?project=crest&metric=sqale_rating)](https://sonarcloud.io/dashboard?id=crest) ![License](https://img.shields.io/github/license/samcragg/crest.svg)
 
 This library provides a simple way to create versioned RESTful micro-services
 built against .NET Core with ease whilst remaining performant.
