@@ -9,10 +9,12 @@ branches:
 environment:
   COVERALLS_REPO_TOKEN:
     secure: YeKsMYgc+mNFE+yN5S0r5A6cY50tElPf0e8fIDhdDtdbZ8HWDHgOd5eejr/wO+Gy
+  SONAR_TOKEN:
+    secure: AjGMmrMXPnOITlyAZ36yaf+2UI3VsmliCuqVV859q8HM0qXS+Tbo0FSpJ1oDZJG5
 
 build_script:
   - ps: Set-Location ./build
-  - ps: ./build.ps1
+  - ps: ./build.ps1 -Target Full
 
 artifacts:
   - path: 'build/artifacts/*.nupkg'

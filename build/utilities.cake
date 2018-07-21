@@ -52,3 +52,45 @@ DirectoryPath GetNugetPackageDirectory()
     
     return Directory(output.First().Substring(24));
 }
+
+DirectoryPath InstallDotNetTool(string name, string version)
+{
+    Information("Installing " + name);
+    var toolPath = new DirectoryPath("./tools/" + name);
+    StartProcess("dotnet", "tool install " + name + " --version " + version + " --tool-path \"" + toolPath.FullPath + "\"");
+    return toolPath;
+}
+
+void RunOpenCover(DirectoryPath outputFolder, IEnumerable<FilePath> files, DotNetCoreTestSettings settings)
+{
+    var coverSettings = new OpenCoverSettings
+    {
+        LogLevel = OpenCoverLogLevel.Warn,
+        OldStyle = true,
+        Register = "Path64",
+        ReturnTargetCodeOffset = 0
+    };
+
+    coverSettings.Filters.UnionWith(new[]
+    {
+        "+[Crest.*]*",
+        "-[*]DryIoc.*",
+        "-[*]ImTools.*",
+        "-[*]FastExpressionCompiler.*",
+        "-[*]*.Logging.*"
+    });
+
+    EnsureDirectoryExists(outputFolder);
+    CleanDirectory(outputFolder);
+
+    StartProcess("regsvr32", "/s /n /i:user ./tools/OpenCover/tools/x64/OpenCover.Profiler.dll");
+
+    Parallel.ForEach(files, project =>
+    {
+        OpenCover(
+            c => c.DotNetCoreTest(project.FullPath, settings),
+            outputFolder.CombineWithFilePath(project.GetFilenameWithoutExtension() + ".xml"),
+            coverSettings
+        );
+    });
+}

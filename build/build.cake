@@ -1,11 +1,13 @@
 #addin nuget:?package=Cake.Npm
 #load "utilities.cake"
 
-const string CoverageFolder = "./coverage_results/";
+const string IntegrationTestCoverageFolder = "./coverage_it_results/";
+const string UnitTestCoverageFolder = "./coverage_results/";
 const string MainSolution = "../Crest.sln";
 
 string configuration = Argument("configuration", "Release");
 bool isLocalBuild = BuildSystem.IsLocalBuild;
+DirectoryPath sonarTool = null;
 string target = Argument("target", "Default");
 string version = isLocalBuild ? "local" : EnvironmentVariable("APPVEYOR_BUILD_NUMBER");
 
@@ -21,13 +23,19 @@ var buildSettings = new DotNetCoreBuildSettings
     NoRestore = true
 };
 
-var testSettings = new DotNetCoreTestSettings
+DotNetCoreTestSettings CreateUnitTestSettings()
 {
-    Configuration = configuration,
-    Filter = "Category!=Integration",
-    NoBuild = true,
-    NoRestore = true
-};
+    // Verbosity = DotNetCoreVerbosity.Quiet doesn't seem to work, so we'll add
+    // it ourselves
+    return new DotNetCoreTestSettings
+    {
+        ArgumentCustomization = args => args.Append("--verbosity quiet"),
+        Configuration = configuration,
+        Filter = "Category!=Integration",
+        NoBuild = true,
+        NoRestore = true
+    };
+}
 
 Task("Build")
     .Does(() =>
@@ -43,9 +51,10 @@ Task("BuildAndTestTools")
         DotNetCoreBuild(solution.FullPath, buildSettings);
     }
 
+    var settings = CreateUnitTestSettings();
     foreach (var project in GetFiles("../tools/*.UnitTests/*.csproj"))
     {
-        DotNetCoreTest(project.FullPath, testSettings);
+        DotNetCoreTest(project.FullPath, settings);
     }
 });
 
@@ -71,16 +80,8 @@ Task("IntegrationTests")
     .IsDependentOn("Build")
     .Does(() =>
 {
-    // Verbosity = DotNetCoreVerbosity.Quiet doesn't seem to work, so we'll add
-    // it ourselves
-    var settings = new DotNetCoreTestSettings
-    {
-        ArgumentCustomization = args => args.Append("--verbosity quiet"),
-        Configuration = configuration,
-        Filter = "Category=Integration",
-        NoBuild = true,
-        NoRestore = true
-    };
+    var settings = CreateUnitTestSettings();
+    settings.Filter = "Category=Integration";
 
     Parallel.ForEach(GetFiles("../test/**/*.csproj"), project =>
     {
@@ -89,6 +90,15 @@ Task("IntegrationTests")
         settings.TestAdapterPath = project.GetDirectory().CombineWithFilePath("./bin/" + configuration + "/netcoreapp2.0/").FullPath;
         DotNetCoreTest(project.FullPath, settings);
     });
+});
+
+Task("IntegrationTestWithCover")
+    .IsDependentOn("Build")
+    .Does(() =>
+{
+    var settings = CreateUnitTestSettings();
+    settings.Filter = "Category=Integration";
+    RunOpenCover(IntegrationTestCoverageFolder, GetFiles("../test/**/*.csproj"), settings);
 });
 
 Task("Pack")
@@ -161,10 +171,10 @@ Task("RestoreSwaggerUI")
 
 Task("ShowTestReport")
     .WithCriteria(isLocalBuild)
-    .IsDependentOn("TestWithCover")
+    .IsDependentOn("UnitTestWithCover")
     .Does(() =>
 {
-    ReportGenerator(GetFiles(CoverageFolder + "*.xml"), "./coverage_report");
+    ReportGenerator(GetFiles(UnitTestCoverageFolder + "*.xml"), "./coverage_report");
     if (IsRunningOnWindows())
     {
         StartAndReturnProcess(
@@ -176,89 +186,83 @@ Task("ShowTestReport")
     }
 });
 
-Task("TestWithCover")
-    .IsDependentOn("Build")
+Task("SonarBegin")
+    .WithCriteria(!isLocalBuild)
     .Does(() =>
 {
-    var coverSettings = new OpenCoverSettings
-    {
-        LogLevel = OpenCoverLogLevel.Warn,
-        OldStyle = true,
-        Register = "Path64",
-        ReturnTargetCodeOffset = 0
-    };
+    sonarTool = InstallDotNetTool("dotnet-sonarscanner", "4.3.1 ");
 
-    coverSettings.Filters.UnionWith(new[]
-    {
-        "+[Crest.*]*",
-        "-[*]DryIoc.*",
-        "-[*]ImTools.*",
-        "-[*]FastExpressionCompiler.*",
-        "-[*]*.Logging.*"
-    });
-
-    EnsureDirectoryExists(CoverageFolder);
-    CleanDirectory(CoverageFolder);
-
-    StartProcess("regsvr32", "/s /n /i:user ./tools/OpenCover/tools/x64/OpenCover.Profiler.dll");
-
-    Parallel.ForEach(GetFiles("../test/**/*.csproj"), project =>
-    {
-        OpenCover(
-            c => c.DotNetCoreTest(project.FullPath, testSettings),
-            CoverageFolder + project.GetFilenameWithoutExtension() + ".xml",
-            coverSettings
-        );
-    });
+    string integrationReports = (new DirectoryPath(IntegrationTestCoverageFolder)).FullPath + "/*.xml";
+    string unitTestReports = (new DirectoryPath(UnitTestCoverageFolder)).FullPath + "/*.xml";
+    var arguments = "/k:\"crest\""
+    + " /d:sonar.organization=\"samcragg-github\""
+    + " /d:sonar.host.url=\"https://sonarcloud.io\""
+    + " /d:sonar.login=\"" + EnvironmentVariable("SONAR_TOKEN") + "\""
+    + " /d:sonar.cs.opencover.reportsPaths=\"" + unitTestReports + "\""
+    + " /d:sonar.cs.opencover.it.reportsPaths=\"" + integrationReports + "\"";
+    StartProcess(sonarTool.CombineWithFilePath("dotnet-sonarscanner.exe"), "begin " + arguments);
 });
 
-Task("UnitTests")
+Task("SonarEnd")
+    .WithCriteria(!isLocalBuild)
+    .Does(() =>
+{
+    var arguments = "/d:sonar.login=\"" + EnvironmentVariable("SONAR_TOKEN") + "\"";
+    StartProcess(sonarTool.CombineWithFilePath("dotnet-sonarscanner.exe"), "end " + arguments);
+});
+
+Task("UnitTestWithCover")
     .IsDependentOn("Build")
     .Does(() =>
 {
-    foreach (var project in GetFiles("../test/**/*.csproj"))
-    {
-        DotNetCoreTest(project.FullPath, testSettings);
-    }
+    var settings = CreateUnitTestSettings();
+    RunOpenCover(UnitTestCoverageFolder, GetFiles("../test/**/*.csproj"), settings);
 });
 
 Task("UploadTestReport")
     .WithCriteria(!isLocalBuild)
-    .IsDependentOn("TestWithCover")
+    .IsDependentOn("UnitTestWithCover")
     .Does(() =>
 {
-    Information("Installing tool");
-    var toolPath = new DirectoryPath("./tools/coveralls");
-    StartProcess("dotnet", "tool install coveralls.net --version 1.0.0 --tool-path \"" + toolPath.FullPath + "\"");
+    DirectoryPath toolPath = InstallDotNetTool("coveralls.net", "1.0.0");
 
     Information("Uploading reports");
-    var inputFiles = string.Join(";", GetFiles(CoverageFolder + "*.xml").Select(f => "opencover=" + f.FullPath));
+    var inputFiles = string.Join(";", GetFiles(UnitTestCoverageFolder + "*.xml").Select(f => "opencover=" + f.FullPath));
 
-    var arguments = "--multiple";
-    arguments += " --input " + inputFiles;
-    arguments += " --useRelativePaths";
-    arguments += " --commitId " + EnvironmentVariable("APPVEYOR_REPO_COMMIT");
-    arguments += " --commitBranch " + EnvironmentVariable("APPVEYOR_REPO_BRANCH");
-    arguments += " --commitAuthor \"" + EnvironmentVariable("APPVEYOR_REPO_COMMIT_AUTHOR") + "\"";
-    arguments += " --commitEmail " + EnvironmentVariable("APPVEYOR_REPO_COMMIT_AUTHOR_EMAIL");
-    arguments += " --commitMessage \"" + EnvironmentVariable("APPVEYOR_REPO_COMMIT_MESSAGE") + "\"";
-    arguments += " --jobId " + EnvironmentVariable("APPVEYOR_BUILD_NUMBER");
-    arguments += " --repoTokenVariable COVERALLS_REPO_TOKEN";
+    var arguments = "--multiple"
+    + " --input " + inputFiles
+    + " --useRelativePaths"
+    + " --commitId " + EnvironmentVariable("APPVEYOR_REPO_COMMIT")
+    + " --commitBranch " + EnvironmentVariable("APPVEYOR_REPO_BRANCH")
+    + " --commitAuthor \"" + EnvironmentVariable("APPVEYOR_REPO_COMMIT_AUTHOR") + "\""
+    + " --commitEmail " + EnvironmentVariable("APPVEYOR_REPO_COMMIT_AUTHOR_EMAIL")
+    + " --commitMessage \"" + EnvironmentVariable("APPVEYOR_REPO_COMMIT_MESSAGE") + "\""
+    + " --jobId " + EnvironmentVariable("APPVEYOR_BUILD_NUMBER")
+    + " --repoTokenVariable COVERALLS_REPO_TOKEN";
     StartProcess(toolPath.CombineWithFilePath("csmacnz.Coveralls.exe"), arguments);
 });
 
 Task("Restore")
-    .IsDependentOn("ExcludeExternalFilesFromAnalysis")
     .IsDependentOn("RestorePackages")
+    .IsDependentOn("ExcludeExternalFilesFromAnalysis")
     .IsDependentOn("RestoreSwaggerUI");
 
 Task("Default")
     .IsDependentOn("Restore")
-    .IsDependentOn("Build")
     .IsDependentOn("BuildAndTestTools")
-    .IsDependentOn("TestWithCover")
+    .IsDependentOn("Build")
+    .IsDependentOn("UnitTestWithCover")
     .IsDependentOn("IntegrationTests")
-    .IsDependentOn("ShowTestReport")
+    .IsDependentOn("ShowTestReport");
+
+Task("Full")
+    .IsDependentOn("Restore")
+    .IsDependentOn("BuildAndTestTools")
+    .IsDependentOn("SonarBegin")
+    .IsDependentOn("Build")
+    .IsDependentOn("UnitTestWithCover")
+    .IsDependentOn("IntegrationTestWithCover")
+    .IsDependentOn("SonarEnd")
     .IsDependentOn("UploadTestReport")
     .IsDependentOn("Pack");
 
