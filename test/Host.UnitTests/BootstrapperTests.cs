@@ -218,7 +218,7 @@
         [CollectionDefinition(nameof(Initialize_SingleThreaded), DisableParallelization = true)]
         public sealed class Initialize_SingleThreaded : BootstrapperTests
         {
-            [Fact]
+            [Fact(Timeout = 1000)]
             public void ShouldNotDeadlockWaitingForTheInitializers()
             {
                 bool taskFinished = false;
