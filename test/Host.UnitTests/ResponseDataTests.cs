@@ -48,10 +48,11 @@
                 var data = new ResponseData("", 0, body: null);
                 Stream stream = Substitute.For<Stream>();
 
-                Task write = data.WriteBody(stream);
+                Task<long> write = data.WriteBody(stream);
 
                 write.Should().NotBeNull();
                 write.IsCompleted.Should().BeTrue();
+                write.Result.Should().Be(0);
                 stream.ReceivedCalls().Should().BeEmpty();
             }
         }

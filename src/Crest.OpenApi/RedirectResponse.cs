@@ -17,6 +17,8 @@ namespace Crest.OpenApi
     /// </summary>
     internal sealed class RedirectResponse : IResponseData
     {
+        private static readonly Task<long> EmptyBody = Task.FromResult(0L);
+
         /// <summary>
         /// Initializes a new instance of the <see cref="RedirectResponse"/> class.
         /// </summary>
@@ -39,6 +41,6 @@ namespace Crest.OpenApi
         public int StatusCode => (int)HttpStatusCode.MovedPermanently;
 
         /// <inheritdoc />
-        public Func<Stream, Task> WriteBody => _ => Task.CompletedTask;
+        public Func<Stream, Task<long>> WriteBody => _ => EmptyBody;
     }
 }

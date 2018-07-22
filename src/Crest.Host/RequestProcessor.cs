@@ -365,20 +365,21 @@ namespace Crest.Host
 
         private ResponseData SerializeResponse(IContentConverter converter, object value)
         {
-            Func<Stream, Task> convert = async dest =>
+            async Task<long> Convert(Stream dest)
             {
                 using (Stream memory = this.streamPool.GetStream())
                 {
                     converter.WriteTo(memory, value);
                     memory.Position = 0;
                     await memory.CopyToAsync(dest).ConfigureAwait(false);
+                    return memory.Position;
                 }
-            };
+            }
 
             return new ResponseData(
                 converter.ContentType,
                 (int)HttpStatusCode.OK,
-                convert);
+                Convert);
         }
 
         private async Task<IResponseData> UpdateBodyParameterAsync(IRequestData request)

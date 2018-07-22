@@ -32,8 +32,9 @@ namespace Crest.Abstractions
 
         /// <summary>
         /// Gets a method to call that, when passed a <see cref="Stream"/>,
-        /// writes the response body to it asynchronously.
+        /// writes the response body to it asynchronously, returning the number
+        /// of bytes copied.
         /// </summary>
-        Func<Stream, Task> WriteBody { get; }
+        Func<Stream, Task<long>> WriteBody { get; }
     }
 }

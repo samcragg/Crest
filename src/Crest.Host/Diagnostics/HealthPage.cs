@@ -61,7 +61,7 @@ namespace Crest.Host.Diagnostics
         /// </summary>
         /// <param name="stream">The stream to write the data to.</param>
         /// <returns>A task that represents the asynchronous operation.</returns>
-        public virtual async Task WriteToAsync(Stream stream)
+        public virtual async Task<long> WriteToAsync(Stream stream)
         {
             char[] htmlTempalte = this.template.Template.ToCharArray();
             int insertIndex = this.template.ContentLocation;
@@ -77,6 +77,9 @@ namespace Crest.Host.Diagnostics
                 int count = htmlTempalte.Length - insertIndex;
                 await writer.WriteAsync(htmlTempalte, insertIndex, count).ConfigureAwait(false);
             }
+
+            // Don't include the health page size in stats
+            return 0;
         }
 
         private static async Task WriteTableRowAsync(TextWriter writer, string label, string value)

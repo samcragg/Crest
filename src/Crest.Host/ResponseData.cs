@@ -16,6 +16,7 @@ namespace Crest.Host
     /// </summary>
     internal sealed class ResponseData : IResponseData
     {
+        private static readonly Task<long> EmptyBody = Task.FromResult(0L);
         private readonly StringDictionary<string> headers = new StringDictionary<string>();
 
         /// <summary>
@@ -24,11 +25,11 @@ namespace Crest.Host
         /// <param name="content">The content type.</param>
         /// <param name="code">The HTTP status code.</param>
         /// <param name="body">Used to write the response body.</param>
-        public ResponseData(string content, int code, Func<Stream, Task> body = null)
+        public ResponseData(string content, int code, Func<Stream, Task<long>> body = null)
         {
             this.ContentType = content;
             this.StatusCode = code;
-            this.WriteBody = body ?? (_ => Task.CompletedTask);
+            this.WriteBody = body ?? (_ => EmptyBody);
         }
 
         /// <inheritdoc />
@@ -38,7 +39,7 @@ namespace Crest.Host
         public int StatusCode { get; }
 
         /// <inheritdoc />
-        public Func<Stream, Task> WriteBody { get; }
+        public Func<Stream, Task<long>> WriteBody { get; }
 
         /// <inheritdoc />
         IReadOnlyDictionary<string, string> IResponseData.Headers => this.headers;

@@ -71,7 +71,7 @@ namespace Crest.OpenApi
         public int StatusCode => (int)HttpStatusCode.OK;
 
         /// <inheritdoc />
-        public Func<Stream, Task> WriteBody => this.CopyStreamAsync;
+        public Func<Stream, Task<long>> WriteBody => this.CopyStreamAsync;
 
         private static Func<Stream, Stream, Task> ChooseCompression(string acceptEncoding, out string contentEncoding)
         {
@@ -96,7 +96,7 @@ namespace Crest.OpenApi
 
         private static async Task CopyDecompressedAsync(Stream source, Stream destination)
         {
-            using (var gzip = new GZipStream(source, CompressionMode.Decompress))
+            using (var gzip = new GZipStream(source, CompressionMode.Decompress, leaveOpen: true))
             {
                 await gzip.CopyToAsync(destination).ConfigureAwait(false);
             }
@@ -132,11 +132,12 @@ namespace Crest.OpenApi
             return source.CopyToAsync(destination);
         }
 
-        private async Task CopyStreamAsync(Stream destination)
+        private async Task<long> CopyStreamAsync(Stream destination)
         {
             using (Stream sourceStream = this.source())
             {
                 await this.copyCompressed(sourceStream, destination).ConfigureAwait(false);
+                return sourceStream.Position;
             }
         }
     }

@@ -6,6 +6,7 @@
 namespace Crest.Host.Security
 {
     using System;
+    using System.IO;
     using System.Net;
     using System.Reflection;
     using System.Security.Claims;
@@ -41,10 +42,18 @@ namespace Crest.Host.Security
         static JwtHandlerPlugin()
         {
             byte[] unauthorizedText = Encoding.UTF8.GetBytes("401 Unauthorized");
+            async Task<long> WriteUnauthorized(Stream stream)
+            {
+                await stream.WriteAsync(unauthorizedText, 0, unauthorizedText.Length)
+                    .ConfigureAwait(false);
+
+                return unauthorizedText.Length;
+            }
+
             var unauthorizedResponse = new ResponseData(
                 "text/plain",
                 (int)HttpStatusCode.Unauthorized,
-                stream => stream.WriteAsync(unauthorizedText, 0, unauthorizedText.Length));
+                WriteUnauthorized);
 
             unauthorizedResponse.Headers.Add("WWW-Authenticate", BearerPrefix);
             UnauthorizedRequest = Task.FromResult<IResponseData>(unauthorizedResponse);
