@@ -4,6 +4,7 @@
 const string IntegrationTestCoverageFolder = "./coverage_it_results/";
 const string UnitTestCoverageFolder = "./coverage_results/";
 const string MainSolution = "../Crest.sln";
+const string SwaggerUIFolder = "src/Crest.OpenApi/SwaggerUI/";
 
 string configuration = Argument("configuration", "Release");
 bool isLocalBuild = BuildSystem.IsLocalBuild;
@@ -165,7 +166,7 @@ Task("RestoreSwaggerUI")
 
     foreach (string file in files)
     {
-        CompressFile(file, "../src/Crest.OpenApi/SwaggerUI/");
+        CompressFile(file, "../" + SwaggerUIFolder);
     }
 });
 
@@ -195,12 +196,12 @@ Task("SonarBegin")
     string integrationReports = (new DirectoryPath(IntegrationTestCoverageFolder)).FullPath + "/*.xml";
     string unitTestReports = (new DirectoryPath(UnitTestCoverageFolder)).FullPath + "/*.xml";
     var arguments = "/k:\"crest\""
-    + " /d:sonar.log.level=WARN"
     + " /d:sonar.organization=\"samcragg-github\""
     + " /d:sonar.host.url=\"https://sonarcloud.io\""
     + " /d:sonar.login=\"" + EnvironmentVariable("SONAR_TOKEN") + "\""
     + " /d:sonar.cs.opencover.reportsPaths=\"" + unitTestReports + "\""
-    + " /d:sonar.cs.opencover.it.reportsPaths=\"" + integrationReports + "\"";
+    + " /d:sonar.cs.opencover.it.reportsPaths=\"" + integrationReports + "\""
+    + " /d:sonar.exclusions=\"" + SwaggerUIFolder + "**\"";
     StartProcess(sonarTool.CombineWithFilePath("dotnet-sonarscanner.exe"), "begin " + arguments);
 });
 
@@ -208,8 +209,28 @@ Task("SonarEnd")
     .WithCriteria(!isLocalBuild)
     .Does(() =>
 {
-    var arguments = "/d:sonar.login=\"" + EnvironmentVariable("SONAR_TOKEN") + "\"";
-    StartProcess(sonarTool.CombineWithFilePath("dotnet-sonarscanner.exe"), "end " + arguments);
+    // The output is very verbose, so we'll capture it and filter it
+    var settings = new ProcessSettings
+    {
+        Arguments = "end /d:sonar.login=\"" + EnvironmentVariable("SONAR_TOKEN") + "\"",
+        RedirectStandardError = true,
+        RedirectStandardOutput = true
+    };
+    StartProcess(
+        sonarTool.CombineWithFilePath("dotnet-sonarscanner.exe"),
+        settings,
+        out IEnumerable<string> output,
+        out IEnumerable<string> error);
+
+    foreach (string line in output.Where(l => !l.StartsWith("INFO:")))
+    {
+        Information(line);
+    }
+
+    foreach (string line in error)
+    {
+        Error(line);
+    }
 });
 
 Task("UnitTestWithCover")
