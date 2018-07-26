@@ -1,7 +1,7 @@
-﻿namespace Host.UnitTests.Serialization
+﻿namespace Host.UnitTests
 {
     using System;
-    using Crest.Host.Serialization;
+    using Crest.Host;
     using FluentAssertions;
     using Xunit;
 

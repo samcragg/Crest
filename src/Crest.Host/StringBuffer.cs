@@ -3,7 +3,7 @@
 // Licensed under the MIT license. See LICENSE file in the project root for
 // full license information.
 
-namespace Crest.Host.Serialization
+namespace Crest.Host
 {
     using System;
     using System.Buffers;
@@ -134,9 +134,7 @@ namespace Crest.Host.Serialization
             }
         }
 
-        /// <summary>
-        /// Releases the pool resources obtained by this instance.
-        /// </summary>
+        /// <inheritdoc />
         public void Dispose()
         {
             if (this.buffer != null)
