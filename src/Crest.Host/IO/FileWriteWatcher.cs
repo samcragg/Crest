@@ -43,9 +43,7 @@ namespace Crest.Host.IO
             this.watcher.Deleted += this.OnFileSystemChanged;
         }
 
-        /// <summary>
-        /// Releases the resources used by this instance.
-        /// </summary>
+        /// <inheritdoc />
         public void Dispose()
         {
             this.watcher.Dispose();

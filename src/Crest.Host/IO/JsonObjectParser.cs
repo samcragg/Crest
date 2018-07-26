@@ -36,9 +36,7 @@ namespace Crest.Host.IO
             this.iterator.MoveNext(); // Point to the start
         }
 
-        /// <summary>
-        /// Releases the resources used by this instance.
-        /// </summary>
+        /// <inheritdoc />
         public void Dispose()
         {
             this.stringBuffer.Dispose();

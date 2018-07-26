@@ -35,9 +35,7 @@ namespace Crest.Host.Serialization
             this.iterator.MoveNext();
         }
 
-        /// <summary>
-        /// Releases the resources used by this instance.
-        /// </summary>
+        /// <inheritdoc />
         public void Dispose()
         {
             this.iterator.Dispose();

@@ -83,7 +83,7 @@ namespace Crest.Host
         }
 
         /// <summary>
-        /// Releases all resources used by this instance.
+        /// Releases the resources used by this instance.
         /// </summary>
         public void Dispose()
         {

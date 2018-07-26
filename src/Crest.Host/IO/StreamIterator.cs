@@ -88,9 +88,7 @@ namespace Crest.Host.IO
             set => this.length = -1;
         }
 
-        /// <summary>
-        /// Releases the resources used by this instance.
-        /// </summary>
+        /// <inheritdoc />
         public void Dispose()
         {
             if (this.byteBuffer != null)

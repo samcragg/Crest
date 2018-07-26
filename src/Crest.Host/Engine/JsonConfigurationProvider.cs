@@ -55,9 +55,7 @@ namespace Crest.Host.Engine
         /// <inheritdoc />
         public int Order => 200;
 
-        /// <summary>
-        /// Releases the resources used by this instance.
-        /// </summary>
+        /// <inheritdoc />
         public void Dispose()
         {
             this.watcher.Dispose();

@@ -41,9 +41,7 @@ namespace Crest.Host.Serialization
         /// </summary>
         internal int Depth => this.reader.Depth;
 
-        /// <summary>
-        /// Releases the resources used by this instance.
-        /// </summary>
+        /// <inheritdoc />
         public void Dispose()
         {
             this.reader.Dispose();

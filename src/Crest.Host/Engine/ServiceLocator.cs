@@ -64,9 +64,7 @@ namespace Crest.Host.Engine
             return new ServiceLocator(this.container, this.container.OpenScope());
         }
 
-        /// <summary>
-        /// Releases all resources used by this instance.
-        /// </summary>
+        /// <inheritdoc />
         public void Dispose()
         {
             this.Dispose(true);
