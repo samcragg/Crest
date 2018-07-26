@@ -114,10 +114,12 @@ namespace Crest.Host.Conversion
             //             *(";" parameter)
             if (headers.TryGetValue(ContentTypeHeader, out string contentType))
             {
-                var parser = new HttpHeaderParser(contentType);
-                if (ReadMultipartTypeAndSubtype(parser))
+                using (var parser = new HttpHeaderParser(contentType))
                 {
-                    return FindParameter(parser, "boundary");
+                    if (ReadMultipartTypeAndSubtype(parser))
+                    {
+                        return FindParameter(parser, "boundary");
+                    }
                 }
             }
 
@@ -132,10 +134,12 @@ namespace Crest.Host.Conversion
             //                *(";" disposition-parm)
             if (headers.TryGetValue(ContentDispositionHeader, out string disposition))
             {
-                var parser = new HttpHeaderParser(disposition);
-                if (ReadDispositionType(parser))
+                using (var parser = new HttpHeaderParser(disposition))
                 {
-                    return FindParameter(parser, "filename");
+                    if (ReadDispositionType(parser))
+                    {
+                        return FindParameter(parser, "filename");
+                    }
                 }
             }
 
@@ -220,18 +224,20 @@ namespace Crest.Host.Conversion
         {
             int length = end - start;
             byte[] headerBytes = BytePool.Rent(length);
+            HttpHeaderParser parser = null;
 
             try
             {
                 body.Position = start;
                 length = IOUtils.ReadBytes(body, headerBytes, length);
 
-                var parser = new HttpHeaderParser(new ByteIterator(headerBytes, length));
+                parser = new HttpHeaderParser(new ByteIterator(headerBytes, length));
                 return parser.ReadPairs();
             }
             finally
             {
                 BytePool.Return(headerBytes);
+                parser?.Dispose();
             }
         }
     }

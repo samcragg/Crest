@@ -11,6 +11,26 @@
     {
         private const string NewLine = "\r\n";
 
+        public sealed class Dispose : HttpHeaderParserTests
+        {
+            [Fact]
+            public void ShouldDisposeTheStringBuffer()
+            {
+                FakeArrayPool<char> charPool = FakeArrayPool<char>.Instance;
+                lock (FakeArrayPool.LockObject)
+                {
+                    charPool.Reset();
+
+                    var parser = new HttpHeaderParser(new StringIterator("Field:value" + NewLine));
+                    parser.ReadPairs();
+                    charPool.TotalAllocated.Should().BeGreaterThan(0);
+
+                    parser.Dispose();
+                    charPool.TotalAllocated.Should().Be(0);
+                }
+            }
+        }
+
         public sealed class ReadPairs : HttpHeaderParserTests
         {
             [Fact]

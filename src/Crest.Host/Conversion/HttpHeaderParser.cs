@@ -8,13 +8,12 @@ namespace Crest.Host.Conversion
     using System;
     using System.Collections.Generic;
     using Crest.Host.IO;
-    using Crest.Host.Serialization;
 
     /// <summary>
     /// Parses headers according to
     /// <a href="https://tools.ietf.org/html/rfc7230">RFC 7230</a>.
     /// </summary>
-    internal sealed partial class HttpHeaderParser
+    internal sealed partial class HttpHeaderParser : IDisposable
     {
         private readonly StringBuffer buffer = new StringBuffer();
         private readonly ICharIterator iterator;
@@ -39,6 +38,12 @@ namespace Crest.Host.Conversion
             // normal constructor as ReadPairs needs to be able to handle
             // empty streams so calls MoveNext before looping)
             this.iterator.MoveNext();
+        }
+
+        /// <inheritdoc />
+        public void Dispose()
+        {
+            this.buffer.Dispose();
         }
 
         /// <summary>
