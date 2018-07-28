@@ -115,6 +115,16 @@ namespace Crest.Host.Diagnostics
             this.UpdateAverages(value);
         }
 
+        private long GetElapsedMicroseconds()
+        {
+            long previous = this.lastTimestamp;
+            long current = this.time.GetCurrentMicroseconds();
+            this.lastTimestamp = current;
+
+            long delta = current - previous;
+            return delta < 0 ? 0 : delta;
+        }
+
         private void UpdateAverages(double value)
         {
             // https://en.wikipedia.org/wiki/Standard_deviation#Rapid_calculation_methods
@@ -127,16 +137,6 @@ namespace Crest.Host.Diagnostics
 
             // Qk = Qk-1 + (Xk - Ak-1)(Xk - Ak)
             this.varianceSum += (value - previousMean) * (value - this.mean);
-        }
-
-        private long GetElapsedMicroseconds()
-        {
-            long previous = this.lastTimestamp;
-            long current = this.time.GetCurrentMicroseconds();
-            this.lastTimestamp = current;
-
-            long delta = current - previous;
-            return delta < 0 ? 0 : delta;
         }
 
         private void UpdateMinimumMaximum(double value)
