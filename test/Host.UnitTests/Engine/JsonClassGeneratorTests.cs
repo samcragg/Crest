@@ -4,6 +4,7 @@
     using Crest.Host.Engine;
     using Crest.Host.Logging;
     using FluentAssertions;
+    using Host.UnitTests.TestHelpers;
     using Xunit;
 
     public class JsonClassGeneratorTests

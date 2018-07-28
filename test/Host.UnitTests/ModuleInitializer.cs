@@ -2,7 +2,7 @@
 {
     using Crest.Host;
     using Crest.Host.IO;
-    using Crest.Host.Serialization;
+    using Host.UnitTests.TestHelpers;
 
     public static class ModuleInitializer
     {

@@ -7,6 +7,7 @@
     using System.Text;
     using Crest.Host.IO;
     using FluentAssertions;
+    using Host.UnitTests.TestHelpers;
     using NSubstitute;
     using Xunit;
 

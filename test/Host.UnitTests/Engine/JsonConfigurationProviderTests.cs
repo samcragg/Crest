@@ -8,6 +8,7 @@
     using Crest.Host.IO;
     using Crest.Host.Logging;
     using FluentAssertions;
+    using Host.UnitTests.TestHelpers;
     using NSubstitute;
     using Xunit;
 

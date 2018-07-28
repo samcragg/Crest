@@ -5,6 +5,7 @@
     using System.Reflection.Emit;
     using Crest.Host.Serialization;
     using FluentAssertions;
+    using Host.UnitTests.TestHelpers;
     using Xunit;
 
     public class JumpTableGeneratorTests

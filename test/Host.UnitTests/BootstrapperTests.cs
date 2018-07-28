@@ -9,6 +9,7 @@
     using Crest.Host.Diagnostics;
     using Crest.Host.Engine;
     using FluentAssertions;
+    using Host.UnitTests.TestHelpers;
     using Microsoft.Extensions.DependencyModel;
     using NSubstitute;
     using Xunit;

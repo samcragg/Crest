@@ -1,4 +1,4 @@
-﻿namespace Host.UnitTests
+﻿namespace Host.UnitTests.TestHelpers
 {
     using System;
     using System.Reflection;

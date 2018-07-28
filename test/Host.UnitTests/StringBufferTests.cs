@@ -3,6 +3,7 @@
     using System;
     using Crest.Host;
     using FluentAssertions;
+    using Host.UnitTests.TestHelpers;
     using Xunit;
 
     public class StringBufferTests

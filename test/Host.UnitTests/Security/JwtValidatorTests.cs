@@ -10,6 +10,7 @@
     using Crest.Host.Logging;
     using Crest.Host.Security;
     using FluentAssertions;
+    using Host.UnitTests.TestHelpers;
     using NSubstitute;
     using Xunit;
 

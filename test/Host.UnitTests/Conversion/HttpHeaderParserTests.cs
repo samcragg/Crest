@@ -5,6 +5,7 @@
     using Crest.Host.Conversion;
     using Crest.Host.IO;
     using FluentAssertions;
+    using Host.UnitTests.TestHelpers;
     using Xunit;
 
     public class HttpHeaderParserTests

@@ -6,6 +6,7 @@
     using System.Linq;
     using Crest.Host;
     using FluentAssertions;
+    using Host.UnitTests.TestHelpers;
     using Xunit;
 
     public class QueryLookupTests

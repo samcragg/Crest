@@ -6,6 +6,7 @@
     using Crest.Host.Serialization;
     using Crest.Host.Serialization.Internal;
     using FluentAssertions;
+    using Host.UnitTests.TestHelpers;
     using NSubstitute;
     using Xunit;
 
