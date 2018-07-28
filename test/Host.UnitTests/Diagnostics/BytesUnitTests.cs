@@ -1,18 +1,13 @@
 ﻿namespace Host.UnitTests.Diagnostics
 {
-    using System.Globalization;
     using Crest.Host.Diagnostics;
     using FluentAssertions;
+    using Host.UnitTests.TestHelpers;
     using Xunit;
 
     public class BytesUnitTests
     {
-        private readonly BytesUnit bytes;
-
-        public BytesUnitTests()
-        {
-            this.bytes = new BytesUnit();
-        }
+        private readonly BytesUnit bytes = new BytesUnit();
 
         public sealed class Format : BytesUnitTests
         {
@@ -49,12 +44,12 @@
             }
 
             [Fact]
-            public void ShouldUseTheCurrentCulture()
+            [UseCulture("ES")]
+            public void ShouldUseTheInvariantCulture()
             {
-                CultureInfo.CurrentCulture = new CultureInfo("ES");
                 string result = this.bytes.Format(12640);
 
-                result.Should().Be("12,34 KiB");
+                result.Should().Be("12.34 KiB");
             }
         }
     }
