@@ -32,10 +32,10 @@
             factory.GetConverterForAccept(null).ReturnsForAnyArgs(this.converter);
 
             IServiceLocator serviceLocator = Substitute.For<IServiceLocator>();
+            serviceLocator.GetService(null)
+                .ReturnsForAnyArgs(ci => Substitute.For(new[] { ci.Arg<Type>() }, new object[0]));
             serviceLocator.GetService(typeof(IContentConverterFactory))
                 .Returns(factory);
-            serviceLocator.GetService(typeof(IResponseStatusGenerator))
-                .Returns(Substitute.For<IResponseStatusGenerator>());
 
             this.bootstrapper = Substitute.For<Bootstrapper>(serviceLocator);
             this.bootstrapper.RouteMapper.Returns(this.mapper);

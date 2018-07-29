@@ -13,6 +13,7 @@ namespace Crest.Host
     using System.Reflection;
     using System.Threading.Tasks;
     using Crest.Abstractions;
+    using Crest.Host.Diagnostics;
     using Crest.Host.Engine;
     using Crest.Host.IO;
     using Crest.Host.Logging;
@@ -33,6 +34,7 @@ namespace Crest.Host
 
         private readonly IContentConverterFactory converterFactory;
         private readonly IRouteMapper mapper;
+        private readonly Metrics metrics;
         private readonly MatchResult notFound;
         private readonly IResponseStatusGenerator responseGenerator;
         private readonly IServiceLocator serviceLocator;
@@ -49,11 +51,9 @@ namespace Crest.Host
             this.serviceLocator = bootstrapper.ServiceLocator;
             this.mapper = bootstrapper.RouteMapper;
 
-            this.converterFactory = (IContentConverterFactory)this.serviceLocator.GetService(
-                typeof(IContentConverterFactory));
-
-            this.responseGenerator = (IResponseStatusGenerator)this.serviceLocator.GetService(
-                typeof(IResponseStatusGenerator));
+            this.converterFactory = GetService<IContentConverterFactory>(this.serviceLocator);
+            this.metrics = GetService<Metrics>(this.serviceLocator);
+            this.responseGenerator = GetService<IResponseStatusGenerator>(this.serviceLocator);
 
             this.notFound = new MatchResult(this.responseGenerator.NotFoundAsync);
 
@@ -79,29 +79,19 @@ namespace Crest.Host
             try
             {
                 requestData = request(match.IsOverride ? NoMatch : match);
+                this.metrics.BeginRequest(requestData);
+
                 IContentConverter converter = this.GetConverter(requestData);
-                if (converter == null)
-                {
-                    response = await this.responseGenerator.NotAcceptableAsync(requestData).ConfigureAwait(false);
-                }
-                else
-                {
-                    if (match.IsOverride)
-                    {
-                        response = await match.Override(requestData, converter).ConfigureAwait(false);
-                    }
-                    else
-                    {
-                        response = await this.ProcessRequestAsync(requestData, converter).ConfigureAwait(false);
-                    }
-                }
+                response = await this.GetResponseAsync(match, requestData, converter).ConfigureAwait(false);
             }
             catch (Exception ex)
             {
                 response = await this.GetErrorResponseAsync(requestData, ex);
             }
 
-            await this.WriteResponseAsync(requestData, response).ConfigureAwait(false);
+            this.metrics.MarkStartWriting();
+            long written = await this.WriteResponseAsync(requestData, response).ConfigureAwait(false);
+            this.metrics.EndRequest(written);
         }
 
         /// <summary>
@@ -117,13 +107,15 @@ namespace Crest.Host
         /// </returns>
         protected internal virtual async Task<IResponseData> InvokeHandlerAsync(IRequestData request, IContentConverter converter)
         {
+            this.metrics.MarkStartProcessing();
+
             RouteMethod method = this.mapper.GetAdapter(request.Handler);
             if (method == null)
             {
                 throw new InvalidOperationException("Request data contains an invalid method.");
             }
 
-            IResponseData response = await this.UpdateBodyParameterAsync(request);
+            IResponseData response = await this.UpdateBodyParameterAsync(request).ConfigureAwait(false);
             if (response != null)
             {
                 return response;
@@ -155,6 +147,8 @@ namespace Crest.Host
         /// </returns>
         protected internal MatchResult Match(string verb, string path, ILookup<string, string> query)
         {
+            this.metrics.BeginMatch();
+
             OverrideMethod direct = this.mapper.FindOverride(verb, path);
             if (direct != null)
             {
@@ -193,6 +187,8 @@ namespace Crest.Host
             IRequestData request,
             IResponseData response)
         {
+            this.metrics.MarkStartPostProcessing();
+
             IPostRequestPlugin[] plugins = locator.GetAfterRequestPlugins();
             Array.Sort(plugins, (a, b) => a.Order.CompareTo(b.Order));
 
@@ -221,6 +217,8 @@ namespace Crest.Host
         /// </remarks>
         protected internal virtual async Task<IResponseData> OnBeforeRequestAsync(IServiceLocator locator, IRequestData request)
         {
+            this.metrics.MarkStartPreProcessing();
+
             IPreRequestPlugin[] plugins = locator.GetBeforeRequestPlugins();
             Array.Sort(plugins, (a, b) => a.Order.CompareTo(b.Order));
 
@@ -266,8 +264,16 @@ namespace Crest.Host
         /// </summary>
         /// <param name="request">The request data.</param>
         /// <param name="response">The response data to send.</param>
-        /// <returns>A task that represents the asynchronous operation.</returns>
-        protected internal abstract Task WriteResponseAsync(IRequestData request, IResponseData response);
+        /// <returns>
+        /// A task that represents the asynchronous operation. The value of the
+        /// <c>TResult</c> parameter contains the number of bytes written.
+        /// </returns>
+        protected internal abstract Task<long> WriteResponseAsync(IRequestData request, IResponseData response);
+
+        private static T GetService<T>(IServiceProvider provider)
+        {
+            return (T)provider.GetService(typeof(T));
+        }
 
         private static Task OverrideMethodAdapterAsync()
         {
@@ -309,6 +315,28 @@ namespace Crest.Host
             }
 
             return response ?? ResponseGenerator.InternalError;
+        }
+
+        private Task<IResponseData> GetResponseAsync(
+            MatchResult match,
+            IRequestData requestData,
+            IContentConverter converter)
+        {
+            if (converter == null)
+            {
+                return this.responseGenerator.NotAcceptableAsync(requestData);
+            }
+            else
+            {
+                if (match.IsOverride)
+                {
+                    return match.Override(requestData, converter);
+                }
+                else
+                {
+                    return this.ProcessRequestAsync(requestData, converter);
+                }
+            }
         }
 
         private void PrimeConverterFactory()

@@ -42,9 +42,19 @@ namespace Crest.Host.Diagnostics
         }
 
         /// <summary>
+        /// Initializes a new instance of the <see cref="Metrics"/> class.
+        /// </summary>
+        /// <remarks>
+        /// This constructor is only used to allow the type to be mocked in unit tests.
+        /// </remarks>
+        protected Metrics()
+        {
+        }
+
+        /// <summary>
         /// Called when a request is being matched.
         /// </summary>
-        public void BeginMatch()
+        public virtual void BeginMatch()
         {
             this.currentMetrics.Value = new RequestMetrics
             {
@@ -56,66 +66,88 @@ namespace Crest.Host.Diagnostics
         /// Called when a request has been matched.
         /// </summary>
         /// <param name="request">The request data.</param>
-        public void BeginRequest(IRequestData request)
+        public virtual void BeginRequest(IRequestData request)
         {
             RequestMetrics metrics = this.currentMetrics.Value;
-            metrics.PreRequest = this.time.GetCurrentMicroseconds();
-            metrics.RequestSize = request.Body.Length;
+            if (metrics != null)
+            {
+                metrics.PreRequest = this.time.GetCurrentMicroseconds();
+                metrics.RequestSize = request.Body.Length;
+            }
         }
 
         /// <summary>
         /// Called when the request is completed.
         /// </summary>
         /// <param name="written">The number of bytes written to the response.</param>
-        public void EndRequest(long written)
+        public virtual void EndRequest(long written)
         {
             RequestMetrics metrics = this.currentMetrics.Value;
-            metrics.Complete = this.time.GetCurrentMicroseconds();
-            metrics.ResponseSize = written;
+            if (metrics != null)
+            {
+                metrics.Complete = this.time.GetCurrentMicroseconds();
+                metrics.ResponseSize = written;
 
-            this.UpdateInstruments(metrics);
+                this.UpdateInstruments(metrics);
 
-            Logger.Info(() => "Request sizes - " + metrics.GetSizes());
-            Logger.Info(() => "Request timings - " + metrics.GetTimings());
+                Logger.Info(() => "Request sizes - " + metrics.GetSizes());
+                Logger.Info(() => "Request timings - " + metrics.GetTimings());
+            }
         }
 
         /// <summary>
         /// Records the time of the start of post-processing.
         /// </summary>
-        public void MarkStartPostProcessing()
+        public virtual void MarkStartPostProcessing()
         {
-            this.currentMetrics.Value.PostRequest = this.time.GetCurrentMicroseconds();
+            RequestMetrics metrics = this.currentMetrics.Value;
+            if (metrics != null)
+            {
+                metrics.PostRequest = this.time.GetCurrentMicroseconds();
+            }
         }
 
         /// <summary>
         /// Records the time of the start of pre-processing.
         /// </summary>
-        public void MarkStartPreProcessing()
+        public virtual void MarkStartPreProcessing()
         {
-            this.currentMetrics.Value.PreRequest = this.time.GetCurrentMicroseconds();
+            RequestMetrics metrics = this.currentMetrics.Value;
+            if (metrics != null)
+            {
+                metrics.PreRequest = this.time.GetCurrentMicroseconds();
+            }
         }
 
         /// <summary>
         /// Records the time of the start of processing.
         /// </summary>
-        public void MarkStartProcessing()
+        public virtual void MarkStartProcessing()
         {
-            this.currentMetrics.Value.ProcessRequest = this.time.GetCurrentMicroseconds();
+            RequestMetrics metrics = this.currentMetrics.Value;
+            if (metrics != null)
+            {
+                metrics.ProcessRequest = this.time.GetCurrentMicroseconds();
+            }
         }
 
         /// <summary>
         /// Records the time of the start of writing the response.
         /// </summary>
-        public void MarkStartWriting()
+        public virtual void MarkStartWriting()
         {
-            this.currentMetrics.Value.WriteResponse = this.time.GetCurrentMicroseconds();
+            RequestMetrics metrics = this.currentMetrics.Value;
+            if (metrics != null)
+            {
+                metrics.WriteResponse = this.time.GetCurrentMicroseconds();
+            }
         }
 
         /// <summary>
         /// Writes the current metric information to the specified reporter.
         /// </summary>
         /// <param name="reporter">The instance to write to.</param>
-        public void WriteTo(IReporter reporter)
+        public virtual void WriteTo(IReporter reporter)
         {
             lock (this.instrumentLock)
             {

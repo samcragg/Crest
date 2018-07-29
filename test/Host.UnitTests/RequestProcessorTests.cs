@@ -8,6 +8,7 @@
     using System.Threading.Tasks;
     using Crest.Abstractions;
     using Crest.Host;
+    using Crest.Host.Diagnostics;
     using Crest.Host.Engine;
     using Crest.Host.Routing;
     using FluentAssertions;
@@ -40,6 +41,9 @@
 
             this.serviceLocator.GetService(typeof(IContentConverterFactory))
                 .Returns(this.converterFactory);
+
+            this.serviceLocator.GetService(typeof(Metrics))
+                .Returns(Substitute.For<Metrics>());
 
             this.serviceLocator.GetService(typeof(IResponseStatusGenerator))
                 .Returns(this.responseGenerator);
@@ -94,7 +98,7 @@
                 {
                 }
 
-                protected internal override Task WriteResponseAsync(IRequestData request, IResponseData response)
+                protected internal override Task<long> WriteResponseAsync(IRequestData request, IResponseData response)
                 {
                     throw new NotImplementedException();
                 }
