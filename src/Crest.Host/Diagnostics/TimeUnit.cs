@@ -10,6 +10,9 @@ namespace Crest.Host.Diagnostics
     /// <summary>
     /// Represents units of time.
     /// </summary>
+    /// <remarks>
+    /// The input value to format must be in microseconds.
+    /// </remarks>
     internal sealed class TimeUnit : IUnit
     {
         /// <summary>

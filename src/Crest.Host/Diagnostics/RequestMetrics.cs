@@ -48,9 +48,9 @@ namespace Crest.Host.Diagnostics
         public long Start { get; set; }
 
         /// <summary>
-        /// Gets the total amount of milliseconds the request took.
+        /// Gets the total amount of microseconds the request took.
         /// </summary>
-        public double TotalMs => (this.Complete - this.Start) / 1000.0;
+        public long Total => this.Complete - this.Start;
 
         /// <summary>
         /// Gets or sets the timestamp of when writing was started.

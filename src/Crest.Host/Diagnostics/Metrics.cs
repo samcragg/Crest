@@ -164,7 +164,7 @@ namespace Crest.Host.Diagnostics
             {
                 this.requestCount.Increment();
                 this.requestSize.Add(metrics.RequestSize);
-                this.requestTime.Add(metrics.TotalMs);
+                this.requestTime.Add(metrics.Total);
                 this.responseSize.Add(metrics.ResponseSize);
             }
         }

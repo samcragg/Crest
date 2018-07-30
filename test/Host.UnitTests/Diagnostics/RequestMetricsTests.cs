@@ -122,19 +122,20 @@
             }
         }
 
-        public sealed class TotalMs : RequestMetricsTests
+        public sealed class Total : RequestMetricsTests
         {
             [Fact]
-            public void ShouldConvertTheTimestampsToMilliseconds()
+            public void ShouldReportTheDifferenceInMicroseconds()
             {
                 var metrics = new RequestMetrics
                 {
-                    Complete = 2_000
+                    Start = 1_000,
+                    Complete = 3_000,
                 };
 
-                double result = metrics.TotalMs;
+                long result = metrics.Total;
 
-                result.Should().BeApproximately(2, 0.001);
+                result.Should().Be(2_000);
             }
         }
     }
