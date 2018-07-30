@@ -20,33 +20,6 @@ namespace Host.UnitTests.Diagnostics
                 .Returns(_ => microseconds += (1000 * 1000 * 60));
         }
 
-        public sealed class Add : GaugeTests
-        {
-            [Fact]
-            public void ShouldIgnoreNanValues()
-            {
-                this.statistics.Add(double.NaN);
-
-                this.statistics.SampleSize.Should().Be(0);
-            }
-
-            [Fact]
-            public void ShouldIgnoreNegativeInfinityValues()
-            {
-                this.statistics.Add(double.NegativeInfinity);
-
-                this.statistics.SampleSize.Should().Be(0);
-            }
-
-            [Fact]
-            public void ShouldIgnorePositiveInfinityValues()
-            {
-                this.statistics.Add(double.PositiveInfinity);
-
-                this.statistics.SampleSize.Should().Be(0);
-            }
-        }
-
         public sealed class FifteenMinuteAverage : GaugeTests
         {
             [Fact]
@@ -111,17 +84,17 @@ namespace Host.UnitTests.Diagnostics
             }
 
             [Theory]
-            [InlineData(1.0, 1)]
-            [InlineData(3.0, 1, 3)]
-            [InlineData(4.0, 4, 1, 2)]
-            public void ShouldReturnTheMeanOfTheValues(double expected, params int[] values)
+            [InlineData(1, 1)]
+            [InlineData(3, 1, 3)]
+            [InlineData(4, 4, 1, 2)]
+            public void ShouldReturnTheMeanOfTheValues(long expected, params int[] values)
             {
                 foreach (int value in values)
                 {
                     this.statistics.Add(value);
                 }
 
-                this.statistics.Maximum.Should().BeApproximately(expected, 0.01);
+                this.statistics.Maximum.Should().Be(expected);
             }
         }
 
@@ -158,17 +131,17 @@ namespace Host.UnitTests.Diagnostics
             }
 
             [Theory]
-            [InlineData(1.0, 1)]
-            [InlineData(1.0, 3, 1)]
-            [InlineData(2.0, 2, 5, 3)]
-            public void ShouldReturnTheMeanOfTheValues(double expected, params int[] values)
+            [InlineData(1, 1)]
+            [InlineData(1, 3, 1)]
+            [InlineData(2, 2, 5, 3)]
+            public void ShouldReturnTheMeanOfTheValues(long expected, params int[] values)
             {
                 foreach (int value in values)
                 {
                     this.statistics.Add(value);
                 }
 
-                this.statistics.Minimum.Should().BeApproximately(expected, 0.01);
+                this.statistics.Minimum.Should().Be(expected);
             }
         }
 

@@ -18,9 +18,9 @@ namespace Crest.Host.Diagnostics
         private double fifteenMinuteAverage;
         private double fiveMinuteAverage;
         private long lastTimestamp;
-        private double maximum;
+        private long maximum;
         private double mean;
-        private double minimum;
+        private long minimum;
         private double oneMinuteAverage;
         private double varianceSum;
 
@@ -48,7 +48,7 @@ namespace Crest.Host.Diagnostics
         /// <summary>
         /// Gets the largest value that has been added to this instance.
         /// </summary>
-        public double Maximum => this.maximum;
+        public long Maximum => this.maximum;
 
         /// <summary>
         /// Gets the average of all the values added to this instance.
@@ -58,7 +58,7 @@ namespace Crest.Host.Diagnostics
         /// <summary>
         /// Gets the smallest value that has been added to this instance.
         /// </summary>
-        public double Minimum => this.minimum;
+        public long Minimum => this.minimum;
 
         /// <summary>
         /// Gets the exponential moving average of the values over a one minute
@@ -98,13 +98,8 @@ namespace Crest.Host.Diagnostics
         /// Adds the specified value to the series of values.
         /// </summary>
         /// <param name="value">The value to add.</param>
-        public void Add(double value)
+        public void Add(long value)
         {
-            if (double.IsNaN(value) || double.IsInfinity(value))
-            {
-                return;
-            }
-
             this.count++;
             long elapsed = this.GetElapsedMicroseconds();
             this.UpdateMovingWindow(value, elapsed, 1 * MicrosecondsPerMinute, ref this.oneMinuteAverage);
@@ -125,7 +120,7 @@ namespace Crest.Host.Diagnostics
             return delta < 0 ? 0 : delta;
         }
 
-        private void UpdateAverages(double value)
+        private void UpdateAverages(long value)
         {
             // https://en.wikipedia.org/wiki/Standard_deviation#Rapid_calculation_methods
             //
@@ -139,7 +134,7 @@ namespace Crest.Host.Diagnostics
             this.varianceSum += (value - previousMean) * (value - this.mean);
         }
 
-        private void UpdateMinimumMaximum(double value)
+        private void UpdateMinimumMaximum(long value)
         {
             if (this.count == 1)
             {
@@ -160,7 +155,7 @@ namespace Crest.Host.Diagnostics
             }
         }
 
-        private void UpdateMovingWindow(double value, long elapsedMicroseconds, double windowMicroseconds, ref double current)
+        private void UpdateMovingWindow(long value, long elapsedMicroseconds, double windowMicroseconds, ref double current)
         {
             // Special case for the first time, which should be seeded with the
             // actual value
