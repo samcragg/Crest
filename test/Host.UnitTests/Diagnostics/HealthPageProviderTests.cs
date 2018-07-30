@@ -1,4 +1,4 @@
-﻿namespace Host.UnitTests.Routing
+﻿namespace Host.UnitTests.Diagnostics
 {
     using System.Collections.Generic;
     using System.IO;
@@ -6,7 +6,6 @@
     using System.Threading.Tasks;
     using Crest.Abstractions;
     using Crest.Host.Diagnostics;
-    using Crest.Host.Routing;
     using FluentAssertions;
     using NSubstitute;
     using Xunit;
