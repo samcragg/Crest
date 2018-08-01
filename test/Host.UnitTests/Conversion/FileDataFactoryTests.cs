@@ -102,6 +102,22 @@
             }
 
             [Fact]
+            public void ShouldReturnANullFilenameForBlankHeaders()
+            {
+                const string Body =
+                    "--" + BoundaryText + NewLine +
+                    "Content-Disposition:" + NewLine +
+                    NewLine +
+                    "Part" + NewLine +
+                    "--" + BoundaryText + "--";
+
+                IFileData[] result = this.GetFiles(Body);
+
+                result.Should().ContainSingle().Which
+                      .Filename.Should().BeNull();
+            }
+
+            [Fact]
             public void ShouldReturnForIEnumerableTypes()
             {
                 const string Body =
