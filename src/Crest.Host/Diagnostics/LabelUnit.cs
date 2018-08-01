@@ -12,21 +12,22 @@ namespace Crest.Host.Diagnostics
     /// </summary>
     internal sealed class LabelUnit : IUnit
     {
-        private readonly string label;
-
         /// <summary>
         /// Initializes a new instance of the <see cref="LabelUnit"/> class.
         /// </summary>
         /// <param name="label">The text to append to the value.</param>
         public LabelUnit(string label)
         {
-            this.label = label;
+            this.ValueDescription = label;
         }
+
+        /// <inheritdoc />
+        public string ValueDescription { get; }
 
         /// <inheritdoc />
         public string Format(long value)
         {
-            return value.ToString(CultureInfo.InvariantCulture) + this.label;
+            return value.ToString(CultureInfo.InvariantCulture) + this.ValueDescription;
         }
     }
 }

@@ -52,5 +52,16 @@
                 result.Should().Be("12.34 KiB");
             }
         }
+
+        public sealed class ValueDescription : BytesUnitTests
+        {
+            [Fact]
+            public void ShouldReturnAHumanReadbaleValue()
+            {
+                string result = this.bytes.ValueDescription;
+
+                result.Should().Be("bytes");
+            }
+        }
     }
 }

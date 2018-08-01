@@ -12,6 +12,9 @@ namespace Crest.Host.Diagnostics
     /// </summary>
     internal sealed class BytesUnit : IUnit
     {
+        /// <inheritdoc />
+        public string ValueDescription => "bytes";
+
         /// <summary>
         /// Gets an instance of this class.
         /// </summary>

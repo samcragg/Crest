@@ -15,6 +15,9 @@ namespace Crest.Host.Diagnostics
     /// </remarks>
     internal sealed class TimeUnit : IUnit
     {
+        /// <inheritdoc />
+        public string ValueDescription => "microseconds";
+
         /// <summary>
         /// Gets an instance of this class.
         /// </summary>

@@ -18,5 +18,18 @@
                 result.Should().Be("123label");
             }
         }
+
+        public sealed class ValueDescription : LabelUnitTests
+        {
+            [Fact]
+            public void ShouldReturnTheLabelPassedInTheConstructor()
+            {
+                var unit = new LabelUnit("label text");
+
+                string result = unit.ValueDescription;
+
+                result.Should().Be("label text");
+            }
+        }
     }
 }

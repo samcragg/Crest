@@ -52,5 +52,16 @@
                 result.Should().Be("1.2ms");
             }
         }
+
+        public sealed class ValueDescription : TimeUnitTests
+        {
+            [Fact]
+            public void ShouldReturnAHumanReadbaleValue()
+            {
+                string result = this.time.ValueDescription;
+
+                result.Should().Be("microseconds");
+            }
+        }
     }
 }
