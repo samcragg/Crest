@@ -5,11 +5,19 @@
 
 namespace Crest.Host.Diagnostics
 {
+    using System;
+
     /// <summary>
     /// Allows the reporting of metric information.
     /// </summary>
-    internal interface IReporter
+    internal interface IReporter : IDisposable
     {
+        /// <summary>
+        /// Generates a string containing the report data.
+        /// </summary>
+        /// <returns>The generated report.</returns>
+        string GenerateReport();
+
         /// <summary>
         /// Appends the specified counter information.
         /// </summary>
