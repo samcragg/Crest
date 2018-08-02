@@ -1,7 +1,6 @@
 ﻿namespace Host.UnitTests.Diagnostics
 {
     using System;
-    using System.IO;
     using Crest.Abstractions;
     using Crest.Host.Diagnostics;
     using FluentAssertions;
@@ -49,29 +48,39 @@
 
         public sealed class BeginRequest : MetricsTests
         {
-            private readonly IRequestData requestData;
-
-            public BeginRequest()
-            {
-                this.requestData = Substitute.For<IRequestData>();
-                this.requestData.Body.Returns(Substitute.For<Stream>());
-            }
-
             [Fact]
             public void ShouldRecordTheRequestSize()
             {
+                IRequestData requestData = Substitute.For<IRequestData>();
+                string any = Arg.Any<string>();
+                requestData.Headers.TryGetValue("Content-Length", out any)
+                    .Returns(ci =>
+                    {
+                        ci[1] = "123";
+                        return true;
+                    });
+
                 this.metrics.BeginMatch();
+                this.metrics.BeginRequest(requestData);
 
-                this.metrics.BeginRequest(this.requestData);
+                // The request size isn't directly exposed, so we have to write
+                // it out to a reporter to read it, however, the stats only get
+                // updated at the end of a request
+                IReporter reporter = Substitute.For<IReporter>();
+                this.metrics.EndRequest(0);
+                this.metrics.WriteTo(reporter);
 
-                _ = this.requestData.Body.Received().Length;
+                reporter.Received().Write(
+                    "requestSize",
+                    Arg.Is<Gauge>(g => g.Maximum == 123),
+                    Arg.Any<IUnit>());
             }
 
             [Fact]
             public void ShouldUpdateTheCorrectProperty()
             {
                 AssertMarkMethod(
-                    m => m.BeginRequest(this.requestData),
+                    m => m.BeginRequest(Substitute.For<IRequestData>()),
                     nameof(RequestMetrics.PreRequest));
             }
         }

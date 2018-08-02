@@ -5,8 +5,11 @@
 
 namespace Crest.Host.Diagnostics
 {
+    using System;
+    using System.Collections.Generic;
     using System.Threading;
     using Crest.Abstractions;
+    using Crest.Host.Conversion;
     using Crest.Host.Engine;
     using Crest.Host.Logging;
 
@@ -72,7 +75,7 @@ namespace Crest.Host.Diagnostics
             if (metrics != null)
             {
                 metrics.PreRequest = this.time.GetCurrentMicroseconds();
-                metrics.RequestSize = request.Body.Length;
+                metrics.RequestSize = GetContentLength(request.Headers);
             }
         }
 
@@ -156,6 +159,23 @@ namespace Crest.Host.Diagnostics
                 reporter.Write("requestSize", this.requestSize, BytesUnit.Instance);
                 reporter.Write("responseSize", this.responseSize, BytesUnit.Instance);
             }
+        }
+
+        private static long GetContentLength(IReadOnlyDictionary<string, string> headers)
+        {
+            if (headers.TryGetValue("Content-Length", out string contentLength))
+            {
+                ParseResult<ulong> result = IntegerConverter.TryReadUnsignedInt(
+                    contentLength.AsSpan(),
+                    long.MaxValue);
+
+                if (result.IsSuccess)
+                {
+                    return (long)result.Value;
+                }
+            }
+
+            return 0;
         }
 
         private void UpdateInstruments(RequestMetrics metrics)
