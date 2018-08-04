@@ -189,7 +189,7 @@ Task("SonarBegin")
     + " /d:sonar.host.url=\"https://sonarcloud.io\""
     + " /d:sonar.login=\"" + EnvironmentVariable("SONAR_TOKEN") + "\""
     + " /d:sonar.cs.opencover.reportsPaths=\"" + unitTestReports + "\""
-    + " /d:sonar.exclusions=\"" + SwaggerUIFolder + "**\"";
+    + " /d:sonar.exclusions=\"" + SwaggerUIFolder + "*\"";
     StartProcess(sonarTool.CombineWithFilePath("dotnet-sonarscanner.exe"), "begin " + arguments);
 });
 
