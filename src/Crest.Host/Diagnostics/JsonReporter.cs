@@ -59,7 +59,6 @@ namespace Crest.Host.Diagnostics
             this.WriteKeyValue("max", gauge.Maximum);
             this.WriteKeyValue("mean", (long)gauge.Mean);
             this.WriteKeyValue("stdDev", (long)gauge.StandardDeviation);
-            this.WriteKeyValue("variance", (long)gauge.Variance);
             this.WriteKeyValue("movingAv1min", (long)gauge.OneMinuteAverage);
             this.WriteKeyValue("movingAv5min", (long)gauge.FiveMinuteAverage);
             this.WriteKeyValue("movingAv15min", (long)gauge.FifteenMinuteAverage);
