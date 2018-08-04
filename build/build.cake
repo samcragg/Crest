@@ -1,7 +1,6 @@
 #addin nuget:?package=Cake.Npm
 #load "utilities.cake"
 
-const string IntegrationTestCoverageFolder = "./coverage_it_results/";
 const string UnitTestCoverageFolder = "./coverage_results/";
 const string MainSolution = "../Crest.sln";
 const string SwaggerUIFolder = "src/Crest.OpenApi/SwaggerUI/";
@@ -91,15 +90,6 @@ Task("IntegrationTests")
         settings.TestAdapterPath = project.GetDirectory().CombineWithFilePath("./bin/" + configuration + "/netcoreapp2.0/").FullPath;
         DotNetCoreTest(project.FullPath, settings);
     });
-});
-
-Task("IntegrationTestWithCover")
-    .IsDependentOn("Build")
-    .Does(() =>
-{
-    var settings = CreateUnitTestSettings();
-    settings.Filter = "Category=Integration";
-    RunOpenCover(IntegrationTestCoverageFolder, GetFiles("../test/**/*.csproj"), settings);
 });
 
 Task("Pack")
@@ -193,14 +183,12 @@ Task("SonarBegin")
 {
     sonarTool = InstallDotNetTool("dotnet-sonarscanner", "4.3.1 ");
 
-    string integrationReports = (new DirectoryPath(IntegrationTestCoverageFolder)).FullPath + "/*.xml";
     string unitTestReports = (new DirectoryPath(UnitTestCoverageFolder)).FullPath + "/*.xml";
     var arguments = "/k:\"crest\""
     + " /d:sonar.organization=\"samcragg-github\""
     + " /d:sonar.host.url=\"https://sonarcloud.io\""
     + " /d:sonar.login=\"" + EnvironmentVariable("SONAR_TOKEN") + "\""
     + " /d:sonar.cs.opencover.reportsPaths=\"" + unitTestReports + "\""
-    + " /d:sonar.cs.opencover.it.reportsPaths=\"" + integrationReports + "\""
     + " /d:sonar.exclusions=\"" + SwaggerUIFolder + "**\"";
     StartProcess(sonarTool.CombineWithFilePath("dotnet-sonarscanner.exe"), "begin " + arguments);
 });
@@ -283,7 +271,7 @@ Task("Full")
     .IsDependentOn("SonarBegin")
     .IsDependentOn("Build")
     .IsDependentOn("UnitTestWithCover")
-    .IsDependentOn("IntegrationTestWithCover")
+    .IsDependentOn("IntegrationTests")
     .IsDependentOn("SonarEnd")
     .IsDependentOn("UploadTestReport")
     .IsDependentOn("Pack");
