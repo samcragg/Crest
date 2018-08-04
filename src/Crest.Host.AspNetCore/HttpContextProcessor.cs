@@ -56,7 +56,7 @@ namespace Crest.Host.AspNetCore
             }
 
             long written = await response.WriteBody(context.Response.Body).ConfigureAwait(false);
-            await context.Response.Body.FlushAsync();
+            await context.Response.Body.FlushAsync().ConfigureAwait(false);
 
             return written;
         }
