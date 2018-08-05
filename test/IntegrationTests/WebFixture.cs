@@ -6,6 +6,7 @@
     using Crest.Host.AspNetCore;
     using FluentAssertions;
     using Microsoft.AspNetCore.Hosting;
+    using Microsoft.AspNetCore.Http;
     using Microsoft.AspNetCore.TestHost;
     using Newtonsoft.Json;
 
@@ -45,6 +46,16 @@
             {
                 return Server.CreateClient();
             }
+        }
+
+        public async Task<HttpResponse> GetRawResponse(string url)
+        {
+            HttpContext context = await Server.SendAsync(c =>
+            {
+                c.Request.Path = url;
+            });
+
+            return context.Response;
         }
 
         public async Task<string> GetResultAsStringAsync(HttpClient client, HttpRequestMessage request)

@@ -5,6 +5,7 @@
     using System.Threading.Tasks;
     using FluentAssertions;
     using HtmlAgilityPack;
+    using Microsoft.AspNetCore.Http;
     using Newtonsoft.Json.Linq;
     using Xunit;
 
@@ -21,77 +22,58 @@
         [Fact]
         public async Task EnsureDocsRedirectsToTheIndex()
         {
-            using (HttpClient client = this.fixture.CreateClient())
-            {
-                HttpResponseMessage response = await client.GetAsync("/docs");
+            HttpResponse response = await this.fixture.GetRawResponse("/docs");
 
-                response.StatusCode.Should().Be(HttpStatusCode.MovedPermanently);
-                response.Headers.Location.ToString()
-                    .Should().EndWithEquivalent("docs/index.html");
-            }
+            response.StatusCode.Should().Be((int)HttpStatusCode.MovedPermanently);
+            response.Headers["Location"].ToString()
+                .Should().EndWithEquivalent("docs/index.html");
         }
 
         [Fact]
         public async Task EnsureDocsReturnsTheHtmlViewer()
         {
-            var htmlDoc = new HtmlDocument();
-            htmlDoc.LoadHtml(await this.GetResultAsync("/docs/index.html"));
+            using (HttpClient client = this.fixture.CreateClient())
+            {
+                var htmlDoc = new HtmlDocument();
+                htmlDoc.LoadHtml(await client.GetStringAsync("/docs/index.html"));
 
-            htmlDoc.DocumentNode.SelectSingleNode("//body")
-                .Should().NotBeNull();
+                htmlDoc.DocumentNode.SelectSingleNode("//body")
+                    .Should().NotBeNull();
+            }
         }
 
         [Fact]
         public async Task EnsureDocsReturnTheOpenApiData()
         {
-            string result = await this.GetResultAsync("/docs/V1/OpenAPI.json");
+            using (HttpClient client = this.fixture.CreateClient())
+            {
+                string result = await client.GetStringAsync("/docs/V1/OpenAPI.json");
 
-            result.Should().Be("Documentation information");
+                result.Should().Be("Documentation information");
+            }
         }
 
         [Fact]
         public async Task EnsureHealthPageIsPresent()
         {
-            var htmlDoc = new HtmlDocument();
-            htmlDoc.LoadHtml(await this.GetResultAsync("/health"));
+            // Because the health page takes a bit longer to load, the TestServer
+            // disposes of the stream before we've written everything to it, so
+            // we're just checking the response was found
+            HttpResponse response = await this.fixture.GetRawResponse("/health");
 
-            htmlDoc.DocumentNode.SelectSingleNode("//h1").InnerText
-                .Should().Be("Service Health");
+            response.StatusCode.Should().Be((int)HttpStatusCode.OK);
         }
 
         [Fact]
         public async Task EnsureMetricsJsonIsPresent()
         {
-            string result = await this.GetResultAsync("/metrics.json");
-
-            var json = JToken.Parse(result);
-            json.Should().Contain(j => j.Path == "requestCount");
-        }
-
-        private async Task<string> GetResultAsync(string url)
-        {
-            // There's an issue with the TestServer where it can end the request
-            // if it takes too long. For now, brute force it by retrying...
-            for (int i = 0; i < 100; i++)
+            using (HttpClient client = this.fixture.CreateClient())
             {
-                HttpClient client = this.fixture.CreateClient();
-                try
-                {
-                    HttpResponseMessage response = await client.GetAsync(url);
-                    response.IsSuccessStatusCode.Should().BeTrue();
+                string result = await client.GetStringAsync("/metrics.json");
 
-                    return await response.Content.ReadAsStringAsync();
-                }
-                catch (HttpRequestException)
-                {
-                }
-                finally
-                {
-                    client.Dispose();
-                }
+                var json = JToken.Parse(result);
+                json.Should().Contain(j => j.Path == "requestCount");
             }
-
-            throw new Xunit.Sdk.XunitException("Unable to read the response.");
         }
     }
 }
