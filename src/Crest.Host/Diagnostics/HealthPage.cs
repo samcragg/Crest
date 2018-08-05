@@ -18,6 +18,7 @@ namespace Crest.Host.Diagnostics
     internal class HealthPage
     {
         private readonly ExecutingAssembly assemblyInfo;
+        private readonly Metrics metrics;
         private readonly ProcessAdapter process;
         private readonly IHtmlTemplateProvider template;
         private readonly ITimeProvider time;
@@ -33,16 +34,19 @@ namespace Crest.Host.Diagnostics
         /// <param name="assemblyInfo">
         /// Used to provide information about the current assembly.
         /// </param>
+        /// <param name="metrics">Contains the application metrics.</param>
         public HealthPage(
             IHtmlTemplateProvider template,
             ITimeProvider time,
             ProcessAdapter process,
-            ExecutingAssembly assemblyInfo)
+            ExecutingAssembly assemblyInfo,
+            Metrics metrics)
         {
             this.template = template;
             this.time = time;
             this.process = process;
             this.assemblyInfo = assemblyInfo;
+            this.metrics = metrics;
         }
 
         /// <summary>
@@ -72,6 +76,7 @@ namespace Crest.Host.Diagnostics
                 await writer.WriteLineAsync("<h1>Service Health</h1>").ConfigureAwait(false);
 
                 await this.WriteSummaryAsync(writer).ConfigureAwait(false);
+                await this.WriteMetricsAsync(writer).ConfigureAwait(false);
                 await this.WriteAssembliesAsync(writer).ConfigureAwait(false);
 
                 int count = htmlTempalte.Length - insertIndex;
@@ -104,6 +109,21 @@ namespace Crest.Host.Diagnostics
             }
 
             await writer.WriteAsync("</p>").ConfigureAwait(false);
+        }
+
+        private async Task WriteMetricsAsync(StreamWriter writer)
+        {
+            await writer.WriteLineAsync("<h2>Metrics</h2><p>");
+
+            string report;
+            using (var reporter = new HtmlReporter())
+            {
+                this.metrics.WriteTo(reporter);
+                report = reporter.GenerateReport();
+            }
+
+            await writer.WriteAsync(report).ConfigureAwait(false);
+            await writer.WriteLineAsync("</p>").ConfigureAwait(false);
         }
 
         private async Task WriteSummaryAsync(TextWriter writer)

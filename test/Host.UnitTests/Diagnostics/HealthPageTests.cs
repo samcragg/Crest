@@ -14,13 +14,19 @@
     {
         private readonly ExecutingAssembly assemblyInfo = Substitute.For<ExecutingAssembly>();
         private readonly HealthPage health;
+        private readonly Metrics metrics = Substitute.For<Metrics>();
         private readonly ProcessAdapter process = Substitute.For<ProcessAdapter>();
         private readonly IHtmlTemplateProvider template = Substitute.For<IHtmlTemplateProvider>();
         private readonly ITimeProvider time = Substitute.For<ITimeProvider>();
 
         public HealthPageTests()
         {
-            this.health = new HealthPage(this.template, this.time, this.process, this.assemblyInfo);
+            this.health = new HealthPage(
+                this.template,
+                this.time,
+                this.process,
+                this.assemblyInfo,
+                this.metrics);
         }
 
         private async Task<string> GetHtml()
@@ -87,6 +93,18 @@
 
                 html.Should().Contain("1.00 KiB")
                     .And.Contain("2.00 KiB");
+            }
+
+            [Fact]
+            public async Task ShouldOutputTheMetrics()
+            {
+                this.metrics.When(m => m.WriteTo(Arg.Any<IReporter>()))
+                    .Do(ci => ci.Arg<IReporter>().Write("Counter", new Counter(), null));
+
+                string html = await this.GetHtml();
+
+                html.Should().Contain("Metrics")
+                    .And.Contain("Counter");
             }
 
             [Fact]

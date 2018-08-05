@@ -25,6 +25,7 @@ namespace Crest.Host.Conversion
 "body{font-family:Arial,Helvetica,sans-serif;margin:10px auto;max-width:960px}\n" +
 "h1{color:#8c1;font-size:36px;line-height:40px;margin:20px 0 5px}\n" +
 "p{color:#555;font-size:18px;line-height:20px;margin:10px 0 5px}\n" +
+"th{text-align: right}\n" +
 "footer{margin-top:50px;text-align:center}\n" +
 "</style>\n" +
 "</head><body>\n" +
@@ -35,7 +36,7 @@ namespace Crest.Host.Conversion
 "</body></html>";
 
         /// <inheritdoc />
-        public int ContentLocation => 381;  // Just after the <body> tag
+        public int ContentLocation => 403;  // Just after the <body> tag
 
         /// <inheritdoc />
         public string HintText => Hint;
