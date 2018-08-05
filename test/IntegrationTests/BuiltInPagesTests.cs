@@ -72,7 +72,7 @@
         {
             // There's an issue with the TestServer where it can end the request
             // if it takes too long. For now, brute force it by retrying...
-            for (int i = 0; i < 16; i++)
+            for (int i = 0; i < 100; i++)
             {
                 HttpClient client = this.fixture.CreateClient();
                 try
