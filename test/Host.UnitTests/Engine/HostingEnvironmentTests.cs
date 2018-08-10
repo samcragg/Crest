@@ -55,6 +55,15 @@ namespace Host.UnitTests.Engine
                 environment.IsDevelopment.Should().BeFalse();
                 environment.IsProduction.Should().BeFalse();
             }
+
+            [Fact]
+            public void ShouldSetTheName()
+            {
+                Environment.SetEnvironmentVariable(AspEnvironment, "EnvironmentName");
+                var environment = new HostingEnvironment();
+
+                environment.Name.Should().Be("EnvironmentName");
+            }
         }
     }
 }

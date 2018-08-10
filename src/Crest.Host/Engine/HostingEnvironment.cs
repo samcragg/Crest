@@ -25,8 +25,11 @@ namespace Crest.Host.Engine
             string environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
             if (string.IsNullOrWhiteSpace(environment))
             {
+                // The environment defaults to production if it's not specified:
+                // https://docs.microsoft.com/en-us/aspnet/core/fundamentals/environments
                 Logger.Warn("ASPNETCORE_ENVIRONMENT is not set, defaulting to Production");
                 this.IsProduction = true;
+                this.Name = "Production";
             }
             else
             {
@@ -34,6 +37,7 @@ namespace Crest.Host.Engine
                 this.IsDevelopment = string.Equals(environment, "Development", StringComparison.OrdinalIgnoreCase);
                 this.IsProduction = string.Equals(environment, "Production", StringComparison.OrdinalIgnoreCase);
                 this.IsStaging = string.Equals(environment, "Staging", StringComparison.OrdinalIgnoreCase);
+                this.Name = environment;
             }
         }
 
@@ -54,5 +58,10 @@ namespace Crest.Host.Engine
         /// name is Staging.
         /// </summary>
         public virtual bool IsStaging { get; }
+
+        /// <summary>
+        /// Gets the name of the current hosting environment.
+        /// </summary>
+        public virtual string Name { get; }
     }
 }

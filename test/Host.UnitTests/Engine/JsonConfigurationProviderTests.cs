@@ -12,9 +12,6 @@
     using NSubstitute;
     using Xunit;
 
-    // As we're playing with an environment variable, we can't have the nested
-    // tests running in parallel
-    [Collection(nameof(JsonConfigurationProviderTests))]
     public class JsonConfigurationProviderTests
     {
         private const string EnvironmentSettingsFile = "appsettings.UnitTests.json";
@@ -22,15 +19,21 @@
         private readonly JsonClassGenerator generator;
         private readonly FileReader reader;
         private readonly FileWriteWatcher watcher;
-        private JsonConfigurationProvider provider;
+        private readonly JsonConfigurationProvider provider;
 
         private JsonConfigurationProviderTests()
         {
-            Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", "UnitTests");
+            HostingEnvironment environment = Substitute.For<HostingEnvironment>();
+            environment.Name.Returns("UnitTests");
+
             this.generator = Substitute.For<JsonClassGenerator>();
             this.reader = Substitute.For<FileReader>();
             this.watcher = Substitute.For<FileWriteWatcher>();
-            this.provider = new JsonConfigurationProvider(this.reader, this.watcher, this.generator);
+            this.provider = new JsonConfigurationProvider(
+                this.reader,
+                this.watcher,
+                this.generator,
+                environment);
         }
 
         public sealed class Dispose : JsonConfigurationProviderTests
@@ -46,17 +49,6 @@
 
         public sealed class InitializeAsync : JsonConfigurationProviderTests
         {
-            [Fact]
-            public async Task ShouldDefaultToProductionIfNoEnvironmentSet()
-            {
-                Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", string.Empty);
-                this.provider = new JsonConfigurationProvider(this.reader, this.watcher, this.generator);
-
-                await this.provider.InitializeAsync(new Type[0]);
-
-                await this.reader.Received().ReadAllBytesAsync("appsettings.Production.json");
-            }
-
             [Fact]
             public async Task ShouldLoadTheEnvironmentSettings()
             {

@@ -38,12 +38,18 @@ namespace Crest.Host.Engine
         /// <param name="reader">Used to read the contents of files.</param>
         /// <param name="watcher">Used to listen to file system events.</param>
         /// <param name="generator">Used to generate the object initializer.</param>
+        /// <param name="environment">
+        /// Used to get information about the current hosting environment.
+        /// </param>
         public JsonConfigurationProvider(
             FileReader reader,
             FileWriteWatcher watcher,
-            JsonClassGenerator generator)
+            JsonClassGenerator generator,
+            HostingEnvironment environment)
         {
-            this.environmentSettingsFile = GetEnvironmentSettingsFileName();
+            this.environmentSettingsFile = "appsettings." + environment.Name + ".json";
+            Logger.InfoFormat("Using '{filename}' for environment settings.", this.environmentSettingsFile);
+
             this.generator = generator;
             this.reader = reader;
             this.watcher = watcher;
@@ -86,23 +92,6 @@ namespace Crest.Host.Engine
                 // specific setting overwrite them
                 initializer.GlobalSettings(instance);
                 initializer.EnvironmentSettings(instance);
-            }
-        }
-
-        private static string GetEnvironmentSettingsFileName()
-        {
-            string environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
-            if (string.IsNullOrEmpty(environment))
-            {
-                // The environment defaults to production if it's not specified:
-                // https://docs.microsoft.com/en-us/aspnet/core/fundamentals/environments
-                Logger.WarnFormat("No environment detected (ASPNETCORE_ENVIRONMENT), assuming production");
-                return "appsettings.Production.json";
-            }
-            else
-            {
-                Logger.InfoFormat("Environment detected as '{environment}'", environment);
-                return "appsettings." + environment + ".json";
             }
         }
 
