@@ -1,5 +1,6 @@
 ﻿namespace IntegrationTests
 {
+    using System;
     using System.Net.Http;
     using System.Net.Http.Headers;
     using System.Threading.Tasks;
@@ -17,6 +18,8 @@
 
         static WebFixture()
         {
+            Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", "Integration");
+
             var builder = new WebHostBuilder();
             builder.UseCrest();
             Server = new TestServer(builder);

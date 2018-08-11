@@ -8,7 +8,7 @@ namespace Crest.Host.Diagnostics
     using System.Collections.Generic;
     using System.Threading.Tasks;
     using Crest.Abstractions;
-    using Crest.Host.Diagnostics;
+    using Crest.Host.Engine;
 
     /// <summary>
     /// Allows the routing to the health page.
@@ -21,9 +21,19 @@ namespace Crest.Host.Diagnostics
         /// Initializes a new instance of the <see cref="HealthPageProvider"/> class.
         /// </summary>
         /// <param name="page">The health page to return.</param>
-        public HealthPageProvider(HealthPage page)
+        /// <param name="environment">The runtime environment.</param>
+        /// <param name="options">The runtime options.</param>
+        public HealthPageProvider(
+            HealthPage page,
+            HostingEnvironment environment,
+            HostingOptions options)
         {
-            this.page = page;
+            // By default we should be enabled in development environments only
+            // unless this has been configured
+            if (options.DisplayHealth.GetValueOrDefault(environment.IsDevelopment))
+            {
+                this.page = page;
+            }
         }
 
         /// <inheritdoc />
@@ -34,7 +44,10 @@ namespace Crest.Host.Diagnostics
                 return Task.FromResult<IResponseData>(new ResponseData("text/html", 200, this.page.WriteToAsync));
             };
 
-            yield return new DirectRouteMetadata { Method = health, RouteUrl = "/health", Verb = "GET" };
+            if (this.page != null)
+            {
+                yield return new DirectRouteMetadata { Method = health, RouteUrl = "/health", Verb = "GET" };
+            }
         }
     }
 }
