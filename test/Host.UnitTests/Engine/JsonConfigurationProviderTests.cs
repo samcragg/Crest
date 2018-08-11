@@ -2,7 +2,6 @@
 {
     using System;
     using System.IO;
-    using System.Text;
     using System.Threading.Tasks;
     using Crest.Host.Engine;
     using Crest.Host.IO;
@@ -17,9 +16,9 @@
         private const string EnvironmentSettingsFile = "appsettings.UnitTests.json";
         private const string GlobalSettingsFile = "appsettings.json";
         private readonly JsonClassGenerator generator;
+        private readonly JsonConfigurationProvider provider;
         private readonly FileReader reader;
         private readonly FileWriteWatcher watcher;
-        private readonly JsonConfigurationProvider provider;
 
         private JsonConfigurationProviderTests()
         {
@@ -54,7 +53,7 @@
             {
                 await this.provider.InitializeAsync(new Type[0]);
 
-                await this.reader.Received().ReadAllBytesAsync(EnvironmentSettingsFile);
+                await this.reader.Received().ReadAllTextAsync(EnvironmentSettingsFile);
             }
 
             [Fact]
@@ -62,7 +61,7 @@
             {
                 await this.provider.InitializeAsync(new Type[0]);
 
-                await this.reader.Received().ReadAllBytesAsync(GlobalSettingsFile);
+                await this.reader.Received().ReadAllTextAsync(GlobalSettingsFile);
             }
 
             [Fact]
@@ -70,8 +69,8 @@
             {
                 using (FakeLogger.LogInfo logger = FakeLogger.MonitorLogging())
                 {
-                    this.reader.ReadAllBytesAsync(GlobalSettingsFile)
-                        .Returns(Encoding.ASCII.GetBytes(@"{""myConfig"":{}}"));
+                    this.reader.ReadAllTextAsync(GlobalSettingsFile)
+                        .Returns(@"{""myConfig"":{}}");
 
                     await this.provider.InitializeAsync(new[]
                     {
@@ -89,8 +88,8 @@
             {
                 using (FakeLogger.LogInfo logger = FakeLogger.MonitorLogging())
                 {
-                    this.reader.ReadAllBytesAsync(null)
-                        .ReturnsForAnyArgs<byte[]>(_ => throw new IOException());
+                    this.reader.ReadAllTextAsync(null)
+                        .ReturnsForAnyArgs<string>(_ => throw new IOException());
 
                     await this.provider.InitializeAsync(new Type[0]);
 
@@ -119,8 +118,8 @@
             {
                 using (FakeLogger.LogInfo logger = FakeLogger.MonitorLogging())
                 {
-                    this.reader.ReadAllBytesAsync(GlobalSettingsFile)
-                        .Returns(Encoding.ASCII.GetBytes(@"{""myConfig"":{}}"));
+                    this.reader.ReadAllTextAsync(GlobalSettingsFile)
+                        .Returns(@"{""myConfig"":{}}");
 
                     await this.provider.InitializeAsync(new Type[0]);
 
@@ -149,8 +148,8 @@
             [Fact]
             public async Task ShouldApplyGlobalSettings()
             {
-                byte[] global = Encoding.ASCII.GetBytes(@"{""myConfig"":null}");
-                this.reader.ReadAllBytesAsync(GlobalSettingsFile).Returns(global);
+                this.reader.ReadAllTextAsync(GlobalSettingsFile)
+                    .Returns(@"{""myConfig"":null}");
 
                 this.generator.CreatePopulateMethod(null, null)
                     .ReturnsForAnyArgs(x => ((MyConfig)x).Value = "global");
@@ -173,11 +172,11 @@
             [Fact]
             public async Task ShouldOverwriteGlobalSettingsWithEnvironmentSettings()
             {
-                byte[] environemnt = Encoding.ASCII.GetBytes(@"{""myConfig"":""environment""}");
-                this.reader.ReadAllBytesAsync(EnvironmentSettingsFile).Returns(environemnt);
+                this.reader.ReadAllTextAsync(EnvironmentSettingsFile)
+                    .Returns(@"{""myConfig"":""environment""}");
 
-                byte[] global = Encoding.ASCII.GetBytes(@"{""myConfig"":""global""}");
-                this.reader.ReadAllBytesAsync(GlobalSettingsFile).Returns(global);
+                this.reader.ReadAllTextAsync(GlobalSettingsFile)
+                    .Returns(@"{""myConfig"":""global""}");
 
                 this.generator.CreatePopulateMethod(typeof(MyConfig), Arg.Any<string>())
                     .Returns(ci =>

@@ -162,7 +162,7 @@ namespace Crest.Host.Engine
         {
             try
             {
-                byte[] json = await this.reader.ReadAllBytesAsync(filename).ConfigureAwait(false);
+                string json = await this.reader.ReadAllTextAsync(filename).ConfigureAwait(false);
                 var parser = new JsonObjectParser(json);
                 foreach (KeyValuePair<string, string> pair in parser.GetPairs())
                 {

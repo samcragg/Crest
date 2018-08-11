@@ -6,6 +6,7 @@
 namespace Crest.Host.IO
 {
     using System.IO;
+    using System.Text;
     using System.Threading.Tasks;
 
     /// <summary>
@@ -42,6 +43,24 @@ namespace Crest.Host.IO
                 }
 
                 return bytes;
+            }
+        }
+
+        /// <summary>
+        /// Reads the entire contents of a file into a string.
+        /// </summary>
+        /// <param name="path">The file to open for reading.</param>
+        /// <returns>
+        /// A task that represents the asynchronous operation. The value of the
+        /// <c>TResult</c> parameter is a string containing the contents of the
+        /// file.
+        /// </returns>
+        public virtual async Task<string> ReadAllTextAsync(string path)
+        {
+            using (Stream file = this.OpenFile(path))
+            using (var reader = new StreamReader(file, Encoding.UTF8, detectEncodingFromByteOrderMarks: true))
+            {
+                return await reader.ReadToEndAsync().ConfigureAwait(false);
             }
         }
 

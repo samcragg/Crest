@@ -2,6 +2,7 @@
 {
     using System;
     using System.IO;
+    using System.Linq;
     using System.Text;
     using System.Threading.Tasks;
     using Crest.Host.IO;
@@ -54,6 +55,29 @@
                 Func<Task> action = () => this.reader.ReadAllBytesAsync("");
 
                 action.Should().Throw<EndOfStreamException>();
+            }
+        }
+
+        public sealed class ReadAllTestAsync : FileReaderTests
+        {
+            [Fact]
+            public async Task ShouldDetectTheEncodingFromTheFile()
+            {
+                using (var stream = new MemoryStream())
+                {
+                    byte[] bytes =
+                        Encoding.Unicode.GetPreamble()
+                            .Concat(Encoding.Unicode.GetBytes("Test"))
+                            .ToArray();
+
+                    stream.Write(bytes, 0, bytes.Length);
+                    stream.Position = 0;
+                    this.reader.SourceStream = stream;
+
+                    string result = await this.reader.ReadAllTextAsync("");
+
+                    result.Should().Be("Test");
+                }
             }
         }
 
