@@ -124,16 +124,18 @@ namespace Crest.Host
 
             this.RegisterTypes(discovery, this.GetDefaultOptionalServices(discovery));
 
-            List<RouteMetadata> routes =
-                types.SelectMany(discovery.GetRoutes).ToList();
-            this.RouteMapper = new RouteMapper(routes, this.GetDirectRoutes());
-
             // Queue this up in case any of the initializers capture the current
             // context we don't want to block this thread
             var initializeTask = Task.Run(
                 () => this.RunInitializersAsync(this.serviceLocator.GetInitializers()));
 
             initializeTask.GetAwaiter().GetResult();
+
+            // Do this after we've initialized the initializers in case any of
+            // the route providers need configuration data
+            List<RouteMetadata> routes =
+                types.SelectMany(discovery.GetRoutes).ToList();
+            this.RouteMapper = new RouteMapper(routes, this.GetDirectRoutes());
         }
 
         /// <summary>
