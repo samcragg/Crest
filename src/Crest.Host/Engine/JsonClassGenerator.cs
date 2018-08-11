@@ -80,24 +80,27 @@ namespace Crest.Host.Engine
 
         private static Expression ConvertValue(string value, Type type)
         {
-            try
+            if (value != null)
             {
-                object converted = Convert.ChangeType(
-                    value,
-                    type,
-                    CultureInfo.InvariantCulture);
+                try
+                {
+                    object converted = Convert.ChangeType(
+                        value,
+                        Nullable.GetUnderlyingType(type) ?? type,
+                        CultureInfo.InvariantCulture);
 
-                return Expression.Constant(converted);
+                    return Expression.Constant(converted, type);
+                }
+                catch
+                {
+                    Logger.ErrorFormat(
+                        "Unable to convert '{value}' to {type}",
+                        value,
+                        type.Name);
+                }
             }
-            catch
-            {
-                Logger.ErrorFormat(
-                    "Unable to convert '{value}' to {type}",
-                    value,
-                    type.Name);
 
-                return Expression.Default(type);
-            }
+            return Expression.Default(type);
         }
 
         private static Expression CreateAssignment(Expression instance, PropertyInfo property, string value)

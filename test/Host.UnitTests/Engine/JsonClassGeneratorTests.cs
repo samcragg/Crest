@@ -32,6 +32,26 @@
             }
 
             [Fact]
+            public void ShouldAssignNullablePropertiesWithNulls()
+            {
+                var result = new SimpleClass { NullableProperty = 123 };
+                this.PopulateExistingInstance(
+                    @"{ ""nullableProperty"": null }",
+                    result);
+
+                result.NullableProperty.Should().BeNull();
+            }
+
+            [Fact]
+            public void ShouldAssignNullablePropertiesWithValues()
+            {
+                SimpleClass result = this.PopulateNewInstance(
+                    @"{ ""nullableProperty"": 123 }");
+
+                result.NullableProperty.Should().Be(123);
+            }
+
+            [Fact]
             public void ShouldAssignStringProperties()
             {
                 SimpleClass result = this.PopulateNewInstance(
@@ -70,15 +90,19 @@
                 }
             }
 
-            private SimpleClass PopulateNewInstance(string json)
+            private SimpleClass PopulateExistingInstance(string json, SimpleClass instance)
             {
                 Action<object> action = this.generator.CreatePopulateMethod(
                     typeof(SimpleClass),
                     json);
 
-                var instance = new SimpleClass();
                 action(instance);
                 return instance;
+            }
+
+            private SimpleClass PopulateNewInstance(string json)
+            {
+                return this.PopulateExistingInstance(json, new SimpleClass());
             }
         }
 
@@ -86,7 +110,7 @@
         {
             public bool[] ArrayProperty { get; set; }
             public int IntegerProperty { get; set; }
-
+            public int? NullableProperty { get; set; }
             public string StringProperty { get; set; }
         }
     }
