@@ -14,12 +14,6 @@ namespace Crest.Host
     internal sealed class HostingOptions
     {
         /// <summary>
-        /// Gets or sets a value indicating whether the docs pages should be
-        /// provided or not.
-        /// </summary>
-        public bool? DisplayDocs { get; set; }
-
-        /// <summary>
         /// Gets or sets a value indicating whether the health page should be
         /// provided or not.
         /// </summary>
