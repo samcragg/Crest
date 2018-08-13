@@ -8,6 +8,25 @@ format to enable consumption by other systems.
 The url for the metrics is `/metrics.json` - there is no version required and
 the response is always JSON (i.e. there is no content negation).
 
+**Note** By default the metrics endpoint is only provided in `Development`
+environments.
+
+## Enabling The Endpoint
+
+By default, the metrics page is enabled for
+[Development environments](https://docs.microsoft.com/en-us/aspnet/core/fundamentals/environments)
+only. If you want to enable the endpoint in other environments then you can set
+this option in the `appsettings.json` (or the `appsettings.Environment.json`
+file to enable it for specific environments only):
+
+```JSON
+{
+  "hostingOptions": {
+    "DisplayDocs": true
+  }
+
+```
+
 ## Schema
 
 The JSON returned will be in the following format:

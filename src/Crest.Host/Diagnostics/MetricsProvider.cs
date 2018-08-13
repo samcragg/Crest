@@ -11,6 +11,7 @@ namespace Crest.Host.Diagnostics
     using System.Text;
     using System.Threading.Tasks;
     using Crest.Abstractions;
+    using Crest.Host.Engine;
 
     /// <summary>
     /// Allows the routing to the metrics data.
@@ -23,20 +24,33 @@ namespace Crest.Host.Diagnostics
         /// Initializes a new instance of the <see cref="MetricsProvider"/> class.
         /// </summary>
         /// <param name="metrics">Contains the application metrics.</param>
-        public MetricsProvider(Metrics metrics)
+        /// <param name="environment">The runtime environment.</param>
+        /// <param name="options">The runtime options.</param>
+        public MetricsProvider(
+            Metrics metrics,
+            HostingEnvironment environment,
+            HostingOptions options)
         {
-            this.metrics = metrics;
+            // By default we should be enabled in development environments only
+            // unless this has been configured
+            if (options.DisplayMetrics.GetValueOrDefault(environment.IsDevelopment))
+            {
+                this.metrics = metrics;
+            }
         }
 
         /// <inheritdoc />
         public IEnumerable<DirectRouteMetadata> GetDirectRoutes()
         {
-            yield return new DirectRouteMetadata
+            if (this.metrics != null)
             {
-                Method = this.GetJsonAsync,
-                RouteUrl = "/metrics.json",
-                Verb = "GET",
-            };
+                yield return new DirectRouteMetadata
+                {
+                    Method = this.GetJsonAsync,
+                    RouteUrl = "/metrics.json",
+                    Verb = "GET",
+                };
+            }
         }
 
         private Task<IResponseData> GetJsonAsync(
