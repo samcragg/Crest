@@ -31,6 +31,7 @@
             [InlineData("-0", -0.0)]
             [InlineData("-4.9406564584124654E-324", -double.Epsilon)]
             [InlineData("-1.7976931348623157E+308", double.MinValue)]
+            [InlineData("+1797693134862315700E+290", double.MaxValue)]
             public void ShouldParseMaximumRanges(string value, double expected)
             {
                 ParseResult<double> result = DoubleConverter.TryReadDouble(value.AsSpan());
@@ -64,6 +65,9 @@
             [InlineData("+1e+1", 10.0)]
             [InlineData("+.2e+1", 2.0)]
             [InlineData("+1.2e+1", 12.0)]
+            [InlineData("010.0", 10.0)]
+            [InlineData("0.010", 0.01)]
+            [InlineData("10.01", 10.01)]
             public void ShouldParseValidFormats(string value, double expected)
             {
                 ParseResult<double> result = DoubleConverter.TryReadDouble(value.AsSpan());

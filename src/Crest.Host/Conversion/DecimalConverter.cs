@@ -128,13 +128,6 @@ namespace Crest.Host.Conversion
                     break;
                 }
 
-                // Ignore leading zeros. In this case Digits will be zero and
-                // digit will be zero - adding together gives zero
-                if ((number.Digits + digit) == 0)
-                {
-                    continue;
-                }
-
                 if (number.Digits >= MaximumSignificantDigitsForLong)
                 {
                     // We need to add to both hi and lo now
@@ -200,6 +193,7 @@ namespace Crest.Host.Conversion
         private static void ParseSignificand(ReadOnlySpan<char> span, ref int index, ref NumberInfo number)
         {
             int originalIndex = index;
+            SkipZeros(span, ref index);
             ParseDigits(span, ref index, ref number);
 
             // Is there a decimal part as well?
@@ -255,6 +249,18 @@ namespace Crest.Host.Conversion
             else
             {
                 number.Lo++;
+            }
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static void SkipZeros(ReadOnlySpan<char> span, ref int index)
+        {
+            for (; index < span.Length; index++)
+            {
+                if (span[index] != '0')
+                {
+                    break;
+                }
             }
         }
     }

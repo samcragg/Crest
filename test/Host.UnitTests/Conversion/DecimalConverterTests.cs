@@ -24,6 +24,9 @@
             [InlineData("+1e+1", "10")]
             [InlineData("+.2e+1", "2")]
             [InlineData("+1.2e+1", "12")]
+            [InlineData("010.0", "10.0")]
+            [InlineData("0.010", "0.010")]
+            [InlineData("10.01", "10.01")]
             public void ShouldParseValidFormats(string value, string expected)
             {
                 ParseResult<decimal> result = DecimalConverter.TryReadDecimal(value.AsSpan());

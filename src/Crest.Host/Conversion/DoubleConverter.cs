@@ -73,15 +73,21 @@ namespace Crest.Host.Conversion
         {
             int originalIndex = index;
             ParseDigits(span, ref index, ref number);
+            if (number.Digits >= MaxSignificandDigits)
+            {
+                // As soon as we get to MaxSignificandDigits we skip the digit,
+                // hence the +1
+                number.Scale += (short)(1 + number.Digits - MaxSignificandDigits);
+            }
 
             // Is there a decimal part as well?
             T tokens = default;
             if ((index < span.Length) && tokens.IsDecimalSeparator(span[index]))
             {
                 index++; // Skip the separator
-                int integerDigits = number.Digits;
+                int integerStart = index;
                 ParseDigits(span, ref index, ref number);
-                number.Scale += (short)(integerDigits - number.Digits);
+                number.Scale -= (short)(index - integerStart);
 
                 // Check it's not just a decimal point
                 if ((index - originalIndex) == 1)
