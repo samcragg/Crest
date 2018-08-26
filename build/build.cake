@@ -69,9 +69,11 @@ Task("CreateAssemblyInfo")
         version = "0.1.0." + build;
     }
 
+    Information("Setting version to '{0}'...", version);
     CreateAssemblyInfo("../src/AssemblyInfo.cs", new AssemblyInfoSettings {
+        FileVersion = version,
+        InformationalVersion = version,
         Version = version,
-        FileVersion = version
     });
 });
 
