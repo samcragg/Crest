@@ -4,44 +4,25 @@
 
 [![Build status](https://ci.appveyor.com/api/projects/status/spal08yea33stdlw/branch/master?svg=true)](https://ci.appveyor.com/project/samcragg/crest/branch/master) [![Coverage Status](https://coveralls.io/repos/github/samcragg/Crest/badge.svg?branch=master)](https://coveralls.io/github/samcragg/Crest?branch=master) [![sonarcloud status](https://sonarcloud.io/api/project_badges/measure?project=crest&metric=sqale_rating)](https://sonarcloud.io/dashboard?id=crest) ![License](https://img.shields.io/github/license/samcragg/crest.svg)
 
-This library provides a simple way to create versioned RESTful micro-services
-built against .NET Core with ease whilst remaining performant.
+## What does it do
 
-The HTTP side of the requests/responses is abstracted away as much as possible,
-so writing the logic code looks just like a traditional server application,
-making unit testing trivial. By hiding away as much as the HTTP request as
-possible, multiple micro-services implemented with Crest will have a consistent
-feel to them from the end users perspective, giving the feeling of a single
-system yet allowing development to occur without tight coupling.
+In a nutshell, Crest provides a complete framework for routing HTTP requests to
+your code based on the HTTP verb and URL, taking care of content negotiation
+to/from the methods. It uses configuration over convention, so there are no
+steep learning curves to get started with the framework for the first time -
+everything just works as expected and things won't break if you start
+renaming/moving classes around.
 
-Creating the right API first time is difficult, however, getting third parties
-to update their code is even harder. Therefore, there is strong support for
-providing versioned routes, to allow for new functionality to be added without
-effecting older clients.
+The typical usage for the framework is to create RESTful services. Since there
+is no formal specification on what this means, however, the framework reinforces
+generally agreed upon best practices (i.e. it has an opinion on what REST means).
 
-## Provided functionality
+## How to use it
 
-Out of the box the framework handles most of the mundane functionality to allow
-you to get developing your service quickly:
-
-+ [Dependency injection](docs/Dependency%20Injection.md) with assembly scanning
-  (i.e. it will map your interfaces to their concrete implementation for you).
-+ Simple [configuration injection](docs/Configuration.md)
-+ [OpenAPI documentation](docs/OpenAPI%20Support.md) of endpoints
-+ Versioning of endpoints
-+ [Deserializing/serializing](docs/Content%20Negotiation.md) the HTTP
-  request/response based on its content type (out of the box JSON, URL form
-  encoded data and XML are supported).
-+ [Health page](docs/Health.md)
-+ [Basic metrics](docs/Metrics.md) for the last 15 minutes
-+ [JWT handling](docs/JWT.md)
-
-## Basic usage
-
-First create an interface that describes the routes. The XML documentation will
-be converted to an [OpenAPI](https://www.openapis.org/) JSON for the project, so
-be sure to include it - your API is your contract with the outside world so make
-it as easy to discover and use as possible.
+The endpoints you want to create are defines by putting attributes on methods
+declared in an interface. Since this is your contract with the outside world,
+any documentation added here can be exposed as
+[OpenAPI](https://www.openapis.org/) data.
 
 ```C#
 /// <summary>
@@ -56,21 +37,45 @@ public interface ISampleService
     /// The traditional tutorial program response.
     /// </returns>
     [Get("greeting")]
+    [AllowAnonymous]
     [Version(1)]
-    Task<string> SimpleMessage();
+    Task<string> SimpleMessageAsync();
 }
 ```
 
+This produces the following endpoint:
+
 ![OpenAPI output](docs/images/OpenApiExample.png)
 
-The users of the service will be able to invoke the method by navigating to
-`http://hostname/v1/greeting` and since the class that implements the
-interface has no dependencies on the HTTP context, it is easy to unit test the
-logic without having to mock out the HTTP side of things.
+Since the verb is based on the attribute and the URL is passed in to its
+constructor, you're free to name the method anything you like. Also, there's no
+need to inherit from any base class when implementing the interface, reducing
+coupling to the framework and reducing the temptation to interrogate the current
+HTTP request.
 
-Also note that the method is versioned - this allows for new methods to be
-added that replace the old methods without breaking any third party code
-that relies on the old method.
+Note that all endpoints require an authenticated user by default, which you can
+opt-out of by applying the `AllowAnonymous` attribute. Since creating the right
+API first time is difficult but getting third parties to update their code is
+even harder, all endpoints require the `Version` attribute that
+specifies from when (and optionally until) the endpoint is available.
+
+## Batteries included
+
+Crest is built for .NET Core 2.1 and the .NET Framework 4.6.1. It is built from
+the ground up to be asynchronous and out of the box supports all the essentials
+required for building a scalable and easy to maintain service quickly:
+
++ [Dependency injection](docs/Dependency%20Injection.md) with assembly scanning
+  (i.e. it will map your interfaces to their concrete implementation for you).
++ Simple [configuration injection](docs/Configuration.md)
++ [OpenAPI documentation](docs/OpenAPI%20Support.md) of endpoints
++ Versioning of endpoints
++ [Deserializing/serializing](docs/Content%20Negotiation.md) the HTTP
+  request/response based on its content type (out of the box JSON, URL form
+  encoded data and XML are supported).
++ [Health page](docs/Health.md)
++ [Basic metrics](docs/Metrics.md) for the last 15 minutes
++ [JWT handling](docs/JWT.md)
 
 ## Contributing
 
