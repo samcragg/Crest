@@ -10,10 +10,20 @@ bool isLocalBuild = BuildSystem.IsLocalBuild;
 DirectoryPath sonarTool = null;
 string target = Argument("target", "Default");
 
+string version = EnvironmentVariable("APPVEYOR_REPO_TAG_NAME");
+string informationVersion = version;
+if (string.IsNullOrEmpty(version))
+{
+    version = "0.1.0";
+    string build = EnvironmentVariable("APPVEYOR_BUILD_NUMBER") ?? "local";
+    informationVersion = "0.1.0-" + build;
+}
+
 var msBuildSettings = new DotNetCoreMSBuildSettings
 {
     NoLogo = true
 };
+msBuildSettings.Properties["PackageVersion"] = new[] { informationVersion };
 
 var buildSettings = new DotNetCoreBuildSettings
 {
@@ -62,17 +72,10 @@ Task("BuildAndTestTools")
 Task("CreateAssemblyInfo")
     .Does(() =>
 {
-    string version = EnvironmentVariable("APPVEYOR_REPO_TAG_NAME");
-    if (string.IsNullOrEmpty(version))
-    {
-        string build = EnvironmentVariable("APPVEYOR_BUILD_NUMBER") ?? "0";
-        version = "0.1.0." + build;
-    }
-
-    Information("Setting version to '{0}'...", version);
+    Information("Creating AssemblyInfo with version '{0}'...", informationVersion);
     CreateAssemblyInfo("../src/AssemblyInfo.cs", new AssemblyInfoSettings {
         FileVersion = version,
-        InformationalVersion = version,
+        InformationalVersion = informationVersion,
         Version = version,
     });
 });
