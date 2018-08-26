@@ -44,6 +44,7 @@ Task("Build")
 });
 
 Task("BuildAndTestTools")
+    .IsDependentOn("CreateAssemblyInfo")
     .Does(() =>
 {
     foreach (var solution in GetFiles("../tools/*.sln"))
