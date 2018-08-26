@@ -10,12 +10,6 @@ bool isLocalBuild = BuildSystem.IsLocalBuild;
 DirectoryPath sonarTool = null;
 string target = Argument("target", "Default");
 
-string version = "local";
-if (!isLocalBuild)
-{
-    version = EnvironmentVariable("APPVEYOR_REPO_TAG_NAME") ?? EnvironmentVariable("APPVEYOR_BUILD_NUMBER");
-}
-
 var msBuildSettings = new DotNetCoreMSBuildSettings
 {
     NoLogo = true
@@ -43,6 +37,7 @@ DotNetCoreTestSettings CreateUnitTestSettings()
 }
 
 Task("Build")
+    .IsDependentOn("CreateAssemblyInfo")
     .Does(() =>
 {
     DotNetCoreBuild(MainSolution, buildSettings);
@@ -61,6 +56,22 @@ Task("BuildAndTestTools")
     {
         DotNetCoreTest(project.FullPath, settings);
     }
+});
+
+Task("CreateAssemblyInfo")
+    .Does(() =>
+{
+    string version = EnvironmentVariable("APPVEYOR_REPO_TAG_NAME");
+    if (string.IsNullOrEmpty(version))
+    {
+        string build = EnvironmentVariable("APPVEYOR_BUILD_NUMBER") ?? "0";
+        version = "0.1.0." + build;
+    }
+
+    CreateAssemblyInfo("../src/AssemblyInfo.cs", new AssemblyInfoSettings {
+        Version = version,
+        FileVersion = version
+    });
 });
 
 Task("ExcludeExternalFilesFromAnalysis")
@@ -117,8 +128,7 @@ Task("Pack")
         MSBuildSettings = msBuildSettings,
         NoBuild = true,
         NoRestore = true,
-        OutputDirectory = "./artifacts/",
-        VersionSuffix = version
+        OutputDirectory = "./artifacts/"
     };
 
     Parallel.ForEach(projects, project =>

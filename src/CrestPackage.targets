@@ -3,8 +3,13 @@
   <!-- Package properties -->
   <PropertyGroup>
     <Authors>Samuel Cragg</Authors>
-    <VersionPrefix>0.1.0</VersionPrefix>
+	<GenerateAssemblyVersionAttribute>false</GenerateAssemblyVersionAttribute>
+	<GenerateAssemblyFileVersionAttribute>false</GenerateAssemblyFileVersionAttribute>
   </PropertyGroup>
+  
+  <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)/AssemblyInfo.cs" />
+  </ItemGroup>
 
   <!-- This is required so that OpenCover can analyse the output -->
   <PropertyGroup>

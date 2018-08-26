@@ -95,3 +95,4 @@ build/tools/**
 
 # Auto-generated files
 **/SwaggerUI/*.gz
+**/AssemblyInfo.cs
