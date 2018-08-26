@@ -85,8 +85,10 @@ namespace Crest.Host.Conversion
                 buffer[index++] = (byte)PrimitiveDigits.Tens[value];
             }
 
-            buffer[index++] = (byte)PrimitiveDigits.Units[value];
-            buffer[index++] = suffix;
+            buffer[index] = (byte)PrimitiveDigits.Units[value];
+            index++;
+            buffer[index] = suffix;
+            index++;
 
             return index;
         }
@@ -101,8 +103,10 @@ namespace Crest.Host.Conversion
             for (int i = 0; i < (8 / 2); i++)
             {
                 fractions = NumberParsing.DivRem(fractions, 100, out int digits);
-                buffer[--index] = (byte)PrimitiveDigits.Units[digits];
-                buffer[--index] = (byte)PrimitiveDigits.Tens[digits];
+                index--;
+                buffer[index] = (byte)PrimitiveDigits.Units[digits];
+                index--;
+                buffer[index] = (byte)PrimitiveDigits.Tens[digits];
             }
 
             // Find the last non-zero character

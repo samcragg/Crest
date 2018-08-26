@@ -134,8 +134,11 @@ namespace Crest.Host.Conversion
                 while (value > uint.MaxValue)
                 {
                     value = NumberParsing.DivRem(value, 100, out int digits);
-                    buffer[--index] = (byte)PrimitiveDigits.Units[digits];
-                    buffer[--index] = (byte)PrimitiveDigits.Tens[digits];
+                    index--;
+                    buffer[index] = (byte)PrimitiveDigits.Units[digits];
+
+                    index--;
+                    buffer[index] = (byte)PrimitiveDigits.Tens[digits];
                 }
 
                 WriteUInt32(buffer, index, (uint)value);
@@ -258,8 +261,12 @@ namespace Crest.Host.Conversion
             while (value > 9)
             {
                 value = NumberParsing.DivRem(value, 100, out int digits);
-                buffer[--index] = (byte)PrimitiveDigits.Units[digits];
-                buffer[--index] = (byte)PrimitiveDigits.Tens[digits];
+
+                index--;
+                buffer[index] = (byte)PrimitiveDigits.Units[digits];
+
+                index--;
+                buffer[index] = (byte)PrimitiveDigits.Tens[digits];
             }
 
             // Any single digits we need to worry about?

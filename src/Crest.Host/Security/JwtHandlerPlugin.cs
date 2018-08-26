@@ -29,37 +29,13 @@ namespace Crest.Host.Security
         private static readonly Task<IResponseData> ContinueRequest =
             Task.FromResult<IResponseData>(null);
 
-        private static readonly AsyncLocal<ClaimsPrincipal> CurrentPrincipal =
-            new AsyncLocal<ClaimsPrincipal>();
-
+        private static readonly AsyncLocal<ClaimsPrincipal> CurrentPrincipal = CreateClaimsPrincipal();
         private static readonly ILog Logger = Log.For<JwtHandlerPlugin>();
-        private static readonly Task<IResponseData> UnauthorizedRequest;
+        private static readonly Task<IResponseData> UnauthorizedRequest = CreateUnauthorizedRequest();
 
         private readonly IScopedServiceRegister serviceRegister;
         private readonly JwtSignatureVerifier signatureVerifier;
         private readonly JwtValidator validator;
-
-        static JwtHandlerPlugin()
-        {
-            byte[] unauthorizedText = Encoding.UTF8.GetBytes("401 Unauthorized");
-            async Task<long> WriteUnauthorized(Stream stream)
-            {
-                await stream.WriteAsync(unauthorizedText, 0, unauthorizedText.Length)
-                    .ConfigureAwait(false);
-
-                return unauthorizedText.Length;
-            }
-
-            var unauthorizedResponse = new ResponseData(
-                "text/plain",
-                (int)HttpStatusCode.Unauthorized,
-                WriteUnauthorized);
-
-            unauthorizedResponse.Headers.Add("WWW-Authenticate", BearerPrefix);
-            UnauthorizedRequest = Task.FromResult<IResponseData>(unauthorizedResponse);
-
-            ClaimsPrincipal.ClaimsPrincipalSelector = () => CurrentPrincipal.Value;
-        }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="JwtHandlerPlugin"/> class.
@@ -99,6 +75,33 @@ namespace Crest.Host.Security
             }
 
             return ContinueRequest;
+        }
+
+        private static AsyncLocal<ClaimsPrincipal> CreateClaimsPrincipal()
+        {
+            var local = new AsyncLocal<ClaimsPrincipal>();
+            ClaimsPrincipal.ClaimsPrincipalSelector = () => local.Value;
+            return local;
+        }
+
+        private static Task<IResponseData> CreateUnauthorizedRequest()
+        {
+            byte[] unauthorizedText = Encoding.UTF8.GetBytes("401 Unauthorized");
+            async Task<long> WriteUnauthorized(Stream stream)
+            {
+                await stream.WriteAsync(unauthorizedText, 0, unauthorizedText.Length)
+                    .ConfigureAwait(false);
+
+                return unauthorizedText.Length;
+            }
+
+            var unauthorizedResponse = new ResponseData(
+                "text/plain",
+                (int)HttpStatusCode.Unauthorized,
+                WriteUnauthorized);
+
+            unauthorizedResponse.Headers.Add("WWW-Authenticate", BearerPrefix);
+            return Task.FromResult<IResponseData>(unauthorizedResponse);
         }
 
         private static bool IsAnonymous(MethodInfo handler)
