@@ -9,7 +9,12 @@ string configuration = Argument("configuration", "Release");
 bool isLocalBuild = BuildSystem.IsLocalBuild;
 DirectoryPath sonarTool = null;
 string target = Argument("target", "Default");
-string version = isLocalBuild ? "local" : EnvironmentVariable("APPVEYOR_BUILD_NUMBER");
+
+string version = "local";
+if (!isLocalBuild)
+{
+    version = EnvironmentVariable("APPVEYOR_REPO_TAG_NAME") ?? EnvironmentVariable("APPVEYOR_BUILD_NUMBER");
+}
 
 var msBuildSettings = new DotNetCoreMSBuildSettings
 {
