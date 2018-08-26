@@ -22,9 +22,9 @@ file to enable it for specific environments only):
 ```JSON
 {
   "hostingOptions": {
-    "DisplayDocs": true
+    "DisplayMetrics": true
   }
-
+}
 ```
 
 ## Schema

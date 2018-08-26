@@ -26,5 +26,5 @@ specific environments only):
   "hostingOptions": {
     "DisplayHealth": true
   }
-
+}
 ```
