@@ -17,7 +17,6 @@
         {
             var host = new WebHostBuilder();
             host.UseKestrel()
-                .UseIISIntegration()
                 .UseCrest()
                 .Build()
                 .Run();
