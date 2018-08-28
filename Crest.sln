@@ -26,13 +26,13 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Host.AspNetCore.UnitTests",
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Host.UnitTests", "test\Host.UnitTests\Host.UnitTests.csproj", "{174F6E63-4DC4-4CC0-AB44-2F41386DD038}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Crest.OpenApi", "src\Crest.OpenApi\Crest.OpenApi.csproj", "{2A115F39-7B36-4814-99F3-6CEBE2EF653E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Crest.OpenApi", "src\Crest.OpenApi\Crest.OpenApi.csproj", "{2A115F39-7B36-4814-99F3-6CEBE2EF653E}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Crest.Abstractions", "src\Crest.Abstractions\Crest.Abstractions.csproj", "{C0198222-279A-4BE2-A63C-68D19240594B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenApi.UnitTests", "test\OpenApi.UnitTests\OpenApi.UnitTests.csproj", "{80D0C7D9-2B07-44C1-9312-98C77331301E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenApi.UnitTests", "test\OpenApi.UnitTests\OpenApi.UnitTests.csproj", "{80D0C7D9-2B07-44C1-9312-98C77331301E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IntegrationTests", "test\IntegrationTests\IntegrationTests.csproj", "{26C4680C-1381-444C-8EC2-F2BFEEA9871A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IntegrationTests", "test\IntegrationTests\IntegrationTests.csproj", "{26C4680C-1381-444C-8EC2-F2BFEEA9871A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

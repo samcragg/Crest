@@ -10,6 +10,7 @@
 
     <!-- Temporary disable for LibLog -->
     <NoWarn>1573</NoWarn>
+    <Description>Provides the main logic for hosting Crest endpoints.</Description>
   </PropertyGroup>
 
   <Import Project="..\CrestAnalyzers.targets" />

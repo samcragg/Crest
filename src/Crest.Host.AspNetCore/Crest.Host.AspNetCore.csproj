@@ -4,6 +4,7 @@
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <PackageId>Crest.Host.AspNetCore</PackageId>
+    <Description>Allows the hosting of Crest endpoints as an ASP .NET website.</Description>
   </PropertyGroup>
 
   <Import Project="..\CrestAnalyzers.targets" />

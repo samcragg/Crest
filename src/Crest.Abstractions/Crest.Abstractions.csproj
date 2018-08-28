@@ -4,6 +4,7 @@
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <PackageId>Crest.Abstractions</PackageId>
+    <Description>Defines types used to extend the Crest routing logic.</Description>
   </PropertyGroup>
 
   <Import Project="..\CrestAnalyzers.targets" />

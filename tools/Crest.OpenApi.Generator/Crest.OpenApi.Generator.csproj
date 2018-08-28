@@ -9,6 +9,7 @@
     <OutputType>Exe</OutputType>
     <PackageId>Crest.OpenApi.Generator</PackageId>
     <PackageType>DotNetCliTool</PackageType>
+    <Description>.NET Command-Line Interface tool for creating OpenApi documentation for Crest endpoints.</Description>
   </PropertyGroup>
 
   <Import Project="..\..\src\CrestAnalyzers.targets" />
@@ -16,7 +17,7 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.CommandLineUtils" Version="1.1.1" />
-    <PackageReference Include="Microsoft.Extensions.DependencyModel" Version="2.1.0" />
+    <PackageReference Include="Microsoft.Extensions.DependencyModel" Version="1.0.0" />
     <PackageReference Include="System.ComponentModel.Primitives" Version="4.3.0" />
     <PackageReference Include="System.Diagnostics.TraceSource" Version="4.3.0" />
     <PackageReference Include="System.Runtime.Loader" Version="4.3.0" />
