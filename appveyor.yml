@@ -25,3 +25,5 @@ deploy:
     secure: dY59EPMAxx5HCinjuCF7JnnFIVaelfbM5l5DTY+kWIbhp17e/qUHFuyAJE/1tjQg
   skip_symbols: true
   artifact: /.*\.nupkg/
+  on:
+    appveyor_repo_tag: true
