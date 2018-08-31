@@ -32,7 +32,7 @@ namespace Crest.Host.Routing
                 var buffer = new ArrayList();
                 foreach (string value in query[this.queryKey])
                 {
-                    if (this.converter.TryConvertValue(new StringSegment(value), out object result))
+                    if (this.converter.TryConvertValue(value.AsSpan(), out object result))
                     {
                         buffer.Add(result);
                     }
@@ -49,7 +49,7 @@ namespace Crest.Host.Routing
                     }
                 }
 
-                parameters[this.converter.ParameterName] = buffer.ToArray(this.elementType);
+                parameters.Add(this.converter.ParameterName, buffer.ToArray(this.elementType));
             }
         }
     }

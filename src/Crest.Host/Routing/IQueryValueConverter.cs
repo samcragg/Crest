@@ -5,6 +5,8 @@
 
 namespace Crest.Host.Routing
 {
+    using System;
+
     /// <summary>
     /// Allows a query value to be extracted from the url.
     /// </summary>
@@ -26,6 +28,6 @@ namespace Crest.Host.Routing
         /// <returns>
         /// <c>true</c> if the value was converted; otherwise, <c>false</c>.
         /// </returns>
-        bool TryConvertValue(StringSegment value, out object result);
+        bool TryConvertValue(ReadOnlySpan<char> value, out object result);
     }
 }

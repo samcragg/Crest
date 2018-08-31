@@ -42,7 +42,7 @@ namespace Crest.Host.Routing
         }
 
         /// <inheritdoc />
-        public NodeMatchResult Match(StringSegment segment)
+        public NodeMatchResult Match(ReadOnlySpan<char> segment)
         {
             object converted = ParseValue(segment);
             if (converted == null)
@@ -56,9 +56,9 @@ namespace Crest.Host.Routing
         }
 
         /// <inheritdoc />
-        public bool TryConvertValue(StringSegment value, out object result)
+        public bool TryConvertValue(ReadOnlySpan<char> value, out object result)
         {
-            if (value.Count == 0)
+            if (value.Length == 0)
             {
                 result = BoxedTrue;
                 return true;
@@ -70,11 +70,11 @@ namespace Crest.Host.Routing
             }
         }
 
-        private static bool Matches(StringSegment segment, string[] values)
+        private static bool Matches(in ReadOnlySpan<char> segment, string[] values)
         {
             for (int i = 0; i < values.Length; i++)
             {
-                if (segment.Equals(values[i], StringComparison.OrdinalIgnoreCase))
+                if (segment.Equals(values[i].AsSpan(), StringComparison.OrdinalIgnoreCase))
                 {
                     return true;
                 }
@@ -83,7 +83,7 @@ namespace Crest.Host.Routing
             return false;
         }
 
-        private static object ParseValue(StringSegment value)
+        private static object ParseValue(in ReadOnlySpan<char> value)
         {
             if (Matches(value, FalseValues))
             {

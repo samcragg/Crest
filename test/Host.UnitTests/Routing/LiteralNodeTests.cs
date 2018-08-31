@@ -1,7 +1,6 @@
 ﻿namespace Host.UnitTests.Routing
 {
     using System;
-    using Crest.Host;
     using Crest.Host.Routing;
     using FluentAssertions;
     using NSubstitute;
@@ -12,7 +11,7 @@
         private const string LiteralString = "literal";
         private readonly LiteralNode node = new LiteralNode(LiteralString);
 
-        public sealed new class Equals : LiteralNodeTests
+        public new sealed class Equals : LiteralNodeTests
         {
             [Fact]
             public void ShouldIgnoreTheCaseOfTheLiteral()
@@ -49,16 +48,15 @@
             public void ShouldIgnoreTheCaseWhenComparing()
             {
                 NodeMatchResult result = this.node.Match(
-                    new StringSegment(LiteralString.ToUpperInvariant()));
+                    LiteralString.ToUpperInvariant().AsSpan());
 
                 result.Success.Should().BeTrue();
             }
 
             [Fact]
-            public void ShouldReturnSuccessIfTheLiteralIfTheSubstringMatchesTheLiteral()
+            public void ShouldReturnSuccessIfTheLiteralMatches()
             {
-                NodeMatchResult result = this.node.Match(
-                    new StringSegment("ignore_" + LiteralString, "ignore_".Length, "ignore_".Length + LiteralString.Length));
+                NodeMatchResult result = this.node.Match(LiteralString.AsSpan());
 
                 result.Success.Should().BeTrue();
             }
@@ -66,7 +64,7 @@
             [Fact]
             public void ShouldReturnUnsuccessfulIfTheLiteralIsNotAtTheSpecifiedLocation()
             {
-                NodeMatchResult result = this.node.Match(new StringSegment("not_here_literal"));
+                NodeMatchResult result = this.node.Match("not_here_literal".AsSpan());
 
                 result.Success.Should().BeFalse();
             }

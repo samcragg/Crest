@@ -37,13 +37,13 @@ namespace Crest.Host.Routing
         }
 
         /// <inheritdoc />
-        public NodeMatchResult Match(StringSegment segment)
+        public NodeMatchResult Match(ReadOnlySpan<char> segment)
         {
             return new NodeMatchResult(this.ParameterName, segment.ToString());
         }
 
         /// <inheritdoc />
-        public bool TryConvertValue(StringSegment value, out object result)
+        public bool TryConvertValue(ReadOnlySpan<char> value, out object result)
         {
             result = value.ToString();
             return true;

@@ -51,18 +51,17 @@ namespace Crest.Host.Routing
         /// <inheritdoc />
         public bool Equals(IMatchNode other)
         {
-            var node = other as IntegerCaptureNode;
-            if (node == null)
+            if (other is IntegerCaptureNode node)
             {
-                return false;
+                return (this.type == node.type) &&
+                        string.Equals(this.ParameterName, node.ParameterName, StringComparison.Ordinal);
             }
 
-            return (this.type == node.type) &&
-                    string.Equals(this.ParameterName, node.ParameterName, StringComparison.Ordinal);
+            return false;
         }
 
         /// <inheritdoc />
-        public NodeMatchResult Match(StringSegment segment)
+        public NodeMatchResult Match(ReadOnlySpan<char> segment)
         {
             if (this.TryConvertValue(segment, out object result))
             {
@@ -75,10 +74,10 @@ namespace Crest.Host.Routing
         }
 
         /// <inheritdoc />
-        public bool TryConvertValue(StringSegment value, out object result)
+        public bool TryConvertValue(ReadOnlySpan<char> value, out object result)
         {
             ParseResult<long> parseResult = IntegerConverter.TryReadSignedInt(
-                value.CreateSpan(),
+                value,
                 long.MinValue,
                 long.MaxValue);
 

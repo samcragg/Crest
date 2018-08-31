@@ -32,16 +32,15 @@ namespace Crest.Host.Routing
         }
 
         /// <inheritdoc />
-        public NodeMatchResult Match(StringSegment segment)
+        public NodeMatchResult Match(ReadOnlySpan<char> segment)
         {
-            if (segment.Count > 1)
+            if (segment.Length > 1)
             {
                 char v = segment[0];
                 if ((v == 'v') || (v == 'V'))
                 {
-                    segment = new StringSegment(segment.String, segment.Start + 1, segment.End);
                     ParseResult<long> result = IntegerConverter.TryReadSignedInt(
-                        segment.CreateSpan(),
+                        segment.Slice(1),
                         int.MinValue,
                         int.MaxValue);
 
@@ -56,7 +55,7 @@ namespace Crest.Host.Routing
         }
 
         /// <inheritdoc />
-        bool IQueryValueConverter.TryConvertValue(StringSegment value, out object result)
+        bool IQueryValueConverter.TryConvertValue(ReadOnlySpan<char> value, out object result)
         {
             throw new NotSupportedException();
         }

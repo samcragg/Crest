@@ -1,7 +1,6 @@
 ﻿namespace Host.UnitTests.Routing
 {
     using System;
-    using Crest.Host;
     using Crest.Host.Routing;
     using FluentAssertions;
     using NSubstitute;
@@ -12,7 +11,7 @@
         private const string Parameter = "parameter";
         private readonly GenericCaptureNode node = new GenericCaptureNode(Parameter, typeof(int));
 
-        public sealed new class Equals : GenericCaptureNodeTests
+        public new sealed class Equals : GenericCaptureNodeTests
         {
             [Fact]
             public void ShouldReturnFalseForDifferentParameters()
@@ -48,7 +47,7 @@
             [Fact]
             public void ShouldReturnNoneIfTheConversionErrored()
             {
-                NodeMatchResult result = this.node.Match(new StringSegment("Not an integer"));
+                NodeMatchResult result = this.node.Match("Not an integer".AsSpan());
 
                 result.Success.Should().BeFalse();
             }
@@ -56,7 +55,7 @@
             [Fact]
             public void ShouldReturnSuccessIfTheConversionSucceeded()
             {
-                NodeMatchResult result = this.node.Match(new StringSegment("1"));
+                NodeMatchResult result = this.node.Match("1".AsSpan());
 
                 result.Success.Should().BeTrue();
             }
@@ -64,7 +63,7 @@
             [Fact]
             public void ShouldReturnTheConvertedParameter()
             {
-                NodeMatchResult result = this.node.Match(new StringSegment("123"));
+                NodeMatchResult result = this.node.Match("123".AsSpan());
 
                 result.Name.Should().Be(Parameter);
                 result.Value.Should().Be(123);
@@ -94,7 +93,7 @@
             [Fact]
             public void ShouldReturnFalsefTheConversionFailed()
             {
-                bool result = this.node.TryConvertValue(new StringSegment("Not an integer"), out object value);
+                bool result = this.node.TryConvertValue("Not an integer".AsSpan(), out object value);
 
                 result.Should().BeFalse();
                 value.Should().BeNull();
@@ -103,7 +102,7 @@
             [Fact]
             public void ShouldReturnTrueIfTheConversionSucceeded()
             {
-                bool result = this.node.TryConvertValue(new StringSegment("1"), out object value);
+                bool result = this.node.TryConvertValue("1".AsSpan(), out object value);
 
                 result.Should().BeTrue();
                 value.Should().Be(1);

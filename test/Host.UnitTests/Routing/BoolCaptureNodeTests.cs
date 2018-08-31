@@ -1,6 +1,6 @@
 ﻿namespace Host.UnitTests.Routing
 {
-    using Crest.Host;
+    using System;
     using Crest.Host.Routing;
     using FluentAssertions;
     using NSubstitute;
@@ -11,7 +11,7 @@
         private const string Parameter = "parameter";
         private readonly BoolCaptureNode node = new BoolCaptureNode(Parameter);
 
-        public sealed new class Equals : BoolCaptureNodeTests
+        public new sealed class Equals : BoolCaptureNodeTests
         {
             [Fact]
             public void ShouldReturnFalseForDifferentParameters()
@@ -40,8 +40,7 @@
             [Fact]
             public void ShouldMatchFalse()
             {
-                NodeMatchResult result = this.node.Match(
-                    new StringSegment("/False/", 1, 6));
+                NodeMatchResult result = this.node.Match("False".AsSpan());
 
                 result.Success.Should().BeTrue();
             }
@@ -49,8 +48,7 @@
             [Fact]
             public void ShouldMatchOneAsTrue()
             {
-                NodeMatchResult result = this.node.Match(
-                    new StringSegment("_1_", 1, 2));
+                NodeMatchResult result = this.node.Match("1".AsSpan());
 
                 result.Success.Should().BeTrue();
                 result.Value.Should().Be(true);
@@ -59,8 +57,7 @@
             [Fact]
             public void ShouldMatchTrue()
             {
-                NodeMatchResult result = this.node.Match(
-                    new StringSegment("/True/", 1, 5));
+                NodeMatchResult result = this.node.Match("True".AsSpan());
 
                 result.Success.Should().BeTrue();
             }
@@ -68,8 +65,7 @@
             [Fact]
             public void ShouldMatchZeroAsFalse()
             {
-                NodeMatchResult result = this.node.Match(
-                    new StringSegment("_0_", 1, 2));
+                NodeMatchResult result = this.node.Match("0".AsSpan());
 
                 result.Success.Should().BeTrue();
                 result.Value.Should().Be(false);
@@ -78,8 +74,7 @@
             [Fact]
             public void ShouldNotMatchPartialWords()
             {
-                NodeMatchResult result = this.node.Match(
-                    new StringSegment("_true_", 1, 4));
+                NodeMatchResult result = this.node.Match("tru".AsSpan());
 
                 result.Success.Should().BeFalse();
             }
@@ -87,7 +82,7 @@
             [Fact]
             public void ShouldReturnTheCapturedParameter()
             {
-                NodeMatchResult result = this.node.Match(new StringSegment("true"));
+                NodeMatchResult result = this.node.Match("true".AsSpan());
 
                 result.Name.Should().Be(Parameter);
             }
@@ -117,7 +112,7 @@
             public void ShouldMatchFalse()
             {
                 bool result = this.node.TryConvertValue(
-                    new StringSegment("_false_", 1, 6),
+                    "false".AsSpan(),
                     out object value);
 
                 result.Should().BeTrue();
@@ -128,7 +123,7 @@
             public void ShouldMatchTrue()
             {
                 bool result = this.node.TryConvertValue(
-                    new StringSegment("_true_", 1, 5),
+                    "true".AsSpan(),
                     out object value);
 
                 result.Should().BeTrue();
@@ -139,7 +134,7 @@
             public void ShouldReturnFalseForInvalidValues()
             {
                 bool result = this.node.TryConvertValue(
-                    new StringSegment("invalid"),
+                    "invalid".AsSpan(),
                     out object value);
 
                 result.Should().BeFalse();
@@ -150,7 +145,7 @@
             public void ShouldReturnTrueForEmptyValues()
             {
                 bool result = this.node.TryConvertValue(
-                    new StringSegment(string.Empty),
+                    ReadOnlySpan<char>.Empty,
                     out object value);
 
                 result.Should().BeTrue();

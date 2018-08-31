@@ -45,9 +45,9 @@ namespace Crest.Host.Routing
         }
 
         /// <inheritdoc />
-        public NodeMatchResult Match(StringSegment segment)
+        public NodeMatchResult Match(ReadOnlySpan<char> segment)
         {
-            if (segment.Equals(this.Literal, StringComparison.OrdinalIgnoreCase))
+            if (segment.Equals(this.Literal.AsSpan(), StringComparison.OrdinalIgnoreCase))
             {
                 return Success;
             }
@@ -58,7 +58,7 @@ namespace Crest.Host.Routing
         }
 
         /// <inheritdoc />
-        bool IQueryValueConverter.TryConvertValue(StringSegment value, out object result)
+        bool IQueryValueConverter.TryConvertValue(ReadOnlySpan<char> value, out object result)
         {
             throw new NotSupportedException();
         }

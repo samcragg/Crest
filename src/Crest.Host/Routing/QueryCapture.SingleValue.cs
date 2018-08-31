@@ -5,6 +5,7 @@
 
 namespace Crest.Host.Routing
 {
+    using System;
     using System.Collections.Generic;
     using System.Linq;
     using Crest.Host.Logging;
@@ -26,9 +27,9 @@ namespace Crest.Host.Routing
             {
                 foreach (string value in query[this.queryKey])
                 {
-                    if (this.converter.TryConvertValue(new StringSegment(value), out object result))
+                    if (this.converter.TryConvertValue(value.AsSpan(), out object result))
                     {
-                        parameters[this.converter.ParameterName] = result;
+                        parameters.Add(this.converter.ParameterName, result);
                         break;
                     }
 

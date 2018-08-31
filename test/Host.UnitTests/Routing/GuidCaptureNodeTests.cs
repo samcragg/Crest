@@ -1,7 +1,6 @@
 ﻿namespace Host.UnitTests.Routing
 {
     using System;
-    using Crest.Host;
     using Crest.Host.Routing;
     using FluentAssertions;
     using NSubstitute;
@@ -12,7 +11,7 @@
         private const string Parameter = "parameter";
         private readonly GuidCaptureNode node = new GuidCaptureNode(Parameter);
 
-        public sealed new class Equals : GuidCaptureNodeTests
+        public new sealed class Equals : GuidCaptureNodeTests
         {
             [Fact]
             public void ShouldReturnFalseForDifferentParameters()
@@ -46,8 +45,7 @@
             [InlineData("(637325b6-75c1-45c4-aa64-d905cf3f7a90)")]
             public void ShouldMatchValidGuidStringFormats(string value)
             {
-                NodeMatchResult result = this.node.Match(
-                    new StringSegment("/" + value + "/", 1, value.Length + 1));
+                NodeMatchResult result = this.node.Match(value.AsSpan());
 
                 result.Success.Should().BeTrue();
             }
@@ -62,7 +60,7 @@
             [InlineData("+637325b6-75c1-45c4-aa64-d905cf3f7a90+")]
             public void ShouldNotMatchInvalidFormattedGuids(string guid)
             {
-                NodeMatchResult result = this.node.Match(new StringSegment(guid));
+                NodeMatchResult result = this.node.Match(guid.AsSpan());
 
                 result.Success.Should().BeFalse();
             }
@@ -70,8 +68,7 @@
             [Fact]
             public void ShouldNotMatchInvalidHexValues()
             {
-                NodeMatchResult result = this.node.Match(
-                    new StringSegment("/ABCDEFGH-ijkl-MNOP-qrstuvwxyz12/", 1, 37));
+                NodeMatchResult result = this.node.Match("ABCDEFGH-ijkl-MNOP-qrst-uvwxyz123456".AsSpan());
 
                 result.Success.Should().BeFalse();
             }
@@ -81,8 +78,7 @@
             {
                 var guid = new Guid("637325B6-75C1-45C4-AA64-D905CF3F7A90");
 
-                NodeMatchResult result = this.node.Match(
-                    new StringSegment("/" + guid.ToString("D") + "/", 1, 37));
+                NodeMatchResult result = this.node.Match(guid.ToString("D").AsSpan());
 
                 result.Name.Should().Be(Parameter);
                 result.Value.Should().Be(guid);
@@ -113,7 +109,7 @@
             public void ShouldReturnFalseForInvalidValues()
             {
                 bool result = this.node.TryConvertValue(
-                    new StringSegment("invalid"),
+                    "invalid".AsSpan(),
                     out object value);
 
                 result.Should().BeFalse();
@@ -124,7 +120,7 @@
             public void ShouldReturnTrueForValidValues()
             {
                 bool result = this.node.TryConvertValue(
-                    new StringSegment("637325b6-75c1-45c4-aa64-d905cf3f7a90"),
+                    "637325b6-75c1-45c4-aa64-d905cf3f7a90".AsSpan(),
                     out object value);
 
                 result.Should().BeTrue();

@@ -1,7 +1,6 @@
 ﻿namespace Host.UnitTests.Routing
 {
     using System;
-    using Crest.Host;
     using Crest.Host.Routing;
     using FluentAssertions;
     using NSubstitute;
@@ -25,7 +24,7 @@
             }
         }
 
-        public sealed new class Equals : IntegerCaptureNodeTests
+        public new sealed class Equals : IntegerCaptureNodeTests
         {
             [Fact]
             public void ShouldReturnFalseForDifferentParameters()
@@ -64,8 +63,7 @@
             [InlineData("-123", -123)]
             public void ShouldMatchValidIntegers(string integer, int expected)
             {
-                NodeMatchResult result = this.node.Match(
-                    new StringSegment("/" + integer + "/", 1, integer.Length + 1));
+                NodeMatchResult result = this.node.Match(integer.AsSpan());
 
                 result.Success.Should().BeTrue();
                 result.Name.Should().Be(Parameter);
@@ -75,8 +73,7 @@
             [Fact]
             public void ShouldNotMatchInvalidIntegers()
             {
-                NodeMatchResult result = this.node.Match(
-                    new StringSegment("/ABC/", 1, 4));
+                NodeMatchResult result = this.node.Match("ABC".AsSpan());
 
                 result.Success.Should().BeFalse();
             }
@@ -106,7 +103,7 @@
             public void ShouldReturnFalseForInvalidValues()
             {
                 bool result = this.node.TryConvertValue(
-                    new StringSegment("invalid"),
+                    "invalid".AsSpan(),
                     out object value);
 
                 result.Should().BeFalse();
@@ -117,7 +114,7 @@
             public void ShouldReturnTrueForValidValues()
             {
                 bool result = this.node.TryConvertValue(
-                    new StringSegment("123"),
+                    "123".AsSpan(),
                     out object value);
 
                 result.Should().BeTrue();

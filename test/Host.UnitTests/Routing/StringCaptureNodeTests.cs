@@ -1,6 +1,6 @@
 ﻿namespace Host.UnitTests.Routing
 {
-    using Crest.Host;
+    using System;
     using Crest.Host.Routing;
     using FluentAssertions;
     using NSubstitute;
@@ -11,7 +11,7 @@
         private const string Parameter = "parameter";
         private readonly StringCaptureNode node = new StringCaptureNode(Parameter);
 
-        public sealed new class Equals : StringCaptureNodeTests
+        public new sealed class Equals : StringCaptureNodeTests
         {
             [Fact]
             public void ShouldReturnFalseForDifferentParameters()
@@ -40,8 +40,7 @@
             [Fact]
             public void ShouldMatchAnyString()
             {
-                NodeMatchResult result = this.node.Match(
-                    new StringSegment("/string/", 1, 7));
+                NodeMatchResult result = this.node.Match("string".AsSpan());
 
                 result.Success.Should().BeTrue();
             }
@@ -49,8 +48,7 @@
             [Fact]
             public void ShouldSaveTheCapturedParameter()
             {
-                NodeMatchResult result = this.node.Match(
-                    new StringSegment("01234", 2, 4));
+                NodeMatchResult result = this.node.Match("23".AsSpan());
 
                 result.Name.Should().Be(Parameter);
                 result.Value.Should().Be("23");
@@ -81,7 +79,7 @@
             public void ShouldReturnThePassedInSegment()
             {
                 bool result = this.node.TryConvertValue(
-                    new StringSegment("/string/", 1, 7),
+                    "string".AsSpan(),
                     out object value);
 
                 result.Should().BeTrue();

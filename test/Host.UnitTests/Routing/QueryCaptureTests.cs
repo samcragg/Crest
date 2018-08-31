@@ -140,7 +140,7 @@
         {
             public string ParameterName => CapturedParameter;
 
-            public bool TryConvertValue(StringSegment value, out object result)
+            public bool TryConvertValue(ReadOnlySpan<char> value, out object result)
             {
                 if (int.TryParse(value.ToString(), out int converted))
                 {

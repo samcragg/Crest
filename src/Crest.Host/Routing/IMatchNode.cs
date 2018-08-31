@@ -30,6 +30,6 @@ namespace Crest.Host.Routing
         /// The result of the matching, including any captured parameters if
         /// successful.
         /// </returns>
-        NodeMatchResult Match(StringSegment segment);
+        NodeMatchResult Match(ReadOnlySpan<char> segment);
     }
 }

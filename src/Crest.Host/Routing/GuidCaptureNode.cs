@@ -37,7 +37,7 @@ namespace Crest.Host.Routing
         }
 
         /// <inheritdoc />
-        public NodeMatchResult Match(StringSegment segment)
+        public NodeMatchResult Match(ReadOnlySpan<char> segment)
         {
             if (this.TryConvertValue(segment, out object result))
             {
@@ -50,13 +50,12 @@ namespace Crest.Host.Routing
         }
 
         /// <inheritdoc />
-        public bool TryConvertValue(StringSegment value, out object result)
+        public bool TryConvertValue(ReadOnlySpan<char> value, out object result)
         {
-            int start = value.Start;
-            if (CheckStringLength(value, ref start))
+            if (CheckStringLength(ref value))
             {
                 var guid = default(Guid);
-                if (TryParseGuid(value.String, value.Count > 32, start, ref guid))
+                if (TryParseGuid(value, value.Length > 32, ref guid))
                 {
                     result = guid;
                     return true;
@@ -67,7 +66,7 @@ namespace Crest.Host.Routing
             return false;
         }
 
-        private static int CheckHyphen(string str, bool hyphensAllowed, int index)
+        private static int CheckHyphen(in ReadOnlySpan<char> str, bool hyphensAllowed, int index)
         {
             if (hyphensAllowed)
             {
@@ -84,24 +83,24 @@ namespace Crest.Host.Routing
             }
         }
 
-        private static bool CheckStringLength(StringSegment segment, ref int start)
+        private static bool CheckStringLength(ref ReadOnlySpan<char> segment)
         {
-            switch (segment.Count)
+            switch (segment.Length)
             {
                 case 32:
                 case 36:
                     return true;
 
                 case 38:
-                    start++;
                     char first = segment[0];
+                    segment = segment.Slice(1);
                     if (first == '{')
                     {
-                        return segment[37] == '}';
+                        return segment[36] == '}';
                     }
                     else if (first == '(')
                     {
-                        return segment[37] == ')';
+                        return segment[36] == ')';
                     }
                     else
                     {
@@ -113,7 +112,7 @@ namespace Crest.Host.Routing
             }
         }
 
-        private static bool GetHexInt32(string str, int start, int end, ref int result)
+        private static bool GetHexInt32(in ReadOnlySpan<char> str, int start, int end, ref int result)
         {
             // If the check to hyphen fails then it will set the start index to
             // out of bounds
@@ -149,9 +148,9 @@ namespace Crest.Host.Routing
             return true;
         }
 
-        private static bool TryParseGuid(string value, bool hyphensAllowed, int start, ref Guid guid)
+        private static bool TryParseGuid(in ReadOnlySpan<char> value, bool hyphensAllowed, ref Guid guid)
         {
-            int index = start;
+            int index = 0;
             int a = 0;
             if (!GetHexInt32(value, index, index + 8, ref a))
             {
