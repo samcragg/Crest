@@ -140,11 +140,11 @@
                 RouteMetadata route = CreateRoute<string>("/literal/{capture}/", 1, 1, "capture");
 
                 NodeBuilder.IParseResult result = this.builder.Parse(route);
-                StringSegment[] segments = UrlParser.GetSegments("/literal/string_value").ToArray();
+                (int start, int length)[] segments = UrlParser.GetSegments("/literal/string_value");
 
                 result.Nodes.Should().HaveCount(2);
-                NodeMatchResult literal = result.Nodes[0].Match(segments[0]);
-                NodeMatchResult capture = result.Nodes[1].Match(segments[1]);
+                NodeMatchResult literal = result.Nodes[0].Match("literal".AsSpan());
+                NodeMatchResult capture = result.Nodes[1].Match("string_value".AsSpan());
 
                 literal.Success.Should().BeTrue();
                 capture.Success.Should().BeTrue();
@@ -217,7 +217,7 @@
             {
                 RouteMetadata route = CreateRoute("/{capture}/", 1, 1, type, "capture");
                 NodeBuilder.IParseResult result = this.builder.Parse(route);
-                return result.Nodes.Single().Match(new StringSegment(value));
+                return result.Nodes.Single().Match(value.AsSpan());
             }
         }
 

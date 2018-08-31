@@ -6,6 +6,7 @@
     <PackageId>Crest.Analyzers</PackageId>
     <Description>Allows the analyzing of routes inside a project that uses the Crest framework.</Description>
     <PackageTags>Crest, analyzers</PackageTags>
+    <LangVersion>Latest</LangVersion>
   </PropertyGroup>
 
   <Import Project="..\..\src\CrestPackage.targets" />
@@ -15,7 +16,6 @@
     <Compile Include="..\..\src\Crest.Host\Routing\UrlParser.cs" Link="Crest.Host\UrlParser.cs" />
     <Compile Include="..\..\src\Crest.Host\Routing\UrlParser.ParameterData.cs" Link="Crest.Host\UrlParser.ParameterData.cs" />
     <Compile Include="..\..\src\Crest.Host\Routing\UrlParser.SegmentParser.cs" Link="Crest.Host\UrlParser.SegmentParser.cs" />
-    <Compile Include="..\..\src\Crest.Host\StringSegment.cs" Link="Crest.Host\StringSegment.cs" />
   </ItemGroup>
    
   <ItemGroup>

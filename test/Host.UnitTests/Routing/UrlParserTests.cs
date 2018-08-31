@@ -3,7 +3,6 @@
     using System;
     using System.Collections.Generic;
     using System.Linq;
-    using Crest.Host;
     using Crest.Host.Routing;
     using FluentAssertions;
     using Xunit;
@@ -17,11 +16,12 @@
             [Fact]
             public void ShouldReturnAllTheParts()
             {
-                StringSegment[] segments = UrlParser.GetSegments("/one/two").ToArray();
+                const string Url = "/one/two";
+                (int start, int length)[] segments = UrlParser.GetSegments(Url);
 
                 segments.Should().HaveCount(2);
-                segments[0].ToString().Should().Be("one");
-                segments[1].ToString().Should().Be("two");
+                Url.Substring(segments[0].start, segments[0].length).Should().Be("one");
+                Url.Substring(segments[1].start, segments[1].length).Should().Be("two");
             }
         }
 

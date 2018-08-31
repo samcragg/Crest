@@ -91,7 +91,7 @@ namespace Crest.Host.Routing
                     Target target = match.Value.Match(version);
                     if (target.Method != null)
                     {
-                        AddPlaceholders(target, match.Captures);
+                        AddPlaceholders(target, (IDictionary<string, object>)match.Captures);
                         SaveQueryParameters(query, target, match);
 
                         parameters = match.Captures;
@@ -124,7 +124,7 @@ namespace Crest.Host.Routing
             {
                 foreach (QueryCapture capture in target.QueryCaptures)
                 {
-                    capture.ParseParameters(query, match.Captures);
+                    capture.ParseParameters(query, (IDictionary<string, object>)match.Captures);
                 }
             }
         }

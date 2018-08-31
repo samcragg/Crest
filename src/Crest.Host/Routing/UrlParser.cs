@@ -19,6 +19,7 @@ namespace Crest.Host.Routing
     /// </remarks>
     internal abstract partial class UrlParser
     {
+        private static readonly (int, int)[] NoKeyValues = new (int, int)[0];
         private readonly bool canReadBody;
 
         private readonly HashSet<string> capturedParameters =
@@ -108,8 +109,8 @@ namespace Crest.Host.Routing
         /// Gets the path segments of a URL.
         /// </summary>
         /// <param name="url">The URL to parse.</param>
-        /// <returns>A sequence of substrings.</returns>
-        internal static IEnumerable<StringSegment> GetSegments(string url)
+        /// <returns>A sequence of markers for the parts.</returns>
+        internal static (int start, int length)[] GetSegments(string url)
         {
             int pathEnd = url.IndexOf('?');
             if (pathEnd < 0)
@@ -117,23 +118,7 @@ namespace Crest.Host.Routing
                 pathEnd = url.Length;
             }
 
-            int start = 0;
-            int end = url.IndexOf('/', 0, pathEnd);
-            while (end != -1)
-            {
-                if (start != end)
-                {
-                    yield return new StringSegment(url, start, end);
-                }
-
-                start = end + 1;
-                end = url.IndexOf('/', start, pathEnd - start);
-            }
-
-            if (pathEnd != start)
-            {
-                yield return new StringSegment(url, start, pathEnd);
-            }
+            return Split(url, 0, pathEnd, '/');
         }
 
         /// <summary>
@@ -200,21 +185,58 @@ namespace Crest.Host.Routing
             }
         }
 
-        private static IEnumerable<StringSegment> GetKeyValues(string url)
+        private static (int start, int length)[] GetKeyValues(string url)
         {
             int start = url.IndexOf('?') + 1;
-            if (start > 0)
+            if (start <= 0)
             {
-                int end = url.IndexOf('&', start);
-                while (end != -1)
+                return NoKeyValues;
+            }
+            else
+            {
+                return Split(url, start, url.Length, '&');
+            }
+        }
+
+        private static (int start, int length)[] Split(string url, int first, int last, char separator)
+        {
+            // Store the start/end pairs, so add one to allow for the index at
+            // the end
+            Span<int> indexes = stackalloc int[(last - first) + 1];
+            int index = 0;
+            int start = first;
+            int end = url.IndexOf(separator, start, last - start);
+            while (end >= 0)
+            {
+                if (start != end)
                 {
-                    yield return new StringSegment(url, start, end);
-                    start = end + 1;
-                    end = url.IndexOf('&', start);
+                    indexes[index] = start;
+                    index++;
+                    indexes[index] = end;
+                    index++;
                 }
 
-                yield return new StringSegment(url, start, url.Length);
+                start = end + 1;
+                end = url.IndexOf(separator, start, last - start);
             }
+
+            if (start < last)
+            {
+                indexes[index] = start;
+                index++;
+                indexes[index] = last;
+                index++;
+            }
+
+            (int start, int length)[] pairs = new (int, int)[index / 2];
+            index = 0;
+            for (int i = 0; i < pairs.Length; i++)
+            {
+                start = indexes[index++];
+                pairs[i] = (start, indexes[index++] - start);
+            }
+
+            return pairs;
         }
 
         private bool AddBoodyParameterToCaptures()
@@ -276,11 +298,13 @@ namespace Crest.Host.Routing
         }
 
         private bool GetQueryParameter(
-            StringSegment value,
+            string url,
+            int start,
+            int length,
             out string parameterName,
             out Type parameterType)
         {
-            switch (this.UnescapeSegment(value, out parameterName))
+            switch (this.UnescapeSegment(url, start, length, out parameterName))
             {
                 case SegmentType.Error:
                 case SegmentType.PartialCapture:
@@ -290,15 +314,15 @@ namespace Crest.Host.Routing
                 case SegmentType.Literal:
                     this.OnError(
                         ErrorType.MustCaptureQueryValue,
-                        value.Start,
-                        value.Count,
-                        value.String);
+                        start,
+                        length,
+                        url);
 
                     parameterType = null;
                     return false;
             }
 
-            ParameterData parameter = this.GetValidParameter(value, parameterName);
+            ParameterData parameter = this.GetValidParameter(start, length, parameterName);
             if ((parameter != null) && parameter.IsOptional)
             {
                 parameterType = parameter.ParameterType;
@@ -312,14 +336,14 @@ namespace Crest.Host.Routing
             }
         }
 
-        private ParameterData GetValidParameter(StringSegment declaration, string name)
+        private ParameterData GetValidParameter(int start, int length, string name)
         {
             if (!this.currentParameters.TryGetValue(name, out ParameterData parameter))
             {
                 this.OnError(
                     ErrorType.UnknownParameter,
-                    declaration.Start + 1,
-                    declaration.Count - 2,
+                    start + 1,
+                    length - 2,
                     name);
 
                 return null;
@@ -342,13 +366,14 @@ namespace Crest.Host.Routing
 
         private bool ParsePath(string routeUrl)
         {
-            foreach (StringSegment segment in GetSegments(routeUrl))
+            foreach ((int start, int length) in GetSegments(routeUrl))
             {
-                SegmentType type = this.UnescapeSegment(segment, out string segmentValue);
+                SegmentType type = this.UnescapeSegment(routeUrl, start, length, out string segmentValue);
                 if (type == SegmentType.Capture)
                 {
                     ParameterData parameter = this.GetValidParameter(
-                        segment,
+                        start,
+                        length,
                         segmentValue);
 
                     if (parameter == null)
@@ -369,23 +394,25 @@ namespace Crest.Host.Routing
 
         private bool ParseQuery(string url)
         {
-            foreach (StringSegment segment in GetKeyValues(url))
+            foreach ((int start, int length) in GetKeyValues(url))
             {
-                string keyValue = segment.ToString();
+                string keyValue = url.Substring(start, length);
                 int separator = keyValue.IndexOf('=');
                 if (separator < 0)
                 {
                     this.OnError(
                         ErrorType.MissingQueryValue,
-                        segment.Start,
-                        segment.Count,
-                        segment.String);
+                        start,
+                        length,
+                        url);
 
                     return false;
                 }
 
                 if (!this.GetQueryParameter(
-                    new StringSegment(segment.String, segment.Start + separator + 1, segment.End),
+                    url,
+                    start + separator + 1,
+                    length - separator - 1,
                     out string parameterName,
                     out Type parameterType))
                 {
@@ -399,18 +426,18 @@ namespace Crest.Host.Routing
             return true;
         }
 
-        private SegmentType UnescapeSegment(StringSegment segment, out string segmentValue)
+        private SegmentType UnescapeSegment(string url, int start, int length, out string segmentValue)
         {
             segmentValue = null;
 
-            var parser = new SegmentParser(this, segment.String, segment.Start, segment.End);
+            var parser = new SegmentParser(this, url, start, start + length);
             if (parser.Type == SegmentType.PartialCapture)
             {
                 this.OnError(
                     ErrorType.MissingClosingBrace,
-                    segment.End - 1,
+                    start + length - 1,
                     1,
-                    segment.String);
+                    url);
             }
             else if (parser.Type != SegmentType.Error)
             {

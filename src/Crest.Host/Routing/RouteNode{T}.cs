@@ -111,11 +111,11 @@ namespace Crest.Host.Routing
         /// </returns>
         public MatchResult Match(string url)
         {
-            var segments = new List<StringSegment>(UrlParser.GetSegments(url));
-            if (segments.Count > 0)
+            (int start, int length)[] segments = UrlParser.GetSegments(url);
+            if (segments.Length > 0)
             {
-                var captures = new Dictionary<string, object>();
-                RouteNode<T> node = this.Match(segments, 0, captures);
+                var captures = new StringDictionary<object>();
+                RouteNode<T> node = this.Match(url, segments, 0, captures);
                 if (node != null)
                 {
                     return new MatchResult(captures, node.Value);
@@ -142,9 +142,10 @@ namespace Crest.Host.Routing
             }
         }
 
-        private RouteNode<T> Match(IReadOnlyList<StringSegment> segments, int index, Dictionary<string, object> captures)
+        private RouteNode<T> Match(string url, (int, int)[] segments, int index, IDictionary<string, object> captures)
         {
-            NodeMatchResult match = this.matcher.Match(segments[index]);
+            (int start, int length) = segments[index];
+            NodeMatchResult match = this.matcher.Match(url.AsSpan(start, length));
             if (!match.Success)
             {
                 return null;
@@ -152,26 +153,26 @@ namespace Crest.Host.Routing
 
             index++;
             RouteNode<T> result = null;
-            if (index == segments.Count)
+            if (index == segments.Length)
             {
                 result = this;
             }
             else
             {
-                result = this.MatchChildren(segments, index, captures);
+                result = this.MatchChildren(url, segments, index, captures);
             }
 
             // Add this after we've searched out children, as during that search
             // we might clear the captures as we head down wrong paths
             if ((result != null) && (match.Name != null))
             {
-                captures[match.Name] = match.Value;
+                captures.Add(match.Name, match.Value);
             }
 
             return result;
         }
 
-        private RouteNode<T> MatchChildren(IReadOnlyList<StringSegment> segments, int index, Dictionary<string, object> captures)
+        private RouteNode<T> MatchChildren(string url, (int, int)[] segments, int index, IDictionary<string, object> captures)
         {
             if (this.children != null)
             {
@@ -180,7 +181,7 @@ namespace Crest.Host.Routing
                     // Clear any previously captured parameters as we're searching
                     // down a new branch
                     captures.Clear();
-                    RouteNode<T> result = this.children[i].Match(segments, index, captures);
+                    RouteNode<T> result = this.children[i].Match(url, segments, index, captures);
                     if (result != null)
                     {
                         return result;

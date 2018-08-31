@@ -2,7 +2,6 @@
 {
     using System.Collections.Generic;
     using System.Linq;
-    using Crest.Host;
     using Crest.Host.Routing;
     using FluentAssertions;
     using NSubstitute;
@@ -17,8 +16,8 @@
         public RouteNodeTests()
         {
             this.matcher = Substitute.For<IMatchNode>();
-            this.matcher.Match(Arg.Any<StringSegment>())
-                .Returns(new NodeMatchResult(string.Empty, null));
+            this.matcher.Match(default)
+                .ReturnsForAnyArgs(new NodeMatchResult(string.Empty, null));
 
             this.node = new RouteNode<string>(this.matcher) { Value = MatcherValue };
         }
