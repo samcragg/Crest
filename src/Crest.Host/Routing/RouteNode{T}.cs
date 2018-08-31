@@ -164,7 +164,7 @@ namespace Crest.Host.Routing
 
             // Add this after we've searched out children, as during that search
             // we might clear the captures as we head down wrong paths
-            if ((result != null) && (match.Name != null))
+            if ((result != null) && !string.IsNullOrEmpty(match.Name))
             {
                 captures.Add(match.Name, match.Value);
             }
