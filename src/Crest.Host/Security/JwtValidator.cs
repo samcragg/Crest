@@ -9,9 +9,9 @@ namespace Crest.Host.Security
     using System.Collections.Generic;
     using System.Security.Claims;
     using Crest.Abstractions;
+    using Crest.Core.Logging;
     using Crest.Host.Diagnostics;
     using Crest.Host.IO;
-    using Crest.Host.Logging;
 
     /// <summary>
     /// Allows the validation of JWTs.

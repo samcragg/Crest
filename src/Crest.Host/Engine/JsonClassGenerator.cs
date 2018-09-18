@@ -11,8 +11,8 @@ namespace Crest.Host.Engine
     using System.Linq;
     using System.Linq.Expressions;
     using System.Reflection;
+    using Crest.Core.Logging;
     using Crest.Host.IO;
-    using Crest.Host.Logging;
 
     /// <summary>
     /// Generates code to change the properties of a class based on JSON data.

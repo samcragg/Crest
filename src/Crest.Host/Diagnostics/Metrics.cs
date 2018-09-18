@@ -9,9 +9,9 @@ namespace Crest.Host.Diagnostics
     using System.Collections.Generic;
     using System.Threading;
     using Crest.Abstractions;
+    using Crest.Core.Logging;
     using Crest.Host.Conversion;
     using Crest.Host.Engine;
-    using Crest.Host.Logging;
 
     /// <summary>
     /// Allows the collection of metrics for the service.

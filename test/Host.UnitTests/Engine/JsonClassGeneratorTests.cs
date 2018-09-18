@@ -1,8 +1,8 @@
 ﻿namespace Host.UnitTests.Engine
 {
     using System;
+    using Crest.Core.Logging;
     using Crest.Host.Engine;
-    using Crest.Host.Logging;
     using FluentAssertions;
     using Host.UnitTests.TestHelpers;
     using Xunit;

@@ -11,8 +11,8 @@ namespace Crest.Host.Engine
     using System.Linq;
     using System.Threading.Tasks;
     using Crest.Abstractions;
+    using Crest.Core.Logging;
     using Crest.Host.IO;
-    using Crest.Host.Logging;
 
     /// <summary>
     /// Injects the application JSON settings for the properties in a

@@ -6,7 +6,7 @@
 namespace Crest.Host.Security
 {
     using System.Runtime.CompilerServices;
-    using Crest.Host.Logging;
+    using Crest.Core.Logging;
 
     /// <summary>
     /// Allows the handling of Base 64 URL encoded data.
@@ -14,8 +14,8 @@ namespace Crest.Host.Security
     internal static class UrlBase64
     {
         private const byte InvalidCharacater = byte.MaxValue;
-        private static readonly byte[] Lookup = new byte[128];
         private static readonly ILog Logger = Log.For(typeof(UrlBase64));
+        private static readonly byte[] Lookup = new byte[128];
 
         static UrlBase64()
         {

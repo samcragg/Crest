@@ -16,7 +16,7 @@ namespace Crest.Host.Security
     using System.Threading.Tasks;
     using Crest.Abstractions;
     using Crest.Core;
-    using Crest.Host.Logging;
+    using Crest.Core.Logging;
 
     /// <summary>
     /// Inspects the authentication token and injects it into the pipeline.

@@ -8,8 +8,8 @@ namespace Crest.Host.Security
     using System;
     using System.Collections.Generic;
     using System.Security.Cryptography;
+    using Crest.Core.Logging;
     using Crest.Host.IO;
-    using Crest.Host.Logging;
 
     /// <summary>
     /// Allows the verification of the JWT signature.

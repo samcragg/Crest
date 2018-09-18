@@ -3,9 +3,9 @@
     using System;
     using System.IO;
     using System.Threading.Tasks;
+    using Crest.Core.Logging;
     using Crest.Host.Engine;
     using Crest.Host.IO;
-    using Crest.Host.Logging;
     using FluentAssertions;
     using Host.UnitTests.TestHelpers;
     using NSubstitute;

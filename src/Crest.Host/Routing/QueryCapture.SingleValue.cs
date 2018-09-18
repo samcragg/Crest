@@ -8,7 +8,7 @@ namespace Crest.Host.Routing
     using System;
     using System.Collections.Generic;
     using System.Linq;
-    using Crest.Host.Logging;
+    using Crest.Core.Logging;
 
     /// <content>
     /// Contains the nested <see cref="SingleValue"/> class.

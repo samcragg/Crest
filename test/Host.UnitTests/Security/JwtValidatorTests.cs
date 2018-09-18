@@ -6,8 +6,8 @@
     using System.Security.Claims;
     using System.Text;
     using Crest.Abstractions;
+    using Crest.Core.Logging;
     using Crest.Host.Diagnostics;
-    using Crest.Host.Logging;
     using Crest.Host.Security;
     using FluentAssertions;
     using Host.UnitTests.TestHelpers;

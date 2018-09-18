@@ -9,7 +9,7 @@ namespace Crest.Host.Security
     using System.Threading;
     using System.Threading.Tasks;
     using Crest.Abstractions;
-    using Crest.Host.Logging;
+    using Crest.Core.Logging;
 
     /// <summary>
     /// Initializes the <see cref="SecurityKeyCache"/> and keeps it updated.

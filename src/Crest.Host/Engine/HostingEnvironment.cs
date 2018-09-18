@@ -6,7 +6,7 @@
 namespace Crest.Host.Engine
 {
     using System;
-    using Crest.Host.Logging;
+    using Crest.Core.Logging;
 
     /// <summary>
     /// Contains information about the current environment the application is

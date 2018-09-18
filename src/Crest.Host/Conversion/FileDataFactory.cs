@@ -10,11 +10,10 @@ namespace Crest.Host.Conversion
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
-    using System.Reflection;
     using Crest.Abstractions;
     using Crest.Core;
+    using Crest.Core.Logging;
     using Crest.Host.IO;
-    using Crest.Host.Logging;
 
     /// <summary>
     /// Creates objects representing the uploaded files in a request.

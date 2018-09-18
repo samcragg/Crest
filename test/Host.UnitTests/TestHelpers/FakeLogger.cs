@@ -2,8 +2,8 @@
 {
     using System;
     using System.Threading;
-    using Crest.Host.Logging;
-    using Crest.Host.Logging.LogProviders;
+    using Crest.Core.Logging;
+    using Crest.Core.Logging.LogProviders;
     using NSubstitute;
 
     internal static class FakeLogger

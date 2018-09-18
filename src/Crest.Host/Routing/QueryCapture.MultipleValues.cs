@@ -9,7 +9,7 @@ namespace Crest.Host.Routing
     using System.Collections;
     using System.Collections.Generic;
     using System.Linq;
-    using Crest.Host.Logging;
+    using Crest.Core.Logging;
 
     /// <content>
     /// Contains the nested <see cref="MultipleValues"/> class.
