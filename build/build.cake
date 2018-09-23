@@ -121,6 +121,7 @@ Task("Pack")
     {
         "../src/Crest.Abstractions/Crest.Abstractions.csproj",
         "../src/Crest.Core/Crest.Core.csproj",
+		"../src/Crest.DataAccess/Crest.DataAccess.csproj",
         "../src/Crest.Host/Crest.Host.csproj",
         "../src/Crest.Host.AspNetCore/Crest.Host.AspNetCore.csproj",
         "../src/Crest.OpenApi/Crest.OpenApi.csproj",
