@@ -166,7 +166,7 @@ Task("RestoreSwaggerUI")
     .Does(() =>
 {
     var settings = new NpmInstallSettingsWithPrefix();
-    settings.AddPackage("swagger-ui-dist", "3.0.18");
+    settings.AddPackage("swagger-ui-dist", "3.19.0");
     NpmInstall(settings);
 
     string[] files = new[]
