@@ -151,10 +151,10 @@ namespace DataAccess.UnitTests.Expressions
                 IQueryable<SimpleClass> result = this.CreateMultiSort(values, SortDirection.Ascending);
 
                 result.Select(s => s.String)
-                      .Should().BeEquivalentTo("a", "a", "b");
+                      .Should().Equal("a", "a", "b");
 
                 result.Select(s => s.Integer)
-                      .Should().BeEquivalentTo(1, 2, 1);
+                      .Should().Equal(1, 2, 1);
             }
 
             [Fact]
@@ -167,13 +167,13 @@ namespace DataAccess.UnitTests.Expressions
                     new SimpleClass { String = "b", Integer = 2 },
                 };
 
-                IQueryable<SimpleClass> result = this.CreateMultiSort(values, SortDirection.Ascending);
+                IQueryable<SimpleClass> result = this.CreateMultiSort(values, SortDirection.Descending);
 
                 result.Select(s => s.String)
-                      .Should().BeEquivalentTo("b", "b", "a");
+                      .Should().Equal("b", "b", "a");
 
                 result.Select(s => s.Integer)
-                      .Should().BeEquivalentTo(2, 1, 2);
+                      .Should().Equal(2, 1, 2);
             }
 
             [Theory]
@@ -192,7 +192,7 @@ namespace DataAccess.UnitTests.Expressions
                     direction);
 
                 result.Select(s => s.String)
-                      .Should().BeEquivalentTo(expected.Split(','));
+                      .Should().Equal(expected.Split(','));
             }
 
             private IQueryable<SimpleClass> CreateMultiSort(SimpleClass[] values, SortDirection direction)
