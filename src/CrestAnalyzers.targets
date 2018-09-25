@@ -2,13 +2,13 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <!-- Code analysis files -->
   <ItemGroup>
-    <AdditionalFiles Include="$(MSBuildThisFileDirectory)/stylecop.json" />
-    <Compile Include="$(MSBuildThisFileDirectory)/GlobalSuppressions.cs" />
+    <AdditionalFiles Include="$(MSBuildThisFileDirectory)/stylecop.json" Link="Common/stylecop.json" />
+    <Compile Include="$(MSBuildThisFileDirectory)/GlobalSuppressions.cs" Link="Common/GlobalSuppressions.cs" />
   </ItemGroup>
   
   <!-- Analyzers -->
   <ItemGroup>
-    <PackageReference Include="SonarAnalyzer.CSharp" Version="7.4.0.6452" PrivateAssets="All" />
-    <PackageReference Include="StyleCop.Analyzers" Version="1.1.0-beta008" PrivateAssets="All" />
+    <PackageReference Include="SonarAnalyzer.CSharp" Version="7.5.0.6605" PrivateAssets="All" />
+    <PackageReference Include="StyleCop.Analyzers" Version="1.1.0-beta009" PrivateAssets="All" />
   </ItemGroup>
 </Project>
