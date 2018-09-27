@@ -2,11 +2,9 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard1.3</TargetFramework>
-    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <PackageId>Crest.Analyzers</PackageId>
     <Description>Allows the analyzing of routes inside a project that uses the Crest framework.</Description>
     <PackageTags>Crest, analyzers</PackageTags>
-    <LangVersion>Latest</LangVersion>
   </PropertyGroup>
 
   <Import Project="..\..\src\CrestPackage.targets" />

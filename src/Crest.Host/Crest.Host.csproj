@@ -2,9 +2,6 @@
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
-    <LangVersion>latest</LangVersion>
     <PackageId>Crest.Host</PackageId>
     <Description>Provides the main logic for hosting Crest endpoints.</Description>
   </PropertyGroup>

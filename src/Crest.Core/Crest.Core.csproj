@@ -1,14 +1,9 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
-    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
-    <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <PackageId>Crest.Core</PackageId>
     <Description>Provides the basic infrastructure used to define Crest endpoints.</Description>
     <DefineConstants>LIBLOG_PROVIDERS_ONLY</DefineConstants>
-
-    <!-- Temporary disable for LibLog -->
-    <NoWarn>1573</NoWarn>
   </PropertyGroup>
 
   <Import Project="..\CrestAnalyzers.targets" />

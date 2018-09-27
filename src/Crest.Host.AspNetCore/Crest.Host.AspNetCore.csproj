@@ -1,8 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
-    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
-    <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <PackageId>Crest.Host.AspNetCore</PackageId>
     <Description>Allows the hosting of Crest endpoints as an ASP .NET website.</Description>
   </PropertyGroup>
