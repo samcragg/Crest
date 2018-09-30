@@ -6,18 +6,60 @@
     using Microsoft.CodeAnalysis.CSharp.Syntax;
     using Microsoft.CodeAnalysis.Diagnostics;
 
+    /// <summary>
+    /// Allows the analyzing of route URLs.
+    /// </summary>
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     public sealed class RouteAnalyzer : DiagnosticAnalyzer
     {
+        /// <summary>
+        /// Captured parameter cannot be marked as FromBody.
+        /// </summary>
         public const string CannotBeMarkedAsFromBodyId = "CannotBeMarkedAsFromBody";
+
+        /// <summary>
+        /// Parameter is captured multiple times.
+        /// </summary>
         public const string DuplicateCaptureId = "DuplicateCapture";
+
+        /// <summary>
+        /// Missing closing brace.
+        /// </summary>
         public const string MissingClosingBraceId = "MissingClosingBrace";
+
+        /// <summary>
+        /// Query parameters should be in the form 'key={value}'.
+        /// </summary>
         public const string MissingQueryValueId = "MissingQueryValue";
+
+        /// <summary>
+        /// Multiple FromBody parameters are not allowed.
+        /// </summary>
         public const string MultipleBodyParametersId = "MultipleBodyParameters";
+
+        /// <summary>
+        /// Query parameters must be marked as optional.
+        /// </summary>
         public const string MustBeOptionalId = "MustBeOptional";
+
+        /// <summary>
+        /// Query values must be captured.
+        /// </summary>
         public const string MustCaptureQueryValueId = "MustCaptureQueryValue";
+
+        /// <summary>
+        /// Parameter must be captured in the route URL.
+        /// </summary>
         public const string ParameterNotFoundId = "ParameterNotFound";
+
+        /// <summary>
+        /// Braces must be escaped.
+        /// </summary>
         public const string UnescapedBraceId = "UnescapedBrace";
+
+        /// <summary>
+        /// No matching method parameter.
+        /// </summary>
         public const string UnknownParameterId = "UnknownParameter";
 
         internal static readonly DiagnosticDescriptor CannotBeMarkedAsFromBodyRule =
@@ -120,6 +162,7 @@
                 isEnabledByDefault: true,
                 description: "The method contains no parameter matching the capture name.");
 
+        /// <inheritdoc />
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics =>
             ImmutableArray.Create(
                 CannotBeMarkedAsFromBodyRule,
@@ -133,6 +176,7 @@
                 UnescapedBraceRule,
                 UnknownParameterRule);
 
+        /// <inheritdoc />
         public override void Initialize(AnalysisContext context)
         {
             context.RegisterSyntaxNodeAction(this.AnalyzeNode, SyntaxKind.MethodDeclaration);

@@ -10,20 +10,26 @@
     using Microsoft.CodeAnalysis.CSharp;
     using Microsoft.CodeAnalysis.CSharp.Syntax;
 
+    /// <summary>
+    /// Provides code fixes for errors in the route URL.
+    /// </summary>
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(RouteCodeFix))]
     [Shared]
     public sealed class RouteCodeFix : CodeFixProvider
     {
+        /// <inheritdoc />
         public override ImmutableArray<string> FixableDiagnosticIds =>
             ImmutableArray.Create(
                 RouteAnalyzer.UnescapedBraceId,
                 RouteAnalyzer.UnknownParameterId);
 
+        /// <inheritdoc />
         public override FixAllProvider GetFixAllProvider()
         {
             return WellKnownFixAllProviders.BatchFixer;
         }
 
+        /// <inheritdoc />
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             foreach (Diagnostic diagnostic in context.Diagnostics)

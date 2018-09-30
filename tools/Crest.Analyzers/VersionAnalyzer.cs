@@ -7,17 +7,27 @@ namespace Crest.Analyzers
     using Microsoft.CodeAnalysis.CSharp.Syntax;
     using Microsoft.CodeAnalysis.Diagnostics;
 
+    /// <summary>
+    /// Allows the analyzing of version attributes.
+    /// </summary>
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     public sealed class VersionAnalyzer : DiagnosticAnalyzer
     {
+        /// <summary>
+        /// The version attribute is required.
+        /// </summary>
         public const string MissingVersionAttributeId = "MissingVersionAttribute";
+
+        /// <summary>
+        /// The version range is not valid.
+        /// </summary>
         public const string VersionOutOfRangeId = "VersionOutOfRange";
 
         private static readonly DiagnosticDescriptor MissingVersionAttributeRule =
             new DiagnosticDescriptor(
                 MissingVersionAttributeId,
                 "Missing version attribute",
-                "The version attribute is required.",
+                "The version attribute is required",
                 "Syntax",
                 DiagnosticSeverity.Error,
                 isEnabledByDefault: true,
@@ -27,15 +37,17 @@ namespace Crest.Analyzers
             new DiagnosticDescriptor(
                 VersionOutOfRangeId,
                 "Invalid version range",
-                "The version range is not valid.",
+                "The version range is not valid",
                 "Syntax",
                 DiagnosticSeverity.Error,
                 isEnabledByDefault: true,
                 description: "The from version must be greater than zero and less than or equal to the to version.");
 
+        /// <inheritdoc />
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics =>
             ImmutableArray.Create(MissingVersionAttributeRule, VersionOutOfRangeRule);
 
+        /// <inheritdoc />
         public override void Initialize(AnalysisContext context)
         {
             context.RegisterSyntaxNodeAction(this.AnalyzeNode, SyntaxKind.MethodDeclaration);

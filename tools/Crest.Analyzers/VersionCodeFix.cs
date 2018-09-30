@@ -10,20 +10,25 @@
     using Microsoft.CodeAnalysis.CodeFixes;
     using Microsoft.CodeAnalysis.CSharp;
     using Microsoft.CodeAnalysis.CSharp.Syntax;
-    using Microsoft.CodeAnalysis.Text;
 
+    /// <summary>
+    /// Provides code fixes for errors with the version attribute.
+    /// </summary>
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(VersionCodeFix))]
     [Shared]
     public sealed class VersionCodeFix : CodeFixProvider
     {
+        /// <inheritdoc />
         public override ImmutableArray<string> FixableDiagnosticIds =>
             ImmutableArray.Create(VersionAnalyzer.MissingVersionAttributeId);
 
+        /// <inheritdoc />
         public override FixAllProvider GetFixAllProvider()
         {
             return WellKnownFixAllProviders.BatchFixer;
         }
 
+        /// <inheritdoc />
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             Diagnostic diagnostic = context.Diagnostics.First(d => d.Id == VersionAnalyzer.MissingVersionAttributeId);
