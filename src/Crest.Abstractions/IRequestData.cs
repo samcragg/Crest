@@ -8,6 +8,7 @@ namespace Crest.Abstractions
     using System;
     using System.Collections.Generic;
     using System.IO;
+    using System.Linq;
     using System.Reflection;
 
     /// <summary>
@@ -42,6 +43,11 @@ namespace Crest.Abstractions
         /// Gets the parameters that will be passed to the handler.
         /// </summary>
         IReadOnlyDictionary<string, object> Parameters { get; }
+
+        /// <summary>
+        /// Gets parsed query part of the URL.
+        /// </summary>
+        ILookup<string, string> Query { get; }
 
         /// <summary>
         /// Gets the requested URL.

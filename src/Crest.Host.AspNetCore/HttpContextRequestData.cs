@@ -8,6 +8,7 @@ namespace Crest.Host.AspNetCore
     using System;
     using System.Collections.Generic;
     using System.IO;
+    using System.Linq;
     using System.Reflection;
     using Crest.Abstractions;
     using Microsoft.AspNetCore.Http;
@@ -23,13 +24,19 @@ namespace Crest.Host.AspNetCore
         /// <param name="handler">The route handler.</param>
         /// <param name="parameters">The parameters for the method.</param>
         /// <param name="context">The current request context.</param>
-        public HttpContextRequestData(MethodInfo handler, IReadOnlyDictionary<string, object> parameters, HttpContext context)
+        /// <param name="query">The parsed query information.</param>
+        public HttpContextRequestData(
+            MethodInfo handler,
+            IReadOnlyDictionary<string, object> parameters,
+            HttpContext context,
+            ILookup<string, string> query)
         {
             this.Body = context.Request.Body;
             this.Context = context;
             this.Handler = handler;
             this.Headers = new HeadersAdapter(context.Request.Headers);
             this.Parameters = parameters;
+            this.Query = query;
             this.Url = ConvertToUri(context.Request);
         }
 
@@ -44,6 +51,9 @@ namespace Crest.Host.AspNetCore
 
         /// <inheritdoc />
         public IReadOnlyDictionary<string, object> Parameters { get; }
+
+        /// <inheritdoc />
+        public ILookup<string, string> Query { get; }
 
         /// <inheritdoc />
         public Uri Url { get; }

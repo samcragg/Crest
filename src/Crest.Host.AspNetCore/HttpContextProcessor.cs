@@ -33,14 +33,16 @@ namespace Crest.Host.AspNetCore
         /// <returns>A task that represents the asynchronous operation.</returns>
         public Task HandleRequestAsync(HttpContext context)
         {
+            var queryPart = new QueryLookup(context.Request.QueryString.Value);
+
             MatchResult result = this.Match(
                 context.Request.Method,
                 context.Request.Path.Value,
-                new QueryLookup(context.Request.QueryString.Value));
+                queryPart);
 
             return this.HandleRequestAsync(
                 result,
-                m => new HttpContextRequestData(m.Method, m.Parameters, context));
+                m => new HttpContextRequestData(m.Method, m.Parameters, context, queryPart));
         }
 
         /// <inheritdoc />

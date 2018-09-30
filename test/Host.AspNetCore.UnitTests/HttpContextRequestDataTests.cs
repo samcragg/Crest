@@ -3,6 +3,7 @@
     using System;
     using System.Collections.Generic;
     using System.IO;
+    using System.Linq;
     using System.Reflection;
     using Crest.Host.AspNetCore;
     using FluentAssertions;
@@ -17,7 +18,7 @@
             [Fact]
             public void ShouldAssignTheBodyProperty()
             {
-                var data = new HttpContextRequestData(null, null, CreateContext());
+                var data = new HttpContextRequestData(null, null, CreateContext(), null);
 
                 data.Body.Should().NotBeNull();
             }
@@ -27,7 +28,7 @@
             {
                 MethodInfo method = Substitute.For<MethodInfo>();
 
-                var data = new HttpContextRequestData(method, null, CreateContext());
+                var data = new HttpContextRequestData(method, null, CreateContext(), null);
 
                 data.Handler.Should().BeSameAs(method);
             }
@@ -35,7 +36,7 @@
             [Fact]
             public void ShouldAssignTheHeadersProperty()
             {
-                var data = new HttpContextRequestData(null, null, CreateContext());
+                var data = new HttpContextRequestData(null, null, CreateContext(), null);
 
                 data.Headers.Should().NotBeNull();
             }
@@ -45,9 +46,19 @@
             {
                 var parameters = new Dictionary<string, object>();
 
-                var data = new HttpContextRequestData(null, parameters, CreateContext());
+                var data = new HttpContextRequestData(null, parameters, CreateContext(), null);
 
                 data.Parameters.Should().BeSameAs(parameters);
+            }
+
+            [Fact]
+            public void ShouldAssignTheQueryProperty()
+            {
+                ILookup<string, string> query = Substitute.For<ILookup<string, string>>();
+
+                var data = new HttpContextRequestData(null, null, CreateContext(), query);
+
+                data.Query.Should().BeSameAs(query);
             }
 
             [Fact]
@@ -55,14 +66,14 @@
             {
                 const string Url = "https://host:123/path?query";
 
-                var data = new HttpContextRequestData(null, null, CreateContext(Url));
+                var data = new HttpContextRequestData(null, null, CreateContext(Url), null);
 
                 data.Url.AbsoluteUri.Should().Be(Url);
             }
 
             private static HttpContext CreateContext(string urlString = "http://localhost")
             {
-                Uri url = new Uri(urlString);
+                var url = new Uri(urlString);
                 HttpContext context = Substitute.For<HttpContext>();
                 context.Request.Body = Substitute.For<Stream>();
                 context.Request.Host = new HostString(url.Host, url.Port);
