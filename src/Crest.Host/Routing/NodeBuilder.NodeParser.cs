@@ -87,6 +87,11 @@ namespace Crest.Host.Routing
                 this.nodes.Add(new LiteralNode(value));
             }
 
+            protected override void OnQueryCatchAll(string name)
+            {
+                throw new NotImplementedException();
+            }
+
             protected override void OnQueryParameter(string key, Type parameterType, string name)
             {
                 // Helper method to avoid QueryCaptures taking a dependency on

@@ -56,7 +56,17 @@
             }
 
             [Fact]
-            public void ShouldCaptureQueryParemters()
+            public void ShouldCaptureQueryCatchAllParameter()
+            {
+                this.parser.ParseUrl(
+                    "/literal?*={all}",
+                    new FakeParameter("all") { Type = typeof(object) });
+
+                this.parser.CatchAll.Should().Be("all");
+            }
+
+            [Fact]
+            public void ShouldCaptureQueryParameters()
             {
                 this.parser.ParseUrl(
                     "/literal?key1={query1}&key2={query2}",
@@ -77,7 +87,17 @@
                     "/{parameter}/",
                     new FakeParameter("parameter") { HasBodyAttribute = true });
 
-                this.parser.ErrorParameters.Single().Should().Be("parameter");
+                this.parser.ErrorParameters.Should().ContainSingle("parameter");
+            }
+
+            [Fact]
+            public void ShouldCheckCatchAllType()
+            {
+                this.parser.ParseUrl(
+                    "/literal?*={invalid}",
+                    new FakeParameter("invalid") { Type = typeof(string) });
+
+                this.parser.ErrorParameters.Should().ContainSingle("all");
             }
 
             [Fact]
@@ -85,7 +105,7 @@
             {
                 this.parser.ParseUrl("/{parameter}/{parameter}", new FakeParameter("parameter"));
 
-                this.parser.ErrorParameters.Single().Should().Be("parameter");
+                this.parser.ErrorParameters.Should().ContainSingle("parameter");
             }
 
             [Fact]
@@ -93,7 +113,7 @@
             {
                 this.parser.ParseUrl("/{234/");
 
-                this.parser.ErrorParts.Single().Should().Be("4");
+                this.parser.ErrorParts.Should().ContainSingle("4");
             }
 
             [Fact]
@@ -101,7 +121,7 @@
             {
                 this.parser.ParseUrl("/literal?key");
 
-                this.parser.ErrorParts.Single().Should().Be("key");
+                this.parser.ErrorParts.Should().ContainSingle("key");
             }
 
             [Fact]
@@ -112,7 +132,7 @@
                     new FakeParameter("parameter1") { HasBodyAttribute = true },
                     new FakeParameter("parameter2") { HasBodyAttribute = true });
 
-                this.parser.ErrorParameters.Single().Should().Be("parameter2");
+                this.parser.ErrorParameters.Should().ContainSingle("parameter2");
             }
 
             [Fact]
@@ -131,7 +151,7 @@
 
                 noBodyParametersParser.ParseUrl("/literal", new FakeParameter("parameter"));
 
-                noBodyParametersParser.ErrorParameters.Single().Should().Be("parameter");
+                noBodyParametersParser.ErrorParameters.Should().ContainSingle("parameter");
             }
 
             [Fact]
@@ -139,7 +159,7 @@
             {
                 this.parser.ParseUrl("/{missingParameter}/");
 
-                this.parser.ErrorParts.Single().Should().Be("missingParameter");
+                this.parser.ErrorParts.Should().ContainSingle("missingParameter");
             }
 
             [Fact]
@@ -147,7 +167,7 @@
             {
                 this.parser.ParseUrl("/literal?key={missingClosingBrace");
 
-                this.parser.ErrorParts.Single().Should().Be("e");
+                this.parser.ErrorParts.Should().ContainSingle("e");
             }
 
             [Fact]
@@ -158,7 +178,7 @@
                     new FakeParameter("query") { IsOptional = false });
 
                 this.parser.QueryParameters.Should().BeEmpty();
-                this.parser.ErrorParameters.Single().Should().Be("query");
+                this.parser.ErrorParameters.Should().ContainSingle("query");
             }
 
             [Fact]
@@ -166,7 +186,7 @@
             {
                 this.parser.ParseUrl("/literal?key=value");
 
-                this.parser.ErrorParts.Single().Should().Be("value");
+                this.parser.ErrorParts.Should().ContainSingle("value");
             }
 
             [Fact]
@@ -174,7 +194,7 @@
             {
                 this.parser.ParseUrl("/{{escaped_braces}}/");
 
-                this.parser.Literals.Single().Should().Be("{escaped_braces}");
+                this.parser.Literals.Should().ContainSingle("{escaped_braces}");
             }
         }
 
@@ -190,6 +210,8 @@
             public bool IsOptional { get; set; }
 
             public string Name { get; }
+
+            public Type Type { get; set; } = typeof(int);
         }
 
         private class FakeUrlParser : UrlParser
@@ -202,6 +224,7 @@
 
             internal List<(Type type, string name)> Body { get; } = new List<(Type type, string name)>();
             internal List<(Type type, string name)> Captures { get; } = new List<(Type type, string name)>();
+            internal string CatchAll { get; private set; }
             internal List<string> ErrorParameters { get; } = new List<string>();
             internal List<string> ErrorParts { get; } = new List<string>();
             internal List<string> Literals { get; } = new List<string>();
@@ -217,7 +240,7 @@
                         HasBodyAttribute = p.HasBodyAttribute,
                         IsOptional = p.IsOptional,
                         Name = p.Name,
-                        ParameterType = typeof(int)
+                        ParameterType = p.Type
                     }));
             }
 
@@ -244,6 +267,11 @@
             protected override void OnLiteralSegment(string value)
             {
                 this.Literals.Add(value);
+            }
+
+            protected override void OnQueryCatchAll(string name)
+            {
+                this.CatchAll = name;
             }
 
             protected override void OnQueryParameter(string key, Type parameterType, string name)

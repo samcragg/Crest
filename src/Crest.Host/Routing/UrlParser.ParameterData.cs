@@ -10,7 +10,7 @@ namespace Crest.Host.Routing
     /// <content>
     /// Contains the nested <see cref="ParameterData"/> class.
     /// </content>
-    internal abstract partial class UrlParser
+    internal partial class UrlParser
     {
         /// <summary>
         /// Contains information about a method parameter.

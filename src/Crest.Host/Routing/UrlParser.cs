@@ -38,65 +38,6 @@ namespace Crest.Host.Routing
             this.canReadBody = canReadBody;
         }
 
-        /// <summary>
-        /// Represents the error found during parsing.
-        /// </summary>
-        protected enum ErrorType
-        {
-            /// <summary>
-            /// Indicates a parameter has been marked as FromBody, however,
-            /// appears as a capture.
-            /// </summary>
-            CannotBeMarkedAsFromBody,
-
-            /// <summary>
-            /// Indicates a parameter is captured multiple times.
-            /// </summary>
-            DuplicateParameter,
-
-            /// <summary>
-            /// Indicates an opening brace was found but no matching closing brace.
-            /// </summary>
-            MissingClosingBrace,
-
-            /// <summary>
-            /// Indicates that a query key does not specify a capture value.
-            /// </summary>
-            MissingQueryValue,
-
-            /// <summary>
-            /// Indicates that multiple parameters have been specified as
-            /// coming from the request body.
-            /// </summary>
-            MultipleBodyParameters,
-
-            /// <summary>
-            /// Indicates that a parameter captured by a query parameter wasn't
-            /// marked as optional.
-            /// </summary>
-            MustBeOptional,
-
-            /// <summary>
-            /// Indicates a query value was found that wasn't a capture.
-            /// </summary>
-            MustCaptureQueryValue,
-
-            /// <summary>
-            /// Indicates a parameter was not captured in the URL.
-            /// </summary>
-            ParameterNotFound,
-
-            /// <summary>
-            /// Indicates a brace was found that wasn't escaped.
-            /// </summary>
-            UnescapedBrace,
-
-            /// <summary>
-            /// Indicates a capture specifies a parameter that wasn't found.
-            /// </summary>
-            UnknownParameter,
-        }
-
         private enum SegmentType
         {
             Literal,
@@ -156,6 +97,12 @@ namespace Crest.Host.Routing
         /// </summary>
         /// <param name="value">The literal text.</param>
         protected abstract void OnLiteralSegment(string value);
+
+        /// <summary>
+        /// Called when a catch-all query variable is captured.
+        /// </summary>
+        /// <param name="name">The name of the captured parameter.</param>
+        protected abstract void OnQueryCatchAll(string name);
 
         /// <summary>
         /// Called when a query variable is captured.
@@ -239,7 +186,7 @@ namespace Crest.Host.Routing
             return pairs;
         }
 
-        private bool AddBoodyParameterToCaptures()
+        private bool AddBodyParameterToCaptures()
         {
             if (this.canReadBody)
             {
@@ -282,7 +229,7 @@ namespace Crest.Host.Routing
 
         private void CheckAllParametersAreCaptured()
         {
-            if (!this.AddBoodyParameterToCaptures())
+            if (!this.AddBodyParameterToCaptures())
             {
                 return;
             }
@@ -297,18 +244,12 @@ namespace Crest.Host.Routing
             }
         }
 
-        private bool GetQueryParameter(
-            string url,
-            int start,
-            int length,
-            out string parameterName,
-            out Type parameterType)
+        private bool GetQueryParameterName(string url, int start, int length, out string name)
         {
-            switch (this.UnescapeSegment(url, start, length, out parameterName))
+            switch (this.UnescapeSegment(url, start, length, out name))
             {
                 case SegmentType.Error:
                 case SegmentType.PartialCapture:
-                    parameterType = null;
                     return false;
 
                 case SegmentType.Literal:
@@ -317,22 +258,10 @@ namespace Crest.Host.Routing
                         start,
                         length,
                         url);
-
-                    parameterType = null;
                     return false;
-            }
 
-            ParameterData parameter = this.GetValidParameter(start, length, parameterName);
-            if ((parameter != null) && parameter.IsOptional)
-            {
-                parameterType = parameter.ParameterType;
-                return true;
-            }
-            else
-            {
-                this.OnError(ErrorType.MustBeOptional, parameterName);
-                parameterType = null;
-                return false;
+                default:
+                    return true;
             }
         }
 
@@ -362,6 +291,72 @@ namespace Crest.Host.Routing
             }
 
             return parameter;
+        }
+
+        private bool HandleQueryParameter(string url, int start, string key, ParameterData parameter)
+        {
+            if (key == "*")
+            {
+                if (parameter.ParameterType == typeof(object))
+                {
+                    this.OnQueryCatchAll(parameter.Name);
+                    return true;
+                }
+                else
+                {
+                    this.OnError(ErrorType.IncorrectCatchAllType, parameter.Name);
+                    return false;
+                }
+            }
+            else
+            {
+                if (parameter.IsOptional)
+                {
+                    this.OnQueryParameter(key, parameter.ParameterType, parameter.Name);
+                    return true;
+                }
+                else
+                {
+                    this.OnError(ErrorType.MustBeOptional, parameter.Name);
+                    return false;
+                }
+            }
+        }
+
+        private bool ParseKeyValue(
+            string url,
+            int start,
+            int length,
+            out string key,
+            out string parameterName)
+        {
+            key = null;
+            parameterName = null;
+
+            int separator = url.IndexOf('=', start, length);
+            if (separator < 0)
+            {
+                this.OnError(
+                    ErrorType.MissingQueryValue,
+                    start,
+                    length,
+                    url);
+
+                return false;
+            }
+
+            int keyLength = separator - start;
+            if (!this.GetQueryParameterName(
+                url,
+                separator + 1,
+                length - keyLength - 1, // -1 for the separator
+                out parameterName))
+            {
+                return false;
+            }
+
+            key = url.Substring(start, keyLength);
+            return true;
         }
 
         private bool ParsePath(string routeUrl)
@@ -396,31 +391,31 @@ namespace Crest.Host.Routing
         {
             foreach ((int start, int length) in GetKeyValues(url))
             {
-                string keyValue = url.Substring(start, length);
-                int separator = keyValue.IndexOf('=');
-                if (separator < 0)
-                {
-                    this.OnError(
-                        ErrorType.MissingQueryValue,
-                        start,
-                        length,
-                        url);
-
-                    return false;
-                }
-
-                if (!this.GetQueryParameter(
+                if (!this.ParseKeyValue(
                     url,
-                    start + separator + 1,
-                    length - separator - 1,
-                    out string parameterName,
-                    out Type parameterType))
+                    start,
+                    length,
+                    out string key,
+                    out string parameterName))
                 {
                     return false;
                 }
 
-                string key = keyValue.Substring(0, separator);
-                this.OnQueryParameter(key, parameterType, parameterName);
+                // We have to pass in the location of the '{parameter}' that
+                // includes braces for error reporting
+                ParameterData parameter = this.GetValidParameter(
+                    url.IndexOf('{', start),
+                    parameterName.Length + 2,
+                    parameterName);
+                if (parameter == null)
+                {
+                    return false;
+                }
+
+                if (!this.HandleQueryParameter(url, start, key, parameter))
+                {
+                    return false;
+                }
             }
 
             return true;
