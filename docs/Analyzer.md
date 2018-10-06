@@ -37,6 +37,17 @@ Task Method(int id);
 Because `{id}` appears more than once, it is uncertain which one to use to
 provide the value for the parameter, therefore, the route is invalid.
 
+### IncorrectCatchAllType
+
+A catch-all query parameter must be an object, preferably `dynamic`, as at
+runtime an internal type will be passed in that contains the query parameters
+that have not been captured, if any.
+
+```C#
+[Get("?*={anythingElse}")]
+Task Method(string anythingElse);
+```
+
 ### MissingClosingBrace
 
 The syntax for a parameter capture in the route is `{ + parameterName + }`,

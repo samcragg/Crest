@@ -7,6 +7,22 @@
 
     public sealed class RouteAnalyzerTests : DiagnosticVerifier<RouteAnalyzer>
     {
+        [Theory]
+        [InlineData("dynamic")]
+        [InlineData("object")]
+        [InlineData("System.Object")]
+        public void ShouldAllowCatchAllQueryParameters(string type)
+        {
+            string source = Code.Usings + Code.GetAttribute + @"
+interface IRoute
+{
+    [Get(""?*={parameter}"")]
+    Task Method(" + type + @" parameter);
+}";
+
+            this.VerifyDiagnostic(source);
+        }
+
         [Fact]
         public void ShouldAllowExplicitBodyParameters()
         {
@@ -17,7 +33,7 @@ interface IRoute
     Task Method(string parameter, [FromBody]string requestBody);
 }";
 
-            VerifyDiagnostic(Source);
+            this.VerifyDiagnostic(Source);
         }
 
         [Fact]
@@ -30,7 +46,27 @@ interface IRoute
     Task Method(string requestBody);
 }";
 
-            VerifyDiagnostic(Source);
+            this.VerifyDiagnostic(Source);
+        }
+
+        [Fact]
+        public void ShouldCheckCatchAllType()
+        {
+            const string Source = Code.Usings + Code.GetAttribute + @"
+interface IRoute
+{
+    [Get(""?*={parameter}"")]
+    Task Method(string parameter);
+}";
+
+            var expected = new DiagnosticResult
+            {
+                Id = RouteAnalyzer.IncorrectCatchAllTypeId,
+                Severity = DiagnosticSeverity.Error,
+                Locations = new[] { new DiagnosticResultLocation(line: 5, column: 17) }
+            };
+
+            this.VerifyDiagnostic(Source, expected);
         }
 
         [Fact]
@@ -50,7 +86,7 @@ interface IRoute
                 Locations = new[] { new DiagnosticResultLocation(line: 5, column: 29) }
             };
 
-            VerifyDiagnostic(Source, expected);
+            this.VerifyDiagnostic(Source, expected);
         }
 
         [Fact]
@@ -70,7 +106,7 @@ interface IRoute
                 Locations = new[] { new DiagnosticResultLocation(line: 5, column: 17) }
             };
 
-            VerifyDiagnostic(Source, expected);
+            this.VerifyDiagnostic(Source, expected);
         }
 
         [Fact]
@@ -90,7 +126,7 @@ interface IRoute
                 Locations = new[] { new DiagnosticResultLocation(line: 4, column: 19) }
             };
 
-            VerifyDiagnostic(Source, expected);
+            this.VerifyDiagnostic(Source, expected);
         }
 
         [Fact]
@@ -110,7 +146,7 @@ interface IRoute
                 Locations = new[] { new DiagnosticResultLocation(line: 4, column: 18) }
             };
 
-            VerifyDiagnostic(Source, expected);
+            this.VerifyDiagnostic(Source, expected);
         }
 
         [Fact]
@@ -130,7 +166,7 @@ interface IRoute
                 Locations = new[] { new DiagnosticResultLocation(line: 5, column: 50) }
             };
 
-            VerifyDiagnostic(Source, expected);
+            this.VerifyDiagnostic(Source, expected);
         }
 
         [Fact]
@@ -150,7 +186,7 @@ interface IRoute
                 Locations = new[] { new DiagnosticResultLocation(line: 4, column: 17) }
             };
 
-            VerifyDiagnostic(Source, expected);
+            this.VerifyDiagnostic(Source, expected);
         }
 
         [Fact]
@@ -170,7 +206,7 @@ interface IRoute
                 Locations = new[] { new DiagnosticResultLocation(line: 4, column: 13) }
             };
 
-            VerifyDiagnostic(Source, expected);
+            this.VerifyDiagnostic(Source, expected);
         }
 
         [Fact]
@@ -190,7 +226,7 @@ interface IRoute
                 Locations = new[] { new DiagnosticResultLocation(line: 5, column: 17) }
             };
 
-            VerifyDiagnostic(Source, expected);
+            this.VerifyDiagnostic(Source, expected);
         }
 
         [Fact]
@@ -210,7 +246,7 @@ interface IRoute
                 Locations = new[] { new DiagnosticResultLocation(line: 5, column: 17) }
             };
 
-            VerifyDiagnostic(Source, expected);
+            this.VerifyDiagnostic(Source, expected);
         }
 
         [Fact]
@@ -230,7 +266,7 @@ interface IRoute
                 Locations = new[] { new DiagnosticResultLocation(line: 4, column: 22) }
             };
 
-            VerifyDiagnostic(Source, expected);
+            this.VerifyDiagnostic(Source, expected);
         }
     }
 }

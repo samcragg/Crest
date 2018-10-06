@@ -23,11 +23,10 @@
             : base(canReadBody)
         {
             this.context = context;
-
             this.parameterSyntax = parameters.ToDictionary(ps => ps.Identifier.Text);
             this.parameters =
                 this.parameterSyntax.Values
-                    .Select(ConvertParameter)
+                    .Select(this.ConvertParameter)
                     .ToList();
         }
 
@@ -76,18 +75,12 @@
         {
         }
 
-        protected override void OnQueryParameter(string key, Type parameterType, string name)
+        protected override void OnQueryCatchAll(string name)
         {
         }
 
-        private static ParameterData ConvertParameter(ParameterSyntax syntax)
+        protected override void OnQueryParameter(string key, Type parameterType, string name)
         {
-            return new ParameterData
-            {
-                HasBodyAttribute = RouteAttributeInfo.GetFromBody(syntax) != null,
-                IsOptional = syntax.Default != null,
-                Name = syntax.Identifier.Text
-            };
         }
 
         private static DiagnosticDescriptor GetDiagnostic(ErrorType error)
@@ -99,6 +92,9 @@
 
                 case ErrorType.DuplicateParameter:
                     return RouteAnalyzer.DuplicateCaptureRule;
+
+                case ErrorType.IncorrectCatchAllType:
+                    return RouteAnalyzer.IncorrectCatchAllTypeRule;
 
                 case ErrorType.MissingClosingBrace:
                     return RouteAnalyzer.MissingClosingBraceRule;
@@ -127,6 +123,29 @@
                 default:
                     return null;
             }
+        }
+
+        private ParameterData ConvertParameter(ParameterSyntax syntax)
+        {
+            // In order to pass the validation for the catch-all query
+            // parameters, we need to know if a parameter is an object or not
+            Type type = null;
+            if (this.context.SemanticModel.GetDeclaredSymbol(syntax) is IParameterSymbol symbol)
+            {
+                if ((symbol.Type.SpecialType == SpecialType.System_Object) ||
+                    (symbol.Type.TypeKind == TypeKind.Dynamic))
+                {
+                    type = typeof(object);
+                }
+            }
+
+            return new ParameterData
+            {
+                HasBodyAttribute = RouteAttributeInfo.GetFromBody(syntax) != null,
+                IsOptional = syntax.Default != null,
+                Name = syntax.Identifier.Text,
+                ParameterType = type
+            };
         }
 
         private string GetRouteUrl(AttributeSyntax attribute)

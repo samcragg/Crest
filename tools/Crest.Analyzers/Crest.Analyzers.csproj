@@ -10,8 +10,8 @@
   <Import Project="..\..\src\CrestPackage.targets" />
 
   <ItemGroup>
-    <Folder Include="Crest.Host\" />
     <Compile Include="..\..\src\Crest.Host\Routing\UrlParser.cs" Link="Crest.Host\UrlParser.cs" />
+    <Compile Include="..\..\src\Crest.Host\Routing\UrlParser.ErrorType.cs" Link="Crest.Host\UrlParser.ErrorType.cs" />
     <Compile Include="..\..\src\Crest.Host\Routing\UrlParser.ParameterData.cs" Link="Crest.Host\UrlParser.ParameterData.cs" />
     <Compile Include="..\..\src\Crest.Host\Routing\UrlParser.SegmentParser.cs" Link="Crest.Host\UrlParser.SegmentParser.cs" />
   </ItemGroup>

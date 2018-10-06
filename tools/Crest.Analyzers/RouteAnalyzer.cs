@@ -23,6 +23,11 @@
         public const string DuplicateCaptureId = "DuplicateCapture";
 
         /// <summary>
+        /// Catch-all must be declared as object or dynamic.
+        /// </summary>
+        public const string IncorrectCatchAllTypeId = "IncorrectCatchAllType";
+
+        /// <summary>
         /// Missing closing brace.
         /// </summary>
         public const string MissingClosingBraceId = "MissingClosingBrace";
@@ -81,6 +86,16 @@
                 DiagnosticSeverity.Error,
                 isEnabledByDefault: true,
                 description: "Parameters may only be captured once in the URL.");
+
+        internal static readonly DiagnosticDescriptor IncorrectCatchAllTypeRule =
+            new DiagnosticDescriptor(
+                IncorrectCatchAllTypeId,
+                "Incorrect catch-all type",
+                "Catch-all must be declared as object or dynamic",
+                "Syntax",
+                DiagnosticSeverity.Error,
+                isEnabledByDefault: true,
+                description: "Query catch-all parameter must be an object or a dynamic object.");
 
         internal static readonly DiagnosticDescriptor MissingClosingBraceRule =
             new DiagnosticDescriptor(
@@ -167,6 +182,7 @@
             ImmutableArray.Create(
                 CannotBeMarkedAsFromBodyRule,
                 DuplicateCaptureRule,
+                IncorrectCatchAllTypeRule,
                 MissingClosingBraceRule,
                 MissingQueryValueRule,
                 MultipleBodyParametersRule,
