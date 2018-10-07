@@ -14,18 +14,18 @@ namespace Crest.DataAccess
     public interface IMappingProvider
     {
         /// <summary>
-        /// Gets the type of the source of mapped values.
-        /// </summary>
-        Type From { get; }
-
-        /// <summary>
         /// Gets the type of the destination of the mapped values.
         /// </summary>
-        Type To { get; }
+        Type Destination { get; }
+
+        /// <summary>
+        /// Gets the type of the source of mapped values.
+        /// </summary>
+        Type Source { get; }
 
         /// <summary>
         /// Generates an expression that maps the members from the type
-        /// represented by <see cref="From"/> to the <see cref="To"/> type.
+        /// represented by <see cref="Source"/> to the <see cref="Destination"/> type.
         /// </summary>
         /// <returns>An expression assigning the properties.</returns>
         Expression GenerateMappings();

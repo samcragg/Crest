@@ -83,7 +83,7 @@
 
                 IEnumerable<DirectRouteMetadata> metadata = this.Provider.GetDirectRoutes();
 
-                metadata.Should().ContainSingle(m => m.RouteUrl == "/health")
+                metadata.Should().ContainSingle(m => m.Path == "/health")
                         .Which.Verb.Should().Be("GET");
             }
 
@@ -96,7 +96,7 @@
                 Stream stream = Substitute.For<Stream>();
 
                 DirectRouteMetadata metadata =
-                    this.Provider.GetDirectRoutes().Single(d => d.RouteUrl == "/health");
+                    this.Provider.GetDirectRoutes().Single(d => d.Path == "/health");
 
                 IResponseData response = await metadata.Method(request, converter);
                 await response.WriteBody(stream);

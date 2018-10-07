@@ -99,7 +99,7 @@ namespace Crest.OpenApi
             return new DirectRouteMetadata
             {
                 Method = (r, c) => redirect,
-                RouteUrl = from,
+                Path = from,
                 Verb = "GET",
             };
         }
@@ -153,7 +153,7 @@ namespace Crest.OpenApi
             return new DirectRouteMetadata
             {
                 Method = CreateResponse,
-                RouteUrl = route,
+                Path = route,
                 Verb = "GET",
             };
         }

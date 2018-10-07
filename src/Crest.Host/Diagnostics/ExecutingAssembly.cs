@@ -20,9 +20,9 @@ namespace Crest.Host.Diagnostics
         private static readonly ISet<string> ExcludedAssemblies = new HashSet<string>(
             new[]
             {
-                "microsoft",
-                "newtonsoft",
-                "system",
+                "MICROSOFT",
+                "NEWTONSOFT",
+                "SYSTEM",
             }, StringComparer.Ordinal);
 
         private static DependencyContext overrideContext;
@@ -86,11 +86,11 @@ namespace Crest.Host.Diagnostics
             int dot = name.IndexOf('.');
             if (dot < 0)
             {
-                return name.ToLowerInvariant();
+                return name.ToUpperInvariant();
             }
             else
             {
-                return name.Substring(0, dot).ToLowerInvariant();
+                return name.Substring(0, dot).ToUpperInvariant();
             }
         }
 

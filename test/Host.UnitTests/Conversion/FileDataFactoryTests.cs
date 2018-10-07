@@ -152,8 +152,8 @@
                 IFileData[] result = this.GetFiles(Body);
 
                 result.Should().HaveCount(2);
-                Encoding.ASCII.GetString(result[0].Contents).Should().Be("First part");
-                Encoding.ASCII.GetString(result[1].Contents).Should().Be("Second part");
+                Encoding.ASCII.GetString(result[0].GetContents()).Should().Be("First part");
+                Encoding.ASCII.GetString(result[1].GetContents()).Should().Be("Second part");
             }
 
             [Fact]

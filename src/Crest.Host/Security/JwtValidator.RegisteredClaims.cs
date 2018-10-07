@@ -47,7 +47,7 @@ namespace Crest.Host.Security
 
             private void SetAudiences(string aud)
             {
-                if (aud.StartsWith("["))
+                if ((aud.Length > 0) && (aud[0] == '['))
                 {
                     using (var parser = new JsonObjectParser(aud))
                     {

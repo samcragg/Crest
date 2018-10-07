@@ -260,7 +260,7 @@ namespace Crest.Host.Conversion
             }
             else
             {
-                string ch = value.ToString();
+                string ch = char.ToString(value);
                 return new FormatException(
                     "Unexpected character '" + ch + "' inside header");
             }

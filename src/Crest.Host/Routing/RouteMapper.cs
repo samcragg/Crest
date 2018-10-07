@@ -34,7 +34,7 @@ namespace Crest.Host.Routing
 
             foreach (DirectRouteMetadata metadata in overrides)
             {
-                this.AddDirectRoute(metadata.Verb, metadata.RouteUrl, metadata.Method);
+                this.AddDirectRoute(metadata.Verb, metadata.Path, metadata.Method);
             }
 
             foreach (RouteMetadata metadata in routes)

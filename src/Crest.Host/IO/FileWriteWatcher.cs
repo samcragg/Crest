@@ -6,6 +6,7 @@
 // "IDisposable" should be implemented correctly
 // This class would be sealed but is left open to allow it to be mocked for
 // unit testing
+#pragma warning disable CA1063
 #pragma warning disable S3881
 
 namespace Crest.Host.IO

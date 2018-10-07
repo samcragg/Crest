@@ -82,13 +82,15 @@ namespace Crest.Host.IO
         /// </remarks>
         internal static ArrayPool<char> CharPool { get; set; } = ArrayPool<char>.Shared;
 
-#pragma warning disable S3237 // "value" parameters should be used
         private bool IsEndOfStream
         {
             get => this.length == -1;
-            set => this.length = -1;
+            set
+            {
+                Assert(value, "Setter only implemented for when it's true");
+                this.length = -1;
+            }
         }
-#pragma warning restore S3237 // "value" parameters should be used
 
         /// <inheritdoc />
         public void Dispose()

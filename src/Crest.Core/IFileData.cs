@@ -13,11 +13,6 @@ namespace Crest.Core
     public interface IFileData
     {
         /// <summary>
-        /// Gets the raw contents for the file.
-        /// </summary>
-        byte[] Contents { get; }
-
-        /// <summary>
         /// Gets a value that indicates the media type of the file.
         /// </summary>
         /// <remarks>
@@ -41,5 +36,11 @@ namespace Crest.Core
         /// Gets the headers sent with the file.
         /// </summary>
         IReadOnlyDictionary<string, string> Headers { get; }
+
+        /// <summary>
+        /// Gets the raw contents for the file.
+        /// </summary>
+        /// <returns>The raw contents for the file.</returns>
+        byte[] GetContents();
     }
 }

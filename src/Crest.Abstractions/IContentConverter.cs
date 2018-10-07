@@ -70,7 +70,7 @@ namespace Crest.Abstractions
         /// Writes the specified object to the stream.
         /// </summary>
         /// <param name="stream">Where to write the object to.</param>
-        /// <param name="obj">The object to write.</param>
-        void WriteTo(Stream stream, object obj);
+        /// <param name="value">The object to write.</param>
+        void WriteTo(Stream stream, object value);
     }
 }

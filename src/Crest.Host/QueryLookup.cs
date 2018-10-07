@@ -15,6 +15,10 @@ namespace Crest.Host
     /// <summary>
     /// Parses the key value pairs out of the query information.
     /// </summary>
+    [System.Diagnostics.CodeAnalysis.SuppressMessage(
+        "Naming",
+        "CA1710:Identifiers should have correct suffix",
+        Justification = "Class implements the ILookup interface so has the suffix of Lookup to match.")]
     public sealed partial class QueryLookup : ILookup<string, string>
     {
         private readonly Dictionary<string, Grouping> groups =

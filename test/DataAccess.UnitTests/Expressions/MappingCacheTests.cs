@@ -20,8 +20,8 @@ namespace DataAccess.UnitTests.Expressions
         private MappingCacheTests()
         {
             this.provider = Substitute.For<IMappingProvider>();
-            this.provider.From.Returns(typeof(ServiceObject));
-            this.provider.To.Returns(typeof(DataAccessObject));
+            this.provider.Source.Returns(typeof(ServiceObject));
+            this.provider.Destination.Returns(typeof(DataAccessObject));
 
             this.cache = new Lazy<MappingCache>(
                 () => new MappingCache(new[] { this.provider }));

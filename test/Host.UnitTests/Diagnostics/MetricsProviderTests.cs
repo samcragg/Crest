@@ -83,7 +83,7 @@ namespace Host.UnitTests.Diagnostics
 
                 IEnumerable<DirectRouteMetadata> metadata = this.Provider.GetDirectRoutes();
 
-                metadata.Should().ContainSingle(m => m.RouteUrl == "/metrics.json")
+                metadata.Should().ContainSingle(m => m.Path == "/metrics.json")
                         .Which.Verb.Should().Be("GET");
             }
 
@@ -95,7 +95,7 @@ namespace Host.UnitTests.Diagnostics
                 Stream stream = Substitute.For<Stream>();
 
                 DirectRouteMetadata metadata =
-                    this.Provider.GetDirectRoutes().Single(d => d.RouteUrl == "/metrics.json");
+                    this.Provider.GetDirectRoutes().Single(d => d.Path == "/metrics.json");
 
                 IResponseData response = await metadata.Method(request, null);
                 await response.WriteBody(stream);

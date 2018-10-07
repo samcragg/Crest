@@ -5,6 +5,7 @@
 
 namespace Crest.Host.IO
 {
+    using System;
     using System.IO;
     using System.Text;
     using System.Threading.Tasks;
@@ -14,6 +15,8 @@ namespace Crest.Host.IO
     /// </summary>
     internal class FileReader
     {
+        private static readonly char[] InvalidFileNameChars = Path.GetInvalidFileNameChars();
+
         /// <summary>
         /// Reads the entire contents of a file into a byte array.
         /// </summary>
@@ -67,17 +70,27 @@ namespace Crest.Host.IO
         /// <summary>
         /// Opens a file in asynchronous mode.
         /// </summary>
-        /// <param name="path">A relative or absolute path for the file.</param>
+        /// <param name="path">The file to open for reading.</param>
         /// <returns>The file stream.</returns>
         protected virtual Stream OpenFile(string path)
         {
             return new FileStream(
-                path,
+                ValidatePath(path),
                 FileMode.Open,
                 FileAccess.Read,
                 FileShare.Read,
                 bufferSize: 4096,
                 useAsync: true);
+        }
+
+        private static string ValidatePath(string path)
+        {
+            if (path.IndexOfAny(InvalidFileNameChars) >= 0)
+            {
+                throw new InvalidOperationException("Path contains directory information.");
+            }
+
+            return path;
         }
     }
 }

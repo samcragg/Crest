@@ -49,7 +49,7 @@ namespace Crest.Host.Serialization
             TypeSerializerBuilder builder = this.CreateType(classType, classType.Name);
 
             IReadOnlyDictionary<string, FieldInfo> metadata =
-                this.CreateMetadataFields(builder, properties);
+                CreateMetadataFields(builder, properties);
 
             // Create the methods first, so that if it needs any nested
             // serializers we can initialize them in the constructors
@@ -64,6 +64,20 @@ namespace Crest.Host.Serialization
             Type generatedType = builder.GenerateType();
             this.SetMetadataFields(generatedType.GetTypeInfo(), properties, metadata);
             return generatedType;
+        }
+
+        private static IReadOnlyDictionary<string, FieldInfo> CreateMetadataFields(
+            TypeSerializerBuilder builder,
+            IReadOnlyList<PropertyInfo> properties)
+        {
+            var fields = new Dictionary<string, FieldInfo>(StringComparer.Ordinal);
+            foreach (PropertyInfo property in properties)
+            {
+                FieldBuilder field = builder.CreateMetadataField(property.Name);
+                fields.Add(property.Name, field);
+            }
+
+            return fields;
         }
 
         private static IReadOnlyList<PropertyInfo> GetProperties(Type type)
@@ -89,20 +103,6 @@ namespace Crest.Host.Serialization
                        .Where(IncludeProperty)
                        .OrderBy(DataOrder)
                        .ToList();
-        }
-
-        private IReadOnlyDictionary<string, FieldInfo> CreateMetadataFields(
-            TypeSerializerBuilder builder,
-            IReadOnlyList<PropertyInfo> properties)
-        {
-            var fields = new Dictionary<string, FieldInfo>(StringComparer.Ordinal);
-            foreach (PropertyInfo property in properties)
-            {
-                FieldBuilder field = builder.CreateMetadataField(property.Name);
-                fields.Add(property.Name, field);
-            }
-
-            return fields;
         }
 
         private void EmitConstructor(

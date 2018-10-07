@@ -86,7 +86,7 @@ namespace Crest.Host
             }
             catch (Exception ex)
             {
-                response = await this.GetErrorResponseAsync(requestData, ex);
+                response = await this.GetErrorResponseAsync(requestData, ex).ConfigureAwait(false);
             }
 
             this.metrics.MarkStartWriting();

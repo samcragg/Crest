@@ -21,7 +21,7 @@ namespace Crest.Abstractions
         /// <summary>
         /// Gets or sets the URL to match.
         /// </summary>
-        public string RouteUrl { get; set; }
+        public string Path { get; set; }
 
         /// <summary>
         /// Gets or sets the HTTP verb to match.

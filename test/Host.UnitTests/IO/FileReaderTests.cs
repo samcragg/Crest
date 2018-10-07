@@ -30,7 +30,7 @@
             [Fact]
             public async Task ShouldReadTheFileAtTheSpecifiedLocation()
             {
-                string filename = Path.GetTempFileName();
+                string filename = Guid.NewGuid().ToString();
                 try
                 {
                     File.WriteAllText(filename, "Test");
@@ -58,7 +58,7 @@
             }
         }
 
-        public sealed class ReadAllTestAsync : FileReaderTests
+        public sealed class ReadAllTextAsync : FileReaderTests
         {
             [Fact]
             public async Task ShouldDetectTheEncodingFromTheFile()
@@ -78,6 +78,13 @@
 
                     result.Should().Be("Test");
                 }
+            }
+
+            [Fact]
+            public void ShouldNotAllowRelativePaths()
+            {
+                this.reader.Awaiting(r => r.ReadAllTextAsync("../sensative_file"))
+                    .Should().Throw<InvalidOperationException>();
             }
         }
 

@@ -38,7 +38,7 @@
 
             return new RouteMetadata
             {
-                RouteUrl = route,
+                Path = route,
                 MaximumVersion = max,
                 MinimumVersion = min,
                 Method = method

@@ -229,7 +229,7 @@
                 IEnumerable<string> routes =
                     this.service.GetRoutes(typeof(IHasRoutes))
                         .Where(rm => rm.Method.Name == nameof(IHasRoutes.MultipleRoutes))
-                        .Select(rm => rm.RouteUrl);
+                        .Select(rm => rm.Path);
 
                 routes.Should().BeEquivalentTo("Route1", "Route2");
             }

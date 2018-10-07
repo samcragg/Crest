@@ -78,7 +78,9 @@ namespace Crest.Host.Routing
         {
             return value.ContinueWith<object>(
                 t => t.Result,
-                TaskContinuationOptions.ExecuteSynchronously);
+                default,
+                TaskContinuationOptions.ExecuteSynchronously,
+                TaskScheduler.Current);
         }
 
         private static Task<object> ConvertTaskToNoContent(Task value)
@@ -89,7 +91,9 @@ namespace Crest.Host.Routing
                     t.Wait(); // Force exceptions to be re-thrown
                     return NoContent.Value;
                 },
-                TaskContinuationOptions.ExecuteSynchronously);
+                default,
+                TaskContinuationOptions.ExecuteSynchronously,
+                TaskScheduler.Current);
         }
 
         private static Expression GetDefaultValue(ParameterInfo parameter)

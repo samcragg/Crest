@@ -64,7 +64,7 @@ namespace Crest.Host.Conversion
         /// <inheritdoc />
         public object ReadFrom(IReadOnlyDictionary<string, string> headers, Stream stream, Type type)
         {
-            IFileData[] files = this.CreateFiles(headers, stream);
+            IFileData[] files = CreateFiles(headers, stream);
 
             // Handle the scenario where the method parameter is IEnumerable<IFileData>
             if (type.IsAssignableFrom(typeof(IFileData[])))
@@ -87,9 +87,49 @@ namespace Crest.Host.Conversion
         }
 
         /// <inheritdoc />
-        public void WriteTo(Stream stream, object obj)
+        public void WriteTo(Stream stream, object value)
         {
             throw new NotSupportedException();
+        }
+
+        private static IFileData ConvertPart(Stream body, MultipartParser.BodyPart part)
+        {
+            IReadOnlyDictionary<string, string> headers =
+                ReadHeaders(body, part.HeaderStart, part.HeaderEnd);
+
+            // We can't use the pool here as we're handing the byte array over
+            // so can't control its lifetime plus it needs to be the correct
+            // size (i.e. we can't enforce the user uses a certain part of it)
+            int length = part.BodyEnd - part.BodyStart;
+            byte[] data = new byte[length];
+            body.Position = part.BodyStart;
+            IOUtils.ReadBytes(body, data, length);
+
+            return new FileData(data, headers);
+        }
+
+        private static IFileData[] CreateFiles(IReadOnlyDictionary<string, string> headers, Stream body)
+        {
+            string boundary = ParseBoundary(headers);
+            if (boundary == null)
+            {
+                Logger.Warn("No boundary parameter found.");
+                return Array.Empty<IFileData>();
+            }
+
+            // We need to call ToList as the Parse method is lazy and uses the
+            // same stream that we use when converting the parts and since we
+            // change the position of the stream, that will upset the parser
+            var parser = new MultipartParser(boundary, body);
+            List<MultipartParser.BodyPart> parts = parser.Parse().ToList();
+
+            var files = new IFileData[parts.Count];
+            for (int i = 0; i < files.Length; i++)
+            {
+                files[i] = ConvertPart(body, parts[i]);
+            }
+
+            return files;
         }
 
         private static string FindParameter(HttpHeaderParser parser, string parameter)
@@ -164,62 +204,7 @@ namespace Crest.Host.Conversion
             return parser.ReadToken(out _);
         }
 
-        private static bool ReadMultipartTypeAndSubtype(HttpHeaderParser parser)
-        {
-            // type := discrete-type / composite-type
-            //
-            // composite-type := "message" / "multipart" / extension-token
-            //
-            // subtype := extension-token / iana-token
-            //
-            // Matching of media type and subtype is ALWAYS case-insensitive.
-            return parser.ReadToken(out string type) &&
-                   string.Equals(type, "multipart", StringComparison.OrdinalIgnoreCase) &&
-                   parser.ReadCharacter('/') &&
-                   parser.ReadToken(out _);
-        }
-
-        private IFileData ConvertPart(Stream body, MultipartParser.BodyPart part)
-        {
-            IReadOnlyDictionary<string, string> headers =
-                this.ReadHeaders(body, part.HeaderStart, part.HeaderEnd);
-
-            // We can't use the pool here as we're handing the byte array over
-            // so can't control its lifetime plus it needs to be the correct
-            // size (i.e. we can't enforce the user uses a certain part of it)
-            int length = part.BodyEnd - part.BodyStart;
-            byte[] data = new byte[length];
-            body.Position = part.BodyStart;
-            IOUtils.ReadBytes(body, data, length);
-
-            return new FileData(data, headers);
-        }
-
-        private IFileData[] CreateFiles(IReadOnlyDictionary<string, string> headers, Stream body)
-        {
-            string boundary = ParseBoundary(headers);
-            if (boundary == null)
-            {
-                Logger.Warn("No boundary parameter found.");
-                return new IFileData[0];
-            }
-
-            // We need to call ToList as the Parse method is lazy and uses the
-            // same stream that we use when converting the parts and since we
-            // change the position of the stream, that will upset the parser
-            var parser = new MultipartParser(boundary, body);
-            List<MultipartParser.BodyPart> parts = parser.Parse().ToList();
-
-            var files = new IFileData[parts.Count];
-            for (int i = 0; i < files.Length; i++)
-            {
-                files[i] = this.ConvertPart(body, parts[i]);
-            }
-
-            return files;
-        }
-
-        private IReadOnlyDictionary<string, string> ReadHeaders(Stream body, int start, int end)
+        private static IReadOnlyDictionary<string, string> ReadHeaders(Stream body, int start, int end)
         {
             int length = end - start;
             byte[] headerBytes = BytePool.Rent(length);
@@ -238,6 +223,21 @@ namespace Crest.Host.Conversion
                 BytePool.Return(headerBytes);
                 parser?.Dispose();
             }
+        }
+
+        private static bool ReadMultipartTypeAndSubtype(HttpHeaderParser parser)
+        {
+            // type := discrete-type / composite-type
+            //
+            // composite-type := "message" / "multipart" / extension-token
+            //
+            // subtype := extension-token / iana-token
+            //
+            // Matching of media type and subtype is ALWAYS case-insensitive.
+            return parser.ReadToken(out string type) &&
+                   string.Equals(type, "multipart", StringComparison.OrdinalIgnoreCase) &&
+                   parser.ReadCharacter('/') &&
+                   parser.ReadToken(out _);
         }
     }
 }

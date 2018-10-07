@@ -44,7 +44,7 @@ namespace Crest.Host.Routing
         public IParseResult Parse(RouteMetadata route)
         {
             var parser = new NodeParser(route.CanReadBody, this.specializedCaptureNodes);
-            parser.ParseUrl(route.RouteUrl, route.Method.GetParameters());
+            parser.ParseUrl(route.Path, route.Method.GetParameters());
 
             string normalizedUrl = GetNormalizedRoute(route, parser.Nodes);
             if (!this.normalizedUrls.Add(normalizedUrl))
@@ -59,7 +59,7 @@ namespace Crest.Host.Routing
         {
             if (node is LiteralNode literal)
             {
-                buffer.Append(literal.Literal.ToLowerInvariant());
+                buffer.Append(literal.Literal.ToUpperInvariant());
             }
             else
             {
@@ -83,7 +83,7 @@ namespace Crest.Host.Routing
 
         private static string GetNormalizedRoute(RouteMetadata route, IEnumerable<IMatchNode> nodes)
         {
-            var builder = new StringBuilder(route.RouteUrl.Length * 2);
+            var builder = new StringBuilder(route.Path.Length * 2);
             AppendVerbAndVersion(builder, route);
 
             foreach (IMatchNode node in nodes)

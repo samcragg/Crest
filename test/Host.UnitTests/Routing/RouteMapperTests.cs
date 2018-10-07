@@ -36,7 +36,7 @@
                 MaximumVersion = to,
                 Method = ExampleMethodInfo,
                 MinimumVersion = from,
-                RouteUrl = route,
+                Path = route,
                 Verb = verb
             };
         }
@@ -101,7 +101,7 @@
                 OverrideMethod method = Substitute.For<OverrideMethod>();
                 DirectRouteMetadata[] overrides = new[]
                 {
-                    new DirectRouteMetadata { Verb = "GET", RouteUrl = "/route", Method = method }
+                    new DirectRouteMetadata { Verb = "GET", Path = "/route", Method = method }
                 };
                 var mapper = new RouteMapper(this.noRoutes, overrides);
 
@@ -116,7 +116,7 @@
                 OverrideMethod method = Substitute.For<OverrideMethod>();
                 DirectRouteMetadata[] overrides = new[]
                 {
-                    new DirectRouteMetadata { Verb = "PUT", RouteUrl = "/route", Method = method }
+                    new DirectRouteMetadata { Verb = "PUT", Path = "/route", Method = method }
                 };
                 var mapper = new RouteMapper(this.noRoutes, overrides);
 

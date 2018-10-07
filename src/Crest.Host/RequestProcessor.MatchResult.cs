@@ -18,6 +18,10 @@ namespace Crest.Host
         /// <summary>
         /// Gets the result of calling <see cref="Match(string, string, ILookup{string, string})"/>.
         /// </summary>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage(
+            "Performance",
+            "CA1815:Override equals and operator equals on value types",
+            Justification = "This is a short lived object that will not be used in comparisons")]
         protected internal struct MatchResult
         {
             /// <summary>

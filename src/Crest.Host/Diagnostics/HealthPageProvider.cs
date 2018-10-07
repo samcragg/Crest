@@ -46,7 +46,7 @@ namespace Crest.Host.Diagnostics
 
             if (this.page != null)
             {
-                yield return new DirectRouteMetadata { Method = health, RouteUrl = "/health", Verb = "GET" };
+                yield return new DirectRouteMetadata { Method = health, Path = "/health", Verb = "GET" };
             }
         }
     }

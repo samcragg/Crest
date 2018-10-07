@@ -107,7 +107,7 @@ namespace Crest.Host.Engine
                         MaximumVersion = version.To,
                         Method = method,
                         MinimumVersion = version.From,
-                        RouteUrl = route.Route,
+                        Path = route.Route,
                         Verb = verb,
                     };
                 }

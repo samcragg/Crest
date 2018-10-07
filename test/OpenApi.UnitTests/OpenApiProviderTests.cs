@@ -39,7 +39,7 @@
 
                 DirectRouteMetadata route =
                     this.provider.GetDirectRoutes()
-                        .Single(x => x.RouteUrl == (UrlBase + "/" + file));
+                        .Single(x => x.Path == (UrlBase + "/" + file));
 
                 route.Verb.Should().Be("GET");
                 IResponseData response = await route.Method(Substitute.For<IRequestData>(), Substitute.For<IContentConverter>());
@@ -56,7 +56,7 @@
 
                 DirectRouteMetadata openApi =
                     this.provider.GetDirectRoutes()
-                        .Single(x => x.RouteUrl == UrlBase + "/v1/openapi.json");
+                        .Single(x => x.Path == UrlBase + "/v1/openapi.json");
 
                 openApi.Verb.Should().Be("GET");
                 IResponseData response = await openApi.Method(
@@ -72,7 +72,7 @@
             {
                 DirectRouteMetadata redirect =
                     this.provider.GetDirectRoutes()
-                        .Single(x => x.RouteUrl == UrlBase);
+                        .Single(x => x.Path == UrlBase);
 
                 redirect.Verb.Should().Be("GET");
                 IResponseData response = await redirect.Method(null, null);
@@ -89,7 +89,7 @@
 
                 DirectRouteMetadata route =
                     this.provider.GetDirectRoutes()
-                        .Single(x => x.RouteUrl == UrlBase + "/index.html");
+                        .Single(x => x.Path == UrlBase + "/index.html");
 
                 IResponseData response = await route.Method(request, Substitute.For<IContentConverter>());
 
@@ -103,7 +103,7 @@
 
                 DirectRouteMetadata route =
                     this.provider.GetDirectRoutes()
-                        .Single(x => x.RouteUrl == (UrlBase + "/index.html"));
+                        .Single(x => x.Path == (UrlBase + "/index.html"));
 
                 IResponseData response = await route.Method(Substitute.For<IRequestData>(), Substitute.For<IContentConverter>());
 

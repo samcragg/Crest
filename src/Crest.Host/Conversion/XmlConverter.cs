@@ -64,9 +64,9 @@ namespace Crest.Host.Conversion
         }
 
         /// <inheritdoc />
-        public void WriteTo(Stream stream, object obj)
+        public void WriteTo(Stream stream, object value)
         {
-            this.generator.Serialize(stream, obj);
+            this.generator.Serialize(stream, value);
         }
     }
 }

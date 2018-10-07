@@ -47,7 +47,7 @@ namespace Crest.Host.Diagnostics
                 yield return new DirectRouteMetadata
                 {
                     Method = this.GetJsonAsync,
-                    RouteUrl = "/metrics.json",
+                    Path = "/metrics.json",
                     Verb = "GET",
                 };
             }
@@ -66,7 +66,11 @@ namespace Crest.Host.Diagnostics
             Task<long> WriteResponseAsync(Stream stream)
             {
                 return stream.WriteAsync(jsonBytes, 0, jsonBytes.Length)
-                    .ContinueWith(_ => (long)jsonBytes.Length);
+                    .ContinueWith(
+                        _ => (long)jsonBytes.Length,
+                        default,
+                        TaskContinuationOptions.ExecuteSynchronously,
+                        TaskScheduler.Current);
             }
         }
 

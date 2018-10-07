@@ -15,18 +15,17 @@ namespace Crest.Host.Conversion
     {
         private class FileData : IFileData
         {
+            private readonly byte[] data;
+
             internal FileData(byte[] data, IReadOnlyDictionary<string, string> headers)
             {
                 headers.TryGetValue(ContentTypeHeader, out string contentType);
 
-                this.Contents = data;
+                this.data = data;
                 this.ContentType = contentType ?? DefaultContentType;
                 this.Headers = headers;
                 this.Filename = ParseFilename(headers);
             }
-
-            /// <inheritdoc />
-            public byte[] Contents { get; }
 
             /// <inheritdoc />
             public string ContentType { get; }
@@ -36,6 +35,12 @@ namespace Crest.Host.Conversion
 
             /// <inheritdoc />
             public IReadOnlyDictionary<string, string> Headers { get; }
+
+            /// <inheritdoc />
+            public byte[] GetContents()
+            {
+                return this.data;
+            }
         }
     }
 }

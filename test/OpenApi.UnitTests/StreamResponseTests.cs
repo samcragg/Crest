@@ -58,7 +58,7 @@
                     encoding ?? string.Empty);
 
                 response.Headers.TryGetValue("Content-Encoding", out string contentEncoding);
-                contentEncoding.Should().Be(encoding);
+                contentEncoding.Should().BeEquivalentTo(encoding);
 
                 using (var buffer = new MemoryStream())
                 {

@@ -113,7 +113,7 @@ namespace Crest.Host.Diagnostics
 
         private async Task WriteMetricsAsync(StreamWriter writer)
         {
-            await writer.WriteLineAsync("<h2>Metrics</h2><p>");
+            await writer.WriteLineAsync("<h2>Metrics</h2><p>").ConfigureAwait(false);
 
             string report;
             using (var reporter = new HtmlReporter())
@@ -137,7 +137,7 @@ namespace Crest.Host.Diagnostics
             string FormatTime(TimeSpan time)
             {
                 return time.TotalHours.ToString("f0", CultureInfo.InvariantCulture) +
-                       time.ToString(@"\:mm\:ss");
+                       time.ToString(@"\:mm\:ss", CultureInfo.InvariantCulture);
             }
 
             await writer.WriteLineAsync("<h2>Summary</h2>").ConfigureAwait(false);

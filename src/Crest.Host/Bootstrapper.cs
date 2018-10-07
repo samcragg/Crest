@@ -147,6 +147,7 @@ namespace Crest.Host
         [CLSCompliant(false)]
         protected void SetDependencyContext(DependencyContext context)
         {
+            this.ThrowIfDisposed();
             ExecutingAssembly.DependencyContext = context;
         }
 

@@ -29,10 +29,10 @@ namespace Crest.DataAccess.Expressions
         {
             foreach (IMappingProvider provider in mappingProviders)
             {
-                this.resolvers[(provider.From, provider.To)] = CreateMappings(
+                this.resolvers[(provider.Source, provider.Destination)] = CreateMappings(
                     provider.GenerateMappings(),
-                    provider.From,
-                    provider.To);
+                    provider.Source,
+                    provider.Destination);
             }
         }
 

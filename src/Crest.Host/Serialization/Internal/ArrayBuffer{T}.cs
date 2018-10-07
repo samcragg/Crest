@@ -11,6 +11,10 @@ namespace Crest.Host.Serialization.Internal
     /// Helper for creating arrays when the size is not know ahead of time.
     /// </summary>
     /// <typeparam name="T">The element type for the array.</typeparam>
+    [System.Diagnostics.CodeAnalysis.SuppressMessage(
+            "Performance",
+            "CA1815:Override equals and operator equals on value types",
+            Justification = "This is a helper object used by the generated serializers that will not be used in comparisons")]
     public struct ArrayBuffer<T>
     {
         private int count;
@@ -42,7 +46,7 @@ namespace Crest.Host.Serialization.Internal
         {
             if (this.items == null)
             {
-                return new T[0];
+                return Array.Empty<T>();
             }
             else if (this.items.Length == this.count)
             {

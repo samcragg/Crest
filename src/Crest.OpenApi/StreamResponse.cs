@@ -77,15 +77,15 @@ namespace Crest.OpenApi
         {
             foreach (string encoding in acceptEncoding.Split(','))
             {
-                string normalized = encoding.Trim().ToLowerInvariant();
-                if (normalized == "gzip")
+                string normalized = encoding.Trim().ToUpperInvariant();
+                if (normalized == "GZIP")
                 {
-                    contentEncoding = "gzip";
+                    contentEncoding = "GZIP";
                     return CopyGzipAsync;
                 }
-                else if (normalized == "deflate")
+                else if (normalized == "DEFLATE")
                 {
-                    contentEncoding = "deflate";
+                    contentEncoding = "DEFLATE";
                     return CopyDeflateAsync;
                 }
             }

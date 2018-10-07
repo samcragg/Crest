@@ -66,7 +66,7 @@ namespace Crest.Host.Conversion
         }
 
         /// <inheritdoc />
-        public void WriteTo(Stream stream, object obj)
+        public void WriteTo(Stream stream, object value)
         {
             using (var writer = new StreamWriter(stream, DefaultEncoding, 4096, leaveOpen: true))
             {
@@ -79,7 +79,7 @@ namespace Crest.Host.Conversion
 
                 writer.WriteLine("<pre><code>");
                 var walker = new ObjectWalker(writer);
-                walker.WriteObject(obj);
+                walker.WriteObject(value);
                 writer.WriteLine("</code></pre>");
 
                 writer.Write(htmlTemplate.Substring(location));

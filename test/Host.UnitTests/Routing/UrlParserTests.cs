@@ -163,6 +163,14 @@
             }
 
             [Fact]
+            public void ShouldCheckForValidQueryParameters()
+            {
+                this.parser.ParseUrl("?key={missingParameter}");
+
+                this.parser.ErrorParts.Should().ContainSingle("missingParameter");
+            }
+
+            [Fact]
             public void ShouldCheckQueryCapturesSyntax()
             {
                 this.parser.ParseUrl("/literal?key={missingClosingBrace");

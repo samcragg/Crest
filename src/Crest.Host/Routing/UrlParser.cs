@@ -19,9 +19,7 @@ namespace Crest.Host.Routing
     /// </remarks>
     internal abstract partial class UrlParser
     {
-        private static readonly (int, int)[] NoKeyValues = new (int, int)[0];
         private readonly bool canReadBody;
-
         private readonly HashSet<string> capturedParameters =
                     new HashSet<string>(StringComparer.Ordinal);
 
@@ -137,7 +135,7 @@ namespace Crest.Host.Routing
             int start = url.IndexOf('?') + 1;
             if (start <= 0)
             {
-                return NoKeyValues;
+                return Array.Empty<(int, int)>();
             }
             else
             {
@@ -293,7 +291,7 @@ namespace Crest.Host.Routing
             return parameter;
         }
 
-        private bool HandleQueryParameter(string url, int start, string key, ParameterData parameter)
+        private bool HandleQueryParameter(string key, ParameterData parameter)
         {
             if (key == "*")
             {
@@ -412,7 +410,7 @@ namespace Crest.Host.Routing
                     return false;
                 }
 
-                if (!this.HandleQueryParameter(url, start, key, parameter))
+                if (!this.HandleQueryParameter(key, parameter))
                 {
                     return false;
                 }
