@@ -229,12 +229,12 @@ namespace Crest.OpenApi.Generator
             if (description.StartsWith(GetOrSets, StringComparison.OrdinalIgnoreCase) &&
                 (description.Length > (GetOrSets.Length + 1)))
             {
-                return char.ToUpper(description[GetOrSets.Length]) + description.Substring(GetOrSets.Length + 1);
+                return char.ToUpperInvariant(description[GetOrSets.Length]) + description.Substring(GetOrSets.Length + 1);
             }
             else if (description.StartsWith(Gets, StringComparison.OrdinalIgnoreCase) &&
                 (description.Length > (Gets.Length + 1)))
             {
-                return char.ToUpper(description[Gets.Length]) + description.Substring(Gets.Length + 1);
+                return char.ToUpperInvariant(description[Gets.Length]) + description.Substring(Gets.Length + 1);
             }
             else
             {

@@ -23,7 +23,7 @@ namespace Crest.OpenApi.Generator
             int maximum = 0;
             int minimum = 0;
             var routes = new List<RouteInformation>();
-            foreach (RouteInformation route in this.ScanRoutes(assembly))
+            foreach (RouteInformation route in ScanRoutes(assembly))
             {
                 routes.Add(route);
 
@@ -58,6 +58,40 @@ namespace Crest.OpenApi.Generator
         /// Gets the routes found from scanning the assembly.
         /// </summary>
         public IReadOnlyCollection<RouteInformation> Routes { get; }
+
+        private static IEnumerable<RouteInformation> ScanRoutes(Assembly assembly)
+        {
+            foreach (Type type in assembly.ExportedTypes)
+            {
+                Trace.Verbose("Scanning '{0}' for routes...", type.FullName);
+
+                foreach (MethodInfo method in type.GetMethods())
+                {
+                    int minimum = 1; // Default to version one
+                    int maximum = int.MaxValue;
+                    string verb = null;
+                    var routes = new List<string>();
+
+                    foreach (CustomAttributeData attribute in method.CustomAttributes)
+                    {
+                        if (TryGetRoute(attribute, ref verb, out string route))
+                        {
+                            routes.Add(route);
+                        }
+                        else
+                        {
+                            TryGetVersion(attribute, ref minimum, ref maximum);
+                        }
+                    }
+
+                    foreach (string route in routes)
+                    {
+                        Trace.Verbose("Found '{0}' on method '{1}'", route, method.Name);
+                        yield return new RouteInformation(verb, route, method, minimum, maximum);
+                    }
+                }
+            }
+        }
 
         private static bool TryGetRoute(CustomAttributeData attribute, ref string verb, out string route)
         {
@@ -100,40 +134,6 @@ namespace Crest.OpenApi.Generator
                 else
                 {
                     maximum = int.MaxValue;
-                }
-            }
-        }
-
-        private IEnumerable<RouteInformation> ScanRoutes(Assembly assembly)
-        {
-            foreach (Type type in assembly.ExportedTypes)
-            {
-                Trace.Verbose("Scanning '{0}' for routes...", type.FullName);
-
-                foreach (MethodInfo method in type.GetMethods())
-                {
-                    int minimum = 1; // Default to version one
-                    int maximum = int.MaxValue;
-                    string verb = null;
-                    var routes = new List<string>();
-
-                    foreach (CustomAttributeData attribute in method.CustomAttributes)
-                    {
-                        if (TryGetRoute(attribute, ref verb, out string route))
-                        {
-                            routes.Add(route);
-                        }
-                        else
-                        {
-                            TryGetVersion(attribute, ref minimum, ref maximum);
-                        }
-                    }
-
-                    foreach (string route in routes)
-                    {
-                        Trace.Verbose("Found '{0}' on method '{1}'", route, method.Name);
-                        yield return new RouteInformation(verb, route, method, minimum, maximum);
-                    }
                 }
             }
         }

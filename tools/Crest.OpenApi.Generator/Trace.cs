@@ -121,18 +121,18 @@ namespace Crest.OpenApi.Generator
 
         private static SourceLevels GetTraceLevel(string level)
         {
-            switch (level.ToLowerInvariant().FirstOrDefault())
+            switch (level.ToUpperInvariant().FirstOrDefault())
             {
-                case 'q':
+                case 'Q':
                     return SourceLevels.Error;
 
-                case 'm':
+                case 'M':
                     return SourceLevels.Warning;
 
-                case 'n':
+                case 'N':
                     return SourceLevels.Information;
 
-                case 'd':
+                case 'D':
                     return SourceLevels.Verbose;
             }
 

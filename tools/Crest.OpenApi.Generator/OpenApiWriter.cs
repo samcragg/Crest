@@ -88,7 +88,7 @@ namespace Crest.OpenApi.Generator
         private static string NormalizeRoute(string routeUrl)
         {
             // The spec state the path MUST begin with a slash
-            if ((routeUrl ?? string.Empty).StartsWith("/"))
+            if ((routeUrl ?? string.Empty).StartsWith("/", StringComparison.Ordinal))
             {
                 return routeUrl;
             }

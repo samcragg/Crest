@@ -48,11 +48,11 @@ namespace Crest.OpenApi.Generator
                 // Then the file
                 path = Path.Combine(path, OpenApiFileName);
                 this.CreateJsonFile(version, path);
-                this.CreateGZipFile(path);
+                CreateGZipFile(path);
             }
         }
 
-        private void CreateGZipFile(string path)
+        private static void CreateGZipFile(string path)
         {
             Trace.Information("Compressing '{0}'...", Path.GetFileName(path));
 
