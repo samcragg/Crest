@@ -8,6 +8,7 @@ namespace Crest.Host.Routing
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Reflection;
 
     /// <summary>
     /// Allows the parsing of URLs.
@@ -308,7 +309,7 @@ namespace Crest.Host.Routing
             }
             else
             {
-                if (parameter.IsOptional)
+                if (parameter.IsOptional || !parameter.ParameterType.GetTypeInfo().IsValueType)
                 {
                     this.OnQueryParameter(key, parameter.ParameterType, parameter.Name);
                     return true;

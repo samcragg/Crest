@@ -78,6 +78,9 @@
     <Compile Update="Routing/RouteMapper.Versions.cs">
       <DependentUpon>RouteMapper.cs</DependentUpon>
     </Compile>
+    <Compile Update="Routing/QueryCapture.CatchAll.cs">
+      <DependentUpon>QueryCapture.cs</DependentUpon>
+    </Compile>
     <Compile Update="Routing/QueryCapture.MultipleValues.cs">
       <DependentUpon>QueryCapture.cs</DependentUpon>
     </Compile>

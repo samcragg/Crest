@@ -128,14 +128,21 @@
         private ParameterData ConvertParameter(ParameterSyntax syntax)
         {
             // In order to pass the validation for the catch-all query
-            // parameters, we need to know if a parameter is an object or not
-            Type type = null;
+            // parameters, we need to know if a parameter is an object or not.
+            // We also need to know if the parameter is a value type or
+            // reference, as if it's a value type it must be optional if it is
+            // used as a query capture.
+            Type type = typeof(string);
             if (this.context.SemanticModel.GetDeclaredSymbol(syntax) is IParameterSymbol symbol)
             {
                 if ((symbol.Type.SpecialType == SpecialType.System_Object) ||
                     (symbol.Type.TypeKind == TypeKind.Dynamic))
                 {
                     type = typeof(object);
+                }
+                else if (symbol.Type.IsValueType)
+                {
+                    type = typeof(int);
                 }
             }
 

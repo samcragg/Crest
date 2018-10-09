@@ -18,11 +18,10 @@ namespace Crest.Host.Routing
         {
             public Target(MethodInfo method, NodeBuilder.IParseResult result)
             {
-                KeyValuePair<string, Type> body = result.BodyParameter.GetValueOrDefault();
                 IReadOnlyList<QueryCapture> captures = result.QueryCaptures;
 
-                this.BodyParameter = body.Key;
-                this.BodyType = body.Value;
+                this.BodyParameter = result.BodyParameter.name;
+                this.BodyType = result.BodyParameter.type;
                 this.Method = method;
                 this.QueryCaptures = (captures.Count > 0) ? captures : null;
             }

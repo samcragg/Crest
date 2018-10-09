@@ -3,8 +3,8 @@
     using System;
     using System.Collections.Generic;
     using System.ComponentModel;
+    using System.Dynamic;
     using System.Linq;
-    using Crest.Host;
     using Crest.Host.Routing;
     using FluentAssertions;
     using NSubstitute;
@@ -78,6 +78,22 @@
                 {
                     CreatedCount++;
                 }
+            }
+        }
+
+        public sealed class CreateCatchAll : QueryCaptureTests
+        {
+            [Fact]
+            public void ShouldReturnAClassThatCapturesTheParameter()
+            {
+                var parameters = new Dictionary<string, object>();
+                ILookup<string, string> lookup = Substitute.For<ILookup<string, string>>();
+
+                var result = QueryCapture.CreateCatchAll("name");
+                result.ParseParameters(lookup, parameters);
+
+                parameters.Should().ContainKey("name")
+                          .WhichValue.Should().BeAssignableTo<DynamicObject>();
             }
         }
 

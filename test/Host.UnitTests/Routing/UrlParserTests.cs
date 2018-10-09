@@ -66,12 +66,12 @@
             }
 
             [Fact]
-            public void ShouldCaptureQueryParameters()
+            public void ShouldCaptureOptionalQueryParameters()
             {
                 this.parser.ParseUrl(
                     "/literal?key1={query1}&key2={query2}",
                     new FakeParameter("query1") { IsOptional = true },
-                    new FakeParameter("query2") { IsOptional = true });
+                    new FakeParameter("query2") { Type = typeof(string) });
 
                 this.parser.QueryParameters.Keys
                     .Should().BeEquivalentTo("key1", "key2");

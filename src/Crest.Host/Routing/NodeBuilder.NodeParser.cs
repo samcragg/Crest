@@ -31,11 +31,18 @@ namespace Crest.Host.Routing
                 this.specializedCaptureNodes = specializedCaptureNodes;
             }
 
-            public KeyValuePair<string, Type>? BodyParameter { get; private set; }
+            public (string name, Type type) BodyParameter { get; private set; }
 
             public IReadOnlyList<IMatchNode> Nodes => this.nodes;
 
             public IReadOnlyList<QueryCapture> QueryCaptures => this.queryCaptures;
+
+            public string QueryCatchAll { get; private set; }
+
+            internal void AddQueryCapture(QueryCapture capture)
+            {
+                this.queryCaptures.Add(capture);
+            }
 
             internal void ParseUrl(string routeUrl, IReadOnlyCollection<ParameterInfo> parameters)
             {
@@ -55,7 +62,7 @@ namespace Crest.Host.Routing
 
             protected override void OnCaptureBody(Type parameterType, string name)
             {
-                this.BodyParameter = new KeyValuePair<string, Type>(name, parameterType);
+                this.BodyParameter = (name, parameterType);
             }
 
             protected override void OnCaptureSegment(Type parameterType, string name)
@@ -89,7 +96,13 @@ namespace Crest.Host.Routing
 
             protected override void OnQueryCatchAll(string name)
             {
-                throw new NotImplementedException();
+                if (this.QueryCatchAll != null)
+                {
+                    throw new FormatException(
+                        "Multiple parameters have been specified for the query catch-all");
+                }
+
+                this.QueryCatchAll = name;
             }
 
             protected override void OnQueryParameter(string key, Type parameterType, string name)
@@ -117,6 +130,9 @@ namespace Crest.Host.Routing
                 {
                     case ErrorType.DuplicateParameter:
                         return "Parameter is captured multiple times";
+
+                    case ErrorType.IncorrectCatchAllType:
+                        return "Catch-all parameter must be an object/dynamic type";
 
                     case ErrorType.MissingClosingBrace:
                         return "Missing closing brace";

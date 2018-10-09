@@ -21,7 +21,7 @@ namespace Crest.Host.Routing
             /// <summary>
             /// Gets the parameter that the request body is injected into.
             /// </summary>
-            KeyValuePair<string, Type>? BodyParameter { get; }
+            (string name, Type type) BodyParameter { get; }
 
             /// <summary>
             /// Gets the list of node that were parsed.
@@ -32,6 +32,12 @@ namespace Crest.Host.Routing
             /// Gets the list query values that were parsed.
             /// </summary>
             IReadOnlyList<QueryCapture> QueryCaptures { get; }
+
+            /// <summary>
+            /// Gets the name of the parameter used to catch any extra query
+            /// key values not captured.
+            /// </summary>
+            string QueryCatchAll { get; }
         }
     }
 }

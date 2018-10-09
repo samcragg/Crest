@@ -7,7 +7,6 @@
     using System.Linq;
     using System.Reflection;
     using Crest.Abstractions;
-    using Crest.Host;
     using Crest.Host.Routing;
     using FluentAssertions;
     using NSubstitute;
@@ -168,6 +167,21 @@
             }
 
             [Fact]
+            public void ShouldReturnQueryCatchAllLast()
+            {
+                ILookup<string, string> lookup = Substitute.For<ILookup<string, string>>();
+                var dictionary = new Dictionary<string, object>();
+                RouteMetadata route = CreateRoute<object>("/literal?*={all}&key={capture}", 1, 1, "all", "capture");
+                route.Method.GetParameters()[1].Attributes.Returns(ParameterAttributes.Optional);
+
+                NodeBuilder.IParseResult result = this.builder.Parse(route);
+                QueryCapture query = result.QueryCaptures.Last();
+
+                query.ParseParameters(lookup, dictionary);
+                dictionary.Should().ContainKey("all");
+            }
+
+            [Fact]
             public void ShouldReturnTheBodyParameter()
             {
                 RouteMetadata route = CreateRoute<string>("/", 1, 1, "bodyParameter");
@@ -175,8 +189,18 @@
 
                 NodeBuilder.IParseResult result = this.builder.Parse(route);
 
-                result.BodyParameter.Value.Key.Should().Be("bodyParameter");
-                result.BodyParameter.Value.Value.Should().Be(typeof(string));
+                result.BodyParameter.name.Should().Be("bodyParameter");
+                result.BodyParameter.type.Should().Be(typeof(string));
+            }
+
+            [Fact]
+            public void ShouldReturnTheQueryCatchAll()
+            {
+                RouteMetadata route = CreateRoute<object>("/literal?*={capture}", 1, 1, "capture");
+
+                NodeBuilder.IParseResult result = this.builder.Parse(route);
+
+                result.QueryCatchAll.Should().Be("capture");
             }
 
             [Fact]
@@ -202,15 +226,31 @@
             [InlineData("/route", "missing")]
             [InlineData("/unescaped{brace", "brace")]
             [InlineData("/{unkownParameter}", "parameter")]
+            [InlineData("/catchAllIsNotAnObject?*={param}", "type")]
             public void ShouldThrowFormatExceptionForParsingErrors(string url, string error)
             {
-                RouteMetadata route = CreateRoute<string>(url, 1, 1, "param");
+                RouteMetadata route = CreateRoute<int>(url, 1, 1, "param");
 
-                // No need to test the parsing, as that's handled by UrlParse,
+                // No need to test the parsing, as that's handled by UrlParser,
                 // just test that we don't silently ignore parameter errors
                 this.builder.Invoking(b => b.Parse(route))
                     .Should().Throw<FormatException>()
                     .WithMessage("*" + error + "*");
+            }
+
+            [Fact]
+            public void ShouldThrowForMultipleCatchAllParameters()
+            {
+                RouteMetadata route = CreateRoute<object>(
+                    "/literal?*={capture1}&*={capture2}",
+                    1,
+                    1,
+                    "capture1",
+                    "capture2");
+
+                this.builder.Invoking(b => b.Parse(route))
+                    .Should().Throw<FormatException>()
+                    .WithMessage("*multiple*");
             }
 
             private NodeMatchResult GetMatchFor(Type type, string value)

@@ -46,6 +46,13 @@ namespace Crest.Host.Routing
             var parser = new NodeParser(route.CanReadBody, this.specializedCaptureNodes);
             parser.ParseUrl(route.Path, route.Method.GetParameters());
 
+            // It's important we add this *after* all the other query captures
+            // have had change to capture the key/values for their parameters
+            if (parser.QueryCatchAll != null)
+            {
+                parser.AddQueryCapture(QueryCapture.CreateCatchAll(parser.QueryCatchAll));
+            }
+
             string normalizedUrl = GetNormalizedRoute(route, parser.Nodes);
             if (!this.normalizedUrls.Add(normalizedUrl))
             {

@@ -75,6 +75,17 @@ namespace Crest.Host.Routing
         }
 
         /// <summary>
+        /// Creates a <see cref="QueryCapture"/> that can capture all the
+        /// non-captured key/values of the query into a single parameter.
+        /// </summary>
+        /// <param name="parameterName">The name of the parameter.</param>
+        /// <returns>A new instance of the <see cref="QueryCapture"/> class.</returns>
+        public static QueryCapture CreateCatchAll(string parameterName)
+        {
+            return new CatchAll(parameterName);
+        }
+
+        /// <summary>
         /// Converts the query values into strongly typed values.
         /// </summary>
         /// <param name="query">Contains the query key/values.</param>
