@@ -33,6 +33,9 @@
     <Compile Update="Conversion/DoubleConverter.NumberInfo.cs">
       <DependentUpon>DoubleConverter.cs</DependentUpon>
     </Compile>
+    <Compile Update="Conversion/DynamicQuery.DynamicString.cs">
+      <DependentUpon>DynamicQuery.cs</DependentUpon>
+    </Compile>
     <Compile Update="Conversion/FileDataFactory.ByteIterator.cs">
       <DependentUpon>FileDataFactory.cs</DependentUpon>
     </Compile>
