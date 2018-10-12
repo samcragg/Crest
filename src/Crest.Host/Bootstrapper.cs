@@ -8,9 +8,9 @@ namespace Crest.Host
     using System;
     using System.Collections.Generic;
     using System.Linq;
-    using System.Reflection;
     using System.Threading.Tasks;
     using Crest.Abstractions;
+    using Crest.Core.Utils;
     using Crest.Host.Diagnostics;
     using Crest.Host.Engine;
     using Crest.Host.Routing;

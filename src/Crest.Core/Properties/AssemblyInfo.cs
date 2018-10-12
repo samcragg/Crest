@@ -12,5 +12,6 @@ using System.Runtime.InteropServices;
 
 [assembly: InternalsVisibleTo("Crest.DataAccess")]
 [assembly: InternalsVisibleTo("Crest.Host")]
+[assembly: InternalsVisibleTo("Crest.Host.AspNetCore")]
 [assembly: InternalsVisibleTo("DynamicProxyGenAssembly2")] // Allow NSubstitute to mock our types
 [assembly: InternalsVisibleTo("Host.UnitTests")]

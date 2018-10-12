@@ -3,7 +3,7 @@
 // Licensed under the MIT license. See LICENSE file in the project root for
 // full license information.
 
-namespace Crest.Host.AspNetCore
+namespace Crest.Core.Utils
 {
     using System;
 

@@ -14,6 +14,7 @@ namespace Crest.Host
     using System.Threading.Tasks;
     using Crest.Abstractions;
     using Crest.Core.Logging;
+    using Crest.Core.Utils;
     using Crest.Host.Diagnostics;
     using Crest.Host.Engine;
     using Crest.Host.IO;

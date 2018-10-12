@@ -9,6 +9,7 @@ namespace Crest.Host
     using System.Linq;
     using System.Reflection;
     using Crest.Abstractions;
+    using Crest.Core.Utils;
 
     /// <content>
     /// Contains the nested helper <see cref="MatchResult"/> struct.
