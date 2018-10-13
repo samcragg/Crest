@@ -22,18 +22,15 @@ namespace Crest.DataAccess.Parsing
         private static readonly Dictionary<Type, IReadOnlyDictionary<string, PropertyInfo>> TypeProperties =
             new Dictionary<Type, IReadOnlyDictionary<string, PropertyInfo>>();
 
-        private readonly IReadOnlyDictionary<string, object> parameters;
-        private readonly ILookup<string, string> query;
+        private readonly DataSource query;
         private readonly CsvSplitter splitter;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="QueryParser"/> class.
         /// </summary>
-        /// <param name="parameters">The parameters for the method.</param>
-        /// <param name="query">All the query parameters from the request.</param>
-        public QueryParser(IReadOnlyDictionary<string, object> parameters, ILookup<string, string> query)
+        /// <param name="query">Contains the query information.</param>
+        public QueryParser(DataSource query)
         {
-            this.parameters = parameters;
             this.query = query;
             this.splitter = new CsvSplitter();
         }
@@ -46,20 +43,18 @@ namespace Crest.DataAccess.Parsing
         public IEnumerable<FilterInfo> GetFilters(Type type)
         {
             IReadOnlyDictionary<string, PropertyInfo> properties = GetPropertiesFor(type);
-            foreach (IGrouping<string, string> grouping in this.query)
+            foreach (string member in this.query.GetMembers())
             {
-                // Check the property hasn't already been captured and it's a
-                // known one on the type
-                if (!this.parameters.ContainsKey(grouping.Key) &&
-                    properties.TryGetValue(grouping.Key, out PropertyInfo property))
+                if (properties.TryGetValue(member, out PropertyInfo property))
                 {
-                    if (TryParseFilter(grouping, out FilterMethod method, out string value))
+                    IEnumerable<string> values = this.GetValuesForKey(member);
+                    if (TryParseFilter(values, out FilterMethod method, out string value))
                     {
                         yield return new FilterInfo(property, method, value);
                     }
                     else
                     {
-                        Logger.WarnFormat("Unable to parse filter '{filter}'", grouping.FirstOrDefault());
+                        Logger.WarnFormat("Unable to parse filter '{filter}'", values.FirstOrDefault());
                     }
                 }
             }
@@ -73,7 +68,7 @@ namespace Crest.DataAccess.Parsing
         public IEnumerable<(PropertyInfo property, SortDirection direction)> GetSorting(Type type)
         {
             IReadOnlyDictionary<string, PropertyInfo> properties = GetPropertiesFor(type);
-            foreach (string sort in this.query[SortParameter])
+            foreach (string sort in this.GetValuesForKey(SortParameter))
             {
                 foreach (string value in this.splitter.Split(sort))
                 {
@@ -202,6 +197,12 @@ namespace Crest.DataAccess.Parsing
                 property = default;
                 return false;
             }
+        }
+
+        private IEnumerable<string> GetValuesForKey(string key)
+        {
+            IEnumerable<string> values = (dynamic)this.query.GetValue(key);
+            return values ?? Enumerable.Empty<string>();
         }
     }
 }

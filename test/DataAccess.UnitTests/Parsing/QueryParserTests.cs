@@ -10,22 +10,19 @@ namespace DataAccess.UnitTests.Parsing
 
     public class QueryParserTests
     {
-        private readonly Dictionary<string, object> parameters;
         private readonly QueryParser parser;
-        private readonly ILookup<string, string> query;
+        private readonly DataSource query;
 
         private QueryParserTests()
         {
-            this.parameters = new Dictionary<string, object>();
-            this.query = Substitute.For<ILookup<string, string>>();
-            this.parser = new QueryParser(this.parameters, this.query);
+            this.query = Substitute.For<DataSource>(new object[] { null });
+            this.parser = new QueryParser(this.query);
         }
 
         private void SetQuery(string key, params string[] values)
         {
-            ILookup<string, string> lookup = values.ToLookup(_ => key);
-            this.query.GetEnumerator().Returns(lookup.GetEnumerator());
-            this.query[null].ReturnsForAnyArgs(ci => lookup[ci.Arg<string>()]);
+            this.query.GetMembers().Returns(new[] { key });
+            this.query.GetValue(key).Returns(values);
         }
 
         public sealed class GetFilters : QueryParserTests
@@ -40,17 +37,6 @@ namespace DataAccess.UnitTests.Parsing
                 result.Method.Should().Be(FilterMethod.Equals);
                 result.Property.Name.Should().Be(nameof(ExampleClass.Property));
                 result.Value.Should().Be("value");
-            }
-
-            [Fact]
-            public void ShouldIgnorePropertiesThatAreCaptured()
-            {
-                this.SetQuery(nameof(ExampleClass.Property), "value");
-                this.parameters.Add(nameof(ExampleClass.Property), null);
-
-                IEnumerable<FilterInfo> result = this.parser.GetFilters(typeof(ExampleClass));
-
-                result.Should().BeEmpty();
             }
 
             [Fact]
