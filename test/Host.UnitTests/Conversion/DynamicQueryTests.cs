@@ -1,6 +1,7 @@
 namespace Host.UnitTests.Conversion
 {
     using System;
+    using System.Collections;
     using System.Collections.Generic;
     using System.Dynamic;
     using System.Linq;
@@ -38,6 +39,42 @@ namespace Host.UnitTests.Conversion
             this.queryKeyValues.GetEnumerator().Returns(lookup.GetEnumerator());
         }
 
+        public sealed class ContainsKey : DynamicQueryTests
+        {
+            [Fact]
+            public void ShouldReturnFalseIfTheKeyDoesNotExist()
+            {
+                this.SetQueryValues(("key", "value"));
+
+                bool result = this.DynamicQuery.ContainsKey("other");
+
+                result.Should().BeFalse();
+            }
+
+            [Fact]
+            public void ShouldReturnTrueIfTheKeyExists()
+            {
+                this.SetQueryValues(("key", "value"));
+
+                bool result = this.DynamicQuery.ContainsKey("key");
+
+                result.Should().BeTrue();
+            }
+        }
+
+        public sealed class Count : DynamicQueryTests
+        {
+            [Fact]
+            public void ShouldReturnTheNumberOfUniqueKeys()
+            {
+                this.SetQueryValues(("key1", "value1"), ("key2", "value2"), ("key1", "value3"));
+
+                int result = this.DynamicQuery.Count;
+
+                result.Should().Be(2);
+            }
+        }
+
         public sealed class GetDynamicMemberNames : DynamicQueryTests
         {
             [Fact]
@@ -57,6 +94,48 @@ namespace Host.UnitTests.Conversion
                 this.SetQueryValues(("key1", ""), ("key2", ""));
 
                 IEnumerable<string> result = this.DynamicQuery.GetDynamicMemberNames();
+
+                result.Should().BeEquivalentTo("key1", "key2");
+            }
+        }
+
+        public sealed class GetEnumerator : DynamicQueryTests
+        {
+            [Fact]
+            public void NonGenericEnumeratorShouldReturnAllTheKeyValuePairs()
+            {
+                this.SetQueryValues(("key", "value"));
+
+                IEnumerator enumerator = ((IEnumerable)this.DynamicQuery).GetEnumerator();
+
+                enumerator.MoveNext().Should().BeTrue();
+                enumerator.Current.Should().BeOfType<KeyValuePair<string, string[]>>()
+                    .Which.Key.Should().Be("key");
+                enumerator.MoveNext().Should().BeFalse();
+            }
+
+            [Fact]
+            public void ShouldReturnAllTheKeyValuePairs()
+            {
+                this.SetQueryValues(("key", "value"));
+
+                IEnumerator<KeyValuePair<string, string[]>> enumerator = this.DynamicQuery.GetEnumerator();
+
+                enumerator.MoveNext().Should().BeTrue();
+                enumerator.Current.Key.Should().Be("key");
+                enumerator.Current.Value.Should().Equal("value");
+                enumerator.MoveNext().Should().BeFalse();
+            }
+        }
+
+        public sealed class Keys : DynamicQueryTests
+        {
+            [Fact]
+            public void ShouldReturnTheUniqueKeys()
+            {
+                this.SetQueryValues(("key1", "value1"), ("key2", "value2"), ("key1", "value3"));
+
+                IEnumerable<string> result = this.DynamicQuery.Keys;
 
                 result.Should().BeEquivalentTo("key1", "key2");
             }
@@ -135,6 +214,34 @@ namespace Host.UnitTests.Conversion
             private static GetMemberBinder Member(string name)
             {
                 return Substitute.For<GetMemberBinder>(name, false);
+            }
+        }
+
+        public sealed class TryGetValue : DynamicQueryTests
+        {
+            [Fact]
+            public void ShouldReturnTheValuesForTheKey()
+            {
+                this.SetQueryValues(("key", "value1"), ("key", "value2"));
+
+                bool result = this.DynamicQuery.TryGetValue("key", out string[] values);
+
+                result.Should().BeTrue();
+                values.Should().BeEquivalentTo("value1", "value2");
+            }
+        }
+
+        public sealed class Values : DynamicQueryTests
+        {
+            [Fact]
+            public void ShouldReturnTheGroupedValues()
+            {
+                this.SetQueryValues(("key", "value1"), ("key", "value2"));
+
+                IEnumerable<string[]> result = this.DynamicQuery.Values;
+
+                result.Should().ContainSingle()
+                    .Which.Should().BeEquivalentTo("value1", "value2");
             }
         }
     }

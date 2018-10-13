@@ -6,6 +6,7 @@
 namespace Crest.Host.Conversion
 {
     using System;
+    using System.Collections;
     using System.Collections.Generic;
     using System.Dynamic;
     using System.Linq;
@@ -13,7 +14,7 @@ namespace Crest.Host.Conversion
     /// <summary>
     /// Represents the unparsed parts of the query string.
     /// </summary>
-    internal sealed partial class DynamicQuery : DynamicObject
+    internal sealed partial class DynamicQuery : DynamicObject, IReadOnlyDictionary<string, string[]>
     {
         private readonly Dictionary<string, string[]> values;
 
@@ -32,9 +33,33 @@ namespace Crest.Host.Conversion
         }
 
         /// <inheritdoc />
+        public int Count => this.values.Count;
+
+        /// <inheritdoc />
+        public IEnumerable<string> Keys => this.values.Keys;
+
+        /// <inheritdoc />
+        public IEnumerable<string[]> Values => this.values.Values;
+
+        /// <inheritdoc />
+        public string[] this[string key] => this.values[key];
+
+        /// <inheritdoc />
+        public bool ContainsKey(string key)
+        {
+            return this.values.ContainsKey(key);
+        }
+
+        /// <inheritdoc />
         public override IEnumerable<string> GetDynamicMemberNames()
         {
             return this.values.Keys;
+        }
+
+        /// <inheritdoc />
+        public IEnumerator<KeyValuePair<string, string[]>> GetEnumerator()
+        {
+            return this.values.GetEnumerator();
         }
 
         /// <inheritdoc />
@@ -50,6 +75,18 @@ namespace Crest.Host.Conversion
                 result = null;
                 return false;
             }
+        }
+
+        /// <inheritdoc />
+        public bool TryGetValue(string key, out string[] value)
+        {
+            return this.values.TryGetValue(key, out value);
+        }
+
+        /// <inheritdoc />
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return this.GetEnumerator();
         }
     }
 }
