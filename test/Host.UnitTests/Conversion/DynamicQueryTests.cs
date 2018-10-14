@@ -128,6 +128,19 @@ namespace Host.UnitTests.Conversion
             }
         }
 
+        public sealed class Index : DynamicQueryTests
+        {
+            [Fact]
+            public void ShouldReturnTheValuesForTheKey()
+            {
+                this.SetQueryValues(("key", "value1"), ("key", "value2"));
+
+                string[] result = this.DynamicQuery["key"];
+
+                result.Should().BeEquivalentTo("value1", "value2");
+            }
+        }
+
         public sealed class Keys : DynamicQueryTests
         {
             [Fact]
