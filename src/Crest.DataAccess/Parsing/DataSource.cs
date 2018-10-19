@@ -10,8 +10,10 @@ namespace Crest.DataAccess.Parsing
     using System.Dynamic;
     using System.Linq;
     using System.Linq.Expressions;
+    using System.Reflection;
     using System.Runtime.CompilerServices;
     using Microsoft.CSharp.RuntimeBinder;
+    using Binder = Microsoft.CSharp.RuntimeBinder.Binder;
 
     /// <summary>
     /// Extracts the properties and values from an object.
@@ -26,6 +28,7 @@ namespace Crest.DataAccess.Parsing
         private static readonly Dictionary<string, Func<object, object>> Getters =
             new Dictionary<string, Func<object, object>>(StringComparer.OrdinalIgnoreCase);
 
+        private readonly IReadOnlyCollection<string> members;
         private readonly object source;
 
         /// <summary>
@@ -34,29 +37,24 @@ namespace Crest.DataAccess.Parsing
         /// <param name="source">The source of the data.</param>
         public DataSource(object source)
         {
+            this.members = GetMembers(source);
             this.source = source;
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="DataSource"/> class.
+        /// </summary>
+        /// <remarks>
+        /// This constructor is only used to allow the type to be mocked in unit tests.
+        /// </remarks>
+        protected DataSource()
+        {
         }
 
         /// <summary>
         /// Gets the member names of the data source.
         /// </summary>
-        /// <returns>A sequence of member names from the data source.</returns>
-        public virtual IEnumerable<string> GetMembers()
-        {
-            if (this.source is IReadOnlyDictionary<string, string[]> dictionary)
-            {
-                return dictionary.Keys;
-            }
-            else if (this.source is IDynamicMetaObjectProvider provider)
-            {
-                return provider.GetMetaObject(Expression.Constant(this.source))
-                    .GetDynamicMemberNames();
-            }
-            else
-            {
-                return this.source.GetType().GetProperties().Select(p => p.Name);
-            }
-        }
+        public virtual IReadOnlyCollection<string> Members => this.members;
 
         /// <summary>
         /// Gets the value of the member from the data source.
@@ -96,6 +94,32 @@ namespace Crest.DataAccess.Parsing
             }
 
             return getter;
+        }
+
+        private static IReadOnlyList<string> GetMembers(object value)
+        {
+            if (value is IReadOnlyDictionary<string, string[]> dictionary)
+            {
+                return MakeList(dictionary.Keys);
+            }
+            else if (value is IDynamicMetaObjectProvider provider)
+            {
+                return MakeList(
+                    provider.GetMetaObject(Expression.Constant(value))
+                            .GetDynamicMemberNames());
+            }
+            else
+            {
+                PropertyInfo[] properties = value.GetType().GetProperties();
+                return Array.ConvertAll(properties, p => p.Name);
+            }
+        }
+
+        private static IReadOnlyList<string> MakeList(IEnumerable<string> values)
+        {
+            // The majority of Dictionary implementations give us keys that are
+            // actually collections, so try to use the original where possible
+            return (values as IReadOnlyList<string>) ?? values.ToList();
         }
     }
 }

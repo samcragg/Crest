@@ -8,44 +8,6 @@ namespace DataAccess.UnitTests.Parsing
 
     public class DataSourceTests
     {
-        public sealed class GetMembers : DataSourceTests
-        {
-            [Fact]
-            public void ShouldReturnTheDynamicMembers()
-            {
-                dynamic expando = new ExpandoObject();
-                expando.member = "";
-                var source = new DataSource(expando);
-
-                IEnumerable<string> result = source.GetMembers();
-
-                result.Should().Equal("member");
-            }
-
-            [Fact]
-            public void ShouldReturnTheKeysForDictionaries()
-            {
-                var source = new DataSource(new Dictionary<string, string[]>
-                {
-                    { "key", new[] { "value" } },
-                });
-
-                IEnumerable<string> result = source.GetMembers();
-
-                result.Should().Equal("key");
-            }
-
-            [Fact]
-            public void ShouldReturnTheMembersOfAnonymousTypes()
-            {
-                var source = new DataSource(new { member = "" });
-
-                IEnumerable<string> result = source.GetMembers();
-
-                result.Should().Equal("member");
-            }
-        }
-
         public sealed class GetValue : DataSourceTests
         {
             [Fact]
@@ -82,6 +44,44 @@ namespace DataAccess.UnitTests.Parsing
                 object result = source.GetValue("member");
 
                 result.Should().Be("value");
+            }
+        }
+
+        public sealed class Members : DataSourceTests
+        {
+            [Fact]
+            public void ShouldReturnTheDynamicMembers()
+            {
+                dynamic expando = new ExpandoObject();
+                expando.member = "";
+                var source = new DataSource(expando);
+
+                IReadOnlyCollection<string> result = source.Members;
+
+                result.Should().Equal("member");
+            }
+
+            [Fact]
+            public void ShouldReturnTheKeysForDictionaries()
+            {
+                var source = new DataSource(new Dictionary<string, string[]>
+                {
+                    { "key", new[] { "value" } },
+                });
+
+                IReadOnlyCollection<string> result = source.Members;
+
+                result.Should().Equal("key");
+            }
+
+            [Fact]
+            public void ShouldReturnTheMembersOfAnonymousTypes()
+            {
+                var source = new DataSource(new { member = "" });
+
+                IReadOnlyCollection<string> result = source.Members;
+
+                result.Should().Equal("member");
             }
         }
     }

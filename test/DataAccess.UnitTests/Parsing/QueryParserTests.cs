@@ -15,13 +15,13 @@ namespace DataAccess.UnitTests.Parsing
 
         private QueryParserTests()
         {
-            this.query = Substitute.For<DataSource>(new object[] { null });
+            this.query = Substitute.For<DataSource>();
             this.parser = new QueryParser(this.query);
         }
 
         private void SetQuery(string key, params string[] values)
         {
-            this.query.GetMembers().Returns(new[] { key });
+            this.query.Members.Returns(new[] { key });
             this.query.GetValue(key).Returns(values);
         }
 
@@ -95,6 +95,17 @@ namespace DataAccess.UnitTests.Parsing
 
                 direction.Should().Be(SortDirection.Ascending);
                 property.Name.Should().Be(nameof(ExampleClass.Property));
+            }
+
+            [Fact]
+            public void ShouldIgnoreTheCaseOfTheCaseOfTheSortParameter()
+            {
+                this.SetQuery(SortParameter.ToUpperInvariant(), nameof(ExampleClass.Property));
+
+                (PropertyInfo property, SortDirection direction)[] result =
+                    this.parser.GetSorting(typeof(ExampleClass)).ToArray();
+
+                result.Should().ContainSingle();
             }
 
             [Fact]

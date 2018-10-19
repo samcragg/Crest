@@ -43,7 +43,7 @@ namespace Crest.DataAccess.Parsing
         public IEnumerable<FilterInfo> GetFilters(Type type)
         {
             IReadOnlyDictionary<string, PropertyInfo> properties = GetPropertiesFor(type);
-            foreach (string member in this.query.GetMembers())
+            foreach (string member in this.query.Members)
             {
                 if (properties.TryGetValue(member, out PropertyInfo property))
                 {
@@ -68,7 +68,7 @@ namespace Crest.DataAccess.Parsing
         public IEnumerable<(PropertyInfo property, SortDirection direction)> GetSorting(Type type)
         {
             IReadOnlyDictionary<string, PropertyInfo> properties = GetPropertiesFor(type);
-            foreach (string sort in this.GetValuesForKey(SortParameter))
+            foreach (string sort in this.GetValuesForKey(this.FindSortMember()))
             {
                 foreach (string value in this.splitter.Split(sort))
                 {
@@ -199,9 +199,20 @@ namespace Crest.DataAccess.Parsing
             }
         }
 
+        private string FindSortMember()
+        {
+            return this.query.Members.FirstOrDefault(m =>
+                string.Equals(SortParameter, m, StringComparison.OrdinalIgnoreCase));
+        }
+
         private IEnumerable<string> GetValuesForKey(string key)
         {
-            IEnumerable<string> values = (dynamic)this.query.GetValue(key);
+            IEnumerable<string> values = null;
+            if (key != null)
+            {
+                values = (dynamic)this.query.GetValue(key);
+            }
+
             return values ?? Enumerable.Empty<string>();
         }
     }
