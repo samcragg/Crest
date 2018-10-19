@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
-    <PackageId>Crest.Abstractions</PackageId>
+    <PackageId>Crest.DataAccess</PackageId>
     <Description>Provides helper functionality for working with typical data access patterns.</Description>
   </PropertyGroup>
 
@@ -9,6 +9,7 @@
   <Import Project="..\CrestPackage.targets" />
   
   <ItemGroup>
+    <ProjectReference Include="..\Crest.Abstractions\Crest.Abstractions.csproj" />
     <ProjectReference Include="..\Crest.Core\Crest.Core.csproj" />
   </ItemGroup>
 
