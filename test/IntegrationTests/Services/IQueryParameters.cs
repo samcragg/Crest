@@ -17,5 +17,9 @@
         [Get("/captured?value={captured}")]
         [Version(1)]
         Task<string> WithCaptured(string captured);
+
+        [Get("/queryable?*={filter}")]
+        [Version(1)]
+        Task<string> WithFilter(dynamic filter);
     }
 }

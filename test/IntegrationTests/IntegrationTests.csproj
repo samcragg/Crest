@@ -9,6 +9,7 @@
   <Import Project="..\UnitTestPackages.targets" />
 
   <ItemGroup>
+    <ProjectReference Include="..\..\src\Crest.DataAccess\Crest.DataAccess.csproj" />
     <ProjectReference Include="..\..\src\Crest.Host.AspNetCore\Crest.Host.AspNetCore.csproj" />
     <ProjectReference Include="..\..\src\Crest.OpenApi\Crest.OpenApi.csproj" />
     <PackageReference Include="HtmlAgilityPack" Version="1.8.8" />
