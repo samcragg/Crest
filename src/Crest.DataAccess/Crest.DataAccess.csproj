@@ -17,5 +17,8 @@
     <Compile Update="Expressions/QueryableExpressionBuilder.BuiltInMethods.cs">
       <DependentUpon>QueryableExpressionBuilder.cs</DependentUpon>
     </Compile>
+    <Compile Update="MappingProvider.PropertyMapping.cs">
+      <DependentUpon>MappingProvider.cs</DependentUpon>
+    </Compile>
   </ItemGroup>
 </Project>
