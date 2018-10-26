@@ -14,6 +14,10 @@ namespace Crest.DataAccess
     /// Allows additional query options to a data source.
     /// </summary>
     /// <typeparam name="T">The type of the data in the data source.</typeparam>
+    [System.Diagnostics.CodeAnalysis.SuppressMessage(
+            "Performance",
+            "CA1815:Override equals and operator equals on value types",
+            Justification = "This is a short lived object that will not be used in comparisons")]
     public readonly struct QueryOptions<T>
     {
         private readonly IQueryable<T> query;
