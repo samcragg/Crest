@@ -7,36 +7,42 @@
     using FluentAssertions;
     using Xunit;
 
-    public class MappingProviderTests
+    public class MappingInfoBuilderTests
     {
-        private readonly MappingProvider<FakeSourceType, FakeDestinationType> provider =
-            new SimpleMappingProvider();
+        private readonly MappingInfoBuilder<FakeSourceType, FakeDestinationType> builder =
+            new MappingInfoBuilder<FakeSourceType, FakeDestinationType>();
 
-        public sealed class Destination : MappingProviderTests
-        {
-            [Fact]
-            public void ShouldReturnTheTDestValue()
-            {
-                Type result = this.provider.Destination;
-
-                result.Should().Be<FakeDestinationType>();
-            }
-        }
-
-        public sealed class GenerateMappings : MappingProviderTests
+        public sealed class ToMappingInfo : MappingInfoBuilderTests
         {
             [Fact]
             public void ShouldReturnAnExpressionThatAssignsTheProperties()
             {
                 var destination = new FakeDestinationType();
                 var source = new FakeSourceType { SourceProperty = "value" };
+                this.builder.Map(s => s.SourceProperty).To(d => d.DestinationProperty);
 
-                Expression mappings = this.provider.GenerateMappings();
-                Action<FakeDestinationType, FakeSourceType> lambda = CreateAction(mappings);
+                var mapping = this.builder.ToMappingInfo();
+                Action<FakeDestinationType, FakeSourceType> lambda = CreateAction(mapping.Mapping);
 
                 lambda(destination, source);
 
                 destination.DestinationProperty.Should().Be("value");
+            }
+
+            [Fact]
+            public void ShouldReturnTheDestinationType()
+            {
+                var mapping = this.builder.ToMappingInfo();
+
+                mapping.Destination.Should().Be<FakeDestinationType>();
+            }
+
+            [Fact]
+            public void ShouldReturnTheSourceType()
+            {
+                var mapping = this.builder.ToMappingInfo();
+
+                mapping.Source.Should().Be<FakeSourceType>();
             }
 
             private static Action<FakeDestinationType, FakeSourceType> CreateAction(Expression mappings)
@@ -64,17 +70,6 @@
             }
         }
 
-        public sealed class Source : MappingProviderTests
-        {
-            [Fact]
-            public void ShouldReturnTheTSourceValue()
-            {
-                Type result = this.provider.Source;
-
-                result.Should().Be<FakeSourceType>();
-            }
-        }
-
         private class FakeDestinationType
         {
             public string DestinationProperty { get; set; }
@@ -83,14 +78,6 @@
         private class FakeSourceType
         {
             public string SourceProperty { get; set; }
-        }
-
-        private class SimpleMappingProvider : MappingProvider<FakeSourceType, FakeDestinationType>
-        {
-            public SimpleMappingProvider()
-            {
-                this.Map(s => s.SourceProperty).To(d => d.DestinationProperty);
-            }
         }
     }
 }

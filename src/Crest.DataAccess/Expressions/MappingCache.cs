@@ -24,15 +24,15 @@ namespace Crest.DataAccess.Expressions
         /// <summary>
         /// Initializes a new instance of the <see cref="MappingCache"/> class.
         /// </summary>
-        /// <param name="mappingProviders">The source of the mapping information.</param>
-        public MappingCache(IMappingProvider[] mappingProviders)
+        /// <param name="mappingFactories">The source of the mapping information.</param>
+        public MappingCache(IMappingInfoFactory[] mappingFactories)
         {
-            foreach (IMappingProvider provider in mappingProviders)
+            foreach (IMappingInfoFactory factory in mappingFactories)
             {
-                this.resolvers[(provider.Source, provider.Destination)] = CreateMappings(
-                    provider.GenerateMappings(),
-                    provider.Source,
-                    provider.Destination);
+                foreach (MappingInfo info in factory.GetMappingInformation())
+                {
+                    this.resolvers[(info.Source, info.Destination)] = CreateMappings(info);
+                }
             }
         }
 
@@ -85,14 +85,14 @@ namespace Crest.DataAccess.Expressions
             return Expression.Lambda(transformer(value.expression), value.parameter);
         }
 
-        private static Resolver CreateMappings(Expression mappings, Type source, Type destination)
+        private static Resolver CreateMappings(MappingInfo info)
         {
             var resolver = new Resolver();
-            var assignmentVisitor = new AssignmentVisitor(source, destination);
+            var assignmentVisitor = new AssignmentVisitor(info.Source, info.Destination);
             var parameterVisitor = new ParameterVisitor();
-            foreach (KeyValuePair<MemberInfo, Expression> assignment in assignmentVisitor.GetAssignments(mappings))
+            foreach (KeyValuePair<MemberInfo, Expression> assignment in assignmentVisitor.GetAssignments(info.Mapping))
             {
-                ParameterExpression parameter = parameterVisitor.FindParameter(assignment.Value, destination);
+                ParameterExpression parameter = parameterVisitor.FindParameter(assignment.Value, info.Destination);
                 if (parameter != null)
                 {
                     resolver[assignment.Key] = (parameter, assignment.Value);

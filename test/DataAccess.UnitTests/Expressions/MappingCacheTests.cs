@@ -15,16 +15,14 @@ namespace DataAccess.UnitTests.Expressions
             typeof(ServiceObject).GetProperty(nameof(ServiceObject.Property));
 
         private readonly Lazy<MappingCache> cache;
-        private readonly IMappingProvider provider;
+        private readonly IMappingInfoFactory factory;
 
         private MappingCacheTests()
         {
-            this.provider = Substitute.For<IMappingProvider>();
-            this.provider.Source.Returns(typeof(ServiceObject));
-            this.provider.Destination.Returns(typeof(DataAccessObject));
+            this.factory = Substitute.For<IMappingInfoFactory>();
 
             this.cache = new Lazy<MappingCache>(
-                () => new MappingCache(new[] { this.provider }));
+                () => new MappingCache(new[] { this.factory }));
         }
 
         private MappingCache Cache => this.cache.Value;
@@ -34,7 +32,7 @@ namespace DataAccess.UnitTests.Expressions
             [Fact]
             public void ShouldReturnAnExpressionForAccessingTheMappedProperty()
             {
-                this.provider.GenerateMappings().Returns(CreateMapping());
+                this.SetMappingInfo(CreateMapping());
 
                 LambdaExpression result = this.Cache.CreateMemberAccess(
                     typeof(DataAccessObject),
@@ -70,7 +68,7 @@ namespace DataAccess.UnitTests.Expressions
             [Fact]
             public void ShouldTransformTheExpression()
             {
-                this.provider.GenerateMappings().Returns(CreateMapping());
+                this.SetMappingInfo(CreateMapping());
 
                 LambdaExpression result = this.Cache.CreateMemberAccess(
                     typeof(DataAccessObject),
@@ -86,6 +84,15 @@ namespace DataAccess.UnitTests.Expressions
                 Expression<Func<DataAccessObject, string>> data = d => d.DbField;
                 Expression<Func<ServiceObject, string>> service = s => s.Property;
                 return Expression.Assign(data.Body, service.Body);
+            }
+
+            private void SetMappingInfo(Expression expression)
+            {
+                var mappingInfo = new MappingInfo(
+                    typeof(DataAccessObject),
+                    typeof(ServiceObject),
+                    expression);
+                this.factory.GetMappingInformation().Returns(new[] { mappingInfo });
             }
         }
 
