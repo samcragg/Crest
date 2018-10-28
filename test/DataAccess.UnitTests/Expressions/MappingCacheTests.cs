@@ -46,12 +46,15 @@ namespace DataAccess.UnitTests.Expressions
             [Fact]
             public void ShouldThrowForUnknownProperties()
             {
+                this.SetMappingInfo(Expression.Empty());
+
                 Action action = () => this.Cache.CreateMemberAccess(
                     typeof(DataAccessObject),
                     ServiceObjectProperty,
                     x => x);
 
-                action.Should().Throw<InvalidOperationException>();
+                action.Should().Throw<InvalidOperationException>()
+                      .WithMessage("*parameter*");
             }
 
             [Fact]
@@ -62,7 +65,8 @@ namespace DataAccess.UnitTests.Expressions
                     ServiceObjectProperty,
                     x => x);
 
-                action.Should().Throw<InvalidOperationException>();
+                action.Should().Throw<InvalidOperationException>()
+                      .WithMessage("*type*");
             }
 
             [Fact]
