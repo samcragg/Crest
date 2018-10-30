@@ -203,7 +203,7 @@ Task("SonarBegin")
     .WithCriteria(!isLocalBuild)
     .Does(() =>
 {
-    sonarTool = InstallDotNetTool("dotnet-sonarscanner", "4.3.1 ");
+    sonarTool = InstallDotNetTool("dotnet-sonarscanner", "4.4.2 ");
 
     string unitTestReports = (new DirectoryPath(UnitTestCoverageFolder)).FullPath + "/*.xml";
     var arguments = "/k:\"crest\""
@@ -211,8 +211,12 @@ Task("SonarBegin")
     + " /d:sonar.host.url=\"https://sonarcloud.io\""
     + " /d:sonar.login=\"" + EnvironmentVariable("SONAR_TOKEN") + "\""
     + " /d:sonar.cs.opencover.reportsPaths=\"" + unitTestReports + "\""
-    + " /d:sonar.exclusions=\"" + SwaggerUIFolder + "*\"";
-    StartProcess(sonarTool.CombineWithFilePath("dotnet-sonarscanner.exe"), "begin " + arguments);
+    + " /d:sonar.exclusions=" + SwaggerUIFolder + "*";
+    int exitCode = StartProcess(sonarTool.CombineWithFilePath("dotnet-sonarscanner.exe"), "begin " + arguments);
+    if (exitCode != 0)
+    {
+        throw new Exception("Unable to begin Sonar analysis");
+    }
 });
 
 Task("SonarEnd")
@@ -226,7 +230,7 @@ Task("SonarEnd")
         RedirectStandardError = true,
         RedirectStandardOutput = true
     };
-    StartProcess(
+    int exitCode = StartProcess(
         sonarTool.CombineWithFilePath("dotnet-sonarscanner.exe"),
         settings,
         out IEnumerable<string> output,
@@ -240,6 +244,11 @@ Task("SonarEnd")
     foreach (string line in error)
     {
         Error(line);
+    }
+
+    if (exitCode != 0)
+    {
+        throw new Exception("Unable to finish Sonar analysis");
     }
 });
 
