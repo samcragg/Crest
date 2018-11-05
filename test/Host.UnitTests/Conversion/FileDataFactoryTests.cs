@@ -52,7 +52,7 @@
             [Fact]
             public void ShouldIncludeAnyMultipartType()
             {
-                this.factory.Formats.Should().Contain("multipart/*");
+                this.factory.Formats.Should().ContainSingle(s => s == "multipart/*");
             }
         }
 

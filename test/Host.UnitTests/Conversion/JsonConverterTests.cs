@@ -56,7 +56,7 @@
             public void ShouldIncludeTheIanaJsonMimeType()
             {
                 // http://www.iana.org/assignments/media-types/application/json
-                this.converter.Formats.Should().Contain("application/json");
+                this.converter.Formats.Should().ContainSingle(s => s == "application/json");
             }
         }
 

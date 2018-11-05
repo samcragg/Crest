@@ -54,13 +54,13 @@
             [Fact]
             public void ShouldIncludeTheHtmlMimeType()
             {
-                this.converter.Formats.Should().Contain("text/html");
+                this.converter.Formats.Should().ContainSingle(s => s == "text/html");
             }
 
             [Fact]
             public void ShouldIncludeTheXHtmlMimeType()
             {
-                this.converter.Formats.Should().Contain("application/xhtml+xml");
+                this.converter.Formats.Should().ContainSingle(s => s == "application/xhtml+xml");
             }
         }
 
