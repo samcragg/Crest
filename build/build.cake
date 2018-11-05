@@ -1,4 +1,5 @@
 #addin nuget:?package=Cake.Npm
+#addin nuget:?package=Cake.Coverlet
 #load "utilities.cake"
 
 const string UnitTestCoverageFolder = "./coverage_results/";
@@ -187,7 +188,12 @@ Task("ShowTestReport")
     .IsDependentOn("UnitTestWithCover")
     .Does(() =>
 {
-    ReportGenerator(GetFiles(UnitTestCoverageFolder + "*.xml"), "./coverage_report");
+    var settings = new ReportGeneratorSettings
+    {
+        Verbosity = ReportGeneratorVerbosity.Error
+    };
+    ReportGenerator(GetFiles(UnitTestCoverageFolder + "*.xml"), "./coverage_report", settings);
+	
     if (IsRunningOnWindows())
     {
         StartAndReturnProcess(
@@ -257,7 +263,7 @@ Task("UnitTestWithCover")
     .Does(() =>
 {
     var settings = CreateUnitTestSettings();
-    RunOpenCover(UnitTestCoverageFolder, GetFiles("../test/**/*.csproj"), settings);
+    RunTestWithCoverage(UnitTestCoverageFolder, GetFiles("../test/**/*.csproj"), settings);
 });
 
 Task("UploadTestReport")

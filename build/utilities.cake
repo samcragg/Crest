@@ -60,36 +60,33 @@ DirectoryPath InstallDotNetTool(string name, string version)
     return toolPath;
 }
 
-void RunOpenCover(DirectoryPath outputFolder, IEnumerable<FilePath> files, DotNetCoreTestSettings settings)
+void RunTestWithCoverage(
+    DirectoryPath outputFolder,
+    IEnumerable<FilePath> files,
+    DotNetCoreTestSettings testSettings)
 {
-    var coverSettings = new OpenCoverSettings
+    string[] toExclude =
     {
-        LogLevel = OpenCoverLogLevel.Warn,
-        OldStyle = true,
-        Register = "Path64",
-        ReturnTargetCodeOffset = 0
+        "[*]DryIoc.*",
+        "[*]FastExpressionCompiler.*",
+        "[*]ImTools.*",
+        "[*]*.Logging.*"
     };
-
-    coverSettings.Filters.UnionWith(new[]
-    {
-        "+[Crest.*]*",
-        "-[*]DryIoc.*",
-        "-[*]ImTools.*",
-        "-[*]FastExpressionCompiler.*",
-        "-[*]*.Logging.*"
-    });
 
     EnsureDirectoryExists(outputFolder);
     CleanDirectory(outputFolder);
 
-    StartProcess("regsvr32", "/s /n /i:user ./tools/OpenCover/tools/x64/OpenCover.Profiler.dll");
-
-    Parallel.ForEach(files, project =>
+    foreach (project in files)
     {
-        OpenCover(
-            c => c.DotNetCoreTest(project.FullPath, settings),
-            outputFolder.CombineWithFilePath(project.GetFilenameWithoutExtension() + ".xml"),
-            coverSettings
-        );
-    });
+        var coveletSettings = new CoverletSettings
+        {
+            CollectCoverage = true,
+            CoverletOutputDirectory = outputFolder,
+            CoverletOutputFormat = CoverletOutputFormat.opencover,
+            CoverletOutputName = project.GetFilenameWithoutExtension() + ".xml",
+            Exclude = new List<string>(toExclude),
+        };
+
+        DotNetCoreTest(project.FullPath, testSettings, coveletSettings);
+    }
 }

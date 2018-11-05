@@ -5,9 +5,8 @@
     <RuntimeFrameworkVersion>2.0.7</RuntimeFrameworkVersion>
   </PropertyGroup>
 
-  <!-- This is required so that OpenCover can analyse the output -->
+  <!-- This is required for code coverage -->
   <PropertyGroup>
-    <DebugType>full</DebugType>
-    <DebugSymbols>True</DebugSymbols>
+    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
   </PropertyGroup>
 </Project>

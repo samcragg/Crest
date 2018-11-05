@@ -22,10 +22,4 @@
   <ItemGroup>
     <Compile Include="$(MSBuildThisFileDirectory)/AssemblyInfo.cs" Link="Common/AssemblyInfo.cs" />
   </ItemGroup>
-
-  <!-- This is required so that OpenCover can analyse the output -->
-  <PropertyGroup>
-    <DebugType>full</DebugType>
-    <DebugSymbols>True</DebugSymbols>
-  </PropertyGroup>
 </Project>
