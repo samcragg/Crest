@@ -10,7 +10,7 @@ namespace Crest.Host
     using System.Linq;
     using System.Threading.Tasks;
     using Crest.Abstractions;
-    using Crest.Core.Utils;
+    using Crest.Core.Util;
     using Crest.Host.Diagnostics;
     using Crest.Host.Engine;
     using Crest.Host.Routing;

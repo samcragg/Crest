@@ -7,7 +7,7 @@ namespace Crest.DataAccess
 {
     using System;
     using System.Linq.Expressions;
-    using Crest.Core.Utils;
+    using Crest.Core.Util;
 
     /// <summary>
     /// Provides information about to map between two types.

@@ -10,7 +10,7 @@ namespace Crest.Host.Engine
     using System.Linq;
     using System.Reflection;
     using Crest.Abstractions;
-    using Crest.Core.Utils;
+    using Crest.Core.Util;
     using DryIoc;
 
     /// <summary>

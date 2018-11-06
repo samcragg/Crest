@@ -6,7 +6,7 @@
 namespace Crest.DataAccess
 {
     using System.Linq;
-    using Crest.Core.Utils;
+    using Crest.Core.Util;
     using Crest.DataAccess.Expressions;
 
     /// <summary>

@@ -10,7 +10,7 @@ namespace Crest.Host.Conversion
     using System.Linq;
     using Crest.Abstractions;
     using Crest.Core.Logging;
-    using Crest.Core.Utils;
+    using Crest.Core.Util;
     using Crest.Host.Engine;
 
     /// <summary>
