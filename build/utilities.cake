@@ -76,7 +76,7 @@ void RunTestWithCoverage(
     EnsureDirectoryExists(outputFolder);
     CleanDirectory(outputFolder);
 
-    foreach (project in files)
+    foreach (FilePath project in files)
     {
         var coveletSettings = new CoverletSettings
         {
