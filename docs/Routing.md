@@ -102,6 +102,32 @@ Task FindWidget(bool includeAll = false);
 Calling `/v1/widget?all` would pass in `true` for the `includeAll` parameter,
 as well as `/v1/widget?all=1` or `/v1/widget?all=true`.
 
+### Any query key/value
+
+As the query part of the URL can be dynamic, there may be scenarios where you
+want to capture what has been sent in the request. To enable this, you can use
+a `dynamic` parameter (that has a key name of `*`), which will have a member for
+each key that has not been captured:
+
+``` C#
+[Get("/widget?count={count}&*={properties}")]
+[Version(1)]
+Task FindWidget(dynamic properties, int count = 10);
+```
+
+Calling the above via the URL `/v1/widget?name=value&count=2` would invoke the
+method with `properties` having a member called `name` and the `count` parameter
+equal to `2`. If you try to access a member on the dynamic type that wasn't
+specified in the request then it will return null rather than throwing an
+exception. The return type of the dynamic member can be assigned to either a
+`string` (the first item in the query will be used for multiple keys) or
+`IEnumerable<string>` (including `string[]`). If it is assigned to any other
+type (e.g. an `int`) then the string will be attempted to be converted to the
+specified type, however, this will throw if the format is incorrect.
+
+Take a look at [filtering and sorting](Filtering%20and%20Sorting.md) for a good
+use case of the any matcher.
+
 ## Request body
 
 Some HTTP verbs allow the sending of the request body (such as POST and PUT).
