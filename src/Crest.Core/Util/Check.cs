@@ -24,5 +24,18 @@ namespace Crest.Core.Util
                 throw new ArgumentNullException(parameter);
             }
         }
+
+        /// <summary>
+        /// Verifies the specified value is not less than zero.
+        /// </summary>
+        /// <param name="value">The value to check.</param>
+        /// <param name="parameter">The name of the parameter.</param>
+        public static void IsPositive(int value, string parameter)
+        {
+            if (value < 0)
+            {
+                throw new ArgumentOutOfRangeException(parameter, parameter + " is less than 0.");
+            }
+        }
     }
 }
