@@ -1,5 +1,6 @@
 ﻿namespace Host.UnitTests.Serialization
 {
+    using System;
     using Crest.Host.Serialization.Internal;
     using FluentAssertions;
     using Xunit;
@@ -55,6 +56,18 @@
                       IntegerArray.0=1&
                       NullableIntegerArray.0=1&
                       StringArray.0=string");
+            }
+
+            [Fact]
+            public void LargeUris()
+            {
+                string largeString = new string('a', 2000);
+
+                this.ShouldSerializeAs(
+                    new FullClass { Uri = new Uri("http://www.example.com/" + largeString) },
+                    "Enum=0&Integer=0&" +
+                    "Uri=http://www.example.com/" + largeString);
+                ;
             }
 
             [Fact]

@@ -201,6 +201,22 @@ namespace Crest.Host.Serialization.Internal
         }
 
         /// <summary>
+        /// Reads a URI from the stream.
+        /// </summary>
+        /// <returns>The value read from the stream.</returns>
+        public virtual Uri ReadUri()
+        {
+            string value = this.ReadString();
+            if (!Uri.TryCreate(value, UriKind.RelativeOrAbsolute, out Uri result))
+            {
+                throw new FormatException(
+                    $"Unable to read Uri at {this.GetCurrentPosition()}: 'The sting was not in a known URI format'.");
+            }
+
+            return result;
+        }
+
+        /// <summary>
         /// Gets the current position in the stream, used for reporting errors.
         /// </summary>
         /// <returns>A displayable string representing the location.</returns>

@@ -12,7 +12,7 @@
 
         public sealed class ValueWriter : MethodsTests
         {
-            private const int ValueWriterWriteMethods = 17;
+            private const int ValueWriterWriteMethods = 18;
 
             [Fact]
             public void ShouldEnumerateAllTheWriteMethods()

@@ -370,6 +370,39 @@
             }
         }
 
+        public sealed class ReadUri : ValueReaderTests
+        {
+            [Fact]
+            public void ShouldReadAbsoluteUris()
+            {
+                const string Address = "http://www.example.com/";
+
+                Uri result = ReadValue(Address, r => r.ReadUri());
+
+                result.IsAbsoluteUri.Should().BeTrue();
+                result.AbsoluteUri.Should().Be(Address);
+            }
+
+            [Fact]
+            public void ShouldReadReltiveUris()
+            {
+                const string Address = "/path";
+
+                Uri result = ReadValue(Address, r => r.ReadUri());
+
+                result.IsAbsoluteUri.Should().BeFalse();
+                result.OriginalString.Should().Be(Address);
+            }
+
+            [Fact]
+            public void ShouldThrowForInvalidUris()
+            {
+                Action action = () => ReadValue("a:b", r => r.ReadUri());
+
+                action.Should().Throw<FormatException>();
+            }
+        }
+
         private sealed class FakeValueReader : ValueReader
         {
             internal const string Position = "current position";

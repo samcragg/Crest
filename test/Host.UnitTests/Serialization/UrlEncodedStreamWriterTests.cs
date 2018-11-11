@@ -243,5 +243,40 @@ namespace Host.UnitTests.Serialization
                 value.Should().StartWith("key=");
             }
         }
+
+        public sealed class WriteUri : UrlEncodedStreamWriterTests
+        {
+            [Fact]
+            public void ShouldWriteAbsoluteUris()
+            {
+                var uri = new Uri("http://www.example.com/escaped%20path");
+
+                string result = this.GetString(this.writer.WriteUri, uri);
+
+                result.Should().Be(uri.AbsoluteUri);
+            }
+
+            [Fact]
+            public void ShouldWriteLargeUris()
+            {
+                // The writer has a limited buffer, so ensure that it can handle
+                // large values
+                var uri = new Uri("http://www.example.com/" + new string('a', 2000));
+
+                string result = this.GetString(this.writer.WriteUri, uri);
+
+                result.Should().Be(uri.AbsoluteUri);
+            }
+
+            [Fact]
+            public void ShouldWriteReltiveUris()
+            {
+                string result = this.GetString(
+                    this.writer.WriteUri,
+                    new Uri("needs escaping", UriKind.Relative));
+
+                result.Should().Be("needs+escaping");
+            }
+        }
     }
 }

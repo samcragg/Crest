@@ -117,6 +117,8 @@
             public string String { get; set; }
 
             public string[] StringArray { get; set; }
+
+            public Uri Uri { get; set; }
         }
 
         public class SimpleClass

@@ -250,6 +250,32 @@
             }
         }
 
+        public sealed class WriteUri : ValueWriterTests
+        {
+            [Fact]
+            public void ShouldWriteAbsoluteUris()
+            {
+                // Ensure it's writing the absolute URI over the original string
+                // by putting a space in the path, which gets escaped by AbsoluteUri
+                var uri = new Uri("http://www.example.com/example path");
+                uri.AbsoluteUri.Should().NotBe(uri.OriginalString);
+
+                string result = this.GetString(w => w.WriteUri(uri));
+
+                result.Should().Be(uri.AbsoluteUri);
+            }
+
+            [Fact]
+            public void ShouldWriteReltiveUris()
+            {
+                const string Address = "/path";
+
+                string result = this.GetString(w => w.WriteUri(new Uri(Address, UriKind.Relative)));
+
+                result.Should().Be(Address);
+            }
+        }
+
         private class FakeValueWriter : ValueWriter
         {
             private byte[] buffer;

@@ -9,6 +9,7 @@ namespace Crest.Host.Serialization
     using System.Collections.Generic;
     using System.IO;
     using System.Runtime.CompilerServices;
+    using System.Text;
     using Crest.Host.Conversion;
     using Crest.Host.Serialization.Internal;
 
@@ -27,6 +28,7 @@ namespace Crest.Host.Serialization
         private static readonly byte[] FalseValue = { (byte)'f', (byte)'a', (byte)'l', (byte)'s', (byte)'e' };
         private static readonly byte[] NullValue = { (byte)'n', (byte)'u', (byte)'l', (byte)'l' };
         private static readonly byte[] TrueValue = { (byte)'t', (byte)'r', (byte)'u', (byte)'e' };
+        private static readonly Encoder Utf8Encoder = Encoding.UTF8.GetEncoder();
 
         private readonly byte[] buffer = new byte[BufferLength];
         private readonly List<byte[]> keyParts = new List<byte[]>(); // We need to iterate from first-to-last, so can't use Stack :(
@@ -105,6 +107,22 @@ namespace Crest.Host.Serialization
             {
                 this.EnsureBufferHasSpace(MaxBytesPerCharacter);
                 this.offset += AppendChar(value, ref i, this.buffer, this.offset);
+            }
+        }
+
+        /// <inheritdoc />
+        public override void WriteUri(Uri value)
+        {
+            if (value.IsAbsoluteUri)
+            {
+                // AbsoluteUri escapes it for us, so just write the raw string
+                this.WriteCurrentProperty();
+                this.WriteRawString(value.AbsoluteUri);
+            }
+            else
+            {
+                // We need to escape this
+                this.WriteString(value.OriginalString);
             }
         }
 
@@ -250,6 +268,19 @@ namespace Crest.Host.Serialization
             }
         }
 
+        private static unsafe void WriteStringToBuffer(char* charPtr, int length, byte[] byteBuffer, int bufferOffset)
+        {
+            fixed (byte* bufferPtr = byteBuffer)
+            {
+                Utf8Encoder.GetBytes(
+                    charPtr,
+                    length,
+                    bufferPtr + bufferOffset,
+                    byteBuffer.Length - bufferOffset,
+                    flush: true);
+            }
+        }
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void EnsureBufferHasSpace(int amount)
         {
@@ -283,6 +314,27 @@ namespace Crest.Host.Serialization
             }
 
             this.buffer[this.offset++] = (byte)'=';
+        }
+
+        private unsafe void WriteRawString(string value)
+        {
+            fixed (char* charPtr = value)
+            {
+                int encodedByteLength = Utf8Encoder.GetByteCount(charPtr, value.Length, false);
+                if (encodedByteLength < BufferLength)
+                {
+                    this.EnsureBufferHasSpace(encodedByteLength);
+                    WriteStringToBuffer(charPtr, value.Length, this.buffer, this.offset);
+                    this.offset += encodedByteLength;
+                }
+                else
+                {
+                    this.Flush();
+                    byte[] byteBuffer = new byte[encodedByteLength];
+                    WriteStringToBuffer(charPtr, value.Length, byteBuffer, 0);
+                    this.stream.Write(byteBuffer, 0, byteBuffer.Length);
+                }
+            }
         }
     }
 }

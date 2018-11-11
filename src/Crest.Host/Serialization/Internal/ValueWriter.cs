@@ -196,6 +196,15 @@ namespace Crest.Host.Serialization.Internal
         }
 
         /// <summary>
+        /// Writes a URI to the stream.
+        /// </summary>
+        /// <param name="value">The value to write to the stream.</param>
+        public virtual void WriteUri(Uri value)
+        {
+            this.WriteString(value.IsAbsoluteUri ? value.AbsoluteUri : value.OriginalString);
+        }
+
+        /// <summary>
         /// Commits the specified number of bytes written to the buffer
         /// returned by <see cref="RentBuffer(int)"/>.
         /// </summary>
