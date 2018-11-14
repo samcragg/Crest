@@ -17,7 +17,7 @@ namespace Crest.Host.Conversion
     {
         private const int Emin = 308;
         private const string InvalidFormat = "Invalid format";
-        private const int MaxSignificandDigits = 18;
+        private const int MaxSignificandDigits = 17;
 
         /// <summary>
         /// Reads a double from the specified value.
@@ -73,27 +73,37 @@ namespace Crest.Host.Conversion
         {
             int originalIndex = index;
             ParseDigits(span, ref index, ref number);
-            if (number.Digits >= MaxSignificandDigits)
-            {
-                // As soon as we get to MaxSignificandDigits we skip the digit,
-                // hence the +1
-                number.Scale += (short)(1 + number.Digits - MaxSignificandDigits);
-            }
+            int integerDigits = number.Digits;
+            int significantZeros = 0;
 
             // Is there a decimal part as well?
             T tokens = default;
             if ((index < span.Length) && tokens.IsDecimalSeparator(span[index]))
             {
                 index++; // Skip the separator
-                int integerStart = index;
+                int fractionalStart = index;
                 ParseDigits(span, ref index, ref number);
-                number.Scale -= (short)(index - integerStart);
+
+                if (integerDigits == 0)
+                {
+                    significantZeros = index - fractionalStart - number.Digits;
+                }
 
                 // Check it's not just a decimal point
                 if ((index - originalIndex) == 1)
                 {
                     index = originalIndex;
                 }
+            }
+
+            int totalDigits = Math.Min((int)number.Digits, MaxSignificandDigits);
+            if (significantZeros > 0)
+            {
+                number.Scale = (short)(-totalDigits - significantZeros);
+            }
+            else
+            {
+                number.Scale = (short)(integerDigits - totalDigits);
             }
 
             return index != originalIndex;
@@ -142,7 +152,7 @@ namespace Crest.Host.Conversion
                 }
 
                 number.Digits++;
-                if (number.Digits >= MaxSignificandDigits)
+                if (number.Digits > MaxSignificandDigits)
                 {
                     continue;
                 }

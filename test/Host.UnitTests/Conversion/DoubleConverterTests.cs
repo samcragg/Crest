@@ -7,7 +7,7 @@
 
     public class DoubleConverterTests
     {
-        public sealed class StringToDoubleTest
+        public sealed class TryReadDouble
         {
             [Theory]
             [InlineData("infinity", double.PositiveInfinity)]
@@ -126,6 +126,22 @@
                 result.IsSuccess.Should().BeTrue();
                 result.Length.Should().Be(value.Length);
                 result.Value.Should().Be(0);
+            }
+
+            [Theory]
+            [InlineData("123.456789012345678")]
+            [InlineData("123456789012345678")]
+            [InlineData("123456789012345678.901")]
+            [InlineData("-123.456789012345678")]
+            [InlineData("-123456789012345678")]
+            [InlineData("-123456789012345678.901")]
+            public void ShouldTruncateInsignificantDigits(string value)
+            {
+                ParseResult<double> result = DoubleConverter.TryReadDouble(value.AsSpan());
+
+                result.IsSuccess.Should().BeTrue();
+                result.Length.Should().Be(value.Length);
+                result.Value.Should().Be(double.Parse(value));
             }
         }
     }
