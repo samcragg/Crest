@@ -16,37 +16,100 @@ namespace Crest.Core
         /// <summary>
         /// Initializes a new instance of the <see cref="Link"/> class.
         /// </summary>
-        /// <param name="reference">The resource reference.</param>
-        public Link(Uri reference)
+        /// <param name="relationType">
+        /// Determines how the link is related to the current context.
+        /// </param>
+        /// <param name="reference">The resource to reference.</param>
+        public Link(string relationType, Uri reference)
         {
+            Check.IsNotNullOrEmpty(relationType, nameof(relationType));
             Check.IsNotNull(reference, nameof(reference));
 
-            this.Reference = reference;
+            this.HRef = reference;
+            this.RelationType = relationType;
         }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="Link"/> class.
+        /// </summary>
+        /// <param name="deprecation">The value for <see cref="Deprecation"/>.</param>
+        /// <param name="hRef">The value for <see cref="HRef"/>.</param>
+        /// <param name="hRefLang">The value for <see cref="HRefLang"/>.</param>
+        /// <param name="name">The value for <see cref="Name"/>.</param>
+        /// <param name="profile">The value for <see cref="Profile"/>.</param>
+        /// <param name="relationType">The value for <see cref="RelationType"/>.</param>
+        /// <param name="templated">The value for <see cref="Templated"/>.</param>
+        /// <param name="title">The value for <see cref="Title"/>.</param>
+        /// <param name="type">The value for <see cref="Type"/>.</param>
+        internal Link(
+            Uri deprecation,
+            Uri hRef,
+            string hRefLang,
+            string name,
+            Uri profile,
+            string relationType,
+            bool templated,
+            string title,
+            string type)
+        {
+            this.Deprecation = deprecation;
+            this.HRef = hRef;
+            this.HRefLang = hRefLang;
+            this.Name = name;
+            this.Profile = profile;
+            this.RelationType = relationType;
+            this.Templated = templated;
+            this.Title = title;
+            this.Type = type;
+        }
+
+        /// <summary>
+        /// Gets a URL that provides further information about the deprecation
+        /// of the link.
+        /// </summary>
+        public Uri Deprecation { get; }
 
         /// <summary>
         /// Gets the reference to the resource.
         /// </summary>
-        public Uri Reference { get; }
+        public Uri HRef { get; }
 
         /// <summary>
-        /// Allows the implicit conversion from a <see cref="Uri"/>.
+        /// Gets the language of the target resource.
         /// </summary>
-        /// <param name="uri">The resource reference.</param>
-        public static implicit operator Link(Uri uri)
-        {
-            return new Link(uri);
-        }
+        public string HRefLang { get; }
 
         /// <summary>
-        /// Creates a Link from a given Uri.
+        /// Gets the name of the link, which may be used as a secondary key for
+        /// links of the same relation type.
         /// </summary>
-        /// <param name="uri">The resource reference.</param>
-        /// <returns>The created instance.</returns>
-        public static Link FromUri(Uri uri)
-        {
-            return uri;
-        }
+        public string Name { get; }
+
+        /// <summary>
+        /// Gets a URI that hints about the profile of the target resource.
+        /// </summary>
+        public Uri Profile { get; }
+
+        /// <summary>
+        /// Gets the relationship of the link to the current context.
+        /// </summary>
+        public string RelationType { get; }
+
+        /// <summary>
+        /// Gets a value indicating whether the <see cref="HRef"/> property
+        /// refers to URI template or not.
+        /// </summary>
+        public bool Templated { get; }
+
+        /// <summary>
+        /// Gets the human-readable identifier for the link.
+        /// </summary>
+        public string Title { get; }
+
+        /// <summary>
+        /// Gets the media type expected when dereferencing the target resource.
+        /// </summary>
+        public string Type { get; }
 
         /// <inheritdoc />
         public bool Equals(Link other)
@@ -56,7 +119,7 @@ namespace Crest.Core
                 return false;
             }
 
-            return this.Reference.Equals(other.Reference);
+            return this.HRef.Equals(other.HRef);
         }
 
         /// <inheritdoc />
@@ -68,7 +131,7 @@ namespace Crest.Core
         /// <inheritdoc />
         public override int GetHashCode()
         {
-            return this.Reference.GetHashCode();
+            return this.HRef.GetHashCode();
         }
     }
 }

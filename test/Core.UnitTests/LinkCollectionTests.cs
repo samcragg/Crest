@@ -3,17 +3,19 @@ namespace Core.UnitTests
     using System;
     using System.Collections;
     using System.Collections.Generic;
+    using System.Linq;
     using Crest.Core;
     using FluentAssertions;
     using Xunit;
 
     public class LinkCollectionTests
     {
+        private static readonly Uri ValidUri = new Uri("http://www.example.com/");
         private readonly LinkCollection collection = new LinkCollection();
 
-        private static Link CreateLink(string path = "")
+        private static Link CreateLink(string relation, string path = "")
         {
-            return new Link(new Uri("http://www.example.com/" + path));
+            return new Link(relation, new Uri(ValidUri, path));
         }
 
         public sealed class Add : LinkCollectionTests
@@ -21,7 +23,30 @@ namespace Core.UnitTests
             [Fact]
             public void ShouldCheckForNullArguments()
             {
-                this.collection.Invoking(x => x.Add(null, CreateLink()))
+                this.collection.Invoking(x => x.Add(null))
+                    .Should().Throw<ArgumentNullException>();
+            }
+
+            [Fact]
+            public void ShouldMaintinOrderForLinksWithTheSameRelation()
+            {
+                Link link1 = CreateLink("sameRelation", "insertedFirst");
+                Link link2 = CreateLink("sameRelation", "insertedAfter");
+
+                this.collection.Add(link1);
+                this.collection.Add(link2);
+                var links = new List<Link>(this.collection);
+
+                links.Should().ContainInOrder(link1, link2);
+            }
+        }
+
+        public sealed class AddRelationAndUri : LinkCollectionTests
+        {
+            [Fact]
+            public void ShouldCheckForNullArguments()
+            {
+                this.collection.Invoking(x => x.Add(null, ValidUri))
                     .Should().Throw<ArgumentNullException>();
 
                 this.collection.Invoking(x => x.Add("self", null))
@@ -29,25 +54,11 @@ namespace Core.UnitTests
             }
 
             [Fact]
-            public void ShouldThrowForDuplicateRelations()
+            public void ShouldAddANewLink()
             {
-                this.collection.Add("relation", CreateLink());
+                this.collection.Add("relation", ValidUri);
 
-                Action action = () => this.collection.Add("relation", CreateLink("other"));
-
-                action.Should().Throw<ArgumentException>()
-                      .WithMessage("*already exists*");
-            }
-        }
-
-        public sealed class AddLink : LinkCollectionTests
-        {
-            [Fact]
-            public void ShouldThrowNotSupportedException()
-            {
-                Action action = () => ((ICollection<Link>)this.collection).Add(CreateLink());
-
-                action.Should().Throw<NotSupportedException>();
+                this.collection["relation"].Single().HRef.Should().Be(ValidUri);
             }
         }
 
@@ -56,8 +67,8 @@ namespace Core.UnitTests
             [Fact]
             public void ShouldRemoveTheItems()
             {
-                this.collection.Add("1", CreateLink("1"));
-                this.collection.Add("2", CreateLink("2"));
+                this.collection.Add(CreateLink("1"));
+                this.collection.Add(CreateLink("2"));
 
                 this.collection.Clear();
 
@@ -71,9 +82,9 @@ namespace Core.UnitTests
             [Fact]
             public void ShouldReturnFalseIfTheLinkDoesNotExist()
             {
-                this.collection.Add("relation", CreateLink("1"));
+                this.collection.Add(CreateLink("relation", "1"));
 
-                bool result = this.collection.Contains(CreateLink("2"));
+                bool result = this.collection.Contains(CreateLink("relation", "2"));
 
                 result.Should().BeFalse();
             }
@@ -81,9 +92,19 @@ namespace Core.UnitTests
             [Fact]
             public void ShouldReturnTrueIfTheLinkExists()
             {
-                this.collection.Add("relation", CreateLink("1"));
+                this.collection.Add(CreateLink("relation", "1"));
 
-                bool result = this.collection.Contains(CreateLink("1"));
+                bool result = this.collection.Contains(CreateLink("relation", "1"));
+
+                result.Should().BeTrue();
+            }
+
+            [Fact]
+            public void ShouldReturnTrueIfTheRelationExists()
+            {
+                this.collection.Add(CreateLink("relation", "link"));
+
+                bool result = ((ILookup<string, Link>)this.collection).Contains("relation");
 
                 result.Should().BeTrue();
             }
@@ -92,9 +113,9 @@ namespace Core.UnitTests
         public sealed class ContainsKey : LinkCollectionTests
         {
             [Fact]
-            public void ShouldReturnFalseIfTheLinkDoesNotExist()
+            public void ShouldReturnFalseIfTheRelationDoesNotExist()
             {
-                this.collection.Add("relation", CreateLink("link"));
+                this.collection.Add(CreateLink("relation", "link"));
 
                 bool result = this.collection.ContainsKey("link");
 
@@ -102,9 +123,9 @@ namespace Core.UnitTests
             }
 
             [Fact]
-            public void ShouldReturnTrueIfTheLinkExists()
+            public void ShouldReturnTrueIfTheRelationExists()
             {
-                this.collection.Add("relation", CreateLink("link"));
+                this.collection.Add(CreateLink("relation", "link"));
 
                 bool result = this.collection.ContainsKey("relation");
 
@@ -133,7 +154,7 @@ namespace Core.UnitTests
             [Fact]
             public void ShouldCheckTheDestinationIsBigEnough()
             {
-                this.collection.Add("1", CreateLink("1"));
+                this.collection.Add(CreateLink("1"));
 
                 Action action = () => this.collection.CopyTo(new Link[1], 1);
 
@@ -145,8 +166,8 @@ namespace Core.UnitTests
             public void ShouldCopyTheElements()
             {
                 var destination = new Link[2];
-                Link link = CreateLink();
-                this.collection.Add("relation", link);
+                Link link = CreateLink("1");
+                this.collection.Add(link);
 
                 this.collection.CopyTo(destination, 1);
 
@@ -158,16 +179,61 @@ namespace Core.UnitTests
         public sealed class GetEnumerator : LinkCollectionTests
         {
             [Fact]
-            public void ShouldReturnAllTheItems()
+            public void ShouldReturnAllTheLinks()
             {
-                this.collection.Add("1", CreateLink());
-                this.collection.Add("2", CreateLink());
+                this.collection.Add(CreateLink("1"));
+                this.collection.Add(CreateLink("2"));
 
                 IEnumerator<Link> result = this.collection.GetEnumerator();
 
                 result.MoveNext().Should().BeTrue();
                 result.MoveNext().Should().BeTrue();
                 result.MoveNext().Should().BeFalse();
+            }
+
+            [Fact]
+            public void ShouldReturnAllTheGroups()
+            {
+                this.collection.Add(CreateLink("rel1", "A"));
+                this.collection.Add(CreateLink("rel2", "B"));
+                this.collection.Add(CreateLink("rel1", "C"));
+
+                IEnumerator<IGrouping<string, Link>> result =
+                    ((ILookup<string, Link>)this.collection).GetEnumerator();
+
+                result.MoveNext().Should().BeTrue();
+                result.Current.Key.Should().Be("rel1");
+                ((IReadOnlyCollection<Link>)result.Current).Count.Should().Be(2);
+
+                result.MoveNext().Should().BeTrue();
+                result.Current.Key.Should().Be("rel2");
+                ((IReadOnlyCollection<Link>)result.Current).Count.Should().Be(1);
+
+                result.MoveNext().Should().BeFalse();
+            }
+        }
+
+        public sealed class Index : LinkCollectionTests
+        {
+            [Fact]
+            public void ShouldReturnAllTheLinksWithTheSameRelation()
+            {
+                this.collection.Add(CreateLink("rel1", "A"));
+                this.collection.Add(CreateLink("rel2", "B"));
+                this.collection.Add(CreateLink("rel1", "C"));
+
+                IEnumerable<Link> result = this.collection["rel1"];
+
+                result.Select(l => l.HRef.PathAndQuery)
+                      .Should().BeEquivalentTo("/A", "/C");
+            }
+
+            [Fact]
+            public void ShouldReturnAnEmptyCollecitonIfTheKeyIsNotFound()
+            {
+                IEnumerable<Link> result = this.collection["unknown"];
+
+                result.Should().BeEmpty();
             }
         }
 
@@ -187,8 +253,8 @@ namespace Core.UnitTests
             [Fact]
             public void ShouldReturnAllTheItems()
             {
-                this.collection.Add("1", CreateLink());
-                this.collection.Add("2", CreateLink());
+                this.collection.Add(CreateLink("1"));
+                this.collection.Add(CreateLink("2"));
 
                 IEnumerator result = ((IEnumerable)this.collection).GetEnumerator();
 
@@ -196,55 +262,42 @@ namespace Core.UnitTests
                 result.MoveNext().Should().BeTrue();
                 result.MoveNext().Should().BeFalse();
             }
+
+            [Fact]
+            public void ShouldReturnAllTheItemsInTheGroup()
+            {
+                this.collection.Add(CreateLink("a"));
+                this.collection.Add(CreateLink("a"));
+
+                IEnumerator result = ((IEnumerable)this.collection["a"]).GetEnumerator();
+
+                result.MoveNext().Should().BeTrue();
+                result.MoveNext().Should().BeTrue();
+                result.MoveNext().Should().BeFalse();
+            }
         }
 
-        public sealed class RemoveLink : LinkCollectionTests
+        public sealed class Remove : LinkCollectionTests
         {
             [Fact]
             public void ShouldRemoveTheLink()
             {
-                this.collection.Add("1", CreateLink("1"));
-                this.collection.Add("2", CreateLink("2"));
+                this.collection.Add(CreateLink("A", "1"));
+                this.collection.Add(CreateLink("B", "2"));
 
-                bool result = this.collection.Remove(CreateLink("2"));
+                bool result = this.collection.Remove(CreateLink("A", "1"));
 
                 result.Should().BeTrue();
-                this.collection.Should().ContainSingle()
-                    .Which.Should().Be(CreateLink("1"));
+                ((IEnumerable<Link>)this.collection).Should().ContainSingle()
+                    .Which.Should().Be(CreateLink("B", "2"));
             }
 
             [Fact]
             public void ShouldReturnFalseIfTheLinkIsNotFound()
             {
-                this.collection.Add("1", CreateLink("1"));
+                this.collection.Add(CreateLink("A", "1"));
 
-                bool result = this.collection.Remove(CreateLink("2"));
-
-                result.Should().BeFalse();
-            }
-        }
-
-        public sealed class RemoveString : LinkCollectionTests
-        {
-            [Fact]
-            public void ShouldRemoveTheRelation()
-            {
-                this.collection.Add("relation1", CreateLink("1"));
-                this.collection.Add("relation2", CreateLink("2"));
-
-                bool result = this.collection.Remove("relation2");
-
-                result.Should().BeTrue();
-                this.collection.Should().ContainSingle()
-                    .Which.Should().Be(CreateLink("1"));
-            }
-
-            [Fact]
-            public void ShouldReturnFalseIfTheRelationIsNotFound()
-            {
-                this.collection.Add("1", CreateLink());
-
-                bool result = this.collection.Remove("2");
+                bool result = this.collection.Remove(CreateLink("B", "2"));
 
                 result.Should().BeFalse();
             }

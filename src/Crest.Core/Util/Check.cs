@@ -26,15 +26,19 @@ namespace Crest.Core.Util
         }
 
         /// <summary>
-        /// Verifies the specified value is not less than zero.
+        /// Verifies the specified value is not null or empty.
         /// </summary>
         /// <param name="value">The value to check.</param>
         /// <param name="parameter">The name of the parameter.</param>
-        public static void IsPositive(int value, string parameter)
+        public static void IsNotNullOrEmpty(string value, string parameter)
         {
-            if (value < 0)
+            if (value == null)
             {
-                throw new ArgumentOutOfRangeException(parameter, parameter + " is less than 0.");
+                throw new ArgumentNullException(parameter);
+            }
+            else if (value.Length == 0)
+            {
+                throw new ArgumentException("Value cannot be empty", parameter);
             }
         }
     }

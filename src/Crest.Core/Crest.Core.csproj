@@ -12,4 +12,10 @@
   <ItemGroup>
     <PackageReference Include="LibLog" Version="5.0.2" PrivateAsserts="All" />
   </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="LinkCollection.RelationGroup.cs">
+      <DependentUpon>LinkCollection.cs</DependentUpon>
+    </Compile>
+  </ItemGroup>
 </Project>

@@ -10,21 +10,20 @@ namespace Core.UnitTests
         public sealed class Constructor : LinkTests
         {
             [Fact]
-            public void ShouldCheckForNullArguments()
+            public void ShouldCheckForEmptyRelations()
             {
-                Action action = () => new Link(null);
-
-                action.Should().Throw<ArgumentNullException>();
+                new Action(() => new Link("", new Uri("http://www.example.com")))
+                    .Should().Throw<ArgumentException>();
             }
 
             [Fact]
-            public void ShouldImplicitlyConvertFromUri()
+            public void ShouldCheckForNullArguments()
             {
-                var uri = new Uri("http://www.example.com");
+                new Action(() => new Link(null, new Uri("http://www.example.com")))
+                    .Should().Throw<ArgumentNullException>();
 
-                Link link = uri;
-
-                link.Reference.Should().BeSameAs(uri);
+                new Action(() => new Link("relation", null))
+                    .Should().Throw<ArgumentNullException>();
             }
 
             [Fact]
@@ -32,9 +31,10 @@ namespace Core.UnitTests
             {
                 var uri = new Uri("http://www.example.com");
 
-                var link = new Link(uri);
+                var link = new Link("relation", uri);
 
-                link.Reference.Should().BeSameAs(uri);
+                link.HRef.Should().BeSameAs(uri);
+                link.RelationType.Should().Be("relation");
             }
         }
 
@@ -43,8 +43,8 @@ namespace Core.UnitTests
             [Fact]
             public void ShouldReturnFalseForDifferentReferences()
             {
-                var link1 = new Link(new Uri("http://www.example.com/first"));
-                var link2 = new Link(new Uri("http://www.example.com/second"));
+                var link1 = new Link("r", new Uri("http://www.example.com/first"));
+                var link2 = new Link("r", new Uri("http://www.example.com/second"));
 
                 bool result = link1.Equals(link2);
 
@@ -54,8 +54,8 @@ namespace Core.UnitTests
             [Fact]
             public void ShouldReturnTrueForTheEqualReference()
             {
-                var lower = new Link(new Uri("http://www.example.com"));
-                var upper = new Link(new Uri("http://www.EXAMPLE.com"));
+                var lower = new Link("r", new Uri("http://www.example.com"));
+                var upper = new Link("r", new Uri("http://www.EXAMPLE.com"));
 
                 bool result = lower.Equals(upper);
 
@@ -66,8 +66,8 @@ namespace Core.UnitTests
             public void ShouldReturnTrueForTheSameReference()
             {
                 var uri = new Uri("http://www.example.com");
-                var link1 = new Link(uri);
-                var link2 = new Link(uri);
+                var link1 = new Link("r", uri);
+                var link2 = new Link("r", uri);
 
                 bool result = link1.Equals(link2);
 
@@ -81,24 +81,11 @@ namespace Core.UnitTests
             public void ShouldReturnFalseForDifferentTypes()
             {
                 var uri = new Uri("http://www.example.com");
-                var link = new Link(uri);
+                var link = new Link("r", uri);
 
                 bool result = link.Equals(uri.OriginalString);
 
                 result.Should().BeFalse();
-            }
-        }
-
-        public sealed class FromUri : LinkTests
-        {
-            [Fact]
-            public void ShouldSetTheReferenceProperty()
-            {
-                var reference = new Uri("http://www.example.com");
-
-                var result = Link.FromUri(reference);
-
-                result.Reference.Should().BeSameAs(reference);
             }
         }
 
@@ -107,8 +94,8 @@ namespace Core.UnitTests
             [Fact]
             public void ShouldReturnTheSameValueForTwoInstancesThatAreTheEqual()
             {
-                var link1 = new Link(new Uri("http://www.example.com"));
-                var link2 = new Link(new Uri("http://www.example.com"));
+                var link1 = new Link("r", new Uri("http://www.example.com"));
+                var link2 = new Link("r", new Uri("http://www.example.com"));
 
                 int hashCode = link1.GetHashCode();
 
