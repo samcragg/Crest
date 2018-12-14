@@ -63,7 +63,7 @@ namespace Crest.Host.Serialization
 
                 // this.EndReadClass()
                 this.generator.EmitLoadArgument(0);
-                this.generator.EmitCall(this.owner.BaseClass, this.owner.Methods.BaseClass.ReadEndClass);
+                this.generator.EmitCall(this.owner.BaseClass, this.owner.Methods.ClassReader.ReadEndClass);
 
                 // Because we're only deserializing reference types, there's no
                 // need to box the instance variable.
@@ -135,7 +135,7 @@ namespace Crest.Host.Serialization
             {
                 // name = this.ReadBeginProperty()
                 this.generator.EmitLoadArgument(0);
-                this.generator.EmitCall(this.owner.BaseClass, this.owner.Methods.BaseClass.ReadBeginProperty);
+                this.generator.EmitCall(this.owner.BaseClass, this.owner.Methods.ClassReader.ReadBeginProperty);
                 this.generator.Emit(OpCodes.Dup);
                 this.generator.EmitStoreLocal(nameIndex);
 
@@ -171,7 +171,7 @@ namespace Crest.Host.Serialization
                 {
                     // this.Reader.ReadXXX
                     this.generator.EmitLoadArgument(0);
-                    this.generator.EmitCall(this.owner.BaseClass, this.owner.Methods.PrimitiveSerializer.GetReader);
+                    this.generator.EmitCall(this.owner.BaseClass, this.owner.Methods.ClassReader.GetReader);
 
                     if (this.owner.Methods.ValueReader.TryGetMethod(type, out MethodInfo method))
                     {
@@ -195,7 +195,7 @@ namespace Crest.Host.Serialization
 
                 // if reader.ReadNull() then
                 this.generator.EmitLoadArgument(0);
-                this.generator.EmitCall(this.owner.BaseClass, this.owner.Methods.PrimitiveSerializer.GetReader);
+                this.generator.EmitCall(this.owner.BaseClass, this.owner.Methods.ClassReader.GetReader);
                 this.generator.EmitCall(typeof(ValueReader), this.owner.Methods.ValueReader.ReadNull);
                 this.generator.Emit(OpCodes.Brfalse_S, elseLabel);
 
@@ -233,7 +233,7 @@ namespace Crest.Host.Serialization
                 // this.ReadEndProperty()
                 this.generator.MarkLabel(endOfSwitch);
                 this.generator.EmitLoadArgument(0);
-                this.generator.EmitCall(this.owner.BaseClass, this.owner.Methods.BaseClass.ReadEndProperty);
+                this.generator.EmitCall(this.owner.BaseClass, this.owner.Methods.ClassReader.ReadEndProperty);
 
                 // while name is not null
                 this.generator.MarkLabel(readNextProperty);

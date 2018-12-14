@@ -154,7 +154,7 @@
             [Fact]
             public void ShouldNotThrowAnyException()
             {
-                this.serializer.Invoking(x => x.WriteBeginClass(null))
+                this.serializer.Invoking(x => x.WriteBeginClass((byte[])null))
                     .Should().NotThrow();
             }
         }

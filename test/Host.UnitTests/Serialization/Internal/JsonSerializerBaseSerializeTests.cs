@@ -73,7 +73,7 @@
                 Stream stream = Substitute.For<Stream>();
                 JsonSerializerBase serializer = new FakeJsonSerializerBase(stream);
 
-                serializer.WriteBeginClass(null);
+                serializer.WriteBeginClass((byte[])null);
                 stream.DidNotReceiveWithAnyArgs().Write(null, 0, 0);
 
                 serializer.Flush();
@@ -156,7 +156,7 @@
             [Fact]
             public void ShouldWriteTheOpeningBrace()
             {
-                this.serializer.WriteBeginClass(null);
+                this.serializer.WriteBeginClass((byte[])null);
                 byte[] written = this.GetWrittenData();
 
                 written.Should().Equal((byte)'{');

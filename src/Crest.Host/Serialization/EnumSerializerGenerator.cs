@@ -79,7 +79,7 @@ namespace Crest.Host.Serialization
 
             // this.Reader.ReadString()
             generator.EmitLoadArgument(0);
-            generator.EmitCall(baseClass, methods.PrimitiveSerializer.GetReader);
+            generator.EmitCall(baseClass, methods.ClassReader.GetReader);
             generator.EmitCall(typeof(ValueReader), methods.ValueReader[typeof(string)]);
 
             // ignoreCase: true
@@ -129,7 +129,7 @@ namespace Crest.Host.Serialization
 
                 // this.Reader.ReadIntXX()
                 generator.EmitLoadArgument(0);
-                generator.EmitCall(this.BaseClass, this.Methods.PrimitiveSerializer.GetReader);
+                generator.EmitCall(this.BaseClass, this.Methods.ClassReader.GetReader);
                 generator.EmitCall(typeof(ValueReader), readInt);
             }
 
@@ -201,7 +201,7 @@ namespace Crest.Host.Serialization
                 WriteValue = (_, loadElement) =>
                 {
                     generator.EmitLoadArgument(0);
-                    generator.EmitCall(this.BaseClass, this.Methods.PrimitiveSerializer.GetWriter);
+                    generator.EmitCall(this.BaseClass, this.Methods.ClassWriter.GetWriter);
                     loadElement(generator);
                     writeValue(generator);
                 },
@@ -262,7 +262,7 @@ namespace Crest.Host.Serialization
 
             // this.Writer.WriteXXX((XXX)parameter)
             generator.EmitLoadArgument(0);
-            generator.EmitCall(this.BaseClass, this.Methods.PrimitiveSerializer.GetWriter);
+            generator.EmitCall(this.BaseClass, this.Methods.ClassWriter.GetWriter);
             loadValue(generator);
             generator.EmitCall(writeMethod.DeclaringType, writeMethod);
 

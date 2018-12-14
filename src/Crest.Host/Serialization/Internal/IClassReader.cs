@@ -8,10 +8,15 @@ namespace Crest.Host.Serialization.Internal
     using System;
 
     /// <summary>
-    /// Allows the serialization of arrays to the response stream.
+    /// Allows the deserializing of types at runtime.
     /// </summary>
-    public interface IArraySerializer
+    public interface IClassReader
     {
+        /// <summary>
+        /// Gets the reader to read values from.
+        /// </summary>
+        ValueReader Reader { get; }
+
         /// <summary>
         /// Called before reading an array value.
         /// </summary>
@@ -21,6 +26,20 @@ namespace Crest.Host.Serialization.Internal
         /// <c>false</c>.
         /// </returns>
         bool ReadBeginArray(Type elementType);
+
+        /// <summary>
+        /// Called before serializing any properties for an instance.
+        /// </summary>
+        /// <param name="className">The name of the class.</param>
+        void ReadBeginClass(string className);
+
+        /// <summary>
+        /// Tries to read the name of a property that has been serialized.
+        /// </summary>
+        /// <returns>
+        /// The name of the property, or <c>null</c> if none was read.
+        /// </returns>
+        string ReadBeginProperty();
 
         /// <summary>
         /// Called after reading an element to determine whether there are more
@@ -42,20 +61,13 @@ namespace Crest.Host.Serialization.Internal
         void ReadEndArray();
 
         /// <summary>
-        /// Called before writing an array value.
+        /// Called after serializing all the properties for an instance.
         /// </summary>
-        /// <param name="elementType">The type of the array element.</param>
-        /// <param name="size">The length of the array.</param>
-        void WriteBeginArray(Type elementType, int size);
+        void ReadEndClass();
 
         /// <summary>
-        /// Called after writing an element if there are more elements to follow.
+        /// Called after serializing a property value.
         /// </summary>
-        void WriteElementSeparator();
-
-        /// <summary>
-        /// Called after writing an array value.
-        /// </summary>
-        void WriteEndArray();
+        void ReadEndProperty();
     }
 }

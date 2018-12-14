@@ -21,7 +21,7 @@
                 TypeBuilder typeBuilder =
                     EmitHelper.CreateTypeBuilder<ClassWithNoGetTypeMetadata>();
 
-                MethodBuilder methodBuilder = CreateMethod(typeBuilder);
+                MethodBuilder methodBuilder = this.CreateMethod(typeBuilder);
                 ILGenerator ilGenerator = methodBuilder.GetILGenerator();
 
                 var generator = new FakeTypeSerializeGenerator(
@@ -133,6 +133,18 @@
             {
             }
 
+            public void ReadBeginClass(string metadata)
+            {
+            }
+
+            public void WriteBeginClass(string metadata)
+            {
+            }
+
+            public void WriteBeginProperty(string propertyMetadata)
+            {
+            }
+
             void IPrimitiveSerializer<string>.BeginWrite(string metadata)
             {
             }
@@ -141,66 +153,50 @@
             {
             }
 
-            void IPrimitiveSerializer<string>.Flush()
-            {
-            }
-
-            bool IArraySerializer.ReadBeginArray(Type elementType)
+            bool IClassReader.ReadBeginArray(Type elementType)
             {
                 return false;
             }
 
-            void IClassSerializer<string>.ReadBeginClass(string metadata)
-            {
-            }
-
-            string IClassSerializer<string>.ReadBeginProperty()
+            string IClassReader.ReadBeginProperty()
             {
                 return null;
             }
 
-            bool IArraySerializer.ReadElementSeparator()
+            bool IClassReader.ReadElementSeparator()
             {
                 return false;
             }
 
-            void IArraySerializer.ReadEndArray()
+            void IClassReader.ReadEndArray()
             {
             }
 
-            void IClassSerializer<string>.ReadEndClass()
+            void IClassReader.ReadEndClass()
             {
             }
 
-            void IClassSerializer<string>.ReadEndProperty()
+            void IClassReader.ReadEndProperty()
             {
             }
 
-            void IArraySerializer.WriteBeginArray(Type elementType, int size)
+            void IClassWriter.WriteBeginArray(Type elementType, int size)
             {
             }
 
-            void IClassSerializer<string>.WriteBeginClass(string metadata)
+            void IClassWriter.WriteElementSeparator()
             {
             }
 
-            void IClassSerializer<string>.WriteBeginProperty(string propertyMetadata)
+            void IClassWriter.WriteEndArray()
             {
             }
 
-            void IArraySerializer.WriteElementSeparator()
+            void IClassWriter.WriteEndClass()
             {
             }
 
-            void IArraySerializer.WriteEndArray()
-            {
-            }
-
-            void IClassSerializer<string>.WriteEndClass()
-            {
-            }
-
-            void IClassSerializer<string>.WriteEndProperty()
+            void IClassWriter.WriteEndProperty()
             {
             }
         }
@@ -217,7 +213,7 @@
                 ILGenerator generator,
                 MethodInfo method)
             {
-                EmitCallBeginMethodWithTypeMetadata(
+                this.EmitCallBeginMethodWithTypeMetadata(
                     new TypeSerializerBuilder(this, builder, typeof(int)),
                     generator,
                     method);
@@ -225,7 +221,7 @@
 
             public void EmitConstructor(Type parameter)
             {
-                EmitConstructor(null, null, parameter);
+                this.EmitConstructor(null, null, parameter);
             }
         }
     }

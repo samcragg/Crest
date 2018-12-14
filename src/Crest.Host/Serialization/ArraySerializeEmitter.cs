@@ -89,7 +89,7 @@ namespace Crest.Host.Serialization
             // this.WriteEndArray()
             this.generator.MarkLabel(endIf);
             this.generator.EmitLoadArgument(0);
-            this.generator.EmitCall(this.baseClass, this.methods.ArraySerializer.WriteEndArray);
+            this.generator.EmitCall(this.baseClass, this.methods.ClassWriter.WriteEndArray);
         }
 
         private void CallWriteBeginArray(Type elementType)
@@ -100,7 +100,7 @@ namespace Crest.Host.Serialization
             this.generator.EmitLoadLocal(this.arrayLocalIndex);
             this.generator.Emit(OpCodes.Ldlen); // Loads a natural unsigned int
             this.generator.Emit(OpCodes.Conv_I4);
-            this.generator.EmitCall(this.baseClass, this.methods.ArraySerializer.WriteBeginArray);
+            this.generator.EmitCall(this.baseClass, this.methods.ClassWriter.WriteBeginArray);
         }
 
         private void EmitForLoop(Type elementType)
@@ -120,7 +120,7 @@ namespace Crest.Host.Serialization
                 {
                     // this.WriteElementSeparator()
                     g.EmitLoadArgument(0);
-                    g.EmitCall(this.baseClass, this.methods.ArraySerializer.WriteElementSeparator);
+                    g.EmitCall(this.baseClass, this.methods.ClassWriter.WriteElementSeparator);
 
                     // this.Writer.WriteXXX(local[i])
                     this.EmitWriteElement(elementType, gen => gen.EmitLoadLocal(this.loopCounterLocalIndex));
@@ -168,7 +168,7 @@ namespace Crest.Host.Serialization
         {
             // this.Writer.WriteNull()
             this.generator.EmitLoadArgument(0);
-            this.generator.EmitCall(this.baseClass, this.methods.PrimitiveSerializer.GetWriter);
+            this.generator.EmitCall(this.baseClass, this.methods.ClassWriter.GetWriter);
             this.generator.EmitCall(typeof(ValueWriter), this.methods.ValueWriter.WriteNull);
         }
 

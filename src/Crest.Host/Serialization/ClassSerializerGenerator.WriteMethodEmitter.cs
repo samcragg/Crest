@@ -72,7 +72,7 @@ namespace Crest.Host.Serialization
 
                 // base.WriteEndClass()
                 this.generator.EmitLoadArgument(0);
-                this.generator.EmitCall(this.owner.BaseClass, this.owner.Methods.BaseClass.WriteEndClass);
+                this.generator.EmitCall(this.owner.BaseClass, this.owner.Methods.ClassWriter.WriteEndClass);
                 this.generator.Emit(OpCodes.Ret);
             }
 
@@ -230,7 +230,7 @@ namespace Crest.Host.Serialization
                 this.generator.EmitLoadArgument(0);
                 this.generator.EmitCall(
                     this.owner.BaseClass,
-                    this.owner.Methods.BaseClass.WriteEndProperty);
+                    this.owner.Methods.ClassWriter.WriteEndProperty);
 
                 this.generator.MarkLabel(end);
             }
@@ -239,7 +239,7 @@ namespace Crest.Host.Serialization
             {
                 // this.Writer.WriteXXX(value)
                 this.generator.EmitLoadArgument(0);
-                this.generator.EmitCall(this.owner.BaseClass, this.owner.Methods.PrimitiveSerializer.GetWriter);
+                this.generator.EmitCall(this.owner.BaseClass, this.owner.Methods.ClassWriter.GetWriter);
                 loadValue(this.generator);
 
                 Type underlyingType = Nullable.GetUnderlyingType(type);

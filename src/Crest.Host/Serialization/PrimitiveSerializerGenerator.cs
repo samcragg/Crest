@@ -95,7 +95,7 @@ namespace Crest.Host.Serialization
             {
                 // if this.Reader.ReadNull() then
                 generator.EmitLoadArgument(0);
-                generator.EmitCall(baseClass, methods.PrimitiveSerializer.GetReader);
+                generator.EmitCall(baseClass, methods.ClassReader.GetReader);
                 generator.EmitCall(typeof(ValueReader), methods.ValueReader.ReadNull);
                 generator.Emit(OpCodes.Brfalse_S, notNull);
 
@@ -137,7 +137,7 @@ namespace Crest.Host.Serialization
                 {
                     // this.Reader.ReadXxx()
                     g.EmitLoadArgument(0);
-                    g.EmitCall(this.BaseClass, this.Methods.PrimitiveSerializer.GetReader);
+                    g.EmitCall(this.BaseClass, this.Methods.ClassReader.GetReader);
                     g.EmitCall(typeof(ValueReader), readMethod);
                 },
             };
@@ -165,7 +165,7 @@ namespace Crest.Host.Serialization
             EmitReadValue(generator, this.BaseClass, this.Methods, type, (g, _) =>
             {
                 g.EmitLoadArgument(0);
-                g.EmitCall(this.BaseClass, this.Methods.PrimitiveSerializer.GetReader);
+                g.EmitCall(this.BaseClass, this.Methods.ClassReader.GetReader);
                 g.EmitCall(readMethod.DeclaringType, readMethod);
                 EmitBoxToObject(g, type);
             });
@@ -189,7 +189,7 @@ namespace Crest.Host.Serialization
                 WriteValue = (_, loadElement) =>
                 {
                     generator.EmitLoadArgument(0);
-                    generator.EmitCall(this.BaseClass, this.Methods.PrimitiveSerializer.GetWriter);
+                    generator.EmitCall(this.BaseClass, this.Methods.ClassWriter.GetWriter);
                     loadElement(generator); // This handles nullable types for us
                     generator.EmitCall(writeMethod.DeclaringType, writeMethod);
                 },
@@ -219,7 +219,7 @@ namespace Crest.Host.Serialization
 
             // this.Writer.WriteXXX((XXX)parameter)
             generator.EmitLoadArgument(0);
-            generator.EmitCall(this.BaseClass, this.Methods.PrimitiveSerializer.GetWriter);
+            generator.EmitCall(this.BaseClass, this.Methods.ClassWriter.GetWriter);
             generator.EmitLoadArgument(1); // 0 = this, 1 = object
 
             // No need to check if it's a value or reference type (it will be a

@@ -13,16 +13,6 @@ namespace Crest.Host.Serialization.Internal
         where T : class
     {
         /// <summary>
-        /// Gets the reader to read values from.
-        /// </summary>
-        ValueReader Reader { get; }
-
-        /// <summary>
-        /// Gets the writer to output values to.
-        /// </summary>
-        ValueWriter Writer { get; }
-
-        /// <summary>
         /// Called before reading the primitive value.
         /// </summary>
         /// <param name="metadata">The metadata for the type to be read.</param>
@@ -43,11 +33,5 @@ namespace Crest.Host.Serialization.Internal
         /// Called after writing the primitive value.
         /// </summary>
         void EndWrite();
-
-        /// <summary>
-        /// Clears all internal buffers, causing any buffered data to be
-        /// written to the underlying stream.
-        /// </summary>
-        void Flush();
     }
 }

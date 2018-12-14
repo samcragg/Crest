@@ -94,7 +94,7 @@ namespace Crest.Host.Serialization
 
             // this.ReadEndArray()
             this.generator.EmitLoadArgument(0);
-            this.generator.EmitCall(this.baseClass, this.methods.ArraySerializer.ReadEndArray);
+            this.generator.EmitCall(this.baseClass, this.methods.ClassReader.ReadEndArray);
 
             // T[] array = buffer.ToArray()
             this.generator.MarkLabel(endIf);
@@ -112,7 +112,7 @@ namespace Crest.Host.Serialization
             // if (this.ReadBeginArray(typeof(T)))
             this.generator.EmitLoadArgument(0);
             this.generator.EmitLoadTypeof(elementType);
-            this.generator.EmitCall(this.baseClass, this.methods.ArraySerializer.ReadBeginArray);
+            this.generator.EmitCall(this.baseClass, this.methods.ClassReader.ReadBeginArray);
             this.generator.Emit(OpCodes.Brfalse, endIf);
             return endIf;
         }
@@ -150,7 +150,7 @@ namespace Crest.Host.Serialization
         {
             // if this.ReadElementSeparator() then goto loopStart
             this.generator.EmitLoadArgument(0);
-            this.generator.EmitCall(this.baseClass, this.methods.ArraySerializer.ReadElementSeparator);
+            this.generator.EmitCall(this.baseClass, this.methods.ClassReader.ReadElementSeparator);
             this.generator.Emit(OpCodes.Brtrue, loopStart);
         }
 
@@ -161,7 +161,7 @@ namespace Crest.Host.Serialization
 
             // if this.Reader.ReadNull() then
             this.generator.EmitLoadArgument(0);
-            this.generator.EmitCall(this.baseClass, this.methods.PrimitiveSerializer.GetReader);
+            this.generator.EmitCall(this.baseClass, this.methods.ClassReader.GetReader);
             this.generator.EmitCall(typeof(ValueReader), this.methods.ValueReader.ReadNull);
             this.generator.Emit(OpCodes.Brfalse_S, elseIf);
 
@@ -189,7 +189,7 @@ namespace Crest.Host.Serialization
 
             // if this.Reader.ReadNull() then
             this.generator.EmitLoadArgument(0);
-            this.generator.EmitCall(this.baseClass, this.methods.PrimitiveSerializer.GetReader);
+            this.generator.EmitCall(this.baseClass, this.methods.ClassReader.GetReader);
             this.generator.EmitCall(typeof(ValueReader), this.methods.ValueReader.ReadNull);
             this.generator.Emit(OpCodes.Brfalse_S, elseIf);
 

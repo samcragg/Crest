@@ -119,8 +119,10 @@ namespace Crest.Host.Serialization.Internal
             this.writer.WriteEndElement();
         }
 
-        /// <inheritdoc />
-        public void Flush()
+        /// <summary>
+        /// Implementation of the <see cref="ITypeSerializer.Flush"/> method.
+        /// </summary>
+        public virtual void Flush()
         {
             this.writer.Flush();
         }

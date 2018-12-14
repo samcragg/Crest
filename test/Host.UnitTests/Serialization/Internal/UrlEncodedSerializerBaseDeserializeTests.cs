@@ -91,7 +91,7 @@
                 this.Serializer.ReadBeginProperty();
                 this.Serializer.ReadEndProperty();
 
-                this.Serializer.ReadBeginClass(null);
+                this.Serializer.ReadBeginClass((byte[])null);
 
                 // Read begin property doesn't skip if it's the first property
                 // being read

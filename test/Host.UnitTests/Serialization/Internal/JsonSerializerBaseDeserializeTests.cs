@@ -114,7 +114,7 @@
             {
                 this.SetStreamTo("{1");
 
-                this.Serializer.ReadBeginClass(null);
+                this.Serializer.ReadBeginClass((byte[])null);
                 int result = this.Serializer.Reader.ReadInt32();
 
                 result.Should().Be(1);
@@ -125,7 +125,7 @@
             {
                 this.SetStreamTo("123");
 
-                Action action = () => this.Serializer.ReadBeginClass(null);
+                Action action = () => this.Serializer.ReadBeginClass((byte[])null);
 
                 action.Should().Throw<FormatException>();
             }

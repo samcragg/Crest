@@ -120,8 +120,10 @@ namespace Crest.Host.Serialization.Internal
             // We don't need to do anything
         }
 
-        /// <inheritdoc />
-        public void Flush()
+        /// <summary>
+        /// Implementation of the <see cref="ITypeSerializer.Flush"/> method.
+        /// </summary>
+        public virtual void Flush()
         {
             this.writer.Flush();
         }
@@ -144,6 +146,12 @@ namespace Crest.Host.Serialization.Internal
         public void ReadBeginClass(byte[] metadata)
         {
             this.reader.ExpectToken('{');
+        }
+
+        /// <inheritdoc />
+        public void ReadBeginClass(string className)
+        {
+            throw new NotImplementedException();
         }
 
         /// <inheritdoc />
@@ -202,6 +210,12 @@ namespace Crest.Host.Serialization.Internal
         }
 
         /// <inheritdoc />
+        public void WriteBeginClass(string className)
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <inheritdoc />
         public void WriteBeginProperty(byte[] propertyMetadata)
         {
             if (this.hasPropertyWritten)
@@ -211,6 +225,12 @@ namespace Crest.Host.Serialization.Internal
 
             this.hasPropertyWritten = true;
             this.writer.AppendBytes(propertyMetadata);
+        }
+
+        /// <inheritdoc />
+        public void WriteBeginProperty(string propertyName)
+        {
+            throw new NotImplementedException();
         }
 
         /// <inheritdoc />

@@ -112,33 +112,29 @@
                 {
                 }
 
-                void IPrimitiveSerializer<string>.Flush()
-                {
-                }
-
-                bool IArraySerializer.ReadBeginArray(Type elementType)
+                bool IClassReader.ReadBeginArray(Type elementType)
                 {
                     return false;
                 }
 
-                bool IArraySerializer.ReadElementSeparator()
+                bool IClassReader.ReadElementSeparator()
                 {
                     return false;
                 }
 
-                void IArraySerializer.ReadEndArray()
+                void IClassReader.ReadEndArray()
                 {
                 }
 
-                void IArraySerializer.WriteBeginArray(Type elementType, int size)
+                void IClassWriter.WriteBeginArray(Type elementType, int size)
                 {
                 }
 
-                void IArraySerializer.WriteElementSeparator()
+                void IClassWriter.WriteElementSeparator()
                 {
                 }
 
-                void IArraySerializer.WriteEndArray()
+                void IClassWriter.WriteEndArray()
                 {
                 }
             }
@@ -566,7 +562,7 @@
 
             private FakeSerializerBase SerializeValue<T>(T value)
             {
-                FakeSerializerBase serializer = CreateSerializer<T>();
+                FakeSerializerBase serializer = this.CreateSerializer<T>();
                 ((ITypeSerializer)serializer).Write(value);
                 return serializer;
             }
