@@ -154,9 +154,18 @@
         public sealed class WriteBeginClass : JsonSerializerBaseSerializeTests
         {
             [Fact]
-            public void ShouldWriteTheOpeningBrace()
+            public void ShouldWriteTheOpeningBraceForByteArrays()
             {
                 this.serializer.WriteBeginClass((byte[])null);
+                byte[] written = this.GetWrittenData();
+
+                written.Should().Equal((byte)'{');
+            }
+
+            [Fact]
+            public void ShouldWriteTheOpeningBraceForStrings()
+            {
+                this.serializer.WriteBeginClass((string)null);
                 byte[] written = this.GetWrittenData();
 
                 written.Should().Equal((byte)'{');
@@ -184,6 +193,15 @@
                 byte[] written = this.GetWrittenData();
 
                 written.Should().Equal(1, 2);
+            }
+
+            [Fact]
+            public void ShouldWriteThePropertyName()
+            {
+                this.serializer.WriteBeginProperty("Aa");
+                byte[] written = this.GetWrittenData();
+
+                written.Should().Equal((byte)'"', (byte)'a', (byte)'a', (byte)'"', (byte)':');
             }
         }
 

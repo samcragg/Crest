@@ -151,7 +151,7 @@ namespace Crest.Host.Serialization.Internal
         /// <inheritdoc />
         public void ReadBeginClass(string className)
         {
-            throw new NotImplementedException();
+            this.ReadBeginClass((byte[])null);
         }
 
         /// <inheritdoc />
@@ -212,25 +212,22 @@ namespace Crest.Host.Serialization.Internal
         /// <inheritdoc />
         public void WriteBeginClass(string className)
         {
-            throw new NotImplementedException();
+            this.WriteBeginClass((byte[])null);
         }
 
         /// <inheritdoc />
         public void WriteBeginProperty(byte[] propertyMetadata)
         {
-            if (this.hasPropertyWritten)
-            {
-                this.writer.AppendByte((byte)',');
-            }
-
-            this.hasPropertyWritten = true;
+            this.WritePropertySeparator();
             this.writer.AppendBytes(propertyMetadata);
         }
 
         /// <inheritdoc />
         public void WriteBeginProperty(string propertyName)
         {
-            throw new NotImplementedException();
+            this.WritePropertySeparator();
+            this.writer.WriteString(MakeCamelCase(propertyName));
+            this.writer.AppendByte((byte)':');
         }
 
         /// <inheritdoc />
@@ -311,6 +308,16 @@ namespace Crest.Host.Serialization.Internal
             }
 
             return new string(chars);
+        }
+
+        private void WritePropertySeparator()
+        {
+            if (this.hasPropertyWritten)
+            {
+                this.writer.AppendByte((byte)',');
+            }
+
+            this.hasPropertyWritten = true;
         }
     }
 }

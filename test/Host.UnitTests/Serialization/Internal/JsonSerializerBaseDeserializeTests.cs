@@ -110,11 +110,22 @@
         public sealed class ReadBeginClass : JsonSerializerBaseDeserializeTests
         {
             [Fact]
-            public void ShouldConsumeTheStartToken()
+            public void ShouldConsumeTheStartTokenForByteArrays()
             {
                 this.SetStreamTo("{1");
 
                 this.Serializer.ReadBeginClass((byte[])null);
+                int result = this.Serializer.Reader.ReadInt32();
+
+                result.Should().Be(1);
+            }
+
+            [Fact]
+            public void ShouldConsumeTheStartTokenStrings()
+            {
+                this.SetStreamTo("{1");
+
+                this.Serializer.ReadBeginClass((string)null);
                 int result = this.Serializer.Reader.ReadInt32();
 
                 result.Should().Be(1);
