@@ -133,7 +133,7 @@ namespace Crest.Host.Serialization.Internal
         /// <inheritdoc />
         public void ReadBeginClass(string className)
         {
-            throw new NotImplementedException();
+            this.ReadBeginClass((byte[])null);
         }
 
         /// <inheritdoc />
@@ -201,7 +201,7 @@ namespace Crest.Host.Serialization.Internal
         /// <inheritdoc />
         public void WriteBeginClass(string className)
         {
-            throw new NotImplementedException();
+            // We don't need to do anything
         }
 
         /// <inheritdoc />
@@ -213,7 +213,7 @@ namespace Crest.Host.Serialization.Internal
         /// <inheritdoc />
         public void WriteBeginProperty(string propertyName)
         {
-            throw new NotImplementedException();
+            this.writer.PushKeyPart(UrlEncodeString(propertyName));
         }
 
         /// <inheritdoc />

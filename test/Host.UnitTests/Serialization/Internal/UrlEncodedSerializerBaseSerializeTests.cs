@@ -152,9 +152,16 @@
         public sealed class WriteBeginClass : UrlEncodedSerializerBaseSerializeTests
         {
             [Fact]
-            public void ShouldNotThrowAnyException()
+            public void ShouldNotThrowAnyExceptionForByteArrays()
             {
                 this.serializer.Invoking(x => x.WriteBeginClass((byte[])null))
+                    .Should().NotThrow();
+            }
+
+            [Fact]
+            public void ShouldNotThrowAnyExceptionForStrings()
+            {
+                this.serializer.Invoking(x => x.WriteBeginClass((string)null))
                     .Should().NotThrow();
             }
         }
@@ -168,6 +175,15 @@
                 this.serializer.Writer.WriteString(string.Empty);
 
                 this.GetWrittenData().Should().Equal(1, 2, (byte)'=');
+            }
+
+            [Fact]
+            public void ShouldWriteThePropertyName()
+            {
+                this.serializer.WriteBeginProperty("Aa");
+                this.serializer.Writer.WriteString(string.Empty);
+
+                this.GetWrittenData().Should().Equal((byte)'A', (byte)'a', (byte)'=');
             }
         }
 

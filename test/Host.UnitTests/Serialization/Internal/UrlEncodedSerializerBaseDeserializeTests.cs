@@ -98,6 +98,19 @@
                 this.Serializer.ReadBeginProperty()
                     .Should().Be("A");
             }
+
+            [Fact]
+            public void ShouldResetThePropertiesThatHaveBeenReadForStrings()
+            {
+                this.SetStreamTo("A=x&B=y");
+                this.Serializer.ReadBeginProperty();
+                this.Serializer.ReadEndProperty();
+
+                this.Serializer.ReadBeginClass((string)null);
+
+                this.Serializer.ReadBeginProperty()
+                    .Should().Be("A");
+            }
         }
 
         public sealed class ReadBeginProperty : UrlEncodedSerializerBaseDeserializeTests
