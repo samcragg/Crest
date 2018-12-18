@@ -193,6 +193,28 @@ namespace Crest.Host.Serialization
             return elementName;
         }
 
+        /// <inheritdoc />
+        private protected override ReadOnlySpan<char> ReadTrimmedString()
+        {
+            if (this.currentElementIsEmpty)
+            {
+                return ReadOnlySpan<char>.Empty;
+            }
+            else
+            {
+                this.stringBuffer.Clear();
+
+                IEnumerator<string> iterator = this.IterateElementContents().GetEnumerator();
+                while (iterator.MoveNext())
+                {
+                    this.stringBuffer.Append(iterator.Current);
+                }
+
+                this.stringBuffer.TrimEnds(IsWhiteSpace);
+                return this.stringBuffer.CreateSpan();
+            }
+        }
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static bool AreEqual(ReadOnlySpan<char> span, char c)
         {
@@ -217,28 +239,6 @@ namespace Crest.Host.Serialization
             // http://www.w3.org/TR/REC-xml/#sec-common-syn
             // S ::= (#x20 | #x9 | #xD | #xA)+
             return (c == '\x20') || (c == '\x9') || (c == '\xD') || (c == '\xA');
-        }
-
-        /// <inheritdoc />
-        private protected override ReadOnlySpan<char> ReadTrimmedString()
-        {
-            if (this.currentElementIsEmpty)
-            {
-                return ReadOnlySpan<char>.Empty;
-            }
-            else
-            {
-                this.stringBuffer.Clear();
-
-                IEnumerator<string> iterator = this.IterateElementContents().GetEnumerator();
-                while (iterator.MoveNext())
-                {
-                    this.stringBuffer.Append(iterator.Current);
-                }
-
-                this.stringBuffer.TrimEnds(IsWhiteSpace);
-                return this.stringBuffer.CreateSpan();
-            }
         }
 
         private IEnumerable<string> IterateElementContents()

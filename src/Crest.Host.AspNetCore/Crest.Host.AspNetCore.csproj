@@ -11,7 +11,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Crest.Abstractions\Crest.Abstractions.csproj" />
     <ProjectReference Include="..\Crest.Host\Crest.Host.csproj" />
-    <PackageReference Include="Microsoft.AspNetCore.Hosting" Version="2.1.1" />
+    <PackageReference Include="Microsoft.AspNetCore.Hosting" Version="2.2.0" />
   </ItemGroup>
 
 </Project>

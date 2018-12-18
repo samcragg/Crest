@@ -198,11 +198,6 @@ namespace Crest.Host.Serialization
             return this.ProcessResult(result, "number");
         }
 
-        private static bool IsWhiteSpace(char b)
-        {
-            return (b == ' ') || (b == '\t') || (b == '\n') || (b == '\r');
-        }
-
         /// <inheritdoc />
         private protected override T ProcessResult<T>(ParseResult<T> result, string type)
         {
@@ -216,6 +211,11 @@ namespace Crest.Host.Serialization
             this.ReadStringIntoBuffer();
             this.stringBuffer.TrimEnds(IsWhiteSpace);
             return this.stringBuffer.CreateSpan();
+        }
+
+        private static bool IsWhiteSpace(char b)
+        {
+            return (b == ' ') || (b == '\t') || (b == '\n') || (b == '\r');
         }
 
         private FormatException CreateUnexpectedTokenException()
