@@ -53,18 +53,6 @@
                 parameterName.Should().Be("parameter");
             }
 
-            [Fact]
-            public void ShouldUseTheSpecializedConverter()
-            {
-                this.converter = Substitute.For<IQueryValueConverter>(); // We need to spy on it
-                this.AddLookupItem("key", "value");
-
-                var result = QueryCapture.Create("key", typeof(int), "", this.converters.TryGetValue);
-                result.ParseParameters(this.lookup, new Dictionary<string, object>());
-
-                this.converter.ReceivedWithAnyArgs().TryConvertValue(default, out _);
-            }
-
             [TypeConverter(typeof(FakeTypeConverter))]
             private sealed class FakeClass
             {

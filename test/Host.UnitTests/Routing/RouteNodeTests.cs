@@ -1,24 +1,21 @@
 ﻿namespace Host.UnitTests.Routing
 {
+    using System;
     using System.Collections.Generic;
     using System.Linq;
     using Crest.Host.Routing;
     using FluentAssertions;
-    using NSubstitute;
     using Xunit;
 
     public class RouteNodeTests
     {
         private const string MatcherValue = "Stored value";
-        private readonly IMatchNode matcher;
+        private readonly FakeMatchNode matcher;
         private readonly RouteNode<string> node;
 
         public RouteNodeTests()
         {
-            this.matcher = Substitute.For<IMatchNode>();
-            this.matcher.Match(default)
-                .ReturnsForAnyArgs(new NodeMatchResult(string.Empty, null));
-
+            this.matcher = new FakeMatchNode();
             this.node = new RouteNode<string>(this.matcher) { Value = MatcherValue };
         }
 
@@ -27,23 +24,23 @@
             [Fact]
             public void ShouldCombineMatchers()
             {
-                IMatchNode child = Substitute.For<IMatchNode>();
-                IMatchNode duplicate = Substitute.For<IMatchNode>();
-                child.Equals(duplicate).Returns(true);
+                var child = new FakeMatchNode();
+                var duplicate = new FakeMatchNode();
+                child.EqualsMethod = other => other == duplicate;
 
                 this.node.Add(new[] { child }, 0);
                 this.node.Add(new[] { duplicate }, 0);
                 this.node.Match("/matcher_part/child_part");
 
-                child.ReceivedWithAnyArgs().Match(default);
-                duplicate.DidNotReceiveWithAnyArgs().Match(default);
+                child.MatchSegment.Should().NotBeNull();
+                duplicate.MatchSegment.Should().BeNull();
             }
 
             [Fact]
             public void ShouldReturnTheLeafNode()
             {
-                IMatchNode first = Substitute.For<IMatchNode>();
-                IMatchNode second = Substitute.For<IMatchNode>();
+                IMatchNode first = new FakeMatchNode();
+                IMatchNode second = new FakeMatchNode();
 
                 RouteNode<string> node1 = this.node.Add(new[] { first }, 0);
                 RouteNode<string> node2 = this.node.Add(new[] { first, second }, 0);
@@ -59,7 +56,7 @@
             public void ShouldReturnChildren()
             {
                 RouteNode<string> child = this.node.Add(
-                    new[] { Substitute.For<IMatchNode>() },
+                    new[] { new FakeMatchNode() },
                     0);
 
                 IEnumerable<RouteNode<string>> result = this.node.Flatten();
@@ -81,27 +78,22 @@
             [Fact]
             public void ShouldInvokeHigherPriorityNodesFirst()
             {
-                IMatchNode normal = Substitute.For<IMatchNode>();
-                normal.Priority.Returns(100);
+                var normal = new FakeMatchNode { Priority = 100 };
                 this.node.Add(new[] { normal }, 0);
 
-                IMatchNode important = Substitute.For<IMatchNode>();
-                important.Priority.Returns(200);
-                important.Match(default)
-                         .ReturnsForAnyArgs(new NodeMatchResult(string.Empty, null));
+                var important = new FakeMatchNode { Priority = 200 };
                 this.node.Add(new[] { important }, 0);
 
                 this.node.Match("/matcher/part");
 
-                important.ReceivedWithAnyArgs().Match(default);
-                normal.DidNotReceiveWithAnyArgs().Match(default);
+                important.MatchSegment.Should().NotBeNull();
+                normal.MatchSegment.Should().BeNull();
             }
 
             [Fact]
             public void ShouldReturnTheCapturedValues()
             {
-                this.matcher.Match(default)
-                    .ReturnsForAnyArgs(new NodeMatchResult("parameter", 123));
+                this.matcher.MatchResult = new NodeMatchResult("parameter", 123);
 
                 RouteNode<string>.MatchResult result = this.node.Match("/route");
 
@@ -116,6 +108,37 @@
 
                 result.Success.Should().BeTrue();
                 result.Value.Should().Be(MatcherValue);
+            }
+        }
+
+        private class FakeMatchNode : IMatchNode
+        {
+            public int Priority { get; set; }
+
+            public string ParameterName => string.Empty;
+
+            internal Func<IMatchNode, bool> EqualsMethod { get; set; } = _ => false;
+
+            internal NodeMatchResult MatchResult { get; set; }
+                = new NodeMatchResult(string.Empty, null);
+
+            internal string MatchSegment { get; private set; }
+
+            public bool Equals(IMatchNode other)
+            {
+                return this.EqualsMethod(other);
+            }
+
+            public NodeMatchResult Match(ReadOnlySpan<char> segment)
+            {
+                this.MatchSegment = segment.ToString();
+                return this.MatchResult;
+            }
+
+            public bool TryConvertValue(ReadOnlySpan<char> value, out object result)
+            {
+                result = null;
+                return false;
             }
         }
     }
