@@ -18,7 +18,9 @@ namespace Crest.Host.Security
     {
         private static readonly ILog Logger = Log.For<SecurityKeyCacheInitializer>();
         private readonly SecurityKeyCache cache;
-        private readonly CancellationTokenSource cancellationToken = new CancellationTokenSource();
+        private readonly Timer timer;
+        private readonly object timerLock = new object();
+        private volatile bool disposed;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="SecurityKeyCacheInitializer"/> class.
@@ -27,6 +29,7 @@ namespace Crest.Host.Security
         public SecurityKeyCacheInitializer(SecurityKeyCache cache)
         {
             this.cache = cache;
+            this.timer = new Timer(_ => Task.Run(this.UpdateCacheAsync));
         }
 
         /// <summary>
@@ -43,10 +46,13 @@ namespace Crest.Host.Security
         /// </summary>
         public void Dispose()
         {
-            if (!this.cancellationToken.IsCancellationRequested)
+            if (!this.disposed)
             {
-                this.cancellationToken.Cancel();
-                this.cancellationToken.Dispose();
+                lock (this.timerLock)
+                {
+                    this.disposed = true;
+                    this.timer.Dispose();
+                }
             }
         }
 
@@ -55,10 +61,20 @@ namespace Crest.Host.Security
         {
             // Make sure it's up to date during startup
             await this.UpdateCacheAsync().ConfigureAwait(false);
+            this.ScheduleCallback();
+        }
 
-            // Now make sure it gets updated regularly. DO NOT wait for this,
-            // as it will continue forever
-            _ = this.UpdateLoopAsync(this.cancellationToken.Token);
+        private void ScheduleCallback()
+        {
+            lock (this.timerLock)
+            {
+                if (!this.disposed)
+                {
+                    int delayMs = (int)UpdateFrequency.TotalMilliseconds;
+                    Logger.Info("Scheduling an update of the security key cache in {0}ms", delayMs);
+                    this.timer.Change(delayMs, -1);
+                }
+            }
         }
 
         private async Task UpdateCacheAsync()
@@ -72,18 +88,8 @@ namespace Crest.Host.Security
             {
                 Logger.ErrorException("Error updating the security key cache", ex);
             }
-        }
 
-        private async Task UpdateLoopAsync(CancellationToken cancellationToken)
-        {
-            while (!cancellationToken.IsCancellationRequested)
-            {
-                await Task.Delay(UpdateFrequency, cancellationToken).ConfigureAwait(false);
-                if (!cancellationToken.IsCancellationRequested)
-                {
-                    await this.UpdateCacheAsync().ConfigureAwait(false);
-                }
-            }
+            this.ScheduleCallback();
         }
     }
 }

@@ -66,7 +66,10 @@
                 this.cache.ClearReceivedCalls();
 
                 await Task.Delay(UpdateMs + 32);
+                await this.cache.Received().UpdateCacheAsync();
+                this.cache.ClearReceivedCalls();
 
+                await Task.Delay(UpdateMs + 32);
                 await this.cache.Received().UpdateCacheAsync();
             }
         }
