@@ -77,8 +77,7 @@
             [Fact]
             public void ShouldReturnTheValue()
             {
-                StringValues any = Arg.Any<StringValues>();
-                this.headers.TryGetValue("key", out any)
+                this.headers.TryGetValue("key", out Arg.Any<StringValues>())
                     .Returns(ci =>
                     {
                         ci[1] = new StringValues("value");
@@ -144,8 +143,7 @@
             [Fact]
             public void ShouldReturnTrueIfTheHeaderExists()
             {
-                StringValues any = Arg.Any<StringValues>();
-                this.headers.TryGetValue("key", out any)
+                this.headers.TryGetValue("key", out Arg.Any<StringValues>())
                     .Returns(ci =>
                     {
                         ci[1] = new StringValues("value");

@@ -42,7 +42,7 @@
             {
                 this.provider.Dispose();
 
-                this.watcher.Received().Dispose();
+                ((IDisposable)this.watcher).Received().Dispose();
             }
         }
 

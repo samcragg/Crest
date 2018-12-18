@@ -4,13 +4,13 @@
     using System.Collections;
     using System.Collections.Generic;
     using System.Linq;
-    using System.Threading.Tasks;
     using Crest.Abstractions;
     using Crest.Host.Engine;
     using DryIoc;
     using FluentAssertions;
     using NSubstitute;
     using Xunit;
+    using Arg = NSubstitute.Arg;
 
     public class ServiceLocatorTests
     {
@@ -54,7 +54,7 @@
             {
                 this.locator.CreateScope();
 
-                this.container.Received().OpenScope();
+                this.container.ReceivedWithAnyArgs().WithCurrentScope(null);
             }
 
             [Fact]
@@ -124,7 +124,7 @@
             public void ShouldReturnTheValueFromTheContainer()
             {
                 var plugins = new IPostRequestPlugin[0];
-                this.container.Resolve(typeof(IPostRequestPlugin[]))
+                this.container.Resolve(typeof(IPostRequestPlugin[]), Arg.Any<IfUnresolved>())
                     .Returns(plugins);
 
                 IPostRequestPlugin[] result = this.locator.GetAfterRequestPlugins();
@@ -149,7 +149,7 @@
             public void ShouldReturnTheValueFromTheContainer()
             {
                 var plugins = new IPreRequestPlugin[0];
-                this.container.Resolve(typeof(IPreRequestPlugin[]))
+                this.container.Resolve(typeof(IPreRequestPlugin[]), Arg.Any<IfUnresolved>())
                     .Returns(plugins);
 
                 IPreRequestPlugin[] result = this.locator.GetBeforeRequestPlugins();
@@ -174,7 +174,7 @@
             public void ShouldGetTheProvidersFromTheContainer()
             {
                 var initializers = new IStartupInitializer[0];
-                this.container.Resolve(typeof(IStartupInitializer[]))
+                this.container.Resolve(typeof(IStartupInitializer[]), Arg.Any<IfUnresolved>())
                     .Returns(initializers);
 
                 IStartupInitializer[] result = this.locator.GetInitializers();
@@ -199,7 +199,7 @@
             public void ShouldReturnTheValueFromTheContainer()
             {
                 var providers = new IDirectRouteProvider[0];
-                this.container.Resolve(typeof(IDirectRouteProvider[]))
+                this.container.Resolve(typeof(IDirectRouteProvider[]), Arg.Any<IfUnresolved>())
                     .Returns(providers);
 
                 IDirectRouteProvider[] result = this.locator.GetDirectRouteProviders();
@@ -226,7 +226,7 @@
                 // TryResolve method determines whether there is a registered
                 // instance or not by resolving an array of them
                 IDiscoveryService discoveryService = Substitute.For<IDiscoveryService>();
-                this.container.Resolve(typeof(IDiscoveryService[]))
+                this.container.Resolve(typeof(IDiscoveryService[]), Arg.Any<IfUnresolved>())
                     .Returns(new[] { discoveryService });
 
                 IDiscoveryService result = this.locator.GetDiscoveryService();
@@ -238,18 +238,18 @@
             public void ShouldReturnADefaultRegisteredInstance()
             {
                 // An empty array indicates the service does not exist
-                this.container.Resolve(typeof(IDiscoveryService[]))
+                this.container.Resolve(typeof(IDiscoveryService[]), Arg.Any<IfUnresolved>())
                     .Returns(new IDiscoveryService[0]);
 
                 this.locator.GetDiscoveryService();
 
-                this.container.Received().Resolve(typeof(DiscoveryService));
+                this.container.Received().Resolve(typeof(DiscoveryService), Arg.Any<IfUnresolved>());
             }
 
             [Fact]
             public void ShouldThrowAnExceptionIfMultipleServicesAreRegisteredForASingleItem()
             {
-                this.container.Resolve(typeof(IDiscoveryService[]))
+                this.container.Resolve(typeof(IDiscoveryService[]), Arg.Any<IfUnresolved>())
                     .Returns(new IDiscoveryService[2]);
 
                 Action action = () => this.locator.GetDiscoveryService();
@@ -275,7 +275,7 @@
             public void ShouldReturnTheValueFromTheContainer()
             {
                 var plugins = new IErrorHandlerPlugin[0];
-                this.container.Resolve(typeof(IErrorHandlerPlugin[]))
+                this.container.Resolve(typeof(IErrorHandlerPlugin[]), Arg.Any<IfUnresolved>())
                     .Returns(plugins);
 
                 IErrorHandlerPlugin[] result = this.locator.GetErrorHandlers();
@@ -307,7 +307,7 @@
             [Fact]
             public void ShouldReturnAnInstanceOfTheSpecifiedType()
             {
-                this.container.Resolve(typeof(string))
+                this.container.Resolve(typeof(string), Arg.Any<IfUnresolved>())
                     .Returns("Instance");
 
                 object result = this.locator.GetService(typeof(string));
@@ -498,7 +498,13 @@
 
                 rootContainer.UseInstance(typeof(ExampleClass), instance);
 
-                this.container.Received().UseInstance(typeof(ExampleClass), instance);
+                this.container.Received().UseInstance(
+                    typeof(ExampleClass),
+                    instance,
+                    Arg.Any<IfAlreadyRegistered>(),
+                    Arg.Any<bool>(),
+                    Arg.Any<bool>(),
+                    Arg.Any<object>());
             }
 
             [Fact]
@@ -508,7 +514,13 @@
 
                 this.locator.UseInstance(typeof(ExampleClass), instance);
 
-                this.scope.Received().UseInstance(typeof(ExampleClass), instance);
+                this.scope.Received().UseInstance(
+                    typeof(ExampleClass),
+                    instance,
+                    Arg.Any<IfAlreadyRegistered>(),
+                    Arg.Any<bool>(),
+                    Arg.Any<bool>(),
+                    Arg.Any<object>());
             }
         }
 

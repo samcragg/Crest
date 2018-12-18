@@ -22,7 +22,7 @@
         {
             this.executingAssembly = Substitute.For<ExecutingAssembly>();
             this.executingAssembly.LoadCompileLibraries()
-                .Returns(new[] { typeof(DiscoveryServiceTests).GetTypeInfo().Assembly });
+                .Returns(x => new[] { typeof(DiscoveryServiceTests).GetTypeInfo().Assembly });
 
             this.service = new DiscoveryService(this.executingAssembly);
         }

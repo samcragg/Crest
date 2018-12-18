@@ -86,7 +86,7 @@ namespace Crest.Host.Serialization.Internal
         /// Writes a 16-bit signed integer to the stream.
         /// </summary>
         /// <param name="value">The value to write to the stream.</param>
-        public void WriteInt16(short value)
+        public virtual void WriteInt16(short value)
         {
             this.WriteInt64(value);
         }

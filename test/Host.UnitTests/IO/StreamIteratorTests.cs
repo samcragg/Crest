@@ -102,11 +102,11 @@
             [Fact]
             public void ShouldDisposeTheStream()
             {
-                this.stream.DidNotReceive().Dispose();
+                ((IDisposable)this.stream).DidNotReceive().Dispose();
 
                 this.Iterator.Dispose();
 
-                this.stream.Received().Dispose();
+                ((IDisposable)this.stream).Received().Dispose();
             }
 
             [Fact]

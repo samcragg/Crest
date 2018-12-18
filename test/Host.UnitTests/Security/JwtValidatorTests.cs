@@ -116,8 +116,7 @@
             [Fact]
             public void ShouldIncludeTheOriginalJwtClaimInTheProperties()
             {
-                string any = Arg.Any<string>();
-                this.settings.JwtClaimMappings.TryGetValue("jwt", out any)
+                this.settings.JwtClaimMappings.TryGetValue("jwt", out Arg.Any<string>())
                     .Returns(ci =>
                     {
                         ci[1] = "mapped";
@@ -134,8 +133,7 @@
             [Fact]
             public void ShouldMapTheJwtClaims()
             {
-                string any = Arg.Any<string>();
-                this.settings.JwtClaimMappings.TryGetValue("jwt", out any)
+                this.settings.JwtClaimMappings.TryGetValue("jwt", out Arg.Any<string>())
                     .Returns(ci =>
                     {
                         ci[1] = "mapped";

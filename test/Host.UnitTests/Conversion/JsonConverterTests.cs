@@ -1,5 +1,6 @@
 ﻿namespace Host.UnitTests.Conversion
 {
+    using System;
     using System.IO;
     using Crest.Host.Conversion;
     using Crest.Host.Serialization;
@@ -105,7 +106,7 @@
 
                 this.converter.WriteTo(stream, "value");
 
-                stream.DidNotReceive().Dispose();
+                ((IDisposable)stream).DidNotReceive().Dispose();
             }
 
             [Fact]

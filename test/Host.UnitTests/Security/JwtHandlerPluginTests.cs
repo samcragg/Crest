@@ -59,7 +59,7 @@
             public async Task ShouldAllowAnonymousMethods()
             {
                 IRequestData request = Substitute.For<IRequestData>();
-                request.Handler.Returns(AnonymousMethod);
+                request.Handler.Returns(x => AnonymousMethod);
 
                 IResponseData response = await this.plugin.ProcessAsync(request);
 
@@ -95,8 +95,7 @@
             public async Task ShouldNotAllowInvalidSignatures()
             {
                 IRequestData request = CreateRequest("Bearer 123");
-                byte[] payload = Arg.Any<byte[]>();
-                this.verifier.IsSignatureValid("123", out payload)
+                this.verifier.IsSignatureValid("123", out Arg.Any<byte[]>())
                     .Returns(false);
 
                 IResponseData response = await this.plugin.ProcessAsync(request);
@@ -112,7 +111,7 @@
             public async Task ShouldNotAllowMissingAuthorizationHeader()
             {
                 IRequestData request = Substitute.For<IRequestData>();
-                request.Handler.Returns(AuthenticatedMethod);
+                request.Handler.Returns(x => AuthenticatedMethod);
 
                 IResponseData response = await this.plugin.ProcessAsync(request);
 
@@ -178,7 +177,7 @@
             private static IRequestData CreateRequest(string authorization)
             {
                 IRequestData request = Substitute.For<IRequestData>();
-                request.Handler.Returns(AuthenticatedMethod);
+                request.Handler.Returns(x => AuthenticatedMethod);
                 request.Headers.Returns(new Dictionary<string, string>
                 {
                     { "Authorization", authorization }
@@ -192,8 +191,7 @@
                 IRequestData request = CreateRequest("Bearer 123");
                 byte[] payload = new byte[0];
 
-                byte[] any = Arg.Any<byte[]>();
-                this.verifier.IsSignatureValid("123", out any)
+                this.verifier.IsSignatureValid("123", out Arg.Any<byte[]>())
                     .Returns(ci =>
                     {
                         ci[1] = payload;

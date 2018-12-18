@@ -52,11 +52,7 @@
                 MethodInfo method = Substitute.For<MethodInfo>();
                 this.mapper.GetAdapter(method).Returns(_ => Task.FromResult<object>(""));
 
-                // We need to call the Arg.Any calls in the same order as the method
-                // for NSubstitute to handle them
-                ILookup<string, string> query = Arg.Any<ILookup<string, string>>();
-                IReadOnlyDictionary<string, object> any = Arg.Any<IReadOnlyDictionary<string, object>>();
-                this.mapper.Match("GET", "/route", query, out any)
+                this.mapper.Match("GET", "/route", Arg.Any<ILookup<string, string>>(), out Arg.Any<IReadOnlyDictionary<string, object>>())
                     .Returns(ci =>
                     {
                         ci[3] = new Dictionary<string, object>();

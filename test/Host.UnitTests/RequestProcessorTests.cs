@@ -71,7 +71,7 @@
             {
                 const BindingFlags PrivateMethods = BindingFlags.Instance | BindingFlags.NonPublic;
                 this.converterFactory.ClearReceivedCalls();
-                this.mapper.GetKnownMethods().Returns(new[]
+                this.mapper.GetKnownMethods().Returns(x => new[]
                 {
                     typeof(Constructor).GetMethod(nameof(MethodReturningTask), PrivateMethods),
                     typeof(Constructor).GetMethod(nameof(MethodReturningTaskOfInt), PrivateMethods)
@@ -425,14 +425,7 @@
                 ILookup<string, string> query = Substitute.For<ILookup<string, string>>();
 
                 this.mapper.FindOverride("GET", "/route").ReturnsNull();
-
-                // We need to call the Arg.XXX calls in the same order as the method
-                // for NSubstitute to handle them and we need to use the specifier
-                // for both string parameters so it doesn't get confused
-                string verb = Arg.Is("GET");
-                string path = Arg.Is("/route");
-                IReadOnlyDictionary<string, object> any = Arg.Any<IReadOnlyDictionary<string, object>>();
-                this.mapper.Match(verb, path, query, out any)
+                this.mapper.Match("GET", "/route", query, out Arg.Any<IReadOnlyDictionary<string, object>>())
                     .Returns(args =>
                     {
                         args[3] = parameters;
@@ -457,7 +450,7 @@
                 IPostRequestPlugin one = CreatePostRequestPlugin(1);
                 IPostRequestPlugin two = CreatePostRequestPlugin(2);
                 IPostRequestPlugin three = CreatePostRequestPlugin(3);
-                this.serviceLocator.GetAfterRequestPlugins().Returns(new[] { three, one, two });
+                this.serviceLocator.GetAfterRequestPlugins().Returns(x => new[] { three, one, two });
 
                 await this.processor.OnAfterRequestAsync(this.serviceLocator, this.request, Substitute.For<IResponseData>());
 
@@ -486,7 +479,7 @@
                 IPreRequestPlugin one = CreatePreRequestPlugin(1);
                 IPreRequestPlugin two = CreatePreRequestPlugin(2);
                 IPreRequestPlugin three = CreatePreRequestPlugin(3);
-                this.serviceLocator.GetBeforeRequestPlugins().Returns(new[] { three, one, two });
+                this.serviceLocator.GetBeforeRequestPlugins().Returns(x => new[] { three, one, two });
 
                 await this.processor.OnBeforeRequestAsync(this.serviceLocator, this.request);
 
@@ -504,7 +497,7 @@
                 IResponseData response = Substitute.For<IResponseData>();
                 IPreRequestPlugin plugin = CreatePreRequestPlugin(1);
                 plugin.ProcessAsync(this.request).Returns(response);
-                this.serviceLocator.GetBeforeRequestPlugins().Returns(new[] { plugin });
+                this.serviceLocator.GetBeforeRequestPlugins().Returns(x => new[] { plugin });
 
                 IResponseData result = await this.processor.OnBeforeRequestAsync(this.serviceLocator, this.request);
 
@@ -528,7 +521,7 @@
                 Exception exception = new DivideByZeroException();
                 IErrorHandlerPlugin plugin = CreateErrorHandlerPlugin(1);
                 plugin.CanHandle(exception).Returns(true);
-                this.serviceLocator.GetErrorHandlers().Returns(new[] { plugin });
+                this.serviceLocator.GetErrorHandlers().Returns(x => new[] { plugin });
 
                 await this.processor.OnErrorAsync(this.request, exception);
 
@@ -542,7 +535,7 @@
                 IErrorHandlerPlugin one = CreateErrorHandlerPlugin(1);
                 IErrorHandlerPlugin two = CreateErrorHandlerPlugin(2);
                 IErrorHandlerPlugin three = CreateErrorHandlerPlugin(3);
-                this.serviceLocator.GetErrorHandlers().Returns(new[] { three, one, two });
+                this.serviceLocator.GetErrorHandlers().Returns(x => new[] { three, one, two });
 
                 await this.processor.OnErrorAsync(this.request, exception);
 

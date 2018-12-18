@@ -60,7 +60,7 @@
 
                 fakeSerializer.Dispose();
 
-                mockStream.Received().Dispose();
+                ((IDisposable)mockStream).Received().Dispose();
             }
         }
 

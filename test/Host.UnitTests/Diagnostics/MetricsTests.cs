@@ -52,8 +52,7 @@
             public void ShouldRecordTheRequestSize()
             {
                 IRequestData requestData = Substitute.For<IRequestData>();
-                string any = Arg.Any<string>();
-                requestData.Headers.TryGetValue("Content-Length", out any)
+                requestData.Headers.TryGetValue("Content-Length", out Arg.Any<string>())
                     .Returns(ci =>
                     {
                         ci[1] = "123";

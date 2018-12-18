@@ -104,7 +104,7 @@
 
                 this.converter.WriteTo(stream, "value");
 
-                stream.DidNotReceive().Dispose();
+                ((IDisposable)stream).DidNotReceive().Dispose();
             }
 
             [Fact]
