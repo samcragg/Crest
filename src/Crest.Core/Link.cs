@@ -41,6 +41,10 @@ namespace Crest.Core
         /// <param name="templated">The value for <see cref="Templated"/>.</param>
         /// <param name="title">The value for <see cref="Title"/>.</param>
         /// <param name="type">The value for <see cref="Type"/>.</param>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage(
+            "brain-overload",
+            "S107",
+            Justification = "Internal method used by the builder")]
         internal Link(
             Uri deprecation,
             Uri hRef,
