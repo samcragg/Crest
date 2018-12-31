@@ -4,6 +4,7 @@
     using System.IO;
     using System.Reflection;
     using System.Reflection.Emit;
+    using Crest.Abstractions;
     using Crest.Host.Serialization;
     using Crest.Host.Serialization.Internal;
     using FluentAssertions;
@@ -17,8 +18,8 @@
     {
         // We need to use lazy so that we can change the value of the
         // OutputEnumNames before the constructor is called
-        private readonly Lazy<SerializerGenerator<_SerializerBase>> generator =
-            new Lazy<SerializerGenerator<_SerializerBase>>();
+        private readonly IDiscoveryService discoveryService;
+        private readonly Lazy<SerializerGenerator<_SerializerBase>> generator;
 
         protected SerializerGeneratorTests()
         {
@@ -27,6 +28,10 @@
                 AssemblyBuilderAccess.RunAndCollect);
 
             SerializerGenerator.ModuleBuilder = assemblyBuilder.DefineDynamicModule("Module");
+
+            this.discoveryService = Substitute.For<IDiscoveryService>();
+            this.generator = new Lazy<SerializerGenerator<_SerializerBase>>(
+                () => new SerializerGenerator<_SerializerBase>(this.discoveryService));
         }
 
         public enum TestEnum
@@ -151,6 +156,30 @@
                 serializer2.Should().BeSameAs(serializer1);
             }
 
+            [Fact]
+            public void ShouldReturnTheCustomSerializerForAType()
+            {
+                this.discoveryService.GetDiscoveredTypes().Returns(new[] { typeof(CustomSerializer) });
+
+                Type serializer = this.generator.Value.GetSerializerFor(typeof(SimpleType));
+
+                serializer.Should().Be(typeof(CustomSerializerAdapter<SimpleType, _SerializerBase, CustomSerializer>));
+            }
+
+            [Fact]
+            public void ShouldThrowForMutlipleCustomSerializers()
+            {
+                this.discoveryService.GetDiscoveredTypes().Returns(new[]
+                {
+                    typeof(CustomSerializer),
+                    typeof(SecondSerializer),
+                });
+
+                Action action = () => this.generator.Value.GetSerializerFor(typeof(SimpleType));
+
+                action.Should().Throw<InvalidOperationException>("*multiple*");
+            }
+
             public struct InvalidStruct
             {
             }
@@ -163,6 +192,22 @@
             public class SimpleType
             {
                 public int MyProperty { get; set; }
+            }
+
+            public class CustomSerializer : ICustomSerializer<SimpleType>
+            {
+                public SimpleType Read(IClassReader reader)
+                {
+                    return null;
+                }
+
+                public void Write(IClassWriter writer, SimpleType instance)
+                {
+                }
+            }
+
+            public class SecondSerializer : CustomSerializer
+            {
             }
         }
 

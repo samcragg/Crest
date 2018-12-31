@@ -7,9 +7,11 @@
     using System.Runtime.Serialization;
     using System.Text;
     using System.Text.RegularExpressions;
+    using Crest.Abstractions;
     using Crest.Host.Serialization;
     using Crest.Host.Serialization.Internal;
     using FluentAssertions;
+    using NSubstitute;
     using Xunit;
 
     // This attribute is inherited to prevent the tests running in parallel
@@ -25,7 +27,7 @@
                 AssemblyBuilderAccess.RunAndCollect);
 
             SerializerGenerator.ModuleBuilder = assemblyBuilder.DefineDynamicModule("Integration");
-            this.Generator = new SerializerGenerator<TBase>();
+            this.Generator = new SerializerGenerator<TBase>(Substitute.For<IDiscoveryService>());
         }
 
         public enum TestEnum

@@ -14,7 +14,7 @@ namespace Crest.Host.Serialization.Internal
     /// <summary>
     /// The base class for runtime serializers that output JSON.
     /// </summary>
-    public abstract class UrlEncodedSerializerBase : IClassSerializer<byte[]>
+    public class UrlEncodedSerializerBase : IClassSerializer<byte[]>
     {
         private readonly UrlEncodedStreamReader reader;
         private readonly UrlEncodedStreamWriter writer;
@@ -26,7 +26,7 @@ namespace Crest.Host.Serialization.Internal
         /// </summary>
         /// <param name="stream">The stream to write to.</param>
         /// <param name="mode">The serialization mode.</param>
-        protected UrlEncodedSerializerBase(Stream stream, SerializationMode mode)
+        public UrlEncodedSerializerBase(Stream stream, SerializationMode mode)
         {
             if (mode == SerializationMode.Deserialize)
             {

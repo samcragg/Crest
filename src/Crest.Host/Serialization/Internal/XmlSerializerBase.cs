@@ -14,7 +14,7 @@ namespace Crest.Host.Serialization.Internal
     /// <summary>
     /// The base class for runtime serializers that output XML.
     /// </summary>
-    public abstract class XmlSerializerBase : IClassSerializer<string>, IDisposable
+    public class XmlSerializerBase : IClassSerializer<string>, IDisposable
     {
         private readonly XmlStreamReader reader;
         private readonly XmlStreamWriter writer;
@@ -26,7 +26,7 @@ namespace Crest.Host.Serialization.Internal
         /// </summary>
         /// <param name="stream">The stream to write to.</param>
         /// <param name="mode">The serialization mode.</param>
-        protected XmlSerializerBase(Stream stream, SerializationMode mode)
+        public XmlSerializerBase(Stream stream, SerializationMode mode)
         {
             if (mode == SerializationMode.Deserialize)
             {

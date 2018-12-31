@@ -14,7 +14,7 @@ namespace Crest.Host.Serialization.Internal
     /// <summary>
     /// The base class for runtime serializers that output JSON.
     /// </summary>
-    public abstract class JsonSerializerBase : IClassSerializer<byte[]>, IDisposable
+    public class JsonSerializerBase : IClassSerializer<byte[]>, IDisposable
     {
         private readonly JsonStreamReader reader;
         private readonly JsonStreamWriter writer;
@@ -25,7 +25,7 @@ namespace Crest.Host.Serialization.Internal
         /// </summary>
         /// <param name="stream">The stream to write to.</param>
         /// <param name="mode">The serialization mode.</param>
-        protected JsonSerializerBase(Stream stream, SerializationMode mode)
+        public JsonSerializerBase(Stream stream, SerializationMode mode)
         {
             if (mode == SerializationMode.Deserialize)
             {

@@ -6,6 +6,7 @@
 namespace Crest.Host.Serialization
 {
     using System;
+    using System.Collections.Generic;
     using System.Linq;
     using System.Reflection;
     using System.Reflection.Emit;
@@ -90,6 +91,25 @@ namespace Crest.Host.Serialization
         {
             return !type.GetTypeInfo().IsValueType ||
                    (Nullable.GetUnderlyingType(type) != null);
+        }
+
+        /// <summary>
+        /// Gets the exposed constructors that can be called by derived types.
+        /// </summary>
+        /// <param name="type">The type to get the constructors from.</param>
+        /// <returns>A sequence of callable constructors.</returns>
+        protected static IEnumerable<ConstructorInfo> GetCallableConstructors(Type type)
+        {
+            bool IsVisibleToDerivedTypes(ConstructorInfo constructor)
+            {
+                return constructor.IsPublic || constructor.IsFamily;
+            }
+
+            ConstructorInfo[] constructors = type.GetConstructors(
+                BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
+
+            return constructors
+                .Where(IsVisibleToDerivedTypes);
         }
 
         /// <summary>
@@ -195,11 +215,6 @@ namespace Crest.Host.Serialization
                 return parameters.Select(p => p.ParameterType).SequenceEqual(parameterTypes);
             }
 
-            bool IsVisibleToDerivedTypes(ConstructorInfo constructor)
-            {
-                return constructor.IsPublic || constructor.IsFamily;
-            }
-
             string GetErrorMessage()
             {
                 return classType.Name +
@@ -207,11 +222,7 @@ namespace Crest.Host.Serialization
                     string.Join(", ", parameterTypes.Select(p => p.Name));
             }
 
-            ConstructorInfo[] constructors = classType.GetConstructors(
-                BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
-
-            return constructors
-                .Where(IsVisibleToDerivedTypes)
+            return GetCallableConstructors(classType)
                 .FirstOrDefault(HasMatchingParameters)
                 ?? throw new InvalidOperationException(GetErrorMessage());
         }

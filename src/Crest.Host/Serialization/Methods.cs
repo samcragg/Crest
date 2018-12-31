@@ -411,12 +411,20 @@ namespace Crest.Host.Serialization
             {
                 this.Read = typeof(ITypeSerializer)
                     .GetMethod(nameof(ITypeSerializer.Read));
+
+                this.Write = typeof(ITypeSerializer)
+                    .GetMethod(nameof(ITypeSerializer.Write));
             }
 
             /// <summary>
             /// Gets the metadata for the <see cref="ITypeSerializer.Read"/> method.
             /// </summary>
             public MethodInfo Read { get; }
+
+            /// <summary>
+            /// Gets the metadata for the <see cref="ITypeSerializer.Write"/> method.
+            /// </summary>
+            public MethodInfo Write { get; }
         }
 
         /// <summary>

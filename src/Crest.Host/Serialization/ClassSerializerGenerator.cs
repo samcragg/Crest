@@ -124,10 +124,17 @@ namespace Crest.Host.Serialization
 
         private void EmitInitializeField(ILGenerator generator, FieldBuilder serializerField)
         {
+            bool IsConstructorWithBaseClass(ConstructorInfo constructor)
+            {
+                ParameterInfo[] parameters = constructor.GetParameters();
+                return (parameters.Length == 1) && (parameters[0].ParameterType == this.BaseClass);
+            }
+
             // This method generates code to do this:
             //     this.field = new Serializer(this)
             ConstructorInfo serializerConstructor =
-                serializerField.FieldType.GetConstructor(new[] { this.BaseClass });
+                GetCallableConstructors(serializerField.FieldType)
+                .Single(IsConstructorWithBaseClass);
 
             // this.field = ...
             generator.EmitLoadArgument(0);
@@ -202,7 +209,7 @@ namespace Crest.Host.Serialization
                     loadElement(generator);
                     generator.EmitCall(
                         OpCodes.Call,
-                        typeof(ITypeSerializer).GetMethod(nameof(ITypeSerializer.Write)),
+                        this.Methods.TypeSerializer.Write,
                         null);
                 },
             };

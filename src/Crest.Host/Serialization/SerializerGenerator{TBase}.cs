@@ -8,8 +8,11 @@ namespace Crest.Host.Serialization
     using System;
     using System.Collections.Generic;
     using System.IO;
+    using System.Linq;
     using System.Reflection;
+    using Crest.Abstractions;
     using Crest.Host.Engine;
+    using Crest.Host.Serialization.Internal;
 
     /// <summary>
     /// Generates serializers at runtime for specific types.
@@ -21,6 +24,7 @@ namespace Crest.Host.Serialization
     internal sealed partial class SerializerGenerator<TBase> : SerializerGenerator, ISerializerGenerator<TBase>
     {
         private readonly ClassSerializerGenerator classSerializer;
+        private readonly IDiscoveryService discoveryService;
         private readonly EnumSerializerGenerator enumSerializer;
 
         private readonly Dictionary<Type, SerializerInfo> knownTypes =
@@ -29,8 +33,10 @@ namespace Crest.Host.Serialization
         /// <summary>
         /// Initializes a new instance of the <see cref="SerializerGenerator{TBase}"/> class.
         /// </summary>
-        public SerializerGenerator()
+        /// <param name="discoveryService">Used to find custom serialize classes.</param>
+        public SerializerGenerator(IDiscoveryService discoveryService)
         {
+            this.discoveryService = discoveryService;
             this.classSerializer = new ClassSerializerGenerator(
                 this.GetSerializerFor,
                 ModuleBuilder,
@@ -75,24 +81,10 @@ namespace Crest.Host.Serialization
                 return info.SerializerType;
             }
 
-            Type serializerType;
-            if (IsEnum(classType))
-            {
-                serializerType = this.GenerateEnumSerializer(classType);
-            }
-            else
-            {
-                if (classType.GetTypeInfo().IsValueType)
-                {
-                    throw new InvalidOperationException("Type must be a reference type (trying to generate a serializer for " + classType.Name + ")");
-                }
-
-                // Record the fact that we're building it now (by adding it but
-                // leaving it empty) the so we can detect cyclic references
-                this.knownTypes.Add(classType, default);
-                serializerType = this.classSerializer.GenerateFor(classType);
-            }
-
+            // Record the fact that we're building it now (by adding it but
+            // leaving it empty) the so we can detect cyclic references
+            this.knownTypes.Add(classType, default);
+            Type serializerType = this.CreateSerializerForClass(classType);
             this.knownTypes[classType] = new SerializerInfo(serializerType);
             return serializerType;
         }
@@ -132,6 +124,47 @@ namespace Crest.Host.Serialization
         {
             type = Nullable.GetUnderlyingType(type) ?? type;
             return type.GetTypeInfo().IsEnum;
+        }
+
+        private Type CreateSerializerForClass(Type classType)
+        {
+            if (IsEnum(classType))
+            {
+                return this.GenerateEnumSerializer(classType);
+            }
+            else if (classType.GetTypeInfo().IsValueType)
+            {
+                throw new InvalidOperationException(
+                    "Type must be a reference type (trying to generate a serializer for " + classType.Name + ")");
+            }
+            else
+            {
+                Type customSerializer = this.FindCustomSerializer(classType);
+                return customSerializer ?? this.classSerializer.GenerateFor(classType);
+            }
+        }
+
+        private Type FindCustomSerializer(Type classType)
+        {
+            Type serializerInterface = typeof(ICustomSerializer<>).MakeGenericType(classType);
+            IEnumerator<Type> serializerTypes =
+                this.discoveryService.GetDiscoveredTypes()
+                    .Where(serializerInterface.IsAssignableFrom)
+                    .GetEnumerator();
+
+            Type discoveredType = null;
+            if (serializerTypes.MoveNext())
+            {
+                discoveredType = typeof(CustomSerializerAdapter<,,>)
+                    .MakeGenericType(classType, typeof(TBase), serializerTypes.Current);
+
+                if (serializerTypes.MoveNext())
+                {
+                    throw new InvalidOperationException("Multiple serializers found for " + classType.Name);
+                }
+            }
+
+            return discoveredType;
         }
 
         private Type GenerateEnumSerializer(Type enumType)
