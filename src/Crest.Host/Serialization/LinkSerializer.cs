@@ -38,6 +38,7 @@ namespace Crest.Host.Serialization
 
         private static void SerializeLink(IClassWriter writer, Link link)
         {
+            writer.WriteBeginClass(nameof(Link));
             SerializeNonNullProperty(writer, nameof(Link.HRef), link.HRef);
             if (link.Templated)
             {
@@ -52,6 +53,7 @@ namespace Crest.Host.Serialization
             SerializeNonNullProperty(writer, nameof(Link.Profile), link.Profile);
             SerializeNonNullProperty(writer, nameof(Link.Title), link.Title);
             SerializeNonNullProperty(writer, nameof(Link.HRefLang), link.HRefLang);
+            writer.WriteEndClass();
         }
 
         private static void SerializeLinks(IClassWriter writer, IReadOnlyCollection<Link> links)
