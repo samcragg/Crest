@@ -70,5 +70,15 @@
             string json = await response.Content.ReadAsStringAsync();
             return JsonConvert.DeserializeObject<string>(json);
         }
+
+        public async Task<dynamic> GetResultAsync(HttpClient client, HttpRequestMessage request)
+        {
+            request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+            HttpResponseMessage response = await client.SendAsync(request);
+            response.IsSuccessStatusCode.Should().BeTrue();
+
+            string json = await response.Content.ReadAsStringAsync();
+            return JsonConvert.DeserializeObject(json);
+        }
     }
 }
