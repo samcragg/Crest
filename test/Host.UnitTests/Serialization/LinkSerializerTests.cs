@@ -4,6 +4,7 @@ namespace Host.UnitTests.Serialization
     using Crest.Core;
     using Crest.Host.Serialization;
     using Crest.Host.Serialization.Internal;
+    using FluentAssertions;
     using NSubstitute;
     using Xunit;
 
@@ -16,15 +17,26 @@ namespace Host.UnitTests.Serialization
         {
             this.writer = Substitute.For<IClassWriter>();
             this.writer.Writer.Returns(Substitute.For<ValueWriter>());
-            this.serializer = new LinkSerializer(this.writer);
+            this.serializer = new LinkSerializer();
         }
 
-        public sealed class Serialize : LinkSerializerTests
+        public sealed class Read : LinkSerializerTests
+        {
+            [Fact]
+            public void ShouldThrowNotSupportedException()
+            {
+                Action action = () => ((ICustomSerializer<LinkCollection>)this.serializer).Read(null);
+
+                action.Should().Throw<NotSupportedException>();
+            }
+        }
+
+        public sealed class Write : LinkSerializerTests
         {
             [Fact]
             public void ShouldNotSerializeNameIfNull()
             {
-                this.serializer.Serialize(new LinkCollection
+                this.serializer.Write(this.writer, new LinkCollection
                 {
                     new Link(null, new Uri("http://www.example.com"), null, name: null, null, "relation", false, null, null)
                 });
@@ -36,7 +48,7 @@ namespace Host.UnitTests.Serialization
             [Fact]
             public void ShouldNotSerializeTemplatedIfFalse()
             {
-                this.serializer.Serialize(new LinkCollection
+                this.serializer.Write(this.writer, new LinkCollection
                 {
                     new Link(null, new Uri("http://www.example.com"), null, null, null, "relation", templated: false, null, null)
                 });
@@ -50,7 +62,7 @@ namespace Host.UnitTests.Serialization
             {
                 var route1 = new Uri("http://www.example.com/route1");
                 var route2 = new Uri("http://www.example.com/route2");
-                this.serializer.Serialize(new LinkCollection
+                this.serializer.Write(this.writer, new LinkCollection
                 {
                     { "multiple", route1 },
                     { "multiple", route2 },
@@ -66,7 +78,7 @@ namespace Host.UnitTests.Serialization
             [Fact]
             public void ShouldSerializeNameIfNotNull()
             {
-                this.serializer.Serialize(new LinkCollection
+                this.serializer.Write(this.writer, new LinkCollection
                 {
                     new Link(null, new Uri("http://www.example.com"), null, "name value", null, "relation", false, null, null)
                 });
@@ -79,7 +91,7 @@ namespace Host.UnitTests.Serialization
             public void ShouldSerializeSingleLinks()
             {
                 var uri = new Uri("http://www.example.com");
-                this.serializer.Serialize(new LinkCollection
+                this.serializer.Write(this.writer, new LinkCollection
                 {
                     { "single", uri }
                 });
@@ -93,7 +105,7 @@ namespace Host.UnitTests.Serialization
             [Fact]
             public void ShouldSerializeTemplatedIfTrue()
             {
-                this.serializer.Serialize(new LinkCollection
+                this.serializer.Write(this.writer, new LinkCollection
                 {
                     new Link(null, new Uri("http://www.example.com"), null, null, null, "relation", templated: true, null, null)
                 });
