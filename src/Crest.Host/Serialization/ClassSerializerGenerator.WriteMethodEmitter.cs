@@ -24,8 +24,6 @@ namespace Crest.Host.Serialization
             private readonly Dictionary<Type, LocalBuilder> locals
                 = new Dictionary<Type, LocalBuilder>();
 
-            private readonly IReadOnlyDictionary<string, FieldInfo> metadataFields;
-
             private readonly Dictionary<Type, FieldBuilder> nestedSerializersFields
                 = new Dictionary<Type, FieldBuilder>();
 
@@ -33,13 +31,9 @@ namespace Crest.Host.Serialization
             private readonly bool writeEnumNames;
             private ILGenerator generator;
 
-            public WriteMethodEmitter(
-                ClassSerializerGenerator owner,
-                TypeSerializerBuilder builder,
-                IReadOnlyDictionary<string, FieldInfo> metadataFields)
+            public WriteMethodEmitter(ClassSerializerGenerator owner, TypeSerializerBuilder builder)
             {
                 this.builder = builder;
-                this.metadataFields = metadataFields;
                 this.owner = owner;
                 this.writeEnumNames = SerializerGenerator.OutputEnumNames(owner.BaseClass);
             }
@@ -191,10 +185,21 @@ namespace Crest.Host.Serialization
                 arrayEmitter.EmitWriteArray(property.PropertyType);
             }
 
-            private void EmitWriteBeginProperty(string propertyName)
+            private void EmitWriteBeginProperty(PropertyInfo property)
             {
+                // this.WriteBeginProperty(this._metadata_[index])
                 this.generator.EmitLoadArgument(0);
-                this.generator.Emit(OpCodes.Ldsfld, this.metadataFields[propertyName]);
+
+                // this._metadata[index]
+                int index = this.builder.MetadataBuilder.GetOrAddMetadata(property);
+
+                // TODO: This should be an instance field
+                // this.generator.EmitLoadArgument(0);
+                this.generator.Emit(OpCodes.Ldsfld, this.builder.MetadataField);
+                this.generator.EmitLoadConstant(index);
+                this.generator.Emit(OpCodes.Ldelem_Ref);
+
+                // this.WriteBeginProperty(...)
                 this.generator.EmitCall(
                     this.owner.BaseClass,
                     this.owner.Methods.BaseClass.WriteBeginProperty);
@@ -214,7 +219,7 @@ namespace Crest.Host.Serialization
                     this.EmitNullCheck(property.PropertyType, end);
                 }
 
-                this.EmitWriteBeginProperty(property.Name);
+                this.EmitWriteBeginProperty(property);
                 if (property.PropertyType.IsArray)
                 {
                     this.EmitWriteArray(property);

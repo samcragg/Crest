@@ -6,8 +6,6 @@
 namespace Crest.Host.Serialization
 {
     using System;
-    using System.Collections.Generic;
-    using System.Linq;
     using System.Reflection;
     using System.Reflection.Emit;
 
@@ -21,7 +19,6 @@ namespace Crest.Host.Serialization
         /// </summary>
         protected sealed class TypeSerializerBuilder
         {
-            private readonly List<FieldBuilder> fields = new List<FieldBuilder>();
             private readonly TypeSerializerGenerator owner;
 
             /// <summary>
@@ -32,12 +29,18 @@ namespace Crest.Host.Serialization
             /// <param name="serializedType">
             /// The type this class will be used to serialize.
             /// </param>
+            /// <param name="metadataBuilder">The metadata builder.</param>
+            /// <param name="metadataField">The metadata field.</param>
             public TypeSerializerBuilder(
                 TypeSerializerGenerator owner,
                 TypeBuilder builder,
-                Type serializedType)
+                Type serializedType,
+                MetadataBuilder metadataBuilder,
+                FieldBuilder metadataField)
             {
                 this.Builder = builder;
+                this.MetadataBuilder = metadataBuilder;
+                this.MetadataField = metadataField;
                 this.owner = owner;
                 this.SerializedType = serializedType;
             }
@@ -48,33 +51,19 @@ namespace Crest.Host.Serialization
             public TypeBuilder Builder { get; }
 
             /// <summary>
+            /// Gets the builder used for creating the metadata.
+            /// </summary>
+            public MetadataBuilder MetadataBuilder { get; }
+
+            /// <summary>
+            /// Gets the field that stores the metadata array.
+            /// </summary>
+            public FieldBuilder MetadataField { get; }
+
+            /// <summary>
             /// Gets the type the generated class will serialize.
             /// </summary>
             public Type SerializedType { get; }
-
-            /// <summary>
-            /// Creates a field to hold specific metadata.
-            /// </summary>
-            /// <param name="name">The prefix for the field name.</param>
-            /// <returns>A field for containing the metadata.</returns>
-            public FieldBuilder CreateMetadataField(string name)
-            {
-                name = name + MetadataSuffix;
-                FieldBuilder field = this.fields.FirstOrDefault(
-                    f => string.Equals(f.Name, name, StringComparison.Ordinal));
-
-                if (field == null)
-                {
-                    field = this.Builder.DefineField(
-                        name,
-                        this.owner.MetadataType,
-                        FieldAttributes.Public | FieldAttributes.Static);
-
-                    this.fields.Add(field);
-                }
-
-                return field;
-            }
 
             /// <summary>
             /// Adds a new method to the type.
@@ -103,22 +92,12 @@ namespace Crest.Host.Serialization
             public Type GenerateType()
             {
                 Type generatedType = this.Builder.CreateTypeInfo().AsType();
-                this.InitializeTypeMetadata(generatedType);
+
+                // HACK: This should be stored in a central cache
+                generatedType.GetField("_metadata_", BindingFlags.Static | BindingFlags.NonPublic)
+                    .SetValue(null, this.MetadataBuilder.GetMetadataArray(this.owner.MetadataType));
+
                 return generatedType;
-            }
-
-            private void InitializeTypeMetadata(Type generatedType)
-            {
-                MethodInfo getTypeMetadata = this.owner.Methods.BaseClass.GetTypeMetadata;
-                if (getTypeMetadata != null)
-                {
-                    object metadata = getTypeMetadata.Invoke(
-                        null,
-                        new object[] { this.SerializedType });
-
-                    generatedType.GetField(this.SerializedType.Name + MetadataSuffix)
-                                 .SetValue(null, metadata);
-                }
             }
         }
     }

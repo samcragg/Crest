@@ -134,7 +134,18 @@ namespace Crest.Host.Serialization
 
             builder.AddInterfaceImplementation(typeof(ITypeSerializer));
 
-            return new TypeSerializerBuilder(this, builder, serializedType);
+            // TODO: This array should be injected in to the constructor and not static
+            FieldBuilder metadataArray = builder.DefineField(
+                "_metadata_",
+                this.MetadataType.MakeArrayType(),
+                FieldAttributes.InitOnly | FieldAttributes.Private | FieldAttributes.Static);
+
+            return new TypeSerializerBuilder(
+                this,
+                builder,
+                serializedType,
+                new MetadataBuilder(this.Methods.BaseClass.GetMetadata),
+                metadataArray);
         }
 
         /// <summary>
@@ -157,8 +168,18 @@ namespace Crest.Host.Serialization
             }
             else
             {
-                FieldBuilder field = builder.CreateMetadataField(builder.SerializedType.Name);
-                generator.Emit(OpCodes.Ldsfld, field);
+                Func<object> getMetadata = () => this.Methods.BaseClass.GetTypeMetadata.Invoke(
+                    null,
+                    new object[] { builder.SerializedType });
+
+                // this._metadata[index]
+                int index = builder.MetadataBuilder.GetOrAddMetadata(builder.SerializedType, getMetadata);
+
+                // TODO: This should be an instance field
+                // this.generator.EmitLoadArgument(0);
+                generator.Emit(OpCodes.Ldsfld, builder.MetadataField);
+                generator.EmitLoadConstant(index);
+                generator.Emit(OpCodes.Ldelem_Ref);
             }
 
             generator.EmitCall(this.BaseClass, method);

@@ -214,7 +214,7 @@
                 MethodInfo method)
             {
                 this.EmitCallBeginMethodWithTypeMetadata(
-                    new TypeSerializerBuilder(this, builder, typeof(int)),
+                    new TypeSerializerBuilder(this, builder, typeof(int), null, null),
                     generator,
                     method);
             }
