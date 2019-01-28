@@ -3,7 +3,7 @@
 // Licensed under the MIT license. See LICENSE file in the project root for
 // full license information.
 
-namespace Crest.Host.Serialization.Internal
+namespace Crest.Host.Serialization
 {
     using static System.Diagnostics.Debug;
 
@@ -14,7 +14,7 @@ namespace Crest.Host.Serialization.Internal
     /// This class only takes into account uppercase ASCII letters (i.e. doesn't
     /// follow the Unicode definition of uppercase/lowercase).
     /// </remarks>
-    public static class CaseInsensitiveStringHelper
+    internal static class CaseInsensitiveStringHelper
     {
         /// <summary>
         /// Indicates whether two strings are equal.

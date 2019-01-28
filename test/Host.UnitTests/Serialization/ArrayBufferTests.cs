@@ -1,6 +1,6 @@
-﻿namespace Host.UnitTests.Serialization.Internal
+﻿namespace Host.UnitTests.Serialization
 {
-    using Crest.Host.Serialization.Internal;
+    using Crest.Host.Serialization;
     using FluentAssertions;
     using Xunit;
 

@@ -3,7 +3,7 @@
 // Licensed under the MIT license. See LICENSE file in the project root for
 // full license information.
 
-namespace Crest.Host.Serialization.Internal
+namespace Crest.Host.Serialization
 {
     using System;
 
@@ -12,10 +12,10 @@ namespace Crest.Host.Serialization.Internal
     /// </summary>
     /// <typeparam name="T">The element type for the array.</typeparam>
     [System.Diagnostics.CodeAnalysis.SuppressMessage(
-            "Performance",
-            "CA1815:Override equals and operator equals on value types",
-            Justification = "This is a helper object used by the generated serializers that will not be used in comparisons")]
-    public struct ArrayBuffer<T>
+        "Performance",
+        "CA1815:Override equals and operator equals on value types",
+        Justification = "This is a helper object used by the generated serializers that will not be used in comparisons")]
+    internal struct ArrayBuffer<T>
     {
         private int count;
         private T[] items;
