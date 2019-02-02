@@ -18,13 +18,13 @@ namespace Crest.Host.Serialization.Xml
     internal sealed class XmlConverter : IContentConverter
     {
         private const string XmlMimeType = @"application/xml";
-        private readonly ISerializerGenerator<XmlSerializerBase> generator;
+        private readonly ISerializerGenerator<XmlFormatter> generator;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="XmlConverter"/> class.
         /// </summary>
         /// <param name="generator">Used to generate the serializers.</param>
-        public XmlConverter(ISerializerGenerator<XmlSerializerBase> generator)
+        public XmlConverter(ISerializerGenerator<XmlFormatter> generator)
         {
             this.generator = generator;
         }
@@ -54,7 +54,7 @@ namespace Crest.Host.Serialization.Xml
         /// <inheritdoc />
         public void Prime(Type type)
         {
-            this.generator.GetSerializerFor(type);
+            this.generator.Prime(type);
         }
 
         /// <inheritdoc />

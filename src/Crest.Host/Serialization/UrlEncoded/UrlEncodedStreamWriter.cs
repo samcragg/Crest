@@ -12,6 +12,7 @@ namespace Crest.Host.Serialization.UrlEncoded
     using System.Text;
     using Crest.Host.Conversion;
     using Crest.Host.Serialization.Internal;
+    using Crest.Host.Serialization.Json;
 
     /// <summary>
     /// Used to output primitive values that are URL encoded.

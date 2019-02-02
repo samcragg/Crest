@@ -4,23 +4,24 @@
     using System.IO;
     using System.Text;
     using Crest.Host.Serialization.Internal;
+    using Crest.Host.Serialization.Xml;
     using FluentAssertions;
     using NSubstitute;
     using Xunit;
 
     public class XmlFormatterDeserializeTests
     {
-        private readonly Lazy<FakeXmlSerializerBase> serializer;
+        private readonly Lazy<XmlFormatter> formatter;
         private readonly Stream stream;
 
         private XmlFormatterDeserializeTests()
         {
             this.stream = new MemoryStream();
-            this.serializer = new Lazy<FakeXmlSerializerBase>(
-                () => new FakeXmlSerializerBase(this.stream));
+            this.formatter = new Lazy<XmlFormatter>(
+                () => new XmlFormatter(this.stream, SerializationMode.Deserialize));
         }
 
-        private XmlSerializerBase Serializer => this.serializer.Value;
+        private XmlFormatter Formatter => this.formatter.Value;
 
         private void SetStreamTo(string data)
         {
@@ -29,69 +30,17 @@
             this.stream.Position = 0;
         }
 
-        public sealed class BeginRead : XmlFormatterDeserializeTests
-        {
-            [Fact]
-            public void ShouldIgnoreTheCaseOfTheElement()
-            {
-                this.SetStreamTo("<className>1</className>");
-
-                this.Serializer.BeginRead("ClassName");
-                int content = this.Serializer.Reader.ReadInt32();
-
-                content.Should().Be(1);
-            }
-
-            [Fact]
-            public void ShouldThrowIfNotTheExpectedStartElement()
-            {
-                this.SetStreamTo("<element />");
-
-                Action action = () => this.Serializer.BeginRead("className");
-
-                action.Should().Throw<FormatException>()
-                      .WithMessage("*className*");
-            }
-        }
-
-        public sealed class Constructor : XmlFormatterDeserializeTests
-        {
-            [Fact]
-            public void ShouldUseTheSameStreamReader()
-            {
-                var copy = new FakeXmlSerializerBase(this.Serializer);
-
-                copy.Reader.Should().BeSameAs(this.Serializer.Reader);
-            }
-        }
-
         public sealed class Dispose : XmlFormatterDeserializeTests
         {
             [Fact]
             public void ShouldDisposeTheStream()
             {
                 Stream mockStream = Substitute.For<Stream>();
-                var fakeSerializer = new FakeXmlSerializerBase(mockStream);
+                var fakeSerializer = new XmlFormatter(mockStream, SerializationMode.Deserialize);
 
                 fakeSerializer.Dispose();
 
                 ((IDisposable)mockStream).Received().Dispose();
-            }
-        }
-
-        public sealed class EndRead : XmlFormatterDeserializeTests
-        {
-            [Fact]
-            public void ShouldMovePastTheEndElement()
-            {
-                this.SetStreamTo("<first></first><second>2</second>");
-
-                this.Serializer.BeginRead("first");
-                this.Serializer.EndRead();
-                this.Serializer.BeginRead("second");
-                int content = this.Serializer.Reader.ReadInt32();
-
-                content.Should().Be(2);
             }
         }
 
@@ -102,7 +51,7 @@
             {
                 this.SetStreamTo("<ArrayOfint><int /><ArrayOfint>");
 
-                bool result = this.Serializer.ReadBeginArray(typeof(int));
+                bool result = this.Formatter.ReadBeginArray(typeof(int));
 
                 result.Should().BeTrue();
             }
@@ -112,7 +61,7 @@
             {
                 this.SetStreamTo("<ArrayOfint />");
 
-                bool result = this.Serializer.ReadBeginArray(typeof(int));
+                bool result = this.Formatter.ReadBeginArray(typeof(int));
 
                 result.Should().BeFalse();
             }
@@ -122,8 +71,8 @@
             {
                 this.SetStreamTo("<Property><int /></Property>");
 
-                this.Serializer.ReadBeginProperty();
-                bool result = this.Serializer.ReadBeginArray(typeof(int));
+                this.Formatter.ReadBeginProperty();
+                bool result = this.Formatter.ReadBeginArray(typeof(int));
 
                 result.Should().BeTrue();
             }
@@ -133,7 +82,7 @@
             {
                 this.SetStreamTo("<ArrayOfint><string /></ArrayOfint>");
 
-                Action action = () => this.Serializer.ReadBeginArray(typeof(int));
+                Action action = () => this.Formatter.ReadBeginArray(typeof(int));
 
                 action.Should().Throw<FormatException>()
                       .WithMessage("*int*");
@@ -147,9 +96,9 @@
             {
                 this.SetStreamTo("<Property><NestedProperty /></Property>");
 
-                this.Serializer.ReadBeginProperty();
-                this.Serializer.ReadBeginClass("Class");
-                string property = this.Serializer.ReadBeginProperty();
+                this.Formatter.ReadBeginProperty();
+                this.Formatter.ReadBeginClass("Class");
+                string property = this.Formatter.ReadBeginProperty();
 
                 property.Should().Be("NestedProperty");
             }
@@ -159,10 +108,35 @@
             {
                 this.SetStreamTo("<Class>1</Class>");
 
-                this.Serializer.ReadBeginClass("Class");
-                int content = this.Serializer.Reader.ReadInt32();
+                this.Formatter.ReadBeginClass("Class");
+                int content = this.Formatter.Reader.ReadInt32();
 
                 content.Should().Be(1);
+            }
+        }
+
+        public sealed class ReadBeginPrimitive : XmlFormatterDeserializeTests
+        {
+            [Fact]
+            public void ShouldIgnoreTheCaseOfTheElement()
+            {
+                this.SetStreamTo("<className>1</className>");
+
+                this.Formatter.ReadBeginPrimitive("ClassName");
+                int content = this.Formatter.Reader.ReadInt32();
+
+                content.Should().Be(1);
+            }
+
+            [Fact]
+            public void ShouldThrowIfNotTheExpectedStartElement()
+            {
+                this.SetStreamTo("<element />");
+
+                Action action = () => this.Formatter.ReadBeginPrimitive("className");
+
+                action.Should().Throw<FormatException>()
+                      .WithMessage("*className*");
             }
         }
 
@@ -173,8 +147,8 @@
             {
                 this.SetStreamTo("<Class />");
 
-                this.Serializer.ReadBeginClass("Class");
-                string property = this.Serializer.ReadBeginProperty();
+                this.Formatter.ReadBeginClass("Class");
+                string property = this.Formatter.ReadBeginProperty();
 
                 property.Should().BeNull();
             }
@@ -184,7 +158,7 @@
             {
                 this.SetStreamTo("<Property>1</Property>");
 
-                string property = this.Serializer.ReadBeginProperty();
+                string property = this.Formatter.ReadBeginProperty();
 
                 property.Should().Be("Property");
             }
@@ -197,8 +171,8 @@
             {
                 this.SetStreamTo("<ArrayOfint><int /><string /></ArrayOfint>");
 
-                this.Serializer.ReadBeginArray(typeof(int));
-                Action action = () => this.Serializer.ReadElementSeparator();
+                this.Formatter.ReadBeginArray(typeof(int));
+                Action action = () => this.Formatter.ReadElementSeparator();
 
                 action.Should().Throw<FormatException>()
                       .WithMessage("*int*");
@@ -209,8 +183,8 @@
             {
                 this.SetStreamTo("<ArrayOfint><int /></ArrayOfint>");
 
-                this.Serializer.ReadBeginArray(typeof(int));
-                bool result = this.Serializer.ReadElementSeparator();
+                this.Formatter.ReadBeginArray(typeof(int));
+                bool result = this.Formatter.ReadElementSeparator();
 
                 result.Should().BeFalse();
             }
@@ -220,8 +194,8 @@
             {
                 this.SetStreamTo("<ArrayOfint><int /><int /></ArrayOfint>");
 
-                this.Serializer.ReadBeginArray(typeof(int));
-                bool result = this.Serializer.ReadElementSeparator();
+                this.Formatter.ReadBeginArray(typeof(int));
+                bool result = this.Formatter.ReadElementSeparator();
 
                 result.Should().BeTrue();
             }
@@ -234,10 +208,10 @@
             {
                 this.SetStreamTo("<ArrayOfint><int /></ArrayOfint> 1");
 
-                this.Serializer.ReadBeginArray(typeof(int));
-                this.Serializer.ReadElementSeparator();
-                this.Serializer.ReadEndArray();
-                int content = this.Serializer.Reader.ReadInt32();
+                this.Formatter.ReadBeginArray(typeof(int));
+                this.Formatter.ReadElementSeparator();
+                this.Formatter.ReadEndArray();
+                int content = this.Formatter.Reader.ReadInt32();
 
                 content.Should().Be(1);
             }
@@ -250,11 +224,27 @@
             {
                 this.SetStreamTo("<Class></Class> 1");
 
-                this.Serializer.ReadBeginClass("Class");
-                this.Serializer.ReadEndClass();
-                int content = this.Serializer.Reader.ReadInt32();
+                this.Formatter.ReadBeginClass("Class");
+                this.Formatter.ReadEndClass();
+                int content = this.Formatter.Reader.ReadInt32();
 
                 content.Should().Be(1);
+            }
+        }
+
+        public sealed class ReadEndPrimitive : XmlFormatterDeserializeTests
+        {
+            [Fact]
+            public void ShouldMovePastTheEndElement()
+            {
+                this.SetStreamTo("<first></first><second>2</second>");
+
+                this.Formatter.ReadBeginPrimitive("first");
+                this.Formatter.ReadEndPrimitive();
+                this.Formatter.ReadBeginPrimitive("second");
+                int content = this.Formatter.Reader.ReadInt32();
+
+                content.Should().Be(2);
             }
         }
 
@@ -265,24 +255,11 @@
             {
                 this.SetStreamTo("<Property></Property> 1");
 
-                this.Serializer.ReadBeginProperty();
-                this.Serializer.ReadEndProperty();
-                int content = this.Serializer.Reader.ReadInt32();
+                this.Formatter.ReadBeginProperty();
+                this.Formatter.ReadEndProperty();
+                int content = this.Formatter.Reader.ReadInt32();
 
                 content.Should().Be(1);
-            }
-        }
-
-        private class FakeXmlSerializerBase : XmlSerializerBase
-        {
-            internal FakeXmlSerializerBase(Stream stream)
-                : base(stream, SerializationMode.Deserialize)
-            {
-            }
-
-            internal FakeXmlSerializerBase(XmlSerializerBase parent)
-                : base(parent)
-            {
             }
         }
     }

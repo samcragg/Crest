@@ -2,9 +2,8 @@
 {
     using System;
     using System.IO;
-    using Crest.Host.Conversion;
     using Crest.Host.Serialization;
-    using Crest.Host.Serialization.Internal;
+    using Crest.Host.Serialization.Json;
     using FluentAssertions;
     using NSubstitute;
     using Xunit;
@@ -13,8 +12,8 @@
     {
         private readonly JsonConverter converter;
 
-        private readonly ISerializerGenerator<JsonSerializerBase> serializer =
-            Substitute.For<ISerializerGenerator<JsonSerializerBase>>();
+        private readonly ISerializerGenerator<JsonFormatter> serializer =
+            Substitute.For<ISerializerGenerator<JsonFormatter>>();
 
         private JsonConverterTests()
         {
@@ -68,7 +67,7 @@
             {
                 this.converter.Prime(typeof(int));
 
-                this.serializer.Received().GetSerializerFor(typeof(int));
+                this.serializer.Received().Prime(typeof(int));
             }
         }
 

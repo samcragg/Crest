@@ -10,11 +10,12 @@ namespace Crest.Host.Serialization.Xml
     using System.IO;
     using System.Reflection;
     using System.Xml;
+    using Crest.Host.Serialization.Internal;
 
     /// <summary>
     /// The base class for runtime serializers that output XML.
     /// </summary>
-    public class XmlFormatter : IClassSerializer<string>, IDisposable
+    public class XmlFormatter : IFormatter, IDisposable
     {
         private readonly XmlStreamReader reader;
         private readonly XmlStreamWriter writer;
@@ -38,25 +39,8 @@ namespace Crest.Host.Serialization.Xml
             }
         }
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="XmlFormatter"/> class.
-        /// </summary>
-        /// <param name="parent">The serializer this instance belongs to.</param>
-        protected XmlFormatter(XmlFormatter parent)
-        {
-            this.reader = parent.reader;
-            this.writer = parent.writer;
-        }
-
-        /// <summary>
-        /// Gets a value indicating whether the generated classes should output
-        /// the names for <c>enum</c> values or not.
-        /// </summary>
-        /// <remarks>
-        /// Always returns <c>true</c>, therefore, the generated XML will use
-        /// names for the enumeration values.
-        /// </remarks>
-        public static bool OutputEnumNames => true;
+        /// <inheritdoc />
+        public bool EnumsAsIntegers => false;
 
         /// <inheritdoc />
         public ValueReader Reader => this.reader;
@@ -69,7 +53,7 @@ namespace Crest.Host.Serialization.Xml
         /// </summary>
         /// <param name="property">The property information.</param>
         /// <returns>The metadata to store for the property.</returns>
-        public static string GetMetadata(PropertyInfo property)
+        public static object GetMetadata(PropertyInfo property)
         {
             DisplayNameAttribute displayName =
                 property.GetCustomAttribute<DisplayNameAttribute>();
@@ -82,22 +66,10 @@ namespace Crest.Host.Serialization.Xml
         /// </summary>
         /// <param name="type">The type information.</param>
         /// <returns>The metadata to store for the type.</returns>
-        public static string GetTypeMetadata(Type type)
+        public static object GetTypeMetadata(Type type)
         {
             string name = GetPrimitiveName(type) ?? type.Name;
             return XmlConvert.EncodeName(name);
-        }
-
-        /// <inheritdoc />
-        public void BeginRead(string metadata)
-        {
-            this.ExpectStartElement(metadata);
-        }
-
-        /// <inheritdoc />
-        public void BeginWrite(string metadata)
-        {
-            this.writer.WriteStartElement(metadata);
         }
 
         /// <inheritdoc />
@@ -105,26 +77,6 @@ namespace Crest.Host.Serialization.Xml
         {
             this.Dispose(true);
             GC.SuppressFinalize(this);
-        }
-
-        /// <inheritdoc />
-        public void EndRead()
-        {
-            this.reader.ReadEndElement();
-        }
-
-        /// <inheritdoc />
-        public void EndWrite()
-        {
-            this.writer.WriteEndElement();
-        }
-
-        /// <summary>
-        /// Implementation of the <see cref="ITypeSerializer.Flush"/> method.
-        /// </summary>
-        public virtual void Flush()
-        {
-            this.writer.Flush();
         }
 
         /// <inheritdoc />
@@ -155,12 +107,24 @@ namespace Crest.Host.Serialization.Xml
         }
 
         /// <inheritdoc />
-        public void ReadBeginClass(string metadata)
+        public void ReadBeginClass(object metadata)
+        {
+            this.ReadBeginClass((string)metadata);
+        }
+
+        /// <inheritdoc />
+        public void ReadBeginClass(string className)
         {
             if (this.reader.Depth == 0)
             {
-                this.ExpectStartElement(metadata);
+                this.ExpectStartElement(className);
             }
+        }
+
+        /// <inheritdoc />
+        public void ReadBeginPrimitive(object metadata)
+        {
+            this.ExpectStartElement((string)metadata);
         }
 
         /// <inheritdoc />
@@ -211,6 +175,12 @@ namespace Crest.Host.Serialization.Xml
         }
 
         /// <inheritdoc />
+        public void ReadEndPrimitive()
+        {
+            this.reader.ReadEndElement();
+        }
+
+        /// <inheritdoc />
         public void ReadEndProperty()
         {
             this.reader.ReadEndElement();
@@ -233,18 +203,36 @@ namespace Crest.Host.Serialization.Xml
         }
 
         /// <inheritdoc />
-        public void WriteBeginClass(string metadata)
+        public void WriteBeginClass(object metadata)
+        {
+            this.WriteBeginClass((string)metadata);
+        }
+
+        /// <inheritdoc />
+        public void WriteBeginClass(string className)
         {
             if (this.writer.Depth == 0)
             {
-                this.writer.WriteStartElement(metadata);
+                this.writer.WriteStartElement(className);
             }
         }
 
         /// <inheritdoc />
-        public void WriteBeginProperty(string propertyMetadata)
+        public void WriteBeginPrimitive(object metadata)
         {
-            this.writer.WriteStartElement(propertyMetadata);
+            this.writer.WriteStartElement((string)metadata);
+        }
+
+        /// <inheritdoc />
+        public void WriteBeginProperty(object metadata)
+        {
+            this.WriteBeginProperty((string)metadata);
+        }
+
+        /// <inheritdoc />
+        public void WriteBeginProperty(string propertyName)
+        {
+            this.writer.WriteStartElement(propertyName);
         }
 
         /// <inheritdoc />
@@ -273,6 +261,12 @@ namespace Crest.Host.Serialization.Xml
             {
                 this.writer.WriteEndElement();
             }
+        }
+
+        /// <inheritdoc />
+        public void WriteEndPrimitive()
+        {
+            this.writer.WriteEndElement();
         }
 
         /// <inheritdoc />

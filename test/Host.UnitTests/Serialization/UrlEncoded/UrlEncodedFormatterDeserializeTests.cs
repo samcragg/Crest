@@ -4,59 +4,29 @@
     using System.IO;
     using System.Text;
     using Crest.Host.Serialization.Internal;
+    using Crest.Host.Serialization.UrlEncoded;
     using FluentAssertions;
     using Xunit;
 
     public class UrlEncodedFormatterDeserializeTests
     {
-        private readonly Lazy<FakeUrlSerializerBase> serializer;
+        private readonly Lazy<UrlEncodedFormatter> formatter;
         private readonly Stream stream;
 
         private UrlEncodedFormatterDeserializeTests()
         {
             this.stream = new MemoryStream();
-            this.serializer = new Lazy<FakeUrlSerializerBase>(
-                () => new FakeUrlSerializerBase(this.stream));
+            this.formatter = new Lazy<UrlEncodedFormatter>(
+                () => new UrlEncodedFormatter(this.stream, SerializationMode.Deserialize));
         }
 
-        private UrlEncodedSerializerBase Serializer => this.serializer.Value;
+        private UrlEncodedFormatter Formatter => this.formatter.Value;
 
         private void SetStreamTo(string data)
         {
             byte[] bytes = Encoding.UTF8.GetBytes(data);
             this.stream.Write(bytes, 0, bytes.Length);
             this.stream.Position = 0;
-        }
-
-        public sealed class BeginRead : UrlEncodedFormatterDeserializeTests
-        {
-            [Fact]
-            public void ShouldNotThrowAnyException()
-            {
-                this.Serializer.Invoking(x => x.BeginRead(null))
-                    .Should().NotThrow();
-            }
-        }
-
-        public sealed class Constructor : UrlEncodedFormatterDeserializeTests
-        {
-            [Fact]
-            public void ShouldUseTheSameStreamReader()
-            {
-                var copy = new FakeUrlSerializerBase(this.Serializer);
-
-                copy.Reader.Should().BeSameAs(this.Serializer.Reader);
-            }
-        }
-
-        public sealed class EndRead : UrlEncodedFormatterDeserializeTests
-        {
-            [Fact]
-            public void ShouldNotThrowAnyException()
-            {
-                this.Serializer.Invoking(x => x.EndRead())
-                    .Should().NotThrow();
-            }
         }
 
         public sealed class ReadBeginArray : UrlEncodedFormatterDeserializeTests
@@ -66,7 +36,7 @@
             {
                 this.SetStreamTo("value=x");
 
-                bool result = this.Serializer.ReadBeginArray(null);
+                bool result = this.Formatter.ReadBeginArray(null);
 
                 result.Should().BeFalse();
             }
@@ -76,7 +46,7 @@
             {
                 this.SetStreamTo("1=x");
 
-                bool result = this.Serializer.ReadBeginArray(null);
+                bool result = this.Formatter.ReadBeginArray(null);
 
                 result.Should().BeTrue();
             }
@@ -88,14 +58,14 @@
             public void ShouldResetThePropertiesThatHaveBeenRead()
             {
                 this.SetStreamTo("A=x&B=y");
-                this.Serializer.ReadBeginProperty();
-                this.Serializer.ReadEndProperty();
+                this.Formatter.ReadBeginProperty();
+                this.Formatter.ReadEndProperty();
 
-                this.Serializer.ReadBeginClass((byte[])null);
+                this.Formatter.ReadBeginClass((byte[])null);
 
                 // Read begin property doesn't skip if it's the first property
                 // being read
-                this.Serializer.ReadBeginProperty()
+                this.Formatter.ReadBeginProperty()
                     .Should().Be("A");
             }
 
@@ -103,13 +73,23 @@
             public void ShouldResetThePropertiesThatHaveBeenReadForStrings()
             {
                 this.SetStreamTo("A=x&B=y");
-                this.Serializer.ReadBeginProperty();
-                this.Serializer.ReadEndProperty();
+                this.Formatter.ReadBeginProperty();
+                this.Formatter.ReadEndProperty();
 
-                this.Serializer.ReadBeginClass((string)null);
+                this.Formatter.ReadBeginClass((string)null);
 
-                this.Serializer.ReadBeginProperty()
+                this.Formatter.ReadBeginProperty()
                     .Should().Be("A");
+            }
+        }
+
+        public sealed class ReadBeginPrimitive : UrlEncodedFormatterDeserializeTests
+        {
+            [Fact]
+            public void ShouldNotThrowAnyException()
+            {
+                this.Formatter.Invoking(x => x.ReadBeginPrimitive(null))
+                    .Should().NotThrow();
             }
         }
 
@@ -119,10 +99,10 @@
             public void ShouldMoveToTheNextProperty()
             {
                 this.SetStreamTo("A=x&B=y");
-                this.Serializer.ReadBeginProperty();
-                this.Serializer.ReadEndProperty();
+                this.Formatter.ReadBeginProperty();
+                this.Formatter.ReadEndProperty();
 
-                string result = this.Serializer.ReadBeginProperty();
+                string result = this.Formatter.ReadBeginProperty();
 
                 // Read begin property doesn't skip if it's the first property
                 // being read
@@ -133,10 +113,10 @@
             public void ShouldReturnNullWhenThereAreNoMoreProperties()
             {
                 this.SetStreamTo("A=x");
-                this.Serializer.ReadBeginProperty();
-                this.Serializer.ReadEndProperty();
+                this.Formatter.ReadBeginProperty();
+                this.Formatter.ReadEndProperty();
 
-                string result = this.Serializer.ReadBeginProperty();
+                string result = this.Formatter.ReadBeginProperty();
 
                 result.Should().BeNull();
             }
@@ -146,8 +126,8 @@
             {
                 this.SetStreamTo("0.A=x");
 
-                this.Serializer.ReadBeginArray(null);
-                string result = this.Serializer.ReadBeginProperty();
+                this.Formatter.ReadBeginArray(null);
+                string result = this.Formatter.ReadBeginProperty();
 
                 result.Should().Be("A");
             }
@@ -160,8 +140,8 @@
             {
                 this.SetStreamTo("1=x");
 
-                this.Serializer.ReadBeginArray(null);
-                bool result = this.Serializer.ReadElementSeparator();
+                this.Formatter.ReadBeginArray(null);
+                bool result = this.Formatter.ReadElementSeparator();
 
                 result.Should().BeFalse();
             }
@@ -171,8 +151,8 @@
             {
                 this.SetStreamTo("1=x&2=y");
 
-                this.Serializer.ReadBeginArray(null);
-                bool result = this.Serializer.ReadElementSeparator();
+                this.Formatter.ReadBeginArray(null);
+                bool result = this.Formatter.ReadElementSeparator();
 
                 result.Should().BeTrue();
             }
@@ -183,7 +163,7 @@
             [Fact]
             public void ShouldNotThrowAnyException()
             {
-                this.Serializer.Invoking(x => x.ReadEndArray())
+                this.Formatter.Invoking(x => x.ReadEndArray())
                     .Should().NotThrow();
             }
         }
@@ -193,21 +173,18 @@
             [Fact]
             public void ShouldNotThrowAnyException()
             {
-                this.Serializer.Invoking(x => x.ReadEndClass())
+                this.Formatter.Invoking(x => x.ReadEndClass())
                     .Should().NotThrow();
             }
         }
 
-        private class FakeUrlSerializerBase : UrlEncodedSerializerBase
+        public sealed class ReadEndPrimitive : UrlEncodedFormatterDeserializeTests
         {
-            internal FakeUrlSerializerBase(Stream stream)
-                : base(stream, SerializationMode.Deserialize)
+            [Fact]
+            public void ShouldNotThrowAnyException()
             {
-            }
-
-            internal FakeUrlSerializerBase(UrlEncodedSerializerBase parent)
-                : base(parent)
-            {
+                this.Formatter.Invoking(x => x.ReadEndPrimitive())
+                    .Should().NotThrow();
             }
         }
     }

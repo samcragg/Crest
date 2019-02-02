@@ -4,23 +4,24 @@
     using System.IO;
     using System.Text;
     using Crest.Host.Serialization.Internal;
+    using Crest.Host.Serialization.Json;
     using FluentAssertions;
     using NSubstitute;
     using Xunit;
 
     public class JsonFormatterDeserializeTests
     {
-        private readonly Lazy<FakeJsonSerializerBase> serializer;
+        private readonly Lazy<JsonFormatter> formatter;
         private readonly Stream stream;
 
         private JsonFormatterDeserializeTests()
         {
             this.stream = new MemoryStream();
-            this.serializer = new Lazy<FakeJsonSerializerBase>(
-                () => new FakeJsonSerializerBase(this.stream));
+            this.formatter = new Lazy<JsonFormatter>(
+                () => new JsonFormatter(this.stream, SerializationMode.Deserialize));
         }
 
-        private JsonSerializerBase Serializer => this.serializer.Value;
+        private JsonFormatter Formatter => this.formatter.Value;
 
         private void SetStreamTo(string data)
         {
@@ -29,48 +30,17 @@
             this.stream.Position = 0;
         }
 
-        public sealed class BeginRead : JsonFormatterDeserializeTests
-        {
-            [Fact]
-            public void ShouldNotThrowAnyException()
-            {
-                this.Serializer.Invoking(x => x.BeginRead(null))
-                    .Should().NotThrow();
-            }
-        }
-
-        public sealed class Constructor : JsonFormatterDeserializeTests
-        {
-            [Fact]
-            public void ShouldUseTheSameStreamReader()
-            {
-                var copy = new FakeJsonSerializerBase(this.Serializer);
-
-                copy.Reader.Should().BeSameAs(this.Serializer.Reader);
-            }
-        }
-
         public sealed class Dispose : JsonFormatterDeserializeTests
         {
             [Fact]
             public void ShouldDisposeTheStream()
             {
                 Stream mockStream = Substitute.For<Stream>();
-                var fakeSerializer = new FakeJsonSerializerBase(mockStream);
+                var fakeSerializer = new JsonFormatter(mockStream, SerializationMode.Deserialize);
 
                 fakeSerializer.Dispose();
 
                 ((IDisposable)mockStream).Received().Dispose();
-            }
-        }
-
-        public sealed class EndRead : JsonFormatterDeserializeTests
-        {
-            [Fact]
-            public void ShouldNotThrowAnyException()
-            {
-                this.Serializer.Invoking(x => x.EndRead())
-                    .Should().NotThrow();
             }
         }
 
@@ -81,7 +51,7 @@
             {
                 this.SetStreamTo("[ ]");
 
-                bool result = this.Serializer.ReadBeginArray(typeof(int));
+                bool result = this.Formatter.ReadBeginArray(typeof(int));
 
                 result.Should().BeFalse();
             }
@@ -91,7 +61,7 @@
             {
                 this.SetStreamTo("123");
 
-                bool result = this.Serializer.ReadBeginArray(typeof(int));
+                bool result = this.Formatter.ReadBeginArray(typeof(int));
 
                 result.Should().BeFalse();
             }
@@ -101,7 +71,7 @@
             {
                 this.SetStreamTo("[1]");
 
-                bool result = this.Serializer.ReadBeginArray(typeof(int));
+                bool result = this.Formatter.ReadBeginArray(typeof(int));
 
                 result.Should().BeTrue();
             }
@@ -114,8 +84,8 @@
             {
                 this.SetStreamTo("{1");
 
-                this.Serializer.ReadBeginClass((byte[])null);
-                int result = this.Serializer.Reader.ReadInt32();
+                this.Formatter.ReadBeginClass((byte[])null);
+                int result = this.Formatter.Reader.ReadInt32();
 
                 result.Should().Be(1);
             }
@@ -125,8 +95,8 @@
             {
                 this.SetStreamTo("{1");
 
-                this.Serializer.ReadBeginClass((string)null);
-                int result = this.Serializer.Reader.ReadInt32();
+                this.Formatter.ReadBeginClass((string)null);
+                int result = this.Formatter.Reader.ReadInt32();
 
                 result.Should().Be(1);
             }
@@ -136,9 +106,19 @@
             {
                 this.SetStreamTo("123");
 
-                Action action = () => this.Serializer.ReadBeginClass((byte[])null);
+                Action action = () => this.Formatter.ReadBeginClass((byte[])null);
 
                 action.Should().Throw<FormatException>();
+            }
+        }
+
+        public sealed class ReadBeginPrimitive : JsonFormatterDeserializeTests
+        {
+            [Fact]
+            public void ShouldNotThrowAnyException()
+            {
+                this.Formatter.Invoking(x => x.ReadBeginPrimitive(null))
+                    .Should().NotThrow();
             }
         }
 
@@ -149,7 +129,7 @@
             {
                 this.SetStreamTo("123");
 
-                string result = this.Serializer.ReadBeginProperty();
+                string result = this.Formatter.ReadBeginProperty();
 
                 result.Should().BeNull();
             }
@@ -159,7 +139,7 @@
             {
                 this.SetStreamTo("\"property\":123");
 
-                string result = this.Serializer.ReadBeginProperty();
+                string result = this.Formatter.ReadBeginProperty();
 
                 result.Should().Be("property");
             }
@@ -169,7 +149,7 @@
             {
                 this.SetStreamTo("\"property\" 123");
 
-                Action action = () => this.Serializer.ReadBeginProperty();
+                Action action = () => this.Formatter.ReadBeginProperty();
 
                 action.Should().Throw<FormatException>()
                       .WithMessage("*:*");
@@ -183,7 +163,7 @@
             {
                 this.SetStreamTo("123");
 
-                bool result = this.Serializer.ReadElementSeparator();
+                bool result = this.Formatter.ReadElementSeparator();
 
                 result.Should().BeFalse();
             }
@@ -193,7 +173,7 @@
             {
                 this.SetStreamTo(",");
 
-                bool result = this.Serializer.ReadElementSeparator();
+                bool result = this.Formatter.ReadElementSeparator();
 
                 result.Should().BeTrue();
             }
@@ -206,8 +186,8 @@
             {
                 this.SetStreamTo("]1");
 
-                this.Serializer.ReadEndArray();
-                int result = this.Serializer.Reader.ReadInt32();
+                this.Formatter.ReadEndArray();
+                int result = this.Formatter.Reader.ReadInt32();
 
                 result.Should().Be(1);
             }
@@ -217,7 +197,7 @@
             {
                 this.SetStreamTo("1");
 
-                Action action = () => this.Serializer.ReadEndArray();
+                Action action = () => this.Formatter.ReadEndArray();
 
                 action.Should().Throw<FormatException>();
             }
@@ -230,8 +210,8 @@
             {
                 this.SetStreamTo("}1");
 
-                this.Serializer.ReadEndClass();
-                int result = this.Serializer.Reader.ReadInt32();
+                this.Formatter.ReadEndClass();
+                int result = this.Formatter.Reader.ReadInt32();
 
                 result.Should().Be(1);
             }
@@ -241,9 +221,19 @@
             {
                 this.SetStreamTo("1");
 
-                Action action = () => this.Serializer.ReadEndClass();
+                Action action = () => this.Formatter.ReadEndClass();
 
                 action.Should().Throw<FormatException>();
+            }
+        }
+
+        public sealed class ReadEndPrimitive : JsonFormatterDeserializeTests
+        {
+            [Fact]
+            public void ShouldNotThrowAnyException()
+            {
+                this.Formatter.Invoking(x => x.ReadEndPrimitive())
+                    .Should().NotThrow();
             }
         }
 
@@ -254,23 +244,10 @@
             {
                 this.SetStreamTo(",1");
 
-                this.Serializer.ReadEndProperty();
-                int result = this.Serializer.Reader.ReadInt32();
+                this.Formatter.ReadEndProperty();
+                int result = this.Formatter.Reader.ReadInt32();
 
                 result.Should().Be(1);
-            }
-        }
-
-        private class FakeJsonSerializerBase : JsonSerializerBase
-        {
-            internal FakeJsonSerializerBase(Stream stream)
-                : base(stream, SerializationMode.Deserialize)
-            {
-            }
-
-            internal FakeJsonSerializerBase(JsonSerializerBase parent)
-                : base(parent)
-            {
             }
         }
     }

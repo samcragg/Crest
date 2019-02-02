@@ -2,9 +2,8 @@
 {
     using System;
     using System.IO;
-    using Crest.Host.Conversion;
     using Crest.Host.Serialization;
-    using Crest.Host.Serialization.Internal;
+    using Crest.Host.Serialization.Xml;
     using FluentAssertions;
     using NSubstitute;
     using Xunit;
@@ -13,8 +12,8 @@
     {
         private readonly XmlConverter converter;
 
-        private readonly ISerializerGenerator<XmlSerializerBase> serializer =
-            Substitute.For<ISerializerGenerator<XmlSerializerBase>>();
+        private readonly ISerializerGenerator<XmlFormatter> serializer =
+            Substitute.For<ISerializerGenerator<XmlFormatter>>();
 
         private XmlConverterTests()
         {
@@ -70,7 +69,7 @@
             {
                 this.converter.Prime(typeof(int));
 
-                this.serializer.Received().GetSerializerFor(typeof(int));
+                this.serializer.Received().Prime(typeof(int));
             }
         }
 

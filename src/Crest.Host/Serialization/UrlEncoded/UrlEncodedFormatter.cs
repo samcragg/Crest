@@ -10,11 +10,12 @@ namespace Crest.Host.Serialization.UrlEncoded
     using System.ComponentModel;
     using System.IO;
     using System.Reflection;
+    using Crest.Host.Serialization.Internal;
 
     /// <summary>
     /// The base class for runtime serializers that output JSON.
     /// </summary>
-    public class UrlEncodedFormatter : IClassSerializer<byte[]>
+    public class UrlEncodedFormatter : IFormatter
     {
         private readonly UrlEncodedStreamReader reader;
         private readonly UrlEncodedStreamWriter writer;
@@ -48,15 +49,8 @@ namespace Crest.Host.Serialization.UrlEncoded
             this.writer = parent.writer;
         }
 
-        /// <summary>
-        /// Gets a value indicating whether the generated classes should output
-        /// the names for <c>enum</c> values or not.
-        /// </summary>
-        /// <remarks>
-        /// Always returns <c>true</c>, therefore, the generated data will use
-        /// names for the enumeration values.
-        /// </remarks>
-        public static bool OutputEnumNames => true;
+        /// <inheritdoc />
+        public bool EnumsAsIntegers => false;
 
         /// <inheritdoc />
         public ValueReader Reader => this.reader;
@@ -69,45 +63,13 @@ namespace Crest.Host.Serialization.UrlEncoded
         /// </summary>
         /// <param name="property">The property information.</param>
         /// <returns>The metadata to store for the property.</returns>
-        public static byte[] GetMetadata(PropertyInfo property)
+        public static object GetMetadata(PropertyInfo property)
         {
             DisplayNameAttribute displayName =
                 property.GetCustomAttribute<DisplayNameAttribute>();
 
             string name = displayName?.DisplayName ?? property.Name;
             return UrlEncodeString(name);
-        }
-
-        /// <inheritdoc />
-        public void BeginRead(byte[] metadata)
-        {
-            // We don't need to do anything
-        }
-
-        /// <inheritdoc />
-        public void BeginWrite(byte[] metadata)
-        {
-            // We don't need to do anything
-        }
-
-        /// <inheritdoc />
-        public void EndRead()
-        {
-            // We don't need to do anything
-        }
-
-        /// <inheritdoc />
-        public void EndWrite()
-        {
-            // We don't need to do anything
-        }
-
-        /// <summary>
-        /// Implementation of the <see cref="ITypeSerializer.Flush"/> method.
-        /// </summary>
-        public virtual void Flush()
-        {
-            this.writer.Flush();
         }
 
         /// <inheritdoc />
@@ -125,7 +87,7 @@ namespace Crest.Host.Serialization.UrlEncoded
         }
 
         /// <inheritdoc />
-        public void ReadBeginClass(byte[] metadata)
+        public void ReadBeginClass(object metadata)
         {
             this.propertyIndex = 0;
         }
@@ -134,6 +96,12 @@ namespace Crest.Host.Serialization.UrlEncoded
         public void ReadBeginClass(string className)
         {
             this.ReadBeginClass((byte[])null);
+        }
+
+        /// <inheritdoc />
+        public void ReadBeginPrimitive(object metadata)
+        {
+            // We don't need to do anything
         }
 
         /// <inheritdoc />
@@ -180,6 +148,12 @@ namespace Crest.Host.Serialization.UrlEncoded
         }
 
         /// <inheritdoc />
+        public void ReadEndPrimitive()
+        {
+            // We don't need to do anything
+        }
+
+        /// <inheritdoc />
         public void ReadEndProperty()
         {
             this.reader.MoveToParent();
@@ -193,7 +167,7 @@ namespace Crest.Host.Serialization.UrlEncoded
         }
 
         /// <inheritdoc />
-        public void WriteBeginClass(byte[] metadata)
+        public void WriteBeginClass(object metadata)
         {
             // We don't need to do anything
         }
@@ -205,9 +179,15 @@ namespace Crest.Host.Serialization.UrlEncoded
         }
 
         /// <inheritdoc />
-        public void WriteBeginProperty(byte[] propertyMetadata)
+        public void WriteBeginPrimitive(object metadata)
         {
-            this.writer.PushKeyPart(propertyMetadata);
+            // We don't need to do anything
+        }
+
+        /// <inheritdoc />
+        public void WriteBeginProperty(object metadata)
+        {
+            this.writer.PushKeyPart((byte[])metadata);
         }
 
         /// <inheritdoc />
@@ -234,6 +214,12 @@ namespace Crest.Host.Serialization.UrlEncoded
 
         /// <inheritdoc />
         public void WriteEndClass()
+        {
+            // We don't need to do anything
+        }
+
+        /// <inheritdoc />
+        public void WriteEndPrimitive()
         {
             // We don't need to do anything
         }

@@ -10,7 +10,6 @@ namespace Crest.Host.Serialization.Json
     using System.IO;
     using Crest.Abstractions;
     using Crest.Host.Serialization;
-    using Crest.Host.Serialization.Internal;
 
     /// <summary>
     /// Converts between .NET objects and JSON.
@@ -18,13 +17,13 @@ namespace Crest.Host.Serialization.Json
     internal sealed class JsonConverter : IContentConverter
     {
         private const string JsonMimeType = @"application/json";
-        private readonly ISerializerGenerator<JsonSerializerBase> generator;
+        private readonly ISerializerGenerator<JsonFormatter> generator;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="JsonConverter"/> class.
         /// </summary>
         /// <param name="generator">Used to generate the serializers.</param>
-        public JsonConverter(ISerializerGenerator<JsonSerializerBase> generator)
+        public JsonConverter(ISerializerGenerator<JsonFormatter> generator)
         {
             this.generator = generator;
         }
@@ -53,7 +52,7 @@ namespace Crest.Host.Serialization.Json
         /// <inheritdoc />
         public void Prime(Type type)
         {
-            this.generator.GetSerializerFor(type);
+            this.generator.Prime(type);
         }
 
         /// <inheritdoc />

@@ -4,23 +4,22 @@
     using System.ComponentModel;
     using System.IO;
     using System.Text;
-    using Crest.Host.Serialization;
     using Crest.Host.Serialization.Internal;
+    using Crest.Host.Serialization.Xml;
     using FluentAssertions;
-    using NSubstitute;
     using Xunit;
 
     public class XmlFormatterSerializeTests
     {
-        private readonly XmlSerializerBase serializer;
+        private readonly XmlFormatter formatter;
         private readonly MemoryStream stream = new MemoryStream();
 
         private XmlFormatterSerializeTests()
         {
-            this.serializer = new FakeXmlSerializerBase(this.stream);
+            this.formatter = new XmlFormatter(this.stream, SerializationMode.Serialize);
         }
 
-        private XmlStreamWriter XmlStreamWriter => (XmlStreamWriter)this.serializer.Writer;
+        private XmlStreamWriter XmlStreamWriter => (XmlStreamWriter)this.formatter.Writer;
 
         private void ForceFullEndTag()
         {
@@ -29,7 +28,7 @@
 
         private string GetWrittenData()
         {
-            this.serializer.Flush();
+            this.formatter.Writer.Flush();
             string xml = Encoding.UTF8.GetString(this.stream.ToArray());
 
             // Strip the <?xml ?> part
@@ -49,67 +48,13 @@
             return xml;
         }
 
-        public sealed class BeginWrite : XmlFormatterSerializeTests
+        public sealed class EnumsAsIntegers : XmlFormatterSerializeTests
         {
             [Fact]
-            public void ShouldChangeWriteTheStartElement()
+            public void ShouldReturnFalse()
             {
-                this.serializer.BeginWrite("metadata");
-                string written = this.GetWrittenData();
-
-                written.Should().StartWith("<metadata>");
-            }
-        }
-
-        public sealed class Constructor : XmlFormatterSerializeTests
-        {
-            [Fact]
-            public void ShouldCreateAStreamWriter()
-            {
-                var instance = new FakeXmlSerializerBase(Stream.Null);
-
-                instance.Writer.Should().NotBeNull();
-            }
-
-            [Fact]
-            public void ShouldSetTheWriter()
-            {
-                var parent = new FakeXmlSerializerBase(Stream.Null);
-
-                var instance = new FakeXmlSerializerBase(parent);
-
-                instance.Writer.Should().BeSameAs(parent.Writer);
-            }
-        }
-
-        public sealed class EndWrite : XmlFormatterSerializeTests
-        {
-            [Fact]
-            public void ShouldCloseTheXmlElement()
-            {
-                this.serializer.BeginWrite("root");
-                this.serializer.Writer.WriteInt32(1);
-
-                this.serializer.EndWrite();
-                string written = this.GetWrittenData();
-
-                written.Should().EndWith("</root>");
-            }
-        }
-
-        public sealed class Flush : XmlFormatterSerializeTests
-        {
-            [Fact]
-            public void ShouldFlushTheBuffers()
-            {
-                Stream stream = Substitute.For<Stream>();
-                XmlSerializerBase serializer = new FakeXmlSerializerBase(stream);
-
-                serializer.BeginWrite("root");
-                stream.DidNotReceiveWithAnyArgs().Write(null, 0, 0);
-
-                serializer.Flush();
-                stream.ReceivedWithAnyArgs().Write(null, 0, 0);
+                // This matches the DataContractSerializer
+                this.formatter.EnumsAsIntegers.Should().BeFalse();
             }
         }
 
@@ -141,7 +86,7 @@
 
             private static string GetPropertyNameFromMetadata(string property)
             {
-                return XmlSerializerBase.GetMetadata(
+                return (string)XmlFormatter.GetMetadata(
                     typeof(ExampleProperties).GetProperty(property));
             }
 
@@ -163,7 +108,7 @@
             public void ShouldEscapeCharactersFromTheDisplayName()
             {
                 // Unicode 0x363 is valid for C# but not for XML
-                string result = XmlSerializerBase.GetTypeMetadata(
+                string result = (string)XmlFormatter.GetTypeMetadata(
                     typeof(SpecialͣChar));
 
                 result.Should().Be("Special_x0363_Char");
@@ -188,23 +133,13 @@
             [InlineData(typeof(TimeSpan), "duration")]
             public void ShouldReturnXmlSchemaNames(Type type, string expected)
             {
-                string result = XmlSerializerBase.GetTypeMetadata(type);
+                string result = (string)XmlFormatter.GetTypeMetadata(type);
 
                 result.Should().Be(expected);
             }
 
             private class SpecialͣChar
             {
-            }
-        }
-
-        public sealed class OutputEnumNames : XmlFormatterSerializeTests
-        {
-            [Fact]
-            public void ShouldReturnTrue()
-            {
-                // This matches the DataContractSerializer
-                XmlSerializerBase.OutputEnumNames.Should().BeTrue();
             }
         }
 
@@ -215,7 +150,7 @@
             {
                 this.XmlStreamWriter.WriteStartElement("root");
 
-                this.serializer.WriteBeginArray(typeof(int), 1);
+                this.formatter.WriteBeginArray(typeof(int), 1);
                 string written = this.GetWrittenData();
 
                 written.Should().StartWith("<root><int>");
@@ -224,7 +159,7 @@
             [Fact]
             public void ShouldWriteTheRootElementIfNoneHasBeenWritten()
             {
-                this.serializer.WriteBeginArray(typeof(EmptyClass), 1);
+                this.formatter.WriteBeginArray(typeof(EmptyClass), 1);
                 string written = this.GetWrittenData();
 
                 written.Should().StartWith("<ArrayOfEmptyClass>");
@@ -238,7 +173,7 @@
             {
                 this.XmlStreamWriter.WriteStartElement("root");
 
-                this.serializer.WriteBeginClass(nameof(EmptyClass));
+                this.formatter.WriteBeginClass(nameof(EmptyClass));
                 string written = this.GetWrittenData();
 
                 written.Should().Be("<root>");
@@ -247,10 +182,22 @@
             [Fact]
             public void ShouldWriteTheOpeningElementForTheRootClass()
             {
-                this.serializer.WriteBeginClass(nameof(EmptyClass));
+                this.formatter.WriteBeginClass(nameof(EmptyClass));
                 string written = this.GetWrittenData();
 
                 written.Should().Be("<EmptyClass>");
+            }
+        }
+
+        public sealed class WriteBeginPrimitive : XmlFormatterSerializeTests
+        {
+            [Fact]
+            public void ShouldChangeWriteTheStartElement()
+            {
+                this.formatter.WriteBeginPrimitive("metadata");
+                string written = this.GetWrittenData();
+
+                written.Should().StartWith("<metadata>");
             }
         }
 
@@ -259,7 +206,7 @@
             [Fact]
             public void ShouldWriteTheOpeningElement()
             {
-                this.serializer.WriteBeginProperty("Property");
+                this.formatter.WriteBeginProperty("Property");
                 string written = this.GetWrittenData();
 
                 written.Should().Be("<Property>");
@@ -272,10 +219,10 @@
             public void ShouldWriteANewElement()
             {
                 this.XmlStreamWriter.WriteStartElement("root");
-                this.serializer.WriteBeginArray(typeof(int), 1);
+                this.formatter.WriteBeginArray(typeof(int), 1);
                 this.ForceFullEndTag();
 
-                this.serializer.WriteElementSeparator();
+                this.formatter.WriteElementSeparator();
                 string written = this.GetWrittenData();
 
                 written.Should().Be("<root><int></int><int>");
@@ -287,10 +234,10 @@
             [Fact]
             public void ShouldCloseRootArrayTags()
             {
-                this.serializer.WriteBeginArray(typeof(int), 1);
+                this.formatter.WriteBeginArray(typeof(int), 1);
                 this.ForceFullEndTag();
 
-                this.serializer.WriteEndArray();
+                this.formatter.WriteEndArray();
                 string written = this.GetWrittenData();
 
                 written.Should().Be("<ArrayOfint><int></int></ArrayOfint>");
@@ -302,7 +249,7 @@
                 this.XmlStreamWriter.WriteStartElement("Array");
                 this.ForceFullEndTag();
 
-                this.serializer.WriteEndArray();
+                this.formatter.WriteEndArray();
                 string written = this.GetWrittenData();
 
                 written.Should().Be("<Array></Array>");
@@ -315,7 +262,7 @@
                 this.XmlStreamWriter.WriteStartElement("child");
                 this.ForceFullEndTag();
 
-                this.serializer.WriteEndArray();
+                this.formatter.WriteEndArray();
                 string written = this.GetWrittenData();
 
                 written.Should().Be("<root><child></child>");
@@ -330,7 +277,7 @@
                 this.XmlStreamWriter.WriteStartElement(nameof(EmptyClass));
                 this.ForceFullEndTag();
 
-                this.serializer.WriteEndClass();
+                this.formatter.WriteEndClass();
                 string written = this.GetWrittenData();
 
                 written.Should().Be("<EmptyClass></EmptyClass>");
@@ -343,10 +290,25 @@
                 this.XmlStreamWriter.WriteStartElement("property");
                 this.ForceFullEndTag();
 
-                this.serializer.WriteEndClass();
+                this.formatter.WriteEndClass();
                 string written = this.GetWrittenData();
 
                 written.Should().Be("<root><property>");
+            }
+        }
+
+        public sealed class WriteEndPrimitive : XmlFormatterSerializeTests
+        {
+            [Fact]
+            public void ShouldCloseTheXmlElement()
+            {
+                this.formatter.WriteBeginPrimitive("root");
+                this.formatter.Writer.WriteInt32(1);
+
+                this.formatter.WriteEndPrimitive();
+                string written = this.GetWrittenData();
+
+                written.Should().EndWith("</root>");
             }
         }
 
@@ -358,7 +320,7 @@
                 this.XmlStreamWriter.WriteStartElement("Property");
                 this.ForceFullEndTag();
 
-                this.serializer.WriteEndProperty();
+                this.formatter.WriteEndProperty();
                 string written = this.GetWrittenData();
 
                 written.Should().Be("<Property></Property>");
@@ -367,17 +329,6 @@
 
         private sealed class EmptyClass
         {
-        }
-
-        private sealed class FakeXmlSerializerBase : XmlSerializerBase
-        {
-            public FakeXmlSerializerBase(Stream stream) : base(stream, SerializationMode.Serialize)
-            {
-            }
-
-            public FakeXmlSerializerBase(XmlSerializerBase parent) : base(parent)
-            {
-            }
         }
     }
 }

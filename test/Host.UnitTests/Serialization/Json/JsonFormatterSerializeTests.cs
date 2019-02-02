@@ -4,80 +4,33 @@
     using System.IO;
     using System.Text;
     using Crest.Host.Serialization.Internal;
+    using Crest.Host.Serialization.Json;
     using FluentAssertions;
-    using NSubstitute;
     using Xunit;
 
     public class JsonFormatterSerializeTests
     {
-        private readonly JsonSerializerBase serializer;
+        private readonly JsonFormatter formatter;
         private readonly MemoryStream stream = new MemoryStream();
 
         protected JsonFormatterSerializeTests()
         {
-            this.serializer = new FakeJsonSerializerBase(this.stream);
+            this.formatter = new JsonFormatter(this.stream, SerializationMode.Serialize);
         }
 
         protected byte[] GetWrittenData()
         {
-            this.serializer.Flush();
+            this.formatter.Writer.Flush();
             return this.stream.ToArray();
         }
 
-        public sealed class BeginWrite : JsonFormatterSerializeTests
+        public sealed class EnumsAsIntegers : JsonFormatterSerializeTests
         {
             [Fact]
-            public void ShouldNotThrowAnyException()
+            public void ShouldReturnTrue()
             {
-                this.serializer.Invoking(x => x.BeginWrite(null))
-                    .Should().NotThrow();
-            }
-        }
-
-        public sealed class Constructor : JsonFormatterSerializeTests
-        {
-            [Fact]
-            public void ShouldCreateAStreamWriter()
-            {
-                var instance = new FakeJsonSerializerBase(Stream.Null);
-
-                instance.Writer.Should().NotBeNull();
-            }
-
-            [Fact]
-            public void ShouldSetTheWriter()
-            {
-                var parent = new FakeJsonSerializerBase(Stream.Null);
-
-                var instance = new FakeJsonSerializerBase(parent);
-
-                instance.Writer.Should().BeSameAs(parent.Writer);
-            }
-        }
-
-        public sealed class EndWrite : JsonFormatterSerializeTests
-        {
-            [Fact]
-            public void ShouldNotThrowAnyException()
-            {
-                this.serializer.Invoking(x => x.EndWrite())
-                    .Should().NotThrow();
-            }
-        }
-
-        public sealed class Flush : JsonFormatterSerializeTests
-        {
-            [Fact]
-            public void ShouldFlushTheBuffers()
-            {
-                Stream stream = Substitute.For<Stream>();
-                JsonSerializerBase serializer = new FakeJsonSerializerBase(stream);
-
-                serializer.WriteBeginClass((byte[])null);
-                stream.DidNotReceiveWithAnyArgs().Write(null, 0, 0);
-
-                serializer.Flush();
-                stream.ReceivedWithAnyArgs().Write(null, 0, 0);
+                // This matches the JSON.NET default
+                this.formatter.EnumsAsIntegers.Should().BeTrue();
             }
         }
 
@@ -109,7 +62,7 @@
 
             private static string GetPropertyNameFromMetadata(string property)
             {
-                byte[] result = JsonSerializerBase.GetMetadata(
+                var result = (byte[])JsonFormatter.GetMetadata(
                     typeof(ExampleProperties).GetProperty(property));
 
                 // The returned value will start with a " and end with a ": but
@@ -129,22 +82,12 @@
             }
         }
 
-        public sealed class OutputEnumNames : JsonFormatterSerializeTests
-        {
-            [Fact]
-            public void ShouldReturnFalse()
-            {
-                // This matches the JSON.NET default
-                JsonSerializerBase.OutputEnumNames.Should().BeFalse();
-            }
-        }
-
         public sealed class WriteBeginArray : JsonFormatterSerializeTests
         {
             [Fact]
             public void ShouldWriteTheOpeningBracket()
             {
-                this.serializer.WriteBeginArray(null, 0);
+                this.formatter.WriteBeginArray(null, 0);
                 byte[] written = this.GetWrittenData();
 
                 written.Should().Equal((byte)'[');
@@ -156,7 +99,7 @@
             [Fact]
             public void ShouldWriteTheOpeningBraceForByteArrays()
             {
-                this.serializer.WriteBeginClass((byte[])null);
+                this.formatter.WriteBeginClass((byte[])null);
                 byte[] written = this.GetWrittenData();
 
                 written.Should().Equal((byte)'{');
@@ -165,10 +108,20 @@
             [Fact]
             public void ShouldWriteTheOpeningBraceForStrings()
             {
-                this.serializer.WriteBeginClass((string)null);
+                this.formatter.WriteBeginClass((string)null);
                 byte[] written = this.GetWrittenData();
 
                 written.Should().Equal((byte)'{');
+            }
+        }
+
+        public sealed class WriteBeginPrimitive : JsonFormatterSerializeTests
+        {
+            [Fact]
+            public void ShouldNotThrowAnyException()
+            {
+                this.formatter.Invoking(x => x.WriteBeginPrimitive(null))
+                    .Should().NotThrow();
             }
         }
 
@@ -179,8 +132,8 @@
             {
                 byte[] data = new byte[0];
 
-                this.serializer.WriteBeginProperty(data);
-                this.serializer.WriteBeginProperty(data);
+                this.formatter.WriteBeginProperty(data);
+                this.formatter.WriteBeginProperty(data);
                 byte[] written = this.GetWrittenData();
 
                 written.Should().Equal((byte)',');
@@ -189,7 +142,7 @@
             [Fact]
             public void ShouldWriteTheMetadata()
             {
-                this.serializer.WriteBeginProperty(new byte[] { 1, 2 });
+                this.formatter.WriteBeginProperty(new byte[] { 1, 2 });
                 byte[] written = this.GetWrittenData();
 
                 written.Should().Equal(1, 2);
@@ -198,7 +151,7 @@
             [Fact]
             public void ShouldWriteThePropertyName()
             {
-                this.serializer.WriteBeginProperty("Aa");
+                this.formatter.WriteBeginProperty("Aa");
                 byte[] written = this.GetWrittenData();
 
                 written.Should().Equal((byte)'"', (byte)'a', (byte)'a', (byte)'"', (byte)':');
@@ -210,7 +163,7 @@
             [Fact]
             public void ShouldWriteAComma()
             {
-                this.serializer.WriteElementSeparator();
+                this.formatter.WriteElementSeparator();
                 byte[] written = this.GetWrittenData();
 
                 written.Should().Equal((byte)',');
@@ -222,7 +175,7 @@
             [Fact]
             public void ShouldWriteTheClosingBracket()
             {
-                this.serializer.WriteEndArray();
+                this.formatter.WriteEndArray();
                 byte[] written = this.GetWrittenData();
 
                 written.Should().Equal((byte)']');
@@ -234,10 +187,20 @@
             [Fact]
             public void ShouldWriteTheClosingBrace()
             {
-                this.serializer.WriteEndClass();
+                this.formatter.WriteEndClass();
                 byte[] written = this.GetWrittenData();
 
                 written.Should().Equal((byte)'}');
+            }
+        }
+
+        public sealed class WriteEndPrimitive : JsonFormatterSerializeTests
+        {
+            [Fact]
+            public void ShouldNotThrowAnyException()
+            {
+                this.formatter.Invoking(x => x.WriteEndPrimitive())
+                    .Should().NotThrow();
             }
         }
 
@@ -246,19 +209,8 @@
             [Fact]
             public void ShouldNotThrowAnyException()
             {
-                this.serializer.Invoking(x => x.WriteEndProperty())
+                this.formatter.Invoking(x => x.WriteEndProperty())
                     .Should().NotThrow();
-            }
-        }
-
-        private sealed class FakeJsonSerializerBase : JsonSerializerBase
-        {
-            public FakeJsonSerializerBase(Stream stream) : base(stream, SerializationMode.Serialize)
-            {
-            }
-
-            public FakeJsonSerializerBase(JsonSerializerBase parent) : base(parent)
-            {
             }
         }
     }

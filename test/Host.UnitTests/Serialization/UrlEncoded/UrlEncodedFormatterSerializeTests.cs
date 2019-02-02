@@ -4,80 +4,33 @@
     using System.IO;
     using System.Text;
     using Crest.Host.Serialization.Internal;
+    using Crest.Host.Serialization.UrlEncoded;
     using FluentAssertions;
-    using NSubstitute;
     using Xunit;
 
     public class UrlEncodedFormatterSerializeTests
     {
-        private readonly UrlEncodedSerializerBase serializer;
+        private readonly UrlEncodedFormatter formatter;
         private readonly MemoryStream stream = new MemoryStream();
 
         protected UrlEncodedFormatterSerializeTests()
         {
-            this.serializer = new FakeUrlEncodedSerializerBase(this.stream);
+            this.formatter = new UrlEncodedFormatter(this.stream, SerializationMode.Serialize);
         }
 
         protected byte[] GetWrittenData()
         {
-            this.serializer.Flush();
+            this.formatter.Writer.Flush();
             return this.stream.ToArray();
         }
 
-        public sealed class BeginWrite : UrlEncodedFormatterSerializeTests
+        public sealed class EnumsAsIntegers : UrlEncodedFormatterSerializeTests
         {
             [Fact]
-            public void ShouldNotThrowAnyException()
+            public void ShouldReturnFalse()
             {
-                this.serializer.Invoking(x => x.BeginWrite(null))
-                    .Should().NotThrow();
-            }
-        }
-
-        public sealed class Constructor : UrlEncodedFormatterSerializeTests
-        {
-            [Fact]
-            public void ShouldCreateAStreamWriter()
-            {
-                var instance = new FakeUrlEncodedSerializerBase(Stream.Null);
-
-                instance.Writer.Should().NotBeNull();
-            }
-
-            [Fact]
-            public void ShouldSetTheWriter()
-            {
-                var parent = new FakeUrlEncodedSerializerBase(Stream.Null);
-
-                var instance = new FakeUrlEncodedSerializerBase(parent);
-
-                instance.Writer.Should().BeSameAs(parent.Writer);
-            }
-        }
-
-        public sealed class EndWrite : UrlEncodedFormatterSerializeTests
-        {
-            [Fact]
-            public void ShouldNotThrowAnyException()
-            {
-                this.serializer.Invoking(x => x.EndWrite())
-                    .Should().NotThrow();
-            }
-        }
-
-        public sealed class Flush : UrlEncodedFormatterSerializeTests
-        {
-            [Fact]
-            public void ShouldFlushTheBuffers()
-            {
-                Stream stream = Substitute.For<Stream>();
-                UrlEncodedSerializerBase serializer = new FakeUrlEncodedSerializerBase(stream);
-
-                serializer.WriteBeginProperty(new byte[12]);
-                stream.DidNotReceiveWithAnyArgs().Write(null, 0, 0);
-
-                serializer.Flush();
-                stream.ReceivedWithAnyArgs().Write(null, 0, 0);
+                // Try to match XML, which uses the names
+                this.formatter.EnumsAsIntegers.Should().BeFalse();
             }
         }
 
@@ -109,7 +62,7 @@
 
             private static string GetPropertyNameFromMetadata(string property)
             {
-                byte[] result = UrlEncodedSerializerBase.GetMetadata(
+                var result = (byte[])UrlEncodedFormatter.GetMetadata(
                     typeof(ExampleProperties).GetProperty(property));
 
                 return Encoding.UTF8.GetString(result, 0, result.Length);
@@ -127,23 +80,13 @@
             }
         }
 
-        public sealed class OutputEnumNames : UrlEncodedFormatterSerializeTests
-        {
-            [Fact]
-            public void ShouldReturnTrue()
-            {
-                // Try to match XML, which uses the names
-                UrlEncodedSerializerBase.OutputEnumNames.Should().BeTrue();
-            }
-        }
-
         public sealed class WriteBeginArray : UrlEncodedFormatterSerializeTests
         {
             [Fact]
             public void ShouldWriteTheZeroIndex()
             {
-                this.serializer.WriteBeginArray(typeof(int[]), 1);
-                this.serializer.Writer.WriteString(string.Empty);
+                this.formatter.WriteBeginArray(typeof(int[]), 1);
+                this.formatter.Writer.WriteString(string.Empty);
 
                 this.GetWrittenData().Should().Equal((byte)'0', (byte)'=');
             }
@@ -154,14 +97,24 @@
             [Fact]
             public void ShouldNotThrowAnyExceptionForByteArrays()
             {
-                this.serializer.Invoking(x => x.WriteBeginClass((byte[])null))
+                this.formatter.Invoking(x => x.WriteBeginClass((byte[])null))
                     .Should().NotThrow();
             }
 
             [Fact]
             public void ShouldNotThrowAnyExceptionForStrings()
             {
-                this.serializer.Invoking(x => x.WriteBeginClass((string)null))
+                this.formatter.Invoking(x => x.WriteBeginClass((string)null))
+                    .Should().NotThrow();
+            }
+        }
+
+        public sealed class WriteBeginPrimitive : UrlEncodedFormatterSerializeTests
+        {
+            [Fact]
+            public void ShouldNotThrowAnyException()
+            {
+                this.formatter.Invoking(x => x.WriteBeginPrimitive(null))
                     .Should().NotThrow();
             }
         }
@@ -171,8 +124,8 @@
             [Fact]
             public void ShouldWriteTheMetadata()
             {
-                this.serializer.WriteBeginProperty(new byte[] { 1, 2 });
-                this.serializer.Writer.WriteString(string.Empty);
+                this.formatter.WriteBeginProperty(new byte[] { 1, 2 });
+                this.formatter.Writer.WriteString(string.Empty);
 
                 this.GetWrittenData().Should().Equal(1, 2, (byte)'=');
             }
@@ -180,8 +133,8 @@
             [Fact]
             public void ShouldWriteThePropertyName()
             {
-                this.serializer.WriteBeginProperty("Aa");
-                this.serializer.Writer.WriteString(string.Empty);
+                this.formatter.WriteBeginProperty("Aa");
+                this.formatter.Writer.WriteString(string.Empty);
 
                 this.GetWrittenData().Should().Equal((byte)'A', (byte)'a', (byte)'=');
             }
@@ -192,9 +145,9 @@
             [Fact]
             public void ShouldIncreaseTheIndex()
             {
-                this.serializer.WriteBeginArray(typeof(int[]), 2);
-                this.serializer.WriteElementSeparator();
-                this.serializer.Writer.WriteString(string.Empty);
+                this.formatter.WriteBeginArray(typeof(int[]), 2);
+                this.formatter.WriteElementSeparator();
+                this.formatter.Writer.WriteString(string.Empty);
 
                 byte[] written = this.GetWrittenData();
                 written.Should().Equal(new[] { (byte)'1', (byte)'=' });
@@ -206,9 +159,9 @@
             [Fact]
             public void ShouldRemoveTheIndex()
             {
-                this.serializer.WriteBeginArray(typeof(int[]), 1);
-                this.serializer.WriteEndArray();
-                this.serializer.Writer.WriteString(string.Empty);
+                this.formatter.WriteBeginArray(typeof(int[]), 1);
+                this.formatter.WriteEndArray();
+                this.formatter.Writer.WriteString(string.Empty);
 
                 this.GetWrittenData().Should().BeEmpty();
             }
@@ -219,7 +172,17 @@
             [Fact]
             public void ShouldNotThrowAnyException()
             {
-                this.serializer.Invoking(x => x.WriteEndClass())
+                this.formatter.Invoking(x => x.WriteEndClass())
+                    .Should().NotThrow();
+            }
+        }
+
+        public sealed class WriteEndPrimitive : UrlEncodedFormatterSerializeTests
+        {
+            [Fact]
+            public void ShouldNotThrowAnyException()
+            {
+                this.formatter.Invoking(x => x.WriteEndPrimitive())
                     .Should().NotThrow();
             }
         }
@@ -229,22 +192,11 @@
             [Fact]
             public void ShouldRemoveTheMetadata()
             {
-                this.serializer.WriteBeginProperty(new byte[] { 1, 2 });
-                this.serializer.WriteEndProperty();
-                this.serializer.Writer.WriteString(string.Empty);
+                this.formatter.WriteBeginProperty(new byte[] { 1, 2 });
+                this.formatter.WriteEndProperty();
+                this.formatter.Writer.WriteString(string.Empty);
 
                 this.GetWrittenData().Should().BeEmpty();
-            }
-        }
-
-        private sealed class FakeUrlEncodedSerializerBase : UrlEncodedSerializerBase
-        {
-            public FakeUrlEncodedSerializerBase(Stream stream) : base(stream, SerializationMode.Serialize)
-            {
-            }
-
-            public FakeUrlEncodedSerializerBase(UrlEncodedSerializerBase parent) : base(parent)
-            {
             }
         }
     }

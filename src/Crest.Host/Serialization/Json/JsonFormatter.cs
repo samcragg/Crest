@@ -10,11 +10,12 @@ namespace Crest.Host.Serialization.Json
     using System.ComponentModel;
     using System.IO;
     using System.Reflection;
+    using Crest.Host.Serialization.Internal;
 
     /// <summary>
-    /// The base class for runtime serializers that output JSON.
+    /// Used to format the output as JSON.
     /// </summary>
-    public class JsonFormatter : IClassSerializer<byte[]>, IDisposable
+    internal class JsonFormatter : IFormatter, IDisposable
     {
         private readonly JsonStreamReader reader;
         private readonly JsonStreamWriter writer;
@@ -37,25 +38,8 @@ namespace Crest.Host.Serialization.Json
             }
         }
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="JsonFormatter"/> class.
-        /// </summary>
-        /// <param name="parent">The serializer this instance belongs to.</param>
-        protected JsonFormatter(JsonFormatter parent)
-        {
-            this.reader = parent.reader;
-            this.writer = parent.writer;
-        }
-
-        /// <summary>
-        /// Gets a value indicating whether the generated classes should output
-        /// the names for <c>enum</c> values or not.
-        /// </summary>
-        /// <remarks>
-        /// Always returns <c>false</c>, therefore, the generated JSON will use
-        /// numbers for the enumeration values.
-        /// </remarks>
-        public static bool OutputEnumNames => false;
+        /// <inheritdoc />
+        public bool EnumsAsIntegers => true;
 
         /// <inheritdoc />
         public ValueReader Reader => this.reader;
@@ -68,7 +52,7 @@ namespace Crest.Host.Serialization.Json
         /// </summary>
         /// <param name="property">The property information.</param>
         /// <returns>The metadata to store for the property.</returns>
-        public static byte[] GetMetadata(PropertyInfo property)
+        public static object GetMetadata(PropertyInfo property)
         {
             DisplayNameAttribute displayName =
                 property.GetCustomAttribute<DisplayNameAttribute>();
@@ -90,42 +74,10 @@ namespace Crest.Host.Serialization.Json
         }
 
         /// <inheritdoc />
-        public void BeginRead(byte[] metadata)
-        {
-            // We don't need to do anything
-        }
-
-        /// <inheritdoc />
-        public void BeginWrite(byte[] metadata)
-        {
-            // We don't need to do anything
-        }
-
-        /// <inheritdoc />
         public void Dispose()
         {
             this.Dispose(true);
             GC.SuppressFinalize(this);
-        }
-
-        /// <inheritdoc />
-        public void EndRead()
-        {
-            // We don't need to do anything
-        }
-
-        /// <inheritdoc />
-        public void EndWrite()
-        {
-            // We don't need to do anything
-        }
-
-        /// <summary>
-        /// Implementation of the <see cref="ITypeSerializer.Flush"/> method.
-        /// </summary>
-        public virtual void Flush()
-        {
-            this.writer.Flush();
         }
 
         /// <inheritdoc />
@@ -143,7 +95,7 @@ namespace Crest.Host.Serialization.Json
         }
 
         /// <inheritdoc />
-        public void ReadBeginClass(byte[] metadata)
+        public void ReadBeginClass(object metadata)
         {
             this.reader.ExpectToken('{');
         }
@@ -152,6 +104,12 @@ namespace Crest.Host.Serialization.Json
         public void ReadBeginClass(string className)
         {
             this.ReadBeginClass((byte[])null);
+        }
+
+        /// <inheritdoc />
+        public void ReadBeginPrimitive(object metadata)
+        {
+            // We don't need to do anything
         }
 
         /// <inheritdoc />
@@ -188,6 +146,12 @@ namespace Crest.Host.Serialization.Json
         }
 
         /// <inheritdoc />
+        public void ReadEndPrimitive()
+        {
+            // We don't need to do anything
+        }
+
+        /// <inheritdoc />
         public void ReadEndProperty()
         {
             // This is slightly less strict and allows for trailing commas, i.e.
@@ -203,7 +167,7 @@ namespace Crest.Host.Serialization.Json
         }
 
         /// <inheritdoc />
-        public void WriteBeginClass(byte[] metadata)
+        public void WriteBeginClass(object metadata)
         {
             this.writer.AppendByte((byte)'{');
             this.hasPropertyWritten = false;
@@ -212,14 +176,20 @@ namespace Crest.Host.Serialization.Json
         /// <inheritdoc />
         public void WriteBeginClass(string className)
         {
-            this.WriteBeginClass((byte[])null);
+            this.WriteBeginClass((object)null);
         }
 
         /// <inheritdoc />
-        public void WriteBeginProperty(byte[] propertyMetadata)
+        public void WriteBeginPrimitive(object metadata)
+        {
+            // We don't need to do anything
+        }
+
+        /// <inheritdoc />
+        public void WriteBeginProperty(object metadata)
         {
             this.WritePropertySeparator();
-            this.writer.AppendBytes(propertyMetadata);
+            this.writer.AppendBytes((byte[])metadata);
         }
 
         /// <inheritdoc />
@@ -246,6 +216,12 @@ namespace Crest.Host.Serialization.Json
         public void WriteEndClass()
         {
             this.writer.AppendByte((byte)'}');
+        }
+
+        /// <inheritdoc />
+        public void WriteEndPrimitive()
+        {
+            // We don't need to do anything
         }
 
         /// <inheritdoc />
