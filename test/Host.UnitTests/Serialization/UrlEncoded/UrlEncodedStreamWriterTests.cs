@@ -3,7 +3,7 @@ namespace Host.UnitTests.Serialization.UrlEncoded
     using System;
     using System.IO;
     using System.Text;
-    using Crest.Host.Serialization;
+    using Crest.Host.Serialization.UrlEncoded;
     using FluentAssertions;
     using Xunit;
 

@@ -3,7 +3,7 @@
     using System;
     using System.IO;
     using System.Text;
-    using Crest.Host.Serialization;
+    using Crest.Host.Serialization.UrlEncoded;
     using FluentAssertions;
     using Xunit;
 
@@ -180,8 +180,16 @@
             }
         }
 
-        public sealed class ReadString : XmlStreamReaderTests
+        public sealed class ReadString : UrlEncodedStreamReaderTests
         {
+            [Fact]
+            public void ShouldAllowEqualsWithinTheString()
+            {
+                string result = ReadValue("key=string=value", r => r.ReadString());
+
+                result.Should().Be("string=value");
+            }
+
             [Fact]
             public void ShouldReadEmptyValues()
             {
@@ -196,14 +204,6 @@
                 string result = ReadValue("key=string+value", r => r.ReadString());
 
                 result.Should().Be("string value");
-            }
-
-            [Fact]
-            public void ShouldAllowEqualsWithinTheString()
-            {
-                string result = ReadValue("key=string=value", r => r.ReadString());
-
-                result.Should().Be("string=value");
             }
         }
     }

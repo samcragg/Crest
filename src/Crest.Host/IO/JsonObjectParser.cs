@@ -7,7 +7,7 @@ namespace Crest.Host.IO
 {
     using System;
     using System.Collections.Generic;
-    using Crest.Host.Serialization;
+    using Crest.Host.Serialization.Json;
 
     /// <summary>
     /// Allows the parsing of key/value pairs from JSON data.
@@ -40,6 +40,34 @@ namespace Crest.Host.IO
         public void Dispose()
         {
             this.stringBuffer.Dispose();
+        }
+
+        /// <summary>
+        /// Gets the values from an array as strings.
+        /// </summary>
+        /// <returns>A sequence of strings representing the values in the array.</returns>
+        public IEnumerable<string> GetArrayValues()
+        {
+            this.SkipWhiteSpace();
+            this.Expect('[');
+
+            // Special check for empty objects
+            this.SkipWhiteSpace();
+            if (this.iterator.Current == ']')
+            {
+                yield break;
+            }
+
+            do
+            {
+                this.SkipWhiteSpace();
+                yield return this.ReadValue();
+
+                this.SkipWhiteSpace();
+            }
+            while (this.TryRead(','));
+
+            this.Expect(']');
         }
 
         /// <summary>
@@ -78,34 +106,6 @@ namespace Crest.Host.IO
             while (this.TryRead(','));
 
             this.Expect('}');
-        }
-
-        /// <summary>
-        /// Gets the values from an array as strings.
-        /// </summary>
-        /// <returns>A sequence of strings representing the values in the array.</returns>
-        public IEnumerable<string> GetArrayValues()
-        {
-            this.SkipWhiteSpace();
-            this.Expect('[');
-
-            // Special check for empty objects
-            this.SkipWhiteSpace();
-            if (this.iterator.Current == ']')
-            {
-                yield break;
-            }
-
-            do
-            {
-                this.SkipWhiteSpace();
-                yield return this.ReadValue();
-
-                this.SkipWhiteSpace();
-            }
-            while (this.TryRead(','));
-
-            this.Expect(']');
         }
 
         private static bool IsWhiteSpace(char b)
