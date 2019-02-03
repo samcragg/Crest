@@ -1,6 +1,6 @@
 ﻿namespace Host.UnitTests.Serialization.UrlEncoded
 {
-    using Crest.Host.Serialization;
+    using Crest.Host.Serialization.UrlEncoded;
     using FluentAssertions;
     using Xunit;
 

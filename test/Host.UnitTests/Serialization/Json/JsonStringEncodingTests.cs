@@ -4,7 +4,7 @@
     using System.IO;
     using System.Text;
     using Crest.Host.IO;
-    using Crest.Host.Serialization;
+    using Crest.Host.Serialization.Json;
     using FluentAssertions;
     using Xunit;
 
