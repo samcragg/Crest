@@ -8,14 +8,14 @@
   
   <!-- Analyzers -->
   <ItemGroup>
-    <PackageReference Include="StyleCop.Analyzers" Version="1.1.1-beta.61" PrivateAssets="All" />
+    <PackageReference Include="StyleCop.Analyzers" Version="1.1.1-rc.94" PrivateAssets="All" />
   </ItemGroup>
   
   <!-- These analyzers are quite slow so only perform them as part of a release -->
   <!-- build so that when developing in VS under debug it remains quick -->
   <ItemGroup Condition="'$(Configuration)'=='Release'">
-    <PackageReference Include="Microsoft.CodeAnalysis.FxCopAnalyzers" Version="2.6.2" PrivateAssets="All" />
+    <PackageReference Include="Microsoft.CodeAnalysis.FxCopAnalyzers" Version="2.6.3" PrivateAssets="All" />
     <PackageReference Include="SecurityCodeScan" Version="3.0.0" PrivateAssets="All" />
-    <PackageReference Include="SonarAnalyzer.CSharp" Version="7.9.1.7622" PrivateAssets="All" />
+    <PackageReference Include="SonarAnalyzer.CSharp" Version="7.10.0.7896" PrivateAssets="All" />
   </ItemGroup>
 </Project>

@@ -10,7 +10,7 @@
   <Import Project="..\CrestPackage.targets" />
 
   <ItemGroup>
-    <PackageReference Include="LibLog" Version="5.0.3" PrivateAsserts="All" />
+    <PackageReference Include="LibLog" Version="5.0.6" PrivateAsserts="All" />
   </ItemGroup>
 
   <ItemGroup>

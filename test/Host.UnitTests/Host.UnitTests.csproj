@@ -14,7 +14,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Crest.Host\Crest.Host.csproj" />
-    <PackageReference Include="Fody" Version="3.3.3" />
-    <PackageReference Include="ModuleInit.Fody" Version="1.8.3" />
+    <PackageReference Include="Fody" Version="3.3.5" />
+    <PackageReference Include="ModuleInit.Fody" Version="1.9.0" />
   </ItemGroup>
 </Project>
