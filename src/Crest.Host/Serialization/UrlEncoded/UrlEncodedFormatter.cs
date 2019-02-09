@@ -15,7 +15,7 @@ namespace Crest.Host.Serialization.UrlEncoded
     /// <summary>
     /// The base class for runtime serializers that output JSON.
     /// </summary>
-    public class UrlEncodedFormatter : IFormatter
+    internal class UrlEncodedFormatter : IFormatter
     {
         private readonly UrlEncodedStreamReader reader;
         private readonly UrlEncodedStreamWriter writer;
@@ -37,16 +37,6 @@ namespace Crest.Host.Serialization.UrlEncoded
             {
                 this.writer = new UrlEncodedStreamWriter(stream);
             }
-        }
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="UrlEncodedFormatter"/> class.
-        /// </summary>
-        /// <param name="parent">The serializer this instance belongs to.</param>
-        protected UrlEncodedFormatter(UrlEncodedFormatter parent)
-        {
-            this.reader = parent.reader;
-            this.writer = parent.writer;
         }
 
         /// <inheritdoc />

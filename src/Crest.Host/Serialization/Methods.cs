@@ -108,17 +108,8 @@ namespace Crest.Host.Serialization
                     .GetProperty(nameof(IClassReader.Reader))
                     .GetGetMethod();
 
-                this.ReadBeginArray = typeof(IClassReader)
-                    .GetMethod(nameof(IClassReader.ReadBeginArray));
-
                 this.ReadBeginProperty = typeof(IClassReader)
                     .GetMethod(nameof(IClassReader.ReadBeginProperty));
-
-                this.ReadElementSeparator = typeof(IClassReader)
-                    .GetMethod(nameof(IClassReader.ReadElementSeparator));
-
-                this.ReadEndArray = typeof(IClassReader)
-                    .GetMethod(nameof(IClassReader.ReadEndArray));
 
                 this.ReadEndClass = typeof(IClassReader)
                     .GetMethod(nameof(IClassReader.ReadEndClass));
@@ -133,24 +124,9 @@ namespace Crest.Host.Serialization
             public MethodInfo GetReader { get; }
 
             /// <summary>
-            /// Gets the metadata for the <see cref="IClassReader.ReadBeginArray(Type)"/> method.
-            /// </summary>
-            public MethodInfo ReadBeginArray { get; }
-
-            /// <summary>
             /// Gets the metadata for the <see cref="IClassReader.ReadBeginProperty"/> method.
             /// </summary>
             public MethodInfo ReadBeginProperty { get; }
-
-            /// <summary>
-            /// Gets the metadata for the <see cref="IClassReader.ReadElementSeparator"/> method.
-            /// </summary>
-            public MethodInfo ReadElementSeparator { get; }
-
-            /// <summary>
-            /// Gets the metadata for the <see cref="IClassReader.ReadEndArray"/> method.
-            /// </summary>
-            public MethodInfo ReadEndArray { get; }
 
             /// <summary>
             /// Gets the metadata for the <see cref="IClassReader.ReadEndClass"/> method.
@@ -177,15 +153,6 @@ namespace Crest.Host.Serialization
                     .GetProperty(nameof(IClassWriter.Writer))
                     .GetGetMethod();
 
-                this.WriteBeginArray = typeof(IClassWriter)
-                    .GetMethod(nameof(IClassWriter.WriteBeginArray));
-
-                this.WriteElementSeparator = typeof(IClassWriter)
-                    .GetMethod(nameof(IClassWriter.WriteElementSeparator));
-
-                this.WriteEndArray = typeof(IClassWriter)
-                    .GetMethod(nameof(IClassWriter.WriteEndArray));
-
                 this.WriteEndClass = typeof(IClassWriter)
                     .GetMethod(nameof(IClassWriter.WriteEndClass));
 
@@ -197,21 +164,6 @@ namespace Crest.Host.Serialization
             /// Gets the metadata for the <see cref="IClassWriter.Writer"/> property.
             /// </summary>
             public MethodInfo GetWriter { get; }
-
-            /// <summary>
-            /// Gets the metadata for the <see cref="IClassWriter.WriteBeginArray(Type, int)"/> method.
-            /// </summary>
-            public MethodInfo WriteBeginArray { get; }
-
-            /// <summary>
-            /// Gets the metadata for the <see cref="IClassWriter.WriteElementSeparator"/> method.
-            /// </summary>
-            public MethodInfo WriteElementSeparator { get; }
-
-            /// <summary>
-            /// Gets the metadata for the <see cref="IClassWriter.WriteEndArray"/> method.
-            /// </summary>
-            public MethodInfo WriteEndArray { get; }
 
             /// <summary>
             /// Gets the metadata for the <see cref="IClassWriter.WriteEndClass"/> method.
