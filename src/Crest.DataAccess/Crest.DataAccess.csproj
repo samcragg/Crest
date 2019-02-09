@@ -11,6 +11,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Crest.Abstractions\Crest.Abstractions.csproj" />
     <ProjectReference Include="..\Crest.Core\Crest.Core.csproj" />
+    <PackageReference Include="Microsoft.CSharp" Version="4.5.0" />
   </ItemGroup>
 
   <ItemGroup>
