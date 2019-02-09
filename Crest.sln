@@ -11,6 +11,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		src\CrestPackage.targets = src\CrestPackage.targets
 		src\GlobalSuppressions.cs = src\GlobalSuppressions.cs
 		src\stylecop.json = src\stylecop.json
+		test\UnitTest.targets = test\UnitTest.targets
+		test\UnitTestPackages.targets = test\UnitTestPackages.targets
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{4AC83345-188A-4923-8909-57700B269054}"
