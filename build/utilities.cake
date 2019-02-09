@@ -70,7 +70,8 @@ void RunTestWithCoverage(
         "[*]DryIoc.*",
         "[*]FastExpressionCompiler.*",
         "[*]ImTools.*",
-        "[*]*.Logging.*"
+        "[*]*.Logging.*",
+        "[xunit*]*",
     };
 
     EnsureDirectoryExists(outputFolder);
