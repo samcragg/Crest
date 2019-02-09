@@ -8,7 +8,7 @@
 
     public class MethodsTests
     {
-        private readonly Methods methods = new Methods(typeof(FakeSerializerBase));
+        private readonly Methods methods = new Methods();
 
         public sealed class ValueWriter : MethodsTests
         {

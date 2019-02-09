@@ -12,8 +12,9 @@ namespace Crest.Host.Serialization
     /// <summary>
     /// Generates serializers at runtime for specific types.
     /// </summary>
-    /// <typeparam name="TBase">The type of the base class.</typeparam>
-    internal interface ISerializerGenerator<TBase>
+    /// <typeparam name="T">The type of the formatter class.</typeparam>
+    internal interface ISerializerGenerator<T>
+        where T : IFormatter
     {
         /// <summary>
         /// Deserializes the specified type from the stream.
@@ -24,12 +25,10 @@ namespace Crest.Host.Serialization
         object Deserialize(Stream stream, Type type);
 
         /// <summary>
-        /// Gets a serializer for the specific type, generating a type if one
-        /// doesn't already exist.
+        /// Ensures a serializer for the specific type exists.
         /// </summary>
         /// <param name="classType">The class to serialize.</param>
-        /// <returns>A type implementing <see cref="ITypeSerializer"/>.</returns>
-        Type GetSerializerFor(Type classType);
+        void Prime(Type classType);
 
         /// <summary>
         /// Serializes the specified value to the stream.

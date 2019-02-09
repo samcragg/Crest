@@ -1,6 +1,7 @@
 namespace Host.UnitTests.Serialization
 {
     using System;
+    using System.Collections.Generic;
     using System.Reflection;
     using Crest.Host.Serialization;
     using FluentAssertions;
@@ -8,40 +9,44 @@ namespace Host.UnitTests.Serialization
 
     public class MetadataBuilderTests
     {
-        private readonly MetadataBuilder builder;
-
-        public MetadataBuilderTests()
-        {
-            MethodInfo method = typeof(MetadataBuilderTests).GetMethod(nameof(MetadataMethod));
-            this.builder = new MetadataBuilder(method);
-        }
-
-        public static string MetadataMethod(PropertyInfo property)
-        {
-            return property.Name;
-        }
+        private readonly MetadataBuilder builder = new MetadataBuilder(0);
 
         private static PropertyInfo GetProperty(string name)
         {
             return typeof(FakeClass).GetProperty(name);
         }
 
-        public sealed class GetMetadataArray : MetadataBuilderTests
+        public sealed class CreateMetadata : MetadataBuilderTests
         {
             [Fact]
-            public void ShouldReturnAllAddedTheMetadata()
+            public void ShouldReturnAllAddedTheProperties()
             {
                 this.builder.GetOrAddMetadata(GetProperty(nameof(FakeClass.Property1)));
                 this.builder.GetOrAddMetadata(GetProperty(nameof(FakeClass.Property2)));
                 this.builder.GetOrAddMetadata(GetProperty(nameof(FakeClass.Property3)));
 
-                Array result = this.builder.GetMetadataArray(typeof(string));
+                IReadOnlyList<object> result = this.builder.CreateMetadata<FakeBaseClass>();
 
                 result.Should().BeEquivalentTo(new object[]
                 {
                     nameof(FakeClass.Property1),
                     nameof(FakeClass.Property2),
                     nameof(FakeClass.Property3),
+                });
+            }
+
+            [Fact]
+            public void ShouldReturnAllAddedTheTypes()
+            {
+                this.builder.GetOrAddMetadata(typeof(FakeBaseClass));
+                this.builder.GetOrAddMetadata(typeof(FakeClass));
+
+                IReadOnlyList<object> result = this.builder.CreateMetadata<FakeBaseClass>();
+
+                result.Should().BeEquivalentTo(new object[]
+                {
+                    nameof(FakeBaseClass),
+                    nameof(FakeClass),
                 });
             }
         }
@@ -56,16 +61,18 @@ namespace Host.UnitTests.Serialization
 
                 first.Should().Be(second);
             }
+        }
 
-            [Fact]
-            public void ShouldReturnTheIndexOfTheExistingType()
+        private class FakeBaseClass
+        {
+            public static string GetMetadata(PropertyInfo property)
             {
-                int callcount = 0;
-                int first = this.builder.GetOrAddMetadata(typeof(FakeClass), () => callcount++);
-                int second = this.builder.GetOrAddMetadata(typeof(FakeClass), () => callcount++);
+                return property.Name;
+            }
 
-                first.Should().Be(second);
-                callcount.Should().Be(1);
+            public static string GetTypeMetadata(Type type)
+            {
+                return type.Name;
             }
         }
 

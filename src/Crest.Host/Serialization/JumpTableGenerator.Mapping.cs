@@ -5,21 +5,27 @@
 
 namespace Crest.Host.Serialization
 {
-    using System;
-    using System.Reflection.Emit;
+    using System.Linq.Expressions;
 
     /// <content>
-    /// Contains the nested <see cref="Mapping"/> class.
+    /// Contains the nested <see cref="Mapping"/> struct.
     /// </content>
-    internal sealed partial class JumpTableGenerator
+    internal partial class JumpTableGenerator
     {
-        private class Mapping
+        private readonly struct Mapping
         {
-            public Action<ILGenerator> Body { get; set; }
+            public Mapping(string key, Expression body)
+            {
+                this.Body = body;
+                this.HashCode = CaseInsensitiveStringHelper.GetHashCode(key);
+                this.Key = key;
+            }
 
-            public uint HashCode { get; set; }
+            public Expression Body { get; }
 
-            public string Key { get; set; }
+            public int HashCode { get; }
+
+            public string Key { get; }
         }
     }
 }

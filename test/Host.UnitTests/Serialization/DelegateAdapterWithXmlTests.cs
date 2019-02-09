@@ -1,21 +1,39 @@
 ﻿namespace Host.UnitTests.Serialization
 {
-    using Crest.Host.Serialization.Internal;
+    using Crest.Host.Serialization.Xml;
     using FluentAssertions;
     using Xunit;
 
-    public class SerializerGeneratorWithJsonTests : SerializerGeneratorIntegrationTest<JsonSerializerBase>
+    public class DelegateAdapterWithXmlTests : DelegateAdapterIntegrationTest
     {
-        public sealed class PlainOldDataClassesDeserialize : SerializerGeneratorWithJsonTests
+        private const string NilAttribute = @"xmlns:i='http://www.w3.org/2001/XMLSchema-instance' i:nil='true'";
+
+        public DelegateAdapterWithXmlTests()
+            : base(typeof(XmlFormatter))
+        {
+        }
+
+        protected override string StripNonEssentialInformation(string result)
+        {
+            // Strip the <?xml ... ?> part
+            result = result.Substring(result.IndexOf("?>") + 2);
+
+            // Strip the namespace used for null values
+            return result.Replace(@" xmlns:i=""http://www.w3.org/2001/XMLSchema-instance""", string.Empty);
+        }
+
+        public sealed class PlainOldDataClassesDeserialize : DelegateAdapterWithXmlTests
         {
             [Fact]
             public void ArrayProperties()
             {
                 FullClass result = this.Deserialize<FullClass>(
-                    @"{ ""enumArray"": [1],
-                        ""integerArray"": [1],
-                        ""nullableIntegerArray"": [1],
-                        ""stringArray"": [""string""] }");
+                    @"<FullClass>
+                        <EnumArray><TestEnum>Value</TestEnum></EnumArray>
+                        <IntegerArray><int>1</int></IntegerArray>
+                        <NullableIntegerArray><int>1</int></NullableIntegerArray>
+                        <StringArray><string>string</string></StringArray>
+                      </FullClass>");
 
                 result.EnumArray.Should().Equal(TestEnum.Value);
                 result.IntegerArray.Should().Equal(1);
@@ -27,8 +45,10 @@
             public void NestedClasses()
             {
                 FullClass result = this.Deserialize<FullClass>(
-                    @"{ ""class"": { ""integer"": 1 },
-                        ""classArray"": [{ ""integer"": 2 }] }");
+                    @"<FullClass>
+                        <Class><Integer>1</Integer></Class>
+                        <ClassArray><SimpleClass><Integer>2</Integer></SimpleClass></ClassArray>
+                      </FullClass>");
 
                 result.Class.Integer.Should().Be(1);
                 result.ClassArray.Should().ContainSingle()
@@ -36,7 +56,7 @@
             }
         }
 
-        public sealed class PlainOldDataClassesSerialize : SerializerGeneratorWithJsonTests
+        public sealed class PlainOldDataClassesSerialize : DelegateAdapterWithXmlTests
         {
             [Fact]
             public void ArrayProperties()
@@ -49,10 +69,14 @@
                         NullableIntegerArray = new int?[] { 1 },
                         StringArray = new[] { "string" }
                     },
-                    @"{ ""enumArray"": [1],
-                        ""integerArray"": [1],
-                        ""nullableIntegerArray"": [1],
-                        ""stringArray"": [""string""] }");
+                    @"<FullClass>
+                        <Enum>0</Enum><Integer>0</Integer>
+
+                        <EnumArray><TestEnum>Value</TestEnum></EnumArray>
+                        <IntegerArray><int>1</int></IntegerArray>
+                        <NullableIntegerArray><int>1</int></NullableIntegerArray>
+                        <StringArray><string>string</string></StringArray>
+                      </FullClass>");
             }
 
             [Fact]
@@ -64,8 +88,12 @@
                         Class = new SimpleClass { Integer = 1 },
                         ClassArray = new[] { new SimpleClass { Integer = 2 } }
                     },
-                    @"{ ""class"": { ""integer"": 1 },
-                        ""classArray"": [{ ""integer"": 2 }] }");
+                    @"<FullClass>
+                        <Enum>0</Enum><Integer>0</Integer>
+
+                        <Class><Integer>1</Integer></Class>
+                        <ClassArray><SimpleClass><Integer>2</Integer></SimpleClass></ClassArray>
+                      </FullClass>");
             }
 
             [Fact]
@@ -73,24 +101,25 @@
             {
                 this.ShouldSerializeAs(
                     new FullClass { Enum = TestEnum.Value, Integer = 2 },
-                    "{ \"enum\":1, \"integer\":2 }");
-            }
-
-            protected override string StripNonEssentialInformation(string result)
-            {
-                // The integer and enum properties will always be serializer,
-                // so strip them if they have their default values
-                return result.Replace("\"enum\":0,\"integer\":0,", string.Empty);
+                    @"<FullClass>
+                        <Enum>Value</Enum>
+                        <Integer>2</Integer>
+                      </FullClass>");
             }
         }
 
-        public sealed class RootArraysDeserialize : SerializerGeneratorWithJsonTests
+        public sealed class RootArraysDeserialize : DelegateAdapterWithXmlTests
         {
             [Fact]
             public void ClassType()
             {
                 SimpleClass[] result = this.Deserialize<SimpleClass[]>(
-                    "[ { \"integer\": 1 }, null ]");
+                    @"<ArrayOfSimpleClass>
+                        <SimpleClass>
+                          <Integer>1</Integer>
+                        </SimpleClass>
+                        <SimpleClass " + NilAttribute + @" />
+                      </ArrayOfSimpleClass>");
 
                 result.Should().HaveCount(2);
                 result[0].Integer.Should().Be(1);
@@ -100,7 +129,7 @@
             [Fact]
             public void EmptyArrays()
             {
-                int[] result = this.Deserialize<int[]>("[]");
+                int[] result = this.Deserialize<int[]>("<ArrayOfint />");
 
                 result.Should().BeEmpty();
             }
@@ -109,7 +138,10 @@
             public void EnumType()
             {
                 TestEnum[] result = this.Deserialize<TestEnum[]>(
-                    "[ 1, 1 ]");
+                    @"<ArrayOfTestEnum>
+                        <TestEnum>Value</TestEnum>
+                        <TestEnum>Value</TestEnum>
+                      </ArrayOfTestEnum>");
 
                 result.Should().HaveCount(2);
                 result.Should().HaveElementAt(0, TestEnum.Value);
@@ -120,7 +152,10 @@
             public void IntegerType()
             {
                 int[] result = this.Deserialize<int[]>(
-                    "[ 1, 2 ]");
+                    @"<ArrayOfint>
+                        <int>1</int>
+                        <int>2</int>
+                      </ArrayOfint>");
 
                 result.Should().HaveCount(2);
                 result.Should().HaveElementAt(0, 1);
@@ -131,7 +166,10 @@
             public void NullableType()
             {
                 int?[] result = this.Deserialize<int?[]>(
-                    "[ 1, null ]");
+                    @"<ArrayOfint>
+                        <int>1</int>
+                        <int " + NilAttribute + @" />
+                      </ArrayOfint>");
 
                 result.Should().HaveCount(2);
                 result.Should().HaveElementAt(0, 1);
@@ -142,7 +180,10 @@
             public void StringType()
             {
                 string[] result = this.Deserialize<string[]>(
-                    "[ \"string\", null ]");
+                    @"<ArrayOfstring>
+                        <string>string</string>
+                        <string " + NilAttribute + @" />
+                      </ArrayOfstring>");
 
                 result.Should().HaveCount(2);
                 result.Should().HaveElementAt(0, "string");
@@ -150,7 +191,7 @@
             }
         }
 
-        public sealed class RootArraysSerialize : SerializerGeneratorWithJsonTests
+        public sealed class RootArraysSerialize : DelegateAdapterWithXmlTests
         {
             [Fact]
             public void ClassType()
@@ -158,10 +199,15 @@
                 this.ShouldSerializeAs(
                     new[]
                     {
-                        new SimpleClass{ Integer = 1 },
+                        new SimpleClass { Integer = 1 },
                         null
                     },
-                    "[ { \"integer\": 1 }, null ]");
+                    @"<ArrayOfSimpleClass>
+                        <SimpleClass>
+                          <Integer>1</Integer>
+                        </SimpleClass>
+                        <SimpleClass i:nil=""true"" />
+                      </ArrayOfSimpleClass>");
             }
 
             [Fact]
@@ -169,7 +215,10 @@
             {
                 this.ShouldSerializeAs(
                     new[] { TestEnum.Value, TestEnum.Value },
-                    "[ 1, 1 ]");
+                    @"<ArrayOfTestEnum>
+                        <TestEnum>Value</TestEnum>
+                        <TestEnum>Value</TestEnum>
+                      </ArrayOfTestEnum>");
             }
 
             [Fact]
@@ -177,7 +226,10 @@
             {
                 this.ShouldSerializeAs(
                     new[] { 1, 2 },
-                    "[ 1, 2 ]");
+                    @"<ArrayOfint>
+                        <int>1</int>
+                        <int>2</int>
+                      </ArrayOfint>");
             }
 
             [Fact]
@@ -185,7 +237,10 @@
             {
                 this.ShouldSerializeAs(
                     new int?[] { 1, null },
-                    "[ 1, null ]");
+                    @"<ArrayOfint>
+                        <int>1</int>
+                        <int i:nil=""true"" />
+                      </ArrayOfint>");
             }
 
             [Fact]
@@ -193,17 +248,22 @@
             {
                 this.ShouldSerializeAs(
                     new[] { "string", null },
-                    "[ \"string\", null ]");
+                    @"<ArrayOfstring>
+                        <string>string</string>
+                        <string i:nil=""true"" />
+                      </ArrayOfstring>");
             }
         }
 
-        public sealed class RootTypesDeserialize : SerializerGeneratorWithJsonTests
+        public sealed class RootTypesDeserialize : DelegateAdapterWithXmlTests
         {
             [Fact]
             public void ClassType()
             {
                 SimpleClass result = this.Deserialize<SimpleClass>(
-                    "{ \"integer\": 1 }");
+                    @"<SimpleClass>
+                        <Integer>1</Integer>
+                      </SimpleClass>");
 
                 result.Integer.Should().Be(1);
             }
@@ -211,7 +271,15 @@
             [Fact]
             public void EnumType()
             {
-                TestEnum result = this.Deserialize<TestEnum>("1");
+                TestEnum result = this.Deserialize<TestEnum>("<TestEnum>Value</TestEnum>");
+
+                result.Should().Be(TestEnum.Value);
+            }
+
+            [Fact]
+            public void EnumNullableType()
+            {
+                TestEnum? result = this.Deserialize<TestEnum?>("<TestEnum>Value</TestEnum>");
 
                 result.Should().Be(TestEnum.Value);
             }
@@ -219,7 +287,7 @@
             [Fact]
             public void IntegerType()
             {
-                int result = this.Deserialize<int>("1");
+                int result = this.Deserialize<int>("<int>1</int>");
 
                 result.Should().Be(1);
             }
@@ -227,7 +295,7 @@
             [Fact]
             public void NullableTypeWithoutValue()
             {
-                int? result = this.Deserialize<int?>("null");
+                int? result = this.Deserialize<int?>("<int " + NilAttribute + "/>");
 
                 result.Should().BeNull();
             }
@@ -235,7 +303,7 @@
             [Fact]
             public void NullableTypeWithValue()
             {
-                int? result = this.Deserialize<int?>("1");
+                int? result = this.Deserialize<int?>("<int>1</int>");
 
                 result.Should().Be(1);
             }
@@ -243,20 +311,22 @@
             [Fact]
             public void StringType()
             {
-                string result = this.Deserialize<string>("\"string\"");
+                string result = this.Deserialize<string>("<string>string value</string>");
 
-                result.Should().Be("string");
+                result.Should().Be("string value");
             }
         }
 
-        public sealed class RootTypesSerialize : SerializerGeneratorWithJsonTests
+        public sealed class RootTypesSerialize : DelegateAdapterWithXmlTests
         {
             [Fact]
             public void ClassType()
             {
                 this.ShouldSerializeAs(
                     new SimpleClass { Integer = 1 },
-                    "{ \"integer\": 1 }");
+                    @"<SimpleClass>
+                        <Integer>1</Integer>
+                      </SimpleClass>");
             }
 
             [Fact]
@@ -264,7 +334,7 @@
             {
                 this.ShouldSerializeAs(
                     TestEnum.Value,
-                    "1");
+                    "<TestEnum>Value</TestEnum>");
             }
 
             [Fact]
@@ -272,7 +342,7 @@
             {
                 this.ShouldSerializeAs(
                     1,
-                    "1");
+                    "<int>1</int>");
             }
 
             [Fact]
@@ -280,7 +350,7 @@
             {
                 this.ShouldSerializeAs(
                     (int?)1,
-                    "1");
+                    "<int>1</int>");
             }
 
             [Fact]
@@ -288,7 +358,7 @@
             {
                 this.ShouldSerializeAs(
                     "string",
-                    "\"string\"");
+                    "<string>string</string>");
             }
         }
     }

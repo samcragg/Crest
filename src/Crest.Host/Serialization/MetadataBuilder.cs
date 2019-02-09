@@ -12,68 +12,64 @@ namespace Crest.Host.Serialization
     /// <summary>
     /// Provides methods to help build the metadata cache for serialization.
     /// </summary>
-    internal sealed class MetadataBuilder
+    internal partial class MetadataBuilder
     {
-        private readonly Func<PropertyInfo, object> getPropertyMetadata;
+        private const string MetadataMethodName = "GetMetadata";
+        private const BindingFlags PublicStatic = BindingFlags.FlattenHierarchy | BindingFlags.Public | BindingFlags.Static;
+        private const string TypeMetadataMethodName = "GetTypeMetadata";
+
         private readonly Dictionary<MemberInfo, int> indexes = new Dictionary<MemberInfo, int>();
-        private readonly List<object> metadata = new List<object>();
+        private readonly int offset;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="MetadataBuilder"/> class.
         /// </summary>
-        /// <param name="metadataMethod">The method to supply the metadata.</param>
-        public MetadataBuilder(MethodInfo metadataMethod)
+        /// <param name="initialCount">
+        /// The value to start the index counting from.
+        /// </param>
+        public MetadataBuilder(int initialCount)
         {
-            this.getPropertyMetadata = (Func<PropertyInfo, object>)metadataMethod.CreateDelegate(
-                typeof(Func<PropertyInfo, object>));
+            this.offset = initialCount;
         }
 
         /// <summary>
-        /// Creates a copy of the metadata added to this instance.
+        /// Gets the metadata for the members added to this instance.
         /// </summary>
-        /// <param name="type">The type for the array.</param>
+        /// <typeparam name="T">The type to generate the metadata for.</typeparam>
         /// <returns>An array containing the metadata.</returns>
-        public Array GetMetadataArray(Type type)
+        public virtual IReadOnlyList<object> CreateMetadata<T>()
         {
-            var value = Array.CreateInstance(type, this.metadata.Count);
-            this.metadata.CopyTo((object[])value);
-            return value;
-        }
-
-        /// <summary>
-        /// Gets the index of the metadata in the array, adding it to the array
-        /// if it does not currently exist.
-        /// </summary>
-        /// <param name="property">The property to get the metadata for.</param>
-        /// <returns>The index in the metadata array for the property.</returns>
-        public int GetOrAddMetadata(PropertyInfo property)
-        {
-            if (!this.indexes.TryGetValue(property, out int index))
+            object[] array = new object[this.indexes.Count];
+            foreach (KeyValuePair<MemberInfo, int> kvp in this.indexes)
             {
-                index = this.metadata.Count;
-                this.metadata.Add(this.getPropertyMetadata(property));
-                this.indexes.Add(property, index);
+                object metadata;
+                if (kvp.Key is PropertyInfo property)
+                {
+                    metadata = MetadataProvider<T>.PropertyMetadataAdapter(property);
+                }
+                else
+                {
+                    metadata = MetadataProvider<T>.TypeMetadataAdapter((Type)kvp.Key);
+                }
+
+                array[kvp.Value - this.offset] = metadata;
             }
 
-            return index;
+            return array;
         }
 
         /// <summary>
         /// Gets the index of the metadata in the array, adding it to the array
         /// if it does not currently exist.
         /// </summary>
-        /// <param name="type">The type to get the metadata for.</param>
-        /// <param name="getMetadata">
-        /// Used to create the metadata if it does not exist.
-        /// </param>
-        /// <returns>The index in the metadata array for the type.</returns>
-        public int GetOrAddMetadata(Type type, Func<object> getMetadata)
+        /// <param name="member">The member to get the metadata for.</param>
+        /// <returns>The index in the metadata array for the member.</returns>
+        public virtual int GetOrAddMetadata(MemberInfo member)
         {
-            if (!this.indexes.TryGetValue(type, out int index))
+            if (!this.indexes.TryGetValue(member, out int index))
             {
-                index = this.metadata.Count;
-                this.metadata.Add(getMetadata());
-                this.indexes.Add(type, index);
+                index = this.offset + this.indexes.Count;
+                this.indexes.Add(member, index);
             }
 
             return index;

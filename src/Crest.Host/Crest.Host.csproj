@@ -20,8 +20,16 @@
     <PackageReference Include="System.Reflection.DispatchProxy" Version="4.5.1" />
   </ItemGroup>
 
-  <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
-    <PackageReference Include="System.Reflection.Emit" Version="4.3.0" />
+  <ItemGroup>
+    <None Update="Serialization\PrimitiveDelegates.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>PrimitiveDelegates.cs</LastGenOutput>
+    </None>
+    <Compile Update="Serialization\PrimitiveDelegates.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>PrimitiveDelegates.tt</DependentUpon>
+    </Compile>
   </ItemGroup>
 
   <ItemGroup>
@@ -118,28 +126,28 @@
     <Compile Update="Security/SecurityKeyCache.KeyProvider.cs">
       <DependentUpon>SecurityKeyCache.cs</DependentUpon>
     </Compile>
-    <Compile Update="Serialization/ClassSerializerGenerator.ReadMethodEmitter.cs">
-      <DependentUpon>ClassSerializerGenerator.cs</DependentUpon>
+    <Compile Update="Serialization/DeserializeDelegateGenerator.Adapter.cs">
+      <DependentUpon>DeserializeDelegateGenerator.cs</DependentUpon>
     </Compile>
-    <Compile Update="Serialization/ClassSerializerGenerator.WriteMethodEmitter.cs">
-      <DependentUpon>ClassSerializerGenerator.cs</DependentUpon>
-    </Compile>
-    <Compile Update="Serialization/JumpTableGenerator.Mapping.cs">
-      <DependentUpon>JumpTableGenerator.cs</DependentUpon>
+    <Compile Update="Serialization/DeserializeDelegateGenerator.DelegateBuilder.cs">
+      <DependentUpon>DeserializeDelegateGenerator.cs</DependentUpon>
     </Compile>
     <Compile Update="Serialization/JumpTableGenerator.Mapping.cs">
       <DependentUpon>JumpTableGenerator.cs</DependentUpon>
     </Compile>
-    <Compile Update="Serialization/SerializerGenerator{TBase}.SerializerInfo.cs">
-      <DependentUpon>SerializerGenerator{TBase}.cs</DependentUpon>
+    <Compile Update="Serialization/MetadataBuilder.MetadataProvider.cs">
+      <DependentUpon>MetadataBuilder.cs</DependentUpon>
     </Compile>
-    <Compile Update="Serialization/TypeSerializerGenerator.TypeSerializerBuilder.cs">
-      <DependentUpon>TypeSerializerGenerator.cs</DependentUpon>
+    <Compile Update="Serialization/SerializeDelegateGenerator.Adapter.cs">
+      <DependentUpon>SerializeDelegateGenerator.cs</DependentUpon>
     </Compile>
-    <Compile Update="Serialization/UrlEncodedStreamReader.FormParser.cs">
+    <Compile Update="Serialization/SerializeDelegateGenerator.DelegateBuilder.cs">
+      <DependentUpon>SerializeDelegateGenerator.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Serialization/UrlEncoded/UrlEncodedStreamReader.FormParser.cs">
       <DependentUpon>UrlEncodedStreamReader.cs</DependentUpon>
     </Compile>
-    <Compile Update="Serialization/UrlEncodedStreamReader.Pair.cs">
+    <Compile Update="Serialization/UrlEncoded/UrlEncodedStreamReader.Pair.cs">
       <DependentUpon>UrlEncodedStreamReader.cs</DependentUpon>
     </Compile>
     <Compile Update="QueryLookup.Grouping.cs">

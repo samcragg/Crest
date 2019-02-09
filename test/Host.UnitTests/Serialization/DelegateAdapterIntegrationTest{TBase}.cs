@@ -1,33 +1,29 @@
 ﻿namespace Host.UnitTests.Serialization
 {
     using System;
+    using System.Collections.Generic;
     using System.IO;
+    using System.Linq.Expressions;
     using System.Reflection;
-    using System.Reflection.Emit;
     using System.Runtime.Serialization;
     using System.Text;
     using System.Text.RegularExpressions;
-    using Crest.Abstractions;
+    using Crest.Host.Engine;
     using Crest.Host.Serialization;
-    using Crest.Host.Serialization.Internal;
     using FluentAssertions;
-    using NSubstitute;
     using Xunit;
+    using IFormatter = Crest.Host.Serialization.Internal.IFormatter;
 
-    // This attribute is inherited to prevent the tests running in parallel
-    // due to the static ModuleBuilder property
-    [Collection(nameof(SerializerGenerator.ModuleBuilder))]
     [Trait("Category", "Integration")]
-    public abstract class SerializerGeneratorIntegrationTest<TBase>
+    public abstract class DelegateAdapterIntegrationTest
     {
-        protected SerializerGeneratorIntegrationTest()
-        {
-            var assemblyBuilder = AssemblyBuilder.DefineDynamicAssembly(
-                new AssemblyName("UnitTestDynamicAssembly"),
-                AssemblyBuilderAccess.RunAndCollect);
+        // Since the formatters are internal, we can't use them as a generic
+        // parameter as our test classes need to be public
+        private readonly Type formatterType;
 
-            SerializerGenerator.ModuleBuilder = assemblyBuilder.DefineDynamicModule("Integration");
-            this.Generator = new SerializerGenerator<TBase>(Substitute.For<IDiscoveryService>());
+        protected DelegateAdapterIntegrationTest(Type formatterType)
+        {
+            this.formatterType = formatterType;
         }
 
         public enum TestEnum
@@ -35,24 +31,14 @@
             Value = 1
         }
 
-        private protected ISerializerGenerator<TBase> Generator { get; }
+        protected List<Type> DiscoveredTypes { get; } = new List<Type>();
 
         protected T Deserialize<T>(string input)
         {
-            Type serializerType = this.Generator.GetSerializerFor(typeof(T));
-
             byte[] bytes = Encoding.UTF8.GetBytes(input);
             using (var ms = new MemoryStream(bytes, writable: false))
             {
-                var serializer = (ITypeSerializer)Activator.CreateInstance(serializerType, ms, SerializationMode.Deserialize);
-                if (typeof(T).IsArray)
-                {
-                    return (T)((object)serializer.ReadArray());
-                }
-                else
-                {
-                    return (T)serializer.Read();
-                }
+                return (T)this.WithGenerator(x => x.Deserialize(ms, typeof(T)));
             }
         }
 
@@ -73,24 +59,29 @@
 
         private string GetOutput<T>(T value)
         {
-            Type serializerType = this.Generator.GetSerializerFor(typeof(T));
             using (var ms = new MemoryStream())
             {
-                var serializer = (ITypeSerializer)Activator.CreateInstance(serializerType, ms, SerializationMode.Serialize);
-
-                if (typeof(T).IsArray)
-                {
-                    serializer.WriteArray((Array)((object)value));
-                }
-                else
-                {
-                    serializer.Write(value);
-                }
-
-                serializer.Flush();
-
+                this.WithGenerator(x => x.Serialize(ms, value));
                 return Encoding.UTF8.GetString(ms.ToArray());
             }
+        }
+
+        private object WithGenerator(Expression<Action<ISerializerGenerator<IFormatter>>> expression)
+        {
+            Type adapterType = typeof(DelegateAdapter<>).MakeGenericType(this.formatterType);
+            ConstructorInfo constructor = adapterType.GetConstructor(new[] { typeof(DiscoveredTypes) });
+
+            Expression discoveredType = Expression.Constant(new DiscoveredTypes(this.DiscoveredTypes));
+            Expression instance = Expression.New(constructor, discoveredType);
+
+            var methodCall = (MethodCallExpression)expression.Body;
+            LambdaExpression lambda = Expression.Lambda(
+                Expression.Call(
+                    instance,
+                    adapterType.GetMethod(methodCall.Method.Name),
+                    methodCall.Arguments));
+
+            return lambda.Compile().DynamicInvoke();
         }
 
         public class FullClass

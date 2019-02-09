@@ -178,7 +178,7 @@ namespace Crest.Host.Serialization.Internal
         /// </summary>
         /// <param name="value">The value to write to the stream.</param>
         [CLSCompliant(false)]
-        public void WriteUInt32(uint value)
+        public virtual void WriteUInt32(uint value)
         {
             this.WriteUInt64(value);
         }

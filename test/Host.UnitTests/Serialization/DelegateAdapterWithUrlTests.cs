@@ -1,13 +1,18 @@
 ﻿namespace Host.UnitTests.Serialization
 {
     using System;
-    using Crest.Host.Serialization.Internal;
+    using Crest.Host.Serialization.UrlEncoded;
     using FluentAssertions;
     using Xunit;
 
-    public class SerializerGeneratorWithUrlTests : SerializerGeneratorIntegrationTest<UrlEncodedSerializerBase>
+    public class DelegateAdapterWithUrlTests : DelegateAdapterIntegrationTest
     {
-        public sealed class PlainOldDataClassesDeserialize : SerializerGeneratorWithUrlTests
+        public DelegateAdapterWithUrlTests()
+            : base(typeof(UrlEncodedFormatter))
+        {
+        }
+
+        public sealed class PlainOldDataClassesDeserialize : DelegateAdapterWithUrlTests
         {
             [Fact]
             public void ArrayProperties()
@@ -37,7 +42,7 @@
             }
         }
 
-        public sealed class PlainOldDataClassesSerialize : SerializerGeneratorWithUrlTests
+        public sealed class PlainOldDataClassesSerialize : DelegateAdapterWithUrlTests
         {
             [Fact]
             public void ArrayProperties()
@@ -95,7 +100,7 @@
             }
         }
 
-        public sealed class RootArraysDeserialize : SerializerGeneratorWithUrlTests
+        public sealed class RootArraysDeserialize : DelegateAdapterWithUrlTests
         {
             [Fact]
             public void ClassType()
@@ -161,7 +166,7 @@
             }
         }
 
-        public sealed class RootArraysSerialize : SerializerGeneratorWithUrlTests
+        public sealed class RootArraysSerialize : DelegateAdapterWithUrlTests
         {
             [Fact]
             public void ClassType()
@@ -208,7 +213,7 @@
             }
         }
 
-        public sealed class RootTypesDeserialize : SerializerGeneratorWithUrlTests
+        public sealed class RootTypesDeserialize : DelegateAdapterWithUrlTests
         {
             [Fact]
             public void ClassType()
@@ -260,7 +265,7 @@
             }
         }
 
-        public sealed class RootTypesSerialize : SerializerGeneratorWithUrlTests
+        public sealed class RootTypesSerialize : DelegateAdapterWithUrlTests
         {
             [Fact]
             public void ClassType()

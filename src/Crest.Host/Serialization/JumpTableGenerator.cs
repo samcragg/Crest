@@ -5,17 +5,17 @@
 
 namespace Crest.Host.Serialization
 {
-    using System;
     using System.Collections.Generic;
-    using System.Reflection.Emit;
+    using System.Linq;
+    using System.Linq.Expressions;
 
     /// <summary>
     /// Generates code to execute code based on a condition being true.
     /// </summary>
     internal sealed partial class JumpTableGenerator
     {
-        private readonly Func<string, int> getHashCode;
         private readonly List<Mapping> mappings = new List<Mapping>();
+        private readonly Methods methods;
 
         // Values stolen from https://referencesource.microsoft.com/#mscorlib/system/collections/hashtable.cs
         //
@@ -32,178 +32,67 @@ namespace Crest.Host.Serialization
             21023, 25229, 30293, 36353,
         };
 
-        private ILGenerator generator;
-
         /// <summary>
         /// Initializes a new instance of the <see cref="JumpTableGenerator"/> class.
         /// </summary>
-        /// <param name="getHashCode">
-        /// Used to generate the hash code when generating the jump table.
-        /// </param>
-        public JumpTableGenerator(Func<string, int> getHashCode)
+        /// <param name="methods">Contains the methods information.</param>
+        public JumpTableGenerator(Methods methods)
         {
-            this.getHashCode = getHashCode;
-        }
-
-        /// <summary>
-        /// Gets or sets the action to perform that emits the condition check.
-        /// </summary>
-        /// <remarks>
-        /// The action will be passed the generator that should be used to emit
-        /// the instructions to and the key that is being compared. It should
-        /// leave a value on the evaluation stack that can be used to branch if
-        /// false (e.g. 0/null for false).
-        /// </remarks>
-        public Action<ILGenerator, string> EmitCondition { get; set; }
-
-        /// <summary>
-        /// Gets or sets the action to perform to emit code that places the hash
-        /// code of the item being compared.
-        /// </summary>
-        /// <remarks>
-        /// The function should place an integer representing the hash code of
-        /// the item being compared onto the evaluation stack.
-        /// </remarks>
-        public Action<ILGenerator> EmitGetHashCode { get; set; }
-
-        /// <summary>
-        /// Gets or sets the label to jump to after comparison is completed.
-        /// </summary>
-        public Label EndOfTable { get; set; }
-
-        /// <summary>
-        /// Gets or sets the action to perform to emit the code that is executed
-        /// if non of the conditions match.
-        /// </summary>
-        public Action<ILGenerator> NoMatch { get; set; }
-
-        /// <summary>
-        /// Emits a jump table for all the key/code mappings.
-        /// </summary>
-        /// <param name="generator">Used to generate the code at runtime.</param>
-        public void EmitJumpTable(ILGenerator generator)
-        {
-            this.generator = generator;
-
-            // Roslyn uses 7, but benchmarking using our hashing function/
-            // comparer shows gains at 4
-            Label noMatchLabel = this.generator.DefineLabel();
-            if (this.mappings.Count < 4)
-            {
-                this.EmitComparisonBranching(this.mappings, noMatchLabel);
-            }
-            else
-            {
-                this.EmitSwitchTable(noMatchLabel);
-            }
-
-            // Note we jump to the end as we could be nested inside a switch
-            // table so end isn't guaranteed (or expected) to be after the
-            // final else clause
-            //
-            // else
-            //     EmitDiagnostic
-            //     goto end
-            this.generator.MarkLabel(noMatchLabel);
-            this.NoMatch(this.generator);
-            this.generator.Emit(OpCodes.Br, this.EndOfTable);
+            this.methods = methods;
         }
 
         /// <summary>
         /// Adds a mapping between a key and a block of code.
         /// </summary>
         /// <param name="key">The key to match.</param>
-        /// <param name="body">
-        /// Generates the code to execute if a match is successful.
+        /// <param name="expression">
+        /// The expression to execute if a match is successful.
         /// </param>
-        public void Map(string key, Action<ILGenerator> body)
+        public void Add(string key, Expression expression)
         {
-            this.mappings.Add(new Mapping
-            {
-                Body = body,
-                HashCode = (uint)this.getHashCode(key),
-                Key = key,
-            });
+            this.mappings.Add(new Mapping(key, expression));
         }
 
-        private Label[] CreateSwitchLabels(IReadOnlyList<Mapping>[] buckets, Label noMatchLabel)
+        /// <summary>
+        /// Creates an expression maps keys to expressions.
+        /// </summary>
+        /// <param name="variable">The variable to test the value of.</param>
+        /// <returns>A new expression.</returns>
+        public Expression Build(ParameterExpression variable)
         {
-            var labels = new Label[buckets.Length];
-            for (int i = 0; i < labels.Length; i++)
+            // Roslyn uses 7, but benchmarking using our hashing function/
+            // comparer shows gains at 4
+            if (this.mappings.Count < 4)
             {
-                if (buckets[i].Count == 0)
-                {
-                    labels[i] = noMatchLabel;
-                }
-                else
-                {
-                    labels[i] = this.generator.DefineLabel();
-                }
+                // Straight forward if cases
+                return this.ComparisonTesting(variable, this.mappings);
+            }
+            else
+            {
+                return this.GetSwitchExpression(variable);
+            }
+        }
+
+        private Expression ComparisonTesting(ParameterExpression variable, IEnumerable<Mapping> entries)
+        {
+            Expression expression = Expression.Empty();
+            foreach (Mapping entry in entries)
+            {
+                expression = Expression.IfThenElse(
+                    Expression.Call(
+                        this.methods.CaseInsensitiveStringHelper.Equals,
+                        Expression.Constant(entry.Key),
+                        variable),
+                    entry.Body,
+                    expression);
             }
 
-            return labels;
-        }
-
-        private Label EmitBranch(Mapping mapping, Label previousTarget, Label nextJump)
-        {
-            // If the previous condition is false it will jump here
-            this.generator.MarkLabel(previousTarget);
-
-            // if not condition then goto next
-            this.EmitCondition(this.generator, mapping.Key);
-            this.generator.Emit(OpCodes.Brfalse, nextJump);
-
-            // body
-            // goto end
-            mapping.Body(this.generator);
-            this.generator.Emit(OpCodes.Br, this.EndOfTable);
-
-            return nextJump;
-        }
-
-        private void EmitComparisonBranching(IReadOnlyList<Mapping> entries, Label noMatchLabel)
-        {
-            Label previousJumpTarget = this.generator.DefineLabel();
-            for (int i = 0; i < entries.Count - 1; i++)
-            {
-                previousJumpTarget = this.EmitBranch(
-                    entries[i],
-                    previousJumpTarget,
-                    this.generator.DefineLabel());
-            }
-
-            // If the last comparison is false we jump to the no match label
-            this.EmitBranch(entries[entries.Count - 1], previousJumpTarget, noMatchLabel);
-        }
-
-        private void EmitSwitchTable(Label noMatchLabel)
-        {
-            int bucketCount = this.FindPrime(this.mappings.Count);
-            IReadOnlyList<Mapping>[] buckets = this.GetBuckets(bucketCount);
-            Label[] labels = this.CreateSwitchLabels(buckets, noMatchLabel);
-
-            // Since we have a case for each bucket, no need to worry about
-            // the default case
-            //
-            // switch GetHashCode % buckets
-            this.EmitGetHashCode(this.generator);
-            this.generator.EmitLoadConstant(bucketCount);
-            this.generator.Emit(OpCodes.Rem_Un);
-            this.generator.Emit(OpCodes.Switch, labels);
-
-            for (int i = 0; i < buckets.Length; i++)
-            {
-                if (buckets[i].Count > 0)
-                {
-                    this.generator.MarkLabel(labels[i]);
-                    this.EmitComparisonBranching(buckets[i], noMatchLabel);
-                }
-            }
+            return expression;
         }
 
         private int FindPrime(int count)
         {
-            int prime = 3;
+            int prime = 0;
             for (int i = 0; i < this.primes.Length; i++)
             {
                 prime = this.primes[i];
@@ -216,20 +105,24 @@ namespace Crest.Host.Serialization
             return prime;
         }
 
-        private IReadOnlyList<Mapping>[] GetBuckets(int count)
+        private Expression GetSwitchExpression(ParameterExpression variable)
         {
-            var buckets = new List<Mapping>[count];
-            for (int i = 0; i < buckets.Length; i++)
+            var switchCases = new List<SwitchCase>();
+            int bucketCount = this.FindPrime(this.mappings.Count);
+            ILookup<int, Mapping> buckets = this.mappings.ToLookup(m => m.HashCode % bucketCount);
+            foreach (IGrouping<int, Mapping> bucket in buckets)
             {
-                buckets[i] = new List<Mapping>();
+                switchCases.Add(Expression.SwitchCase(
+                    this.ComparisonTesting(variable, bucket),
+                    Expression.Constant(bucket.Key)));
             }
 
-            foreach (Mapping mapping in this.mappings)
-            {
-                buckets[mapping.HashCode % count].Add(mapping);
-            }
-
-            return buckets;
+            Expression hashCode = Expression.Call(
+                this.methods.CaseInsensitiveStringHelper.GetHashCode,
+                variable);
+            return Expression.Switch(
+                Expression.Modulo(hashCode, Expression.Constant(bucketCount)),
+                switchCases.ToArray());
         }
     }
 }
