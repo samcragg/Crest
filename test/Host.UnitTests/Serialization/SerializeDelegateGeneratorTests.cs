@@ -184,12 +184,21 @@
             }
 
             [Fact]
+            public void ShouldWritePropertiesOfArrayOfNullablePrimitiveElements()
+            {
+                this.Serialize(new ArrayProperty { IntValues = new int?[] { null, null } });
+
+                this.formatter.Writer.Received().WriteNull();
+                this.formatter.Writer.Received().WriteNull();
+            }
+
+            [Fact]
             public void ShouldWritePropertiesOfArrayOfPrimitiveElements()
             {
-                this.Serialize(new ArrayProperty { IntValues = new int?[] { 123, null } });
+                this.Serialize(new ArrayProperty { IntValues = new int?[] { 123, 123 } });
 
                 this.formatter.Writer.Received().WriteInt32(123);
-                this.formatter.Writer.Received().WriteNull();
+                this.formatter.Writer.Received().WriteInt32(123);
             }
 
             [Fact]

@@ -187,5 +187,19 @@
                     .Should().NotThrow();
             }
         }
+
+        public sealed class Reader : UrlEncodedFormatterDeserializeTests
+        {
+            [Fact]
+            public void ShouldBeAbleToReadValues()
+            {
+                this.SetStreamTo("A=123");
+                this.Formatter.ReadBeginProperty();
+
+                int result = this.Formatter.Reader.ReadInt32();
+
+                result.Should().Be(123);
+            }
+        }
     }
 }

@@ -97,7 +97,7 @@
                 this.SetStreamTo("<Property><NestedProperty /></Property>");
 
                 this.Formatter.ReadBeginProperty();
-                this.Formatter.ReadBeginClass("Class");
+                this.Formatter.ReadBeginClass((object)"Class");
                 string property = this.Formatter.ReadBeginProperty();
 
                 property.Should().Be("NestedProperty");
@@ -108,7 +108,7 @@
             {
                 this.SetStreamTo("<Class>1</Class>");
 
-                this.Formatter.ReadBeginClass("Class");
+                this.Formatter.ReadBeginClass((object)"Class");
                 int content = this.Formatter.Reader.ReadInt32();
 
                 content.Should().Be(1);

@@ -173,7 +173,7 @@
             {
                 this.XmlStreamWriter.WriteStartElement("root");
 
-                this.formatter.WriteBeginClass(nameof(EmptyClass));
+                this.formatter.WriteBeginClass((object)nameof(EmptyClass));
                 string written = this.GetWrittenData();
 
                 written.Should().Be("<root>");
@@ -182,7 +182,7 @@
             [Fact]
             public void ShouldWriteTheOpeningElementForTheRootClass()
             {
-                this.formatter.WriteBeginClass(nameof(EmptyClass));
+                this.formatter.WriteBeginClass((object)nameof(EmptyClass));
                 string written = this.GetWrittenData();
 
                 written.Should().Be("<EmptyClass>");
@@ -206,7 +206,7 @@
             [Fact]
             public void ShouldWriteTheOpeningElement()
             {
-                this.formatter.WriteBeginProperty("Property");
+                this.formatter.WriteBeginProperty((object)"Property");
                 string written = this.GetWrittenData();
 
                 written.Should().Be("<Property>");
