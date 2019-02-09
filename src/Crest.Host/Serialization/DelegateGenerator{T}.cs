@@ -97,6 +97,22 @@ namespace Crest.Host.Serialization
         }
 
         /// <summary>
+        /// Gets a generic interface method from a type.
+        /// </summary>
+        /// <param name="type">The type to get the method from.</param>
+        /// <param name="interfaceType">The generic interface type.</param>
+        /// <param name="method">The name of the method.</param>
+        /// <returns>
+        /// The method information if it was found, otherwise, <c>null</c>.
+        /// </returns>
+        protected static MethodInfo GetInterfaceMethod(Type type, Type interfaceType, string method)
+        {
+            return type.GetInterfaces()
+                .FirstOrDefault(i => i.IsGenericType && (i.GetGenericTypeDefinition() == interfaceType))
+                ?.GetMethod(method);
+        }
+
+        /// <summary>
         /// Gets the properties for a type that should be serialized.
         /// </summary>
         /// <param name="type">The type to examine.</param>

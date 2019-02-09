@@ -141,7 +141,7 @@ namespace Crest.Host.Serialization
             {
                 builder.InitializeInstance = Expression.Call(
                     Expression.New(serializer),
-                    serializer.GetMethod(nameof(ICustomSerializer<object>.Read)),
+                    GetInterfaceMethod(serializer, typeof(ICustomSerializer<>), nameof(ICustomSerializer<object>.Read)),
                     builder.Formatter);
 
                 return true;
