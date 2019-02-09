@@ -80,7 +80,7 @@
             [Fact]
             public void ShouldThrowIfTheElementNameIsIncorrect()
             {
-                this.SetStreamTo("<ArrayOfint><string /></ArrayOfint>");
+                this.SetStreamTo("<ArrayOfstring><int /></ArrayOfstring>");
 
                 Action action = () => this.Formatter.ReadBeginArray(typeof(int));
 
@@ -167,23 +167,13 @@
         public sealed class ReadElementSeparator : XmlFormatterDeserializeTests
         {
             [Fact]
-            public void ShouldCheckTheNameOfTheElement()
-            {
-                this.SetStreamTo("<ArrayOfint><int /><string /></ArrayOfint>");
-
-                this.Formatter.ReadBeginArray(typeof(int));
-                Action action = () => this.Formatter.ReadElementSeparator();
-
-                action.Should().Throw<FormatException>()
-                      .WithMessage("*int*");
-            }
-
-            [Fact]
             public void ShouldReturnFalseIfThereAreNoMoreElements()
             {
                 this.SetStreamTo("<ArrayOfint><int /></ArrayOfint>");
 
                 this.Formatter.ReadBeginArray(typeof(int));
+                this.Formatter.ReadBeginPrimitive("int");
+                this.Formatter.ReadEndPrimitive();
                 bool result = this.Formatter.ReadElementSeparator();
 
                 result.Should().BeFalse();
@@ -209,7 +199,8 @@
                 this.SetStreamTo("<ArrayOfint><int /></ArrayOfint> 1");
 
                 this.Formatter.ReadBeginArray(typeof(int));
-                this.Formatter.ReadElementSeparator();
+                this.Formatter.ReadBeginPrimitive("int");
+                this.Formatter.ReadEndPrimitive();
                 this.Formatter.ReadEndArray();
                 int content = this.Formatter.Reader.ReadInt32();
 

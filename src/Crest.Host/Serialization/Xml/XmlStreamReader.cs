@@ -25,7 +25,6 @@ namespace Crest.Host.Serialization.Xml
         private readonly XmlReader reader;
         private readonly StringBuffer stringBuffer = new StringBuffer();
         private bool currentElementIsEmpty;
-        private bool currentElementIsNil;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="XmlStreamReader"/> class.
@@ -35,11 +34,6 @@ namespace Crest.Host.Serialization.Xml
         {
             this.reader = XmlReader.Create(stream, DefaultWriterSettings);
         }
-
-        /// <summary>
-        /// Gets the nesting level of the element in the XML.
-        /// </summary>
-        internal int Depth => this.reader.Depth;
 
         /// <inheritdoc />
         public void Dispose()
@@ -96,7 +90,16 @@ namespace Crest.Host.Serialization.Xml
         /// <inheritdoc />
         public override bool ReadNull()
         {
-            return this.currentElementIsNil;
+            if (this.CanReadStartElement() && this.ReadNilAttribute())
+            {
+                this.ReadStartElement();
+                this.ReadEndElement();
+                return true;
+            }
+            else
+            {
+                return false;
+            }
         }
 
         /// <inheritdoc />
@@ -168,7 +171,6 @@ namespace Crest.Host.Serialization.Xml
             }
 
             this.currentElementIsEmpty = false;
-            this.currentElementIsNil = false;
         }
 
         /// <summary>
@@ -186,7 +188,6 @@ namespace Crest.Host.Serialization.Xml
             // Grab the information before we move past the start element
             this.currentElementIsEmpty = this.reader.IsEmptyElement;
             string elementName = this.reader.Name;
-            this.currentElementIsNil = this.ReadNilAttribute();
 
             // Consume the start element before exiting
             this.reader.Read();
@@ -270,6 +271,7 @@ namespace Crest.Host.Serialization.Xml
         {
             const string NilNamespace = "http://www.w3.org/2001/XMLSchema-instance";
 
+            bool nilValue = false;
             if (this.reader.MoveToFirstAttribute())
             {
                 do
@@ -277,13 +279,16 @@ namespace Crest.Host.Serialization.Xml
                     if (string.Equals(this.reader.LocalName, "nil", StringComparison.Ordinal) &&
                         string.Equals(this.reader.NamespaceURI, NilNamespace, StringComparison.Ordinal))
                     {
-                        return string.Equals(this.reader.Value, "true", StringComparison.Ordinal);
+                        nilValue = string.Equals(this.reader.Value, "true", StringComparison.Ordinal);
+                        break;
                     }
                 }
                 while (this.reader.MoveToNextAttribute());
+
+                this.reader.MoveToElement();
             }
 
-            return false;
+            return nilValue;
         }
     }
 }

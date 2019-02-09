@@ -15,12 +15,13 @@ namespace Crest.Host.Serialization.Xml
     /// <summary>
     /// The base class for runtime serializers that output XML.
     /// </summary>
-    public class XmlFormatter : IFormatter, IDisposable
+    internal class XmlFormatter : IFormatter, IDisposable
     {
         private readonly XmlStreamReader reader;
         private readonly XmlStreamWriter writer;
         private string arrayElementName;
         private bool hasRootArrayElement;
+        private ReadState readState;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="XmlFormatter"/> class.
@@ -37,6 +38,14 @@ namespace Crest.Host.Serialization.Xml
             {
                 this.writer = new XmlStreamWriter(stream);
             }
+        }
+
+        private enum ReadState
+        {
+            None,
+            Array,
+            Object,
+            Property,
         }
 
         /// <inheritdoc />
@@ -68,6 +77,7 @@ namespace Crest.Host.Serialization.Xml
         /// <returns>The metadata to store for the type.</returns>
         public static object GetTypeMetadata(Type type)
         {
+            type = Nullable.GetUnderlyingType(type) ?? type;
             string name = GetPrimitiveName(type) ?? type.Name;
             return XmlConvert.EncodeName(name);
         }
@@ -82,28 +92,18 @@ namespace Crest.Host.Serialization.Xml
         /// <inheritdoc />
         public bool ReadBeginArray(Type elementType)
         {
-            string name =
-                GetPrimitiveName(elementType) ??
-                XmlConvert.EncodeName(elementType.Name);
-
             // Are we just reading an array?
-            if (this.reader.Depth == 0)
+            if (this.readState == ReadState.None)
             {
+                string name =
+                    GetPrimitiveName(elementType) ??
+                    XmlConvert.EncodeName(elementType.Name);
+
                 this.ExpectStartElement("ArrayOf" + name);
-                this.hasRootArrayElement = true;
             }
 
-            if (this.reader.CanReadStartElement())
-            {
-                this.ExpectStartElement(name);
-                this.arrayElementName = name;
-                return true;
-            }
-            else
-            {
-                this.hasRootArrayElement = false;
-                return false;
-            }
+            this.readState = ReadState.Array;
+            return this.reader.CanReadStartElement();
         }
 
         /// <inheritdoc />
@@ -115,16 +115,18 @@ namespace Crest.Host.Serialization.Xml
         /// <inheritdoc />
         public void ReadBeginClass(string className)
         {
-            if (this.reader.Depth == 0)
+            if (this.readState != ReadState.Property)
             {
                 this.ExpectStartElement(className);
             }
+
+            this.readState = ReadState.Object;
         }
 
         /// <inheritdoc />
         public void ReadBeginPrimitive(object metadata)
         {
-            this.ExpectStartElement((string)metadata);
+            this.ReadBeginClass((string)metadata);
         }
 
         /// <inheritdoc />
@@ -136,6 +138,7 @@ namespace Crest.Host.Serialization.Xml
             }
             else
             {
+                this.readState = ReadState.Property;
                 return this.reader.ReadStartElement();
             }
         }
@@ -143,47 +146,38 @@ namespace Crest.Host.Serialization.Xml
         /// <inheritdoc />
         public bool ReadElementSeparator()
         {
-            this.reader.ReadEndElement();
-            if (this.reader.CanReadStartElement())
-            {
-                this.ExpectStartElement(this.arrayElementName);
-                return true;
-            }
-            else
-            {
-                return false;
-            }
+            return this.reader.CanReadStartElement();
         }
 
         /// <inheritdoc />
         public void ReadEndArray()
         {
-            if ((this.reader.Depth == 0) && this.hasRootArrayElement)
-            {
-                this.reader.ReadEndElement();
-                this.hasRootArrayElement = false;
-            }
+            this.reader.ReadEndElement();
+            this.readState = ReadState.Array;
         }
 
         /// <inheritdoc />
         public void ReadEndClass()
         {
-            if (this.reader.Depth == 0)
-            {
-                this.reader.ReadEndElement();
-            }
+            this.reader.ReadEndElement();
+            this.readState = ReadState.Object;
         }
 
         /// <inheritdoc />
         public void ReadEndPrimitive()
         {
-            this.reader.ReadEndElement();
+            this.ReadEndClass();
         }
 
         /// <inheritdoc />
         public void ReadEndProperty()
         {
-            this.reader.ReadEndElement();
+            if (this.readState == ReadState.Property)
+            {
+                this.reader.ReadEndElement();
+            }
+
+            this.readState = ReadState.Property;
         }
 
         /// <inheritdoc />
@@ -220,7 +214,7 @@ namespace Crest.Host.Serialization.Xml
         /// <inheritdoc />
         public void WriteBeginPrimitive(object metadata)
         {
-            this.writer.WriteStartElement((string)metadata);
+            this.WriteBeginClass((string)metadata);
         }
 
         /// <inheritdoc />
@@ -266,7 +260,7 @@ namespace Crest.Host.Serialization.Xml
         /// <inheritdoc />
         public void WriteEndPrimitive()
         {
-            this.writer.WriteEndElement();
+            this.WriteEndClass();
         }
 
         /// <inheritdoc />

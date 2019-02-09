@@ -229,31 +229,59 @@
             [Fact]
             public void ShouldReturnFalseIfTheNilAttributeIsFalse()
             {
-                bool result = ReadXmlValue(
-                    "<a " + XmlNamespaceAttribute + " ignore='true' i:nil='false'/>",
-                    r => r.ReadNull());
+                const string Xml = "<a " + XmlNamespaceAttribute + " ignore='true' i:nil='false'/>";
 
-                result.Should().Be(false);
+                WithReader(Xml, reader =>
+                {
+                    bool result = reader.ReadNull();
+
+                    result.Should().BeFalse();
+                });
             }
 
             [Fact]
             public void ShouldReturnFalseIfThereIsNoNilAttribute()
             {
-                bool result = ReadXmlValue(
-                    "<a nil='true' other='true' />",
-                    r => r.ReadNull());
+                const string Xml = "<a nil='true' other='true' />";
 
-                result.Should().Be(false);
+                WithReader(Xml, reader =>
+                {
+                    bool result = reader.ReadNull();
+
+                    result.Should().BeFalse();
+                });
             }
 
             [Fact]
             public void ShouldReturnTrueIfTheNilAttributeIsTrue()
             {
-                bool result = ReadXmlValue(
-                    "<a " + XmlNamespaceAttribute + " ignore='false' i:nil='true'/>",
-                    r => r.ReadNull());
+                const string Xml = "<a " + XmlNamespaceAttribute + " ignore='false' i:nil='true'/>";
 
-                result.Should().Be(true);
+                WithReader(Xml, reader =>
+                {
+                    bool result = reader.ReadNull();
+
+                    result.Should().BeTrue();
+                });
+            }
+
+            [Fact]
+            public void ShouldSkipTheNodeIfTheNilAttributeIsTrue()
+            {
+                const string Xml =
+@"<root>
+  <a " + XmlNamespaceAttribute + @" ignore='false' i:nil='true'/>
+  <b />
+</root>";
+
+                WithReader(Xml, reader =>
+                {
+                    reader.ReadStartElement();
+                    reader.ReadNull();
+                    string element = reader.ReadStartElement();
+
+                    element.Should().Be("b");
+                });
             }
         }
 
