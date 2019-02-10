@@ -66,10 +66,15 @@
                 result.Success.Should().BeFalse();
             }
 
-            [Fact]
-            public void ShouldNotMatchInvalidHexValues()
+            [Theory]
+            [InlineData("0011223X-0011-0011-0011-001122334455")]
+            [InlineData("00112233-001X-0011-0011-001122334455")]
+            [InlineData("00112233-0011-001X-0011-001122334455")]
+            [InlineData("00112233-0011-0011-001X-001122334455")]
+            [InlineData("00112233-0011-0011-0011-00112233445X")]
+            public void ShouldNotMatchInvalidHexValues(string guid)
             {
-                NodeMatchInfo result = this.node.Match("ABCDEFGH-ijkl-MNOP-qrst-uvwxyz123456".AsSpan());
+                NodeMatchInfo result = this.node.Match(guid.AsSpan());
 
                 result.Success.Should().BeFalse();
             }

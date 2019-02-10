@@ -3,6 +3,7 @@
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Reflection;
     using System.Threading.Tasks;
     using Crest.Abstractions;
     using Crest.Host;
@@ -130,6 +131,12 @@
             public void ShouldRegisterDirectRoutes()
             {
                 IDirectRouteProvider direct = Substitute.For<IDirectRouteProvider>();
+                direct.GetDirectRoutes().Returns(new[] { new DirectRouteMetadata
+                {
+                    Path = "",
+                    Verb = "",
+                }});
+
                 this.serviceLocator.GetDirectRouteProviders()
                     .Returns(new[] { direct });
 
@@ -173,6 +180,24 @@
             }
 
             [Fact]
+            public void ShouldRegisterRoutes()
+            {
+                var metadata = new RouteMetadata
+                {
+                    Method = typeof(Initialize).GetMethod(nameof(ExampleMethod), BindingFlags.Instance | BindingFlags.NonPublic),
+                    Path = "",
+                    Verb = "",
+                };
+
+                this.discoveryService.GetRoutes(Arg.Any<Type>())
+                    .Returns(new[] { metadata }, Enumerable.Empty<RouteMetadata>());
+
+                this.bootstrapper.Initialize();
+
+                this.discoveryService.ReceivedWithAnyArgs().GetRoutes(null);
+            }
+
+            [Fact]
             public void ShouldRegisterSingletons()
             {
                 using (var bootstrapper = new FakeBootstrapper(new ServiceLocator()))
@@ -196,6 +221,11 @@
                 this.bootstrapper.Initialize();
 
                 this.bootstrapper.RouteMapper.Should().NotBeNull();
+            }
+
+            private Task ExampleMethod()
+            {
+                return Task.CompletedTask;
             }
 
             internal class CannotInject : IFakeInterface
