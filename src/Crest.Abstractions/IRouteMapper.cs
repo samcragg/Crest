@@ -47,14 +47,10 @@ namespace Crest.Abstractions
         /// <param name="verb">The HTTP verb.</param>
         /// <param name="path">The URL path.</param>
         /// <param name="query">Contains the query parameters.</param>
-        /// <param name="parameters">
-        /// When this method returns, contains the parsed parameters to pass to
-        /// the handler.
-        /// </param>
         /// <returns>
         /// The method to invoke to handle the request, or null if no handler
         /// is found.
         /// </returns>
-        MethodInfo Match(string verb, string path, ILookup<string, string> query, out IReadOnlyDictionary<string, object> parameters);
+        RouteMapperMatchResult Match(string verb, string path, ILookup<string, string> query);
     }
 }
