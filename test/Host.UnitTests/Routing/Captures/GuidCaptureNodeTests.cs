@@ -1,7 +1,8 @@
-﻿namespace Host.UnitTests.Routing
+﻿namespace Host.UnitTests.Routing.Captures
 {
     using System;
     using Crest.Host.Routing;
+    using Crest.Host.Routing.Captures;
     using FluentAssertions;
     using NSubstitute;
     using Xunit;

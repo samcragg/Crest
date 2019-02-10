@@ -1,4 +1,4 @@
-﻿namespace Host.UnitTests.Routing
+﻿namespace Host.UnitTests.Routing.Captures
 {
     using System;
     using System.Collections.Generic;
@@ -6,6 +6,7 @@
     using System.Dynamic;
     using System.Linq;
     using Crest.Host.Routing;
+    using Crest.Host.Routing.Captures;
     using FluentAssertions;
     using NSubstitute;
     using Xunit;
@@ -15,7 +16,7 @@
         private const string CapturedParameter = "parameter";
         private readonly Dictionary<Type, Func<string, IQueryValueConverter>> converters;
         private readonly ILookup<string, string> lookup = Substitute.For<ILookup<string, string>>();
-        private IQueryValueConverter converter = new FakeConverter();
+        private readonly IQueryValueConverter converter = new FakeConverter();
 
         protected QueryCaptureTests()
         {

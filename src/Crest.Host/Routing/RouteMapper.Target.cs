@@ -8,6 +8,7 @@ namespace Crest.Host.Routing
     using System;
     using System.Collections.Generic;
     using System.Reflection;
+    using Crest.Host.Routing.Captures;
 
     /// <content>
     /// Contains the nested <see cref="Target"/> struct.

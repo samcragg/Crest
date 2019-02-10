@@ -10,6 +10,7 @@ namespace Crest.Host.Routing
     using System.Globalization;
     using System.Text;
     using Crest.Abstractions;
+    using Crest.Host.Routing.Captures;
 
     /// <summary>
     /// Allows the creation of nodes used to match a route whilst checking for

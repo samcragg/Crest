@@ -10,6 +10,7 @@ namespace Crest.Host.Routing
     using System.Linq;
     using System.Reflection;
     using Crest.Core;
+    using Crest.Host.Routing.Captures;
     using static System.Diagnostics.Debug;
 
     /// <content>

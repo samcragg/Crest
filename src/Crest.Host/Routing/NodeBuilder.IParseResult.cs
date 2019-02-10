@@ -7,6 +7,7 @@ namespace Crest.Host.Routing
 {
     using System;
     using System.Collections.Generic;
+    using Crest.Host.Routing.Captures;
 
     /// <content>
     /// Contains the nested <see cref="IParseResult"/> interface.

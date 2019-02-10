@@ -8,6 +8,7 @@
     using System.Reflection;
     using Crest.Abstractions;
     using Crest.Host.Routing;
+    using Crest.Host.Routing.Captures;
     using FluentAssertions;
     using NSubstitute;
     using Xunit;

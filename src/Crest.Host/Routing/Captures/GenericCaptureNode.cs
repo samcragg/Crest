@@ -3,7 +3,7 @@
 // Licensed under the MIT license. See LICENSE file in the project root for
 // full license information.
 
-namespace Crest.Host.Routing
+namespace Crest.Host.Routing.Captures
 {
     using System;
     using System.ComponentModel;

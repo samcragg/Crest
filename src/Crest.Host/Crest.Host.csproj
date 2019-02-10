@@ -75,6 +75,15 @@
     <Compile Update="Engine/JsonConfigurationProvider.TypeInitializer.cs">
       <DependentUpon>JsonConfigurationProvider.cs</DependentUpon>
     </Compile>
+    <Compile Update="Routing/Captures/QueryCapture.CatchAll.cs">
+      <DependentUpon>QueryCapture.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Routing/Captures/QueryCapture.MultipleValues.cs">
+      <DependentUpon>QueryCapture.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Routing/Captures/QueryCapture.SingleValue.cs">
+      <DependentUpon>QueryCapture.cs</DependentUpon>
+    </Compile>
     <Compile Update="Routing/NodeBuilder.IParseResult.cs">
       <DependentUpon>NodeBuilder.cs</DependentUpon>
     </Compile>
@@ -89,15 +98,6 @@
     </Compile>
     <Compile Update="Routing/RouteMapper.Versions.cs">
       <DependentUpon>RouteMapper.cs</DependentUpon>
-    </Compile>
-    <Compile Update="Routing/QueryCapture.CatchAll.cs">
-      <DependentUpon>QueryCapture.cs</DependentUpon>
-    </Compile>
-    <Compile Update="Routing/QueryCapture.MultipleValues.cs">
-      <DependentUpon>QueryCapture.cs</DependentUpon>
-    </Compile>
-    <Compile Update="Routing/QueryCapture.SingleValue.cs">
-      <DependentUpon>QueryCapture.cs</DependentUpon>
     </Compile>
     <Compile Update="Routing/RouteNode{T}.MatchResult.cs">
       <DependentUpon>RouteNode{T}.cs</DependentUpon>

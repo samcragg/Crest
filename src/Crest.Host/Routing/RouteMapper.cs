@@ -9,6 +9,7 @@ namespace Crest.Host.Routing
     using System.Linq;
     using System.Reflection;
     using Crest.Abstractions;
+    using Crest.Host.Routing.Captures;
 
     /// <summary>
     /// Allows the matching of routes to their method.
