@@ -8,6 +8,7 @@ namespace Crest.Host.Routing.Parsing
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Reflection;
     using Crest.Abstractions;
     using Crest.Host.Routing.Captures;
 
@@ -21,7 +22,9 @@ namespace Crest.Host.Routing.Parsing
     internal partial class RouteMatcherBuilder
     {
         private readonly RouteMethodAdapter methodAdapter;
-        private readonly List<RouteMethod> methods = new List<RouteMethod>();
+
+        private readonly List<(MethodInfo, RouteMethod)> methods =
+            new List<(MethodInfo, RouteMethod)>();
 
         private readonly List<(string path, EndpointInfo<OverrideMethod> endpoint)> overrides =
             new List<(string path, EndpointInfo<OverrideMethod> endpoint)>();
@@ -88,7 +91,7 @@ namespace Crest.Host.Routing.Parsing
                 metadata.Method);
 
             this.trieBuilder.Add(parser.Nodes, endpoint);
-            this.methods.Add(lambda);
+            this.methods.Add((metadata.Method, lambda));
         }
 
         /// <summary>
@@ -137,7 +140,7 @@ namespace Crest.Host.Routing.Parsing
         /// constructed.
         /// </remarks>
         protected virtual RouteMatcher CreateMatcher(
-            IReadOnlyCollection<RouteMethod> methods,
+            IReadOnlyCollection<(MethodInfo, RouteMethod)> methods,
             RouteTrie<EndpointInfo<RouteMethodInfo>> routes,
             ILookup<string, EndpointInfo<OverrideMethod>> overrides)
         {
@@ -157,7 +160,10 @@ namespace Crest.Host.Routing.Parsing
 
         private ILookup<string, EndpointInfo<OverrideMethod>> BuildOverrides()
         {
-            return this.overrides.ToLookup(x => x.path, x => x.endpoint);
+            return this.overrides.ToLookup(
+                x => x.path,
+                x => x.endpoint,
+                StringComparer.OrdinalIgnoreCase);
         }
     }
 }

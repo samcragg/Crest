@@ -1,4 +1,4 @@
-﻿namespace UnitTests
+﻿namespace Host.UnitTests.Routing
 {
     using System;
     using System.Collections.Generic;
@@ -39,6 +39,16 @@
             return new EndpointInfo<(string, RouteMethodInfo)>(verb, (path, routeMethod), from, to);
         }
 
+        private static Task<object> ExampleMethod(IReadOnlyDictionary<string, object> parameters)
+        {
+            throw new NotImplementedException();
+        }
+
+        private static Task<object> ExampleMethod2(IReadOnlyDictionary<string, object> parameters)
+        {
+            throw new NotImplementedException();
+        }
+
         private RouteMatcher CreateMatcher(params string[] routes)
         {
             return this.CreateMatcher(routes.Select(x => CreateEndpoint("GET", x)).ToArray());
@@ -48,24 +58,16 @@
             EndpointInfo<(string path, RouteMethodInfo method)>[] routes,
             int version = 1)
         {
-            RouteMethod CreateMethod(RouteMethodInfo info)
+            (MethodInfo, RouteMethod) CreateMethod(RouteMethodInfo info)
             {
-                return (RouteMethod)info.Method.CreateDelegate(typeof(RouteMethod));
+                var adapter = (RouteMethod)info.Method.CreateDelegate(typeof(RouteMethod));
+                return (info.Method, adapter);
             }
+
             return new RouteMatcher(
                 routes.Select(x => CreateMethod(x.Value.method)).ToList(),
                 new FakeTrie(routes.ToArray(), version),
                 this.noOverrides);
-        }
-
-        private static Task<object> ExampleMethod(IReadOnlyDictionary<string, object> parameters)
-        {
-            throw new NotImplementedException();
-        }
-
-        private static Task<object> ExampleMethod2(IReadOnlyDictionary<string, object> parameters)
-        {
-            throw new NotImplementedException();
         }
 
         public sealed class FindOverride : RouteMatcherTests
@@ -104,7 +106,7 @@
             private RouteMatcher CreateMatcherFromOverrides(params (string verb, string path)[] overrides)
             {
                 return new RouteMatcher(
-                    Array.Empty<RouteMethod>(),
+                    new (MethodInfo, RouteMethod)[0],
                     null,
                     overrides.ToLookup(
                         x => x.path,
@@ -165,7 +167,7 @@
                 QueryCapture capture = Substitute.For<QueryCapture>();
                 RouteMatcher matcher = this.CreateMatcher(new[]
                 {
-                    CreateEndpoint("GET", "/route", captures: new[] { capture })
+                    CreateEndpoint("GET", "route", captures: new[] { capture })
                 });
 
                 RouteMapperMatchResult result = matcher.Match("GET", "/route", this.query);
@@ -179,7 +181,7 @@
                 var routeMethod = new RouteMethodInfo("bodyParameter", typeof(int), ExampleMethodInfo, new QueryCapture[0]);
                 RouteMatcher matcher = this.CreateMatcher(new[]
                 {
-                    new EndpointInfo<(string, RouteMethodInfo)>("GET", ("/route", routeMethod), 1, 1),
+                    new EndpointInfo<(string, RouteMethodInfo)>("GET", ("route", routeMethod), 1, 1),
                 });
 
                 RouteMapperMatchResult result = matcher.Match("GET", "/route", this.query);
@@ -190,7 +192,7 @@
             [Fact]
             public void ShouldIncludeTheServiceProviderPlaceholder()
             {
-                RouteMatcher matcher = this.CreateMatcher("/route");
+                RouteMatcher matcher = this.CreateMatcher("route");
 
                 RouteMapperMatchResult result = matcher.Match("GET", "/route", this.query);
 
@@ -202,7 +204,7 @@
             {
                 RouteMatcher matcher = this.CreateMatcher(new[]
                 {
-                    CreateEndpoint("PUT", "/route")
+                    CreateEndpoint("PUT", "route")
                 });
 
                 RouteMapperMatchResult get = matcher.Match("GET", "/route", this.query);
@@ -217,8 +219,8 @@
             {
                 RouteMatcher matcher = this.CreateMatcher(new[]
                 {
-                    CreateEndpoint("GET", "/route", 1, 2, ExampleMethodInfo),
-                    CreateEndpoint("GET", "/route", 3, 4, ExampleMethod2Info),
+                    CreateEndpoint("GET", "route", 1, 2, ExampleMethodInfo),
+                    CreateEndpoint("GET", "route", 3, 4, ExampleMethod2Info),
                 },
                 version: 3);
 
@@ -232,7 +234,7 @@
             {
                 RouteMatcher matcher = this.CreateMatcher(new[]
                 {
-                    CreateEndpoint("GET", "/route", 1, 2),
+                    CreateEndpoint("GET", "route", 1, 2),
                 },
                 version: 3);
 
@@ -244,7 +246,7 @@
             [Fact]
             public void ShouldSetTheParameters()
             {
-                RouteMatcher matcher = this.CreateMatcher("/route");
+                RouteMatcher matcher = this.CreateMatcher("route");
 
                 RouteMapperMatchResult result = matcher.Match("GET", "/route", this.query);
 

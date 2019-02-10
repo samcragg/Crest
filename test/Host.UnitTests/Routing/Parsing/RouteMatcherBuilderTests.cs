@@ -72,8 +72,6 @@
                 endpoint.To.Should().Be(3);
             }
 
-
-
             [Fact]
             public void ShouldCaptureBooleans()
             {
@@ -316,14 +314,22 @@
                       .WithMessage("*/route*");
             }
 
+            [Fact]
+            public void ShouldIgnoreTheCaseOfOverrides()
+            {
+                this.builder.AddOverride("GET", "/DirectRoute", Substitute.For<OverrideMethod>());
+
+                ILookup<string, EndpointInfo<OverrideMethod>> overrides = this.GetOverrides();
+
+                overrides["/DIRECTroute"].Should().HaveCount(1);
+            }
+
             private ILookup<string, EndpointInfo<OverrideMethod>> GetOverrides()
             {
                 this.builder.Build();
                 return this.builder.Overrides;
             }
         }
-
-
 
         [TypeConverter(typeof(CustomDataConverter))]
         private class CustomData
@@ -356,14 +362,14 @@
             {
             }
 
-            internal IReadOnlyCollection<RouteMethod> Methods { get; private set; }
+            internal IReadOnlyCollection<(MethodInfo, RouteMethod)> Methods { get; private set; }
 
             internal ILookup<string, EndpointInfo<OverrideMethod>> Overrides { get; private set; }
 
             internal RouteTrie<EndpointInfo<RouteMethodInfo>> Routes { get; private set; }
 
             protected override RouteMatcher CreateMatcher(
-                IReadOnlyCollection<RouteMethod> methods,
+                IReadOnlyCollection<(MethodInfo, RouteMethod)> methods,
                 RouteTrie<EndpointInfo<RouteMethodInfo>> routes,
                 ILookup<string, EndpointInfo<OverrideMethod>> overrides)
             {

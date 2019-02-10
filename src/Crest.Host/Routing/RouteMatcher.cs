@@ -29,15 +29,15 @@ namespace Crest.Host.Routing
         /// <param name="routes">The routes to match.</param>
         /// <param name="overrides">The override routes.</param>
         public RouteMatcher(
-            IReadOnlyCollection<RouteMethod> methods,
+            IReadOnlyCollection<(MethodInfo, RouteMethod)> methods,
             RouteTrie<EndpointInfo<RouteMethodInfo>> routes,
             ILookup<string, EndpointInfo<OverrideMethod>> overrides)
         {
             var dictionary = new Dictionary<int, RouteMethod>(methods.Count);
-            foreach (RouteMethod method in methods)
+            foreach ((MethodInfo method, RouteMethod adapter) in methods)
             {
                 // Allow multiple routes to the same method
-                dictionary[method.Method.MetadataToken] = method;
+                dictionary[method.MetadataToken] = adapter;
             }
 
             this.adapters = dictionary;
@@ -75,8 +75,9 @@ namespace Crest.Host.Routing
         /// <inheritdoc />
         public RouteMapperMatchResult Match(string verb, string path, ILookup<string, string> query)
         {
+            int start = (path[0] == '/') ? 1 : 0;
             RouteTrie<EndpointInfo<RouteMethodInfo>>.MatchResult match =
-                this.routes.Match(path.AsSpan());
+                this.routes.Match(path.AsSpan(start));
 
             if (match.Success)
             {
