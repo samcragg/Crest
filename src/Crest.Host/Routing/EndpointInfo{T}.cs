@@ -5,11 +5,13 @@
 
 namespace Crest.Host.Routing
 {
+    using System;
+
     /// <summary>
     /// Contains information about a reachable endpoint.
     /// </summary>
     /// <typeparam name="T">The type of value to store for the endpoint.</typeparam>
-    internal sealed class EndpointInfo<T>
+    internal sealed class EndpointInfo<T> : IEquatable<EndpointInfo<T>>
     {
         private readonly uint versionRange;
 
@@ -25,7 +27,7 @@ namespace Crest.Host.Routing
             this.From = from;
             this.versionRange = (uint)(to - from);
             this.Value = value;
-            this.Verb = verb; // TODO: Uppercase it...
+            this.Verb = verb.ToUpperInvariant();
         }
 
         /// <summary>
@@ -48,6 +50,33 @@ namespace Crest.Host.Routing
         /// </summary>
         public string Verb { get; }
 
+        /// <inheritdoc />
+        public override bool Equals(object obj)
+        {
+            return this.Equals(obj as EndpointInfo<T>);
+        }
+
+        /// <inheritdoc />
+        public bool Equals(EndpointInfo<T> other)
+        {
+            if (other is null)
+            {
+                return false;
+            }
+            else
+            {
+                return this.Verb.Equals(other.Verb, StringComparison.Ordinal) &&
+                    (this.From <= other.To) &&
+                    (this.To >= other.From);
+            }
+        }
+
+        /// <inheritdoc />
+        public override int GetHashCode()
+        {
+            return this.Verb.GetHashCode();
+        }
+
         /// <summary>
         /// Determines whether the version is compatible with this endpoint.
         /// </summary>
@@ -61,7 +90,5 @@ namespace Crest.Host.Routing
             uint delta = (uint)version - (uint)this.From;
             return delta <= this.versionRange;
         }
-
-        // TODO: Needs to implement IComparable
     }
 }

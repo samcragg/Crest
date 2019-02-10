@@ -230,6 +230,7 @@
                     MaximumVersion = max,
                     MinimumVersion = min,
                     Method = method,
+                    Verb = "get",
                 };
             }
 
