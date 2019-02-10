@@ -52,12 +52,8 @@
                 MethodInfo method = Substitute.For<MethodInfo>();
                 this.mapper.GetAdapter(method).Returns(_ => Task.FromResult<object>(""));
 
-                this.mapper.Match("GET", "/route", Arg.Any<ILookup<string, string>>(), out Arg.Any<IReadOnlyDictionary<string, object>>())
-                    .Returns(ci =>
-                    {
-                        ci[3] = new Dictionary<string, object>();
-                        return method;
-                    });
+                this.mapper.Match("GET", "/route", Arg.Any<ILookup<string, string>>())
+                    .Returns(new RouteMapperMatchResult(method, new Dictionary<string, object>()));
 
                 await this.processor.HandleRequestAsync(context);
 
@@ -75,12 +71,8 @@
                 // Write to the passed in stream so it will get copied to the out response
                 this.converter.WriteTo(Arg.Do<Stream>(s => s.WriteByte(1)), methodReturn);
 
-                this.mapper.Match(null, null, null, out _)
-                    .ReturnsForAnyArgs(ci =>
-                    {
-                        ci[3] = new Dictionary<string, object>();
-                        return method;
-                    });
+                this.mapper.Match(null, null, null)
+                    .ReturnsForAnyArgs(new RouteMapperMatchResult(method, new Dictionary<string, object>()));
 
                 await this.processor.HandleRequestAsync(context);
 
