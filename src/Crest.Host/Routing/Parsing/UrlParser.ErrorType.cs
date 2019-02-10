@@ -3,7 +3,7 @@
 // Licensed under the MIT license. See LICENSE file in the project root for
 // full license information.
 
-namespace Crest.Host.Routing
+namespace Crest.Host.Routing.Parsing
 {
     /// <content>
     /// Contains the nested <see cref="ErrorType"/> enum.
@@ -39,15 +39,16 @@ namespace Crest.Host.Routing
             MissingClosingBrace,
 
             /// <summary>
-            /// Indicates that a query key does not specify a capture value.
-            /// </summary>
-            MissingQueryValue,
-
-            /// <summary>
             /// Indicates that multiple parameters have been specified as
             /// coming from the request body.
             /// </summary>
             MultipleBodyParameters,
+
+            /// <summary>
+            /// Indicates that multiple parameters have been specified as
+            /// capturing the remaining query values.
+            /// </summary>
+            MultipleCatchAllParameters,
 
             /// <summary>
             /// Indicates that a parameter captured by a query parameter wasn't
@@ -56,19 +57,9 @@ namespace Crest.Host.Routing
             MustBeOptional,
 
             /// <summary>
-            /// Indicates a query value was found that wasn't a capture.
-            /// </summary>
-            MustCaptureQueryValue,
-
-            /// <summary>
             /// Indicates a parameter was not captured in the URL.
             /// </summary>
             ParameterNotFound,
-
-            /// <summary>
-            /// Indicates a brace was found that wasn't escaped.
-            /// </summary>
-            UnescapedBrace,
 
             /// <summary>
             /// Indicates a capture specifies a parameter that wasn't found.

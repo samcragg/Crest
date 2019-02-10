@@ -392,7 +392,7 @@
             public void ShouldReturnAnOverrideIfNoMethodMatches()
             {
                 this.mapper.FindOverride(null, null).ReturnsNullForAnyArgs();
-                this.mapper.Match(null, null, null, out _).ReturnsForAnyArgs((MethodInfo)null);
+                this.mapper.Match(null, null, null).ReturnsNullForAnyArgs();
 
                 RequestProcessor.MatchResult result =
                     this.processor.Match("", "", Substitute.For<ILookup<string, string>>());
@@ -414,7 +414,7 @@
 
                 result.IsOverride.Should().BeTrue();
                 result.Override.Should().BeSameAs(method);
-                this.mapper.DidNotReceiveWithAnyArgs().Match(null, null, null, out _);
+                this.mapper.DidNotReceiveWithAnyArgs().Match(null, null, null);
             }
 
             [Fact]
@@ -425,12 +425,8 @@
                 ILookup<string, string> query = Substitute.For<ILookup<string, string>>();
 
                 this.mapper.FindOverride("GET", "/route").ReturnsNull();
-                this.mapper.Match("GET", "/route", query, out Arg.Any<IReadOnlyDictionary<string, object>>())
-                    .Returns(args =>
-                    {
-                        args[3] = parameters;
-                        return method;
-                    });
+                this.mapper.Match("GET", "/route", query)
+                    .Returns(new RouteMapperMatchResult(method, parameters));
 
                 RequestProcessor.MatchResult result =
                     this.processor.Match("GET", "/route", query);

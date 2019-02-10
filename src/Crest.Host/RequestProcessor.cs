@@ -156,19 +156,18 @@ namespace Crest.Host
                 return new MatchResult(direct);
             }
 
-            MethodInfo method = this.mapper.Match(
+            RouteMapperMatchResult result = this.mapper.Match(
                 verb,
                 path,
-                query,
-                out IReadOnlyDictionary<string, object> parameters);
+                query);
 
-            if (method == null)
+            if (result == null)
             {
                 return this.notFound;
             }
             else
             {
-                return new MatchResult(method, parameters);
+                return new MatchResult(result.Method, result.Parameters);
             }
         }
 

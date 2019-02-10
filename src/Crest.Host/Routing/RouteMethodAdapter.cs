@@ -15,7 +15,7 @@ namespace Crest.Host.Routing
     /// <summary>
     /// Invokes a method using the captured route data.
     /// </summary>
-    internal sealed class RouteMethodAdapter
+    internal class RouteMethodAdapter
     {
         private readonly List<Expression> body = new List<Expression>();
 
@@ -51,7 +51,7 @@ namespace Crest.Host.Routing
         /// The adapter method that, when passed the captured parameters,
         /// returns a task returned by the method.
         /// </returns>
-        public RouteMethod CreateMethod(Func<object> factory, MethodInfo method)
+        public virtual RouteMethod CreateMethod(Func<object> factory, MethodInfo method)
         {
             if (!typeof(Task).GetTypeInfo().IsAssignableFrom(method.ReturnType.GetTypeInfo()))
             {

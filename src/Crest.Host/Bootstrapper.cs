@@ -13,7 +13,7 @@ namespace Crest.Host
     using Crest.Core.Util;
     using Crest.Host.Diagnostics;
     using Crest.Host.Engine;
-    using Crest.Host.Routing;
+    using Crest.Host.Routing.Parsing;
     using Microsoft.Extensions.DependencyModel;
 
     /// <summary>
@@ -133,9 +133,7 @@ namespace Crest.Host
 
             // Do this after we've initialized the initializers in case any of
             // the route providers need configuration data
-            List<RouteMetadata> routes =
-                types.SelectMany(discovery.GetRoutes).ToList();
-            this.RouteMapper = new RouteMapper(routes, this.GetDirectRoutes());
+            this.RouteMapper = this.CreateRouteMapper(discovery, types);
         }
 
         /// <summary>
@@ -161,6 +159,22 @@ namespace Crest.Host
             {
                 throw new ObjectDisposedException(this.GetType().Name);
             }
+        }
+
+        private IRouteMapper CreateRouteMapper(IDiscoveryService discovery, IEnumerable<Type> types)
+        {
+            var builder = new RouteMatcherBuilder();
+            foreach (RouteMetadata route in types.SelectMany(discovery.GetRoutes))
+            {
+                builder.AddMethod(route);
+            }
+
+            foreach (DirectRouteMetadata direct in this.GetDirectRoutes())
+            {
+                builder.AddOverride(direct.Verb, direct.Path, direct.Method);
+            }
+
+            return builder.Build();
         }
 
         private IEnumerable<Type> GetDefaultOptionalServices(IDiscoveryService discovery)

@@ -8,9 +8,9 @@ namespace Crest.Host.Routing
     using System.Collections.Generic;
 
     /// <content>
-    /// Contains the nested <see cref="MatchResult"/> struct.
+    /// Contains the nested helper <see cref="MatchResult"/> struct.
     /// </content>
-    internal sealed partial class RouteNode<T>
+    internal partial class RouteTrie<T>
     {
         /// <summary>
         /// Represents the result of matching a URL.
@@ -21,11 +21,11 @@ namespace Crest.Host.Routing
             /// Initializes a new instance of the <see cref="MatchResult"/> struct.
             /// </summary>
             /// <param name="captures">The captured parameter values.</param>
-            /// <param name="value">The matched value.</param>
-            internal MatchResult(IReadOnlyDictionary<string, object> captures, T value)
+            /// <param name="values">The matched values.</param>
+            internal MatchResult(IReadOnlyDictionary<string, object> captures, T[] values)
             {
                 this.Captures = captures;
-                this.Value = value;
+                this.Values = values;
             }
 
             /// <summary>
@@ -44,9 +44,9 @@ namespace Crest.Host.Routing
             public bool Success => this.Captures != null;
 
             /// <summary>
-            /// Gets the value stored against the route.
+            /// Gets the values stored against the route.
             /// </summary>
-            public T Value { get; }
+            public T[] Values { get; }
         }
     }
 }

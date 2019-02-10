@@ -3,7 +3,7 @@
 // Licensed under the MIT license. See LICENSE file in the project root for
 // full license information.
 
-namespace Crest.Host.Routing
+namespace Crest.Host.Routing.Parsing
 {
     using System;
     using System.Collections.Generic;
@@ -14,35 +14,39 @@ namespace Crest.Host.Routing
     using static System.Diagnostics.Debug;
 
     /// <content>
-    /// Contains the nested <see cref="NodeParser"/> struct.
+    /// Contains the nested <see cref="RoutePathParser"/> class.
     /// </content>
-    internal sealed partial class NodeBuilder
+    internal partial class RouteMatcherBuilder
     {
-        private sealed class NodeParser : UrlParser, IParseResult
+        private sealed class RoutePathParser : UrlParser
         {
             private readonly List<IMatchNode> nodes = new List<IMatchNode>();
+            private readonly IReadOnlyDictionary<Type, Func<string, IMatchNode>> knownMatchers;
             private readonly List<QueryCapture> queryCaptures = new List<QueryCapture>();
-            private readonly IReadOnlyDictionary<Type, Func<string, IMatchNode>> specializedCaptureNodes;
+            private string queryCatchAll;
 
-            internal NodeParser(
+            internal RoutePathParser(
                 bool canReadBody,
-                IReadOnlyDictionary<Type, Func<string, IMatchNode>> specializedCaptureNodes)
+                IReadOnlyDictionary<Type, Func<string, IMatchNode>> knownMatchers)
                 : base(canReadBody)
             {
-                this.specializedCaptureNodes = specializedCaptureNodes;
+                this.knownMatchers = knownMatchers;
             }
 
             public (string name, Type type) BodyParameter { get; private set; }
 
             public IReadOnlyList<IMatchNode> Nodes => this.nodes;
 
-            public IReadOnlyList<QueryCapture> QueryCaptures => this.queryCaptures;
-
-            public string QueryCatchAll { get; private set; }
-
-            internal void AddQueryCapture(QueryCapture capture)
+            internal QueryCapture[] GetQueryCaptures()
             {
-                this.queryCaptures.Add(capture);
+                // It's important we add this *after* all the other query
+                // captures have had change to capture their values
+                if (this.queryCatchAll != null)
+                {
+                    this.queryCaptures.Add(QueryCapture.CreateCatchAll(this.queryCatchAll));
+                }
+
+                return this.queryCaptures.ToArray();
             }
 
             internal void ParseUrl(string routeUrl, IReadOnlyCollection<ParameterInfo> parameters)
@@ -66,11 +70,9 @@ namespace Crest.Host.Routing
                 this.BodyParameter = (name, parameterType);
             }
 
-            protected override void OnCaptureSegment(Type parameterType, string name)
+            protected override void OnCaptureParameter(Type parameterType, string name)
             {
-                if (this.specializedCaptureNodes.TryGetValue(
-                        parameterType,
-                        out Func<string, IMatchNode> factoryMethod))
+                if (this.knownMatchers.TryGetValue(parameterType, out Func<string, IMatchNode> factoryMethod))
                 {
                     this.nodes.Add(factoryMethod(name));
                 }
@@ -97,23 +99,17 @@ namespace Crest.Host.Routing
 
             protected override void OnQueryCatchAll(string name)
             {
-                if (this.QueryCatchAll != null)
-                {
-                    throw new FormatException(
-                        "Multiple parameters have been specified for the query catch-all");
-                }
-
-                this.QueryCatchAll = name;
+                this.queryCatchAll = name;
             }
 
-            protected override void OnQueryParameter(string key, Type parameterType, string name)
+            protected override void OnQueryParameter(string name, Type parameterType)
             {
                 // Helper method to avoid QueryCaptures taking a dependency on
                 // IMatchNode when all it needs is an IQueryValueConverter that
                 // IMatchNode inherits from
                 bool TryGetConverter(Type type, out Func<string, IQueryValueConverter> value)
                 {
-                    bool result = this.specializedCaptureNodes.TryGetValue(
+                    bool result = this.knownMatchers.TryGetValue(
                         type,
                         out Func<string, IMatchNode> node);
 
@@ -122,13 +118,16 @@ namespace Crest.Host.Routing
                 }
 
                 this.queryCaptures.Add(
-                    QueryCapture.Create(key, parameterType, name, TryGetConverter));
+                    QueryCapture.Create(name, parameterType, TryGetConverter));
             }
 
             private static string GetErrorMessage(ErrorType error, string value)
             {
                 switch (error)
                 {
+                    case ErrorType.CannotBeMarkedAsFromBody:
+                        return "FromBody parameters cannot be captured";
+
                     case ErrorType.DuplicateParameter:
                         return "Parameter is captured multiple times";
 
@@ -138,23 +137,20 @@ namespace Crest.Host.Routing
                     case ErrorType.MissingClosingBrace:
                         return "Missing closing brace";
 
-                    case ErrorType.MissingQueryValue:
-                        return "Missing query value capture";
+                    case ErrorType.MultipleBodyParameters:
+                        return "Cannot have multiple body parameters";
+
+                    case ErrorType.MultipleCatchAllParameters:
+                        return "Cannot have multiple query catch-all parameters";
 
                     case ErrorType.MustBeOptional:
                         return "Query parameters must be optional";
 
-                    case ErrorType.MustCaptureQueryValue:
-                        return "Query values must be parameter captures";
-
                     case ErrorType.ParameterNotFound:
                         return "Parameter is missing from the URL";
 
-                    case ErrorType.UnescapedBrace:
-                        return "Unescaped braces are not allowed";
-
                     default:
-                        Assert(error == ErrorType.UnknownParameter, "Unknown enum value");
+                        Assert(error == ErrorType.UnknownParameter, "Unknown ErrorType value");
                         return "Unable to find parameter called: " + value;
                 }
             }
