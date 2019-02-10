@@ -50,15 +50,16 @@ namespace Crest.Host.Routing.Captures
         }
 
         /// <inheritdoc />
-        public NodeMatchResult Match(ReadOnlySpan<char> segment)
+        public NodeMatchInfo Match(ReadOnlySpan<char> text)
         {
+            ReadOnlySpan<char> segment = StringCaptureNode.GetPathSegment(text);
             if (this.TryConvertValue(segment, out object value))
             {
-                return new NodeMatchResult(this.ParameterName, value);
+                return new NodeMatchInfo(segment.Length, this.ParameterName, value);
             }
             else
             {
-                return NodeMatchResult.None;
+                return NodeMatchInfo.None;
             }
         }
 

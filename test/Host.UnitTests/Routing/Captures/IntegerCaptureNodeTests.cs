@@ -64,17 +64,17 @@
             [InlineData("-123", -123)]
             public void ShouldMatchValidIntegers(string integer, int expected)
             {
-                NodeMatchResult result = this.node.Match(integer.AsSpan());
+                NodeMatchInfo result = this.node.Match(integer.AsSpan());
 
                 result.Success.Should().BeTrue();
-                result.Name.Should().Be(Parameter);
+                result.Parameter.Should().Be(Parameter);
                 ((int)result.Value).Should().Be(expected);
             }
 
             [Fact]
             public void ShouldNotMatchInvalidIntegers()
             {
-                NodeMatchResult result = this.node.Match("ABC".AsSpan());
+                NodeMatchInfo result = this.node.Match("ABC".AsSpan());
 
                 result.Success.Should().BeFalse();
             }

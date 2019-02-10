@@ -37,9 +37,13 @@ namespace Crest.Host.Routing.Captures
         }
 
         /// <inheritdoc />
-        public NodeMatchResult Match(ReadOnlySpan<char> segment)
+        public NodeMatchInfo Match(ReadOnlySpan<char> text)
         {
-            return new NodeMatchResult(this.ParameterName, segment.ToString());
+            ReadOnlySpan<char> segment = GetPathSegment(text);
+            return new NodeMatchInfo(
+                segment.Length,
+                this.ParameterName,
+                segment.ToString());
         }
 
         /// <inheritdoc />
@@ -47,6 +51,22 @@ namespace Crest.Host.Routing.Captures
         {
             result = value.ToString();
             return true;
+        }
+
+        /// <summary>
+        /// Gets the current segment of the path.
+        /// </summary>
+        /// <param name="text">The string to match.</param>
+        /// <returns>The current segment from the text.</returns>
+        internal static ReadOnlySpan<char> GetPathSegment(in ReadOnlySpan<char> text)
+        {
+            int end = text.IndexOf('/');
+            if (end < 0)
+            {
+                end = text.Length;
+            }
+
+            return text.Slice(0, end);
         }
     }
 }

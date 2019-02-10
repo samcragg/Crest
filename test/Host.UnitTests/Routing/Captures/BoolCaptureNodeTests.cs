@@ -41,7 +41,7 @@
             [Fact]
             public void ShouldMatchFalse()
             {
-                NodeMatchResult result = this.node.Match("False".AsSpan());
+                NodeMatchInfo result = this.node.Match("False".AsSpan());
 
                 result.Success.Should().BeTrue();
             }
@@ -49,7 +49,7 @@
             [Fact]
             public void ShouldMatchOneAsTrue()
             {
-                NodeMatchResult result = this.node.Match("1".AsSpan());
+                NodeMatchInfo result = this.node.Match("1".AsSpan());
 
                 result.Success.Should().BeTrue();
                 result.Value.Should().Be(true);
@@ -58,7 +58,7 @@
             [Fact]
             public void ShouldMatchTrue()
             {
-                NodeMatchResult result = this.node.Match("True".AsSpan());
+                NodeMatchInfo result = this.node.Match("True".AsSpan());
 
                 result.Success.Should().BeTrue();
             }
@@ -66,7 +66,7 @@
             [Fact]
             public void ShouldMatchZeroAsFalse()
             {
-                NodeMatchResult result = this.node.Match("0".AsSpan());
+                NodeMatchInfo result = this.node.Match("0".AsSpan());
 
                 result.Success.Should().BeTrue();
                 result.Value.Should().Be(false);
@@ -75,7 +75,7 @@
             [Fact]
             public void ShouldNotMatchPartialWords()
             {
-                NodeMatchResult result = this.node.Match("tru".AsSpan());
+                NodeMatchInfo result = this.node.Match("tru".AsSpan());
 
                 result.Success.Should().BeFalse();
             }
@@ -83,9 +83,9 @@
             [Fact]
             public void ShouldReturnTheCapturedParameter()
             {
-                NodeMatchResult result = this.node.Match("true".AsSpan());
+                NodeMatchInfo result = this.node.Match("true".AsSpan());
 
-                result.Name.Should().Be(Parameter);
+                result.Parameter.Should().Be(Parameter);
             }
         }
 

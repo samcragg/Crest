@@ -42,16 +42,16 @@ namespace Crest.Host.Routing.Captures
         }
 
         /// <inheritdoc />
-        public NodeMatchResult Match(ReadOnlySpan<char> segment)
+        public NodeMatchInfo Match(ReadOnlySpan<char> text)
         {
-            object converted = ParseValue(segment);
+            object converted = ParseValue(text, out int length);
             if (converted == null)
             {
-                return NodeMatchResult.None;
+                return NodeMatchInfo.None;
             }
             else
             {
-                return new NodeMatchResult(this.ParameterName, converted);
+                return new NodeMatchInfo(length, this.ParameterName, converted);
             }
         }
 
@@ -65,38 +65,39 @@ namespace Crest.Host.Routing.Captures
             }
             else
             {
-                result = ParseValue(value);
+                result = ParseValue(value, out _);
                 return result != null;
             }
         }
 
-        private static bool Matches(in ReadOnlySpan<char> segment, string[] values)
+        private static int Matches(in ReadOnlySpan<char> span, string[] values)
         {
             for (int i = 0; i < values.Length; i++)
             {
-                if (segment.Equals(values[i].AsSpan(), StringComparison.OrdinalIgnoreCase))
+                if (LiteralNode.StartsWith(span, values[i]))
                 {
-                    return true;
+                    return values[i].Length;
                 }
             }
 
-            return false;
+            return -1;
         }
 
-        private static object ParseValue(in ReadOnlySpan<char> value)
+        private static object ParseValue(in ReadOnlySpan<char> value, out int length)
         {
-            if (Matches(value, FalseValues))
+            length = Matches(value, FalseValues);
+            if (length < 0)
             {
-                return BoxedFalse;
-            }
-            else if (Matches(value, TrueValues))
-            {
+                length = Matches(value, TrueValues);
+                if (length < 0)
+                {
+                    return null;
+                }
+
                 return BoxedTrue;
             }
-            else
-            {
-                return null;
-            }
+
+            return BoxedFalse;
         }
     }
 }

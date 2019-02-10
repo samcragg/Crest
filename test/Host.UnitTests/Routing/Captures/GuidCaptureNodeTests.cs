@@ -46,7 +46,7 @@
             [InlineData("(637325b6-75c1-45c4-aa64-d905cf3f7a90)")]
             public void ShouldMatchValidGuidStringFormats(string value)
             {
-                NodeMatchResult result = this.node.Match(value.AsSpan());
+                NodeMatchInfo result = this.node.Match(value.AsSpan());
 
                 result.Success.Should().BeTrue();
             }
@@ -61,7 +61,7 @@
             [InlineData("+637325b6-75c1-45c4-aa64-d905cf3f7a90+")]
             public void ShouldNotMatchInvalidFormattedGuids(string guid)
             {
-                NodeMatchResult result = this.node.Match(guid.AsSpan());
+                NodeMatchInfo result = this.node.Match(guid.AsSpan());
 
                 result.Success.Should().BeFalse();
             }
@@ -69,7 +69,7 @@
             [Fact]
             public void ShouldNotMatchInvalidHexValues()
             {
-                NodeMatchResult result = this.node.Match("ABCDEFGH-ijkl-MNOP-qrst-uvwxyz123456".AsSpan());
+                NodeMatchInfo result = this.node.Match("ABCDEFGH-ijkl-MNOP-qrst-uvwxyz123456".AsSpan());
 
                 result.Success.Should().BeFalse();
             }
@@ -79,9 +79,9 @@
             {
                 var guid = new Guid("637325B6-75C1-45C4-AA64-D905CF3F7A90");
 
-                NodeMatchResult result = this.node.Match(guid.ToString("D").AsSpan());
+                NodeMatchInfo result = this.node.Match(guid.ToString("D").AsSpan());
 
-                result.Name.Should().Be(Parameter);
+                result.Parameter.Should().Be(Parameter);
                 result.Value.Should().Be(guid);
             }
         }

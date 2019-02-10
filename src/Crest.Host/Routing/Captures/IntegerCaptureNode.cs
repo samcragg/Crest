@@ -61,15 +61,23 @@ namespace Crest.Host.Routing.Captures
         }
 
         /// <inheritdoc />
-        public NodeMatchResult Match(ReadOnlySpan<char> segment)
+        public NodeMatchInfo Match(ReadOnlySpan<char> text)
         {
-            if (this.TryConvertValue(segment, out object result))
+            ParseResult<long> parseResult = IntegerConverter.TryReadSignedInt(
+                text,
+                long.MinValue,
+                long.MaxValue);
+
+            if (parseResult.IsSuccess)
             {
-                return new NodeMatchResult(this.ParameterName, result);
+                return new NodeMatchInfo(
+                    parseResult.Length,
+                    this.ParameterName,
+                    this.BoxInteger(parseResult.Value));
             }
             else
             {
-                return NodeMatchResult.None;
+                return NodeMatchInfo.None;
             }
         }
 

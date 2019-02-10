@@ -25,11 +25,11 @@ namespace Crest.Host.Routing
         /// <summary>
         /// Determines whether the specified string is matched by this instance.
         /// </summary>
-        /// <param name="segment">The string to match.</param>
+        /// <param name="text">The string to match.</param>
         /// <returns>
         /// The result of the matching, including any captured parameters if
         /// successful.
         /// </returns>
-        NodeMatchResult Match(ReadOnlySpan<char> segment);
+        NodeMatchInfo Match(ReadOnlySpan<char> text);
     }
 }

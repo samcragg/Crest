@@ -41,17 +41,25 @@
             [Fact]
             public void ShouldMatchAnyString()
             {
-                NodeMatchResult result = this.node.Match("string".AsSpan());
+                NodeMatchInfo result = this.node.Match("string".AsSpan());
 
                 result.Success.Should().BeTrue();
             }
 
             [Fact]
+            public void ShouldMatchUptoThePathSeparator()
+            {
+                NodeMatchInfo result = this.node.Match("one/two".AsSpan());
+
+                result.Value.Should().Be("one");
+            }
+
+            [Fact]
             public void ShouldSaveTheCapturedParameter()
             {
-                NodeMatchResult result = this.node.Match("23".AsSpan());
+                NodeMatchInfo result = this.node.Match("23".AsSpan());
 
-                result.Name.Should().Be(Parameter);
+                result.Parameter.Should().Be(Parameter);
                 result.Value.Should().Be("23");
             }
         }

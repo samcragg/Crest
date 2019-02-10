@@ -32,26 +32,26 @@ namespace Crest.Host.Routing.Captures
         }
 
         /// <inheritdoc />
-        public NodeMatchResult Match(ReadOnlySpan<char> segment)
+        public NodeMatchInfo Match(ReadOnlySpan<char> text)
         {
-            if (segment.Length > 1)
+            if (text.Length > 1)
             {
-                char v = segment[0];
+                char v = text[0];
                 if ((v == 'v') || (v == 'V'))
                 {
                     ParseResult<long> result = IntegerConverter.TryReadSignedInt(
-                        segment.Slice(1),
+                        text.Slice(1),
                         int.MinValue,
                         int.MaxValue);
 
                     if (result.IsSuccess)
                     {
-                        return new NodeMatchResult(KeyName, (int)result.Value);
+                        return new NodeMatchInfo(result.Length + 1, KeyName, (int)result.Value);
                     }
                 }
             }
 
-            return NodeMatchResult.None;
+            return NodeMatchInfo.None;
         }
 
         /// <inheritdoc />

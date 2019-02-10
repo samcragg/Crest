@@ -33,8 +33,8 @@
             [Fact]
             public void ShouldMatchAnyCase()
             {
-                NodeMatchResult lower = this.node.Match("v1".AsSpan());
-                NodeMatchResult upper = this.node.Match("V1".AsSpan());
+                NodeMatchInfo lower = this.node.Match("v1".AsSpan());
+                NodeMatchInfo upper = this.node.Match("V1".AsSpan());
 
                 lower.Success.Should().BeTrue();
                 upper.Success.Should().BeTrue();
@@ -46,7 +46,7 @@
             [InlineData("vNext")]
             public void ShouldNotMatchInvalidVersions(string version)
             {
-                NodeMatchResult result = this.node.Match(version.AsSpan());
+                NodeMatchInfo result = this.node.Match(version.AsSpan());
 
                 result.Success.Should().BeFalse();
             }
@@ -54,9 +54,9 @@
             [Fact]
             public void ShouldSaveTheVersionNumber()
             {
-                NodeMatchResult result = this.node.Match("v12".AsSpan());
+                NodeMatchInfo result = this.node.Match("v12".AsSpan());
 
-                result.Name.Should().Be(VersionCaptureNode.KeyName);
+                result.Parameter.Should().Be(VersionCaptureNode.KeyName);
                 result.Value.Should().Be(12);
             }
         }

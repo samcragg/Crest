@@ -48,7 +48,7 @@
             [Fact]
             public void ShouldIgnoreTheCaseWhenComparing()
             {
-                NodeMatchResult result = this.node.Match(
+                NodeMatchInfo result = this.node.Match(
                     LiteralString.ToUpperInvariant().AsSpan());
 
                 result.Success.Should().BeTrue();
@@ -57,7 +57,7 @@
             [Fact]
             public void ShouldReturnSuccessIfTheLiteralMatches()
             {
-                NodeMatchResult result = this.node.Match(LiteralString.AsSpan());
+                NodeMatchInfo result = this.node.Match(LiteralString.AsSpan());
 
                 result.Success.Should().BeTrue();
             }
@@ -65,7 +65,7 @@
             [Fact]
             public void ShouldReturnUnsuccessfulIfTheLiteralIsNotAtTheSpecifiedLocation()
             {
-                NodeMatchResult result = this.node.Match("not_here_literal".AsSpan());
+                NodeMatchInfo result = this.node.Match("not_here_literal".AsSpan());
 
                 result.Success.Should().BeFalse();
             }
