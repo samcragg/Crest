@@ -16,18 +16,15 @@ namespace Crest.Host.Routing.Captures
     {
         private class CatchAll : QueryCapture
         {
-            private readonly string parameterName;
-
             public CatchAll(string parameterName)
-                : base(null, null)
+                : base(parameterName, null)
             {
-                this.parameterName = parameterName;
             }
 
             public override void ParseParameters(ILookup<string, string> query, IDictionary<string, object> parameters)
             {
                 parameters.Add(
-                    this.parameterName,
+                    this.ParameterName,
                     new DynamicQuery(query, (IReadOnlyDictionary<string, object>)parameters));
             }
         }

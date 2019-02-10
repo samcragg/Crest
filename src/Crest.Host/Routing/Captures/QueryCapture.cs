@@ -17,12 +17,21 @@ namespace Crest.Host.Routing.Captures
     {
         private static readonly ILog Logger = Log.For<QueryCapture>();
         private readonly IQueryValueConverter converter;
-        private readonly string queryKey;
 
-        private QueryCapture(string queryKey, IQueryValueConverter converter)
+        /// <summary>
+        /// Initializes a new instance of the <see cref="QueryCapture"/> class.
+        /// </summary>
+        /// <remarks>
+        /// This constructor is only used to allow the type to be mocked in unit tests.
+        /// </remarks>
+        protected QueryCapture()
+        {
+        }
+
+        private QueryCapture(string parameterName, IQueryValueConverter converter)
         {
             this.converter = converter;
-            this.queryKey = queryKey;
+            this.ParameterName = parameterName;
         }
 
         /// <summary>
@@ -34,20 +43,23 @@ namespace Crest.Host.Routing.Captures
         public delegate bool TryGetValue(Type key, out Func<string, IQueryValueConverter> value);
 
         /// <summary>
+        /// Gets the name of the parameter for the captured value.
+        /// </summary>
+        internal string ParameterName { get; }
+
+        /// <summary>
         /// Creates a <see cref="QueryCapture"/> that can capture the specified
         /// parameter.
         /// </summary>
-        /// <param name="queryKey">The name of the query key.</param>
-        /// <param name="parameterType">The type of the parameter.</param>
         /// <param name="parameterName">The name of the parameter.</param>
+        /// <param name="parameterType">The type of the parameter.</param>
         /// <param name="getConverter">
         /// Used to find a specialized converter.
         /// </param>
         /// <returns>A new instance of the <see cref="QueryCapture"/> class.</returns>
         public static QueryCapture Create(
-            string queryKey,
-            Type parameterType,
             string parameterName,
+            Type parameterType,
             TryGetValue getConverter)
         {
             Type elementType = parameterType.IsArray ?
@@ -66,11 +78,11 @@ namespace Crest.Host.Routing.Captures
 
             if (parameterType.IsArray)
             {
-                return new MultipleValues(queryKey, elementType, valueConverter);
+                return new MultipleValues(parameterName, elementType, valueConverter);
             }
             else
             {
-                return new SingleValue(queryKey, valueConverter);
+                return new SingleValue(parameterName, valueConverter);
             }
         }
 

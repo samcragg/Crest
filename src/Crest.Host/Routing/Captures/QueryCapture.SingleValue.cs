@@ -17,15 +17,15 @@ namespace Crest.Host.Routing.Captures
     {
         private sealed class SingleValue : QueryCapture
         {
-            internal SingleValue(string queryKey, IQueryValueConverter converter)
-                : base(queryKey, converter)
+            internal SingleValue(string parameterName, IQueryValueConverter converter)
+                : base(parameterName, converter)
             {
             }
 
             /// <inheritdoc/>
             public override void ParseParameters(ILookup<string, string> query, IDictionary<string, object> parameters)
             {
-                foreach (string value in query[this.queryKey])
+                foreach (string value in query[this.ParameterName])
                 {
                     if (this.converter.TryConvertValue(value.AsSpan(), out object result))
                     {

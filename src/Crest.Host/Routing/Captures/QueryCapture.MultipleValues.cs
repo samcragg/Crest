@@ -20,8 +20,8 @@ namespace Crest.Host.Routing.Captures
         {
             private readonly Type elementType;
 
-            internal MultipleValues(string queryKey, Type elementType, IQueryValueConverter converter)
-                : base(queryKey, converter)
+            internal MultipleValues(string parameterName, Type elementType, IQueryValueConverter converter)
+                : base(parameterName, converter)
             {
                 this.elementType = elementType;
             }
@@ -30,7 +30,7 @@ namespace Crest.Host.Routing.Captures
             public override void ParseParameters(ILookup<string, string> query, IDictionary<string, object> parameters)
             {
                 var buffer = new ArrayList();
-                foreach (string value in query[this.queryKey])
+                foreach (string value in query[this.ParameterName])
                 {
                     if (this.converter.TryConvertValue(value.AsSpan(), out object result))
                     {
