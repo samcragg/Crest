@@ -3,7 +3,7 @@
     using System;
     using System.Collections.Generic;
     using System.Linq;
-    using Crest.Host.Routing;
+    using Crest.Host.Routing.Parsing;
     using Microsoft.CodeAnalysis;
     using Microsoft.CodeAnalysis.CSharp.Syntax;
     using Microsoft.CodeAnalysis.Diagnostics;
@@ -43,7 +43,7 @@
         {
         }
 
-        protected override void OnCaptureSegment(Type parameterType, string name)
+        protected override void OnCaptureParameter(Type parameterType, string name)
         {
         }
 
@@ -79,7 +79,7 @@
         {
         }
 
-        protected override void OnQueryParameter(string key, Type parameterType, string name)
+        protected override void OnQueryParameter(string name, Type parameterType)
         {
         }
 
@@ -99,23 +99,17 @@
                 case ErrorType.MissingClosingBrace:
                     return RouteAnalyzer.MissingClosingBraceRule;
 
-                case ErrorType.MissingQueryValue:
-                    return RouteAnalyzer.MissingQueryValueRule;
-
                 case ErrorType.MultipleBodyParameters:
                     return RouteAnalyzer.MultipleBodyParametersRule;
+
+                case ErrorType.MultipleCatchAllParameters:
+                    return RouteAnalyzer.MultipleCatchAllParametersRule;
 
                 case ErrorType.MustBeOptional:
                     return RouteAnalyzer.MustBeOptionalRule;
 
-                case ErrorType.MustCaptureQueryValue:
-                    return RouteAnalyzer.MustCaptureQueryValueRule;
-
                 case ErrorType.ParameterNotFound:
                     return RouteAnalyzer.ParameterNotFoundRule;
-
-                case ErrorType.UnescapedBrace:
-                    return RouteAnalyzer.UnescapedBraceRule;
 
                 case ErrorType.UnknownParameter:
                     return RouteAnalyzer.UnknownParameterRule;

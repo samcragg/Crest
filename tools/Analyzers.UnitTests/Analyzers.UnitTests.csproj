@@ -9,6 +9,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Crest.Analyzers\Crest.Analyzers.csproj" />
-    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="2.8.2" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="2.10.0" />
   </ItemGroup>
 </Project>

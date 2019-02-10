@@ -25,24 +25,5 @@ interface IRoute
 }";
             await this.VerifyFix(Original, Fixed);
         }
-
-        [Fact]
-        public async Task ShouldEscapeTheBrace()
-        {
-            const string Original = Code.Usings + Code.GetAttribute + @"
-interface IRoute
-{
-    [Get(""open{brace"")]
-    Task Method();
-}";
-
-            const string Fixed = Code.Usings + Code.GetAttribute + @"
-interface IRoute
-{
-    [Get(""open{{brace"")]
-    Task Method();
-}";
-            await this.VerifyFix(Original, Fixed);
-        }
     }
 }

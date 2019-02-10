@@ -33,14 +33,14 @@
         public const string MissingClosingBraceId = "MissingClosingBrace";
 
         /// <summary>
-        /// Query parameters should be in the form 'key={value}'.
-        /// </summary>
-        public const string MissingQueryValueId = "MissingQueryValue";
-
-        /// <summary>
         /// Multiple FromBody parameters are not allowed.
         /// </summary>
         public const string MultipleBodyParametersId = "MultipleBodyParameters";
+
+        /// <summary>
+        /// Multiple query capture remaining values parameters are not allowed.
+        /// </summary>
+        public const string MultipleCatchAllParametersId = "MultipleCatchAllParameters";
 
         /// <summary>
         /// Query parameters must be marked as optional.
@@ -48,19 +48,9 @@
         public const string MustBeOptionalId = "MustBeOptional";
 
         /// <summary>
-        /// Query values must be captured.
-        /// </summary>
-        public const string MustCaptureQueryValueId = "MustCaptureQueryValue";
-
-        /// <summary>
         /// Parameter must be captured in the route URL.
         /// </summary>
         public const string ParameterNotFoundId = "ParameterNotFound";
-
-        /// <summary>
-        /// Braces must be escaped.
-        /// </summary>
-        public const string UnescapedBraceId = "UnescapedBrace";
 
         /// <summary>
         /// No matching method parameter.
@@ -107,16 +97,6 @@
                 isEnabledByDefault: true,
                 description: "Open braces must be matched with a closing brace.");
 
-        internal static readonly DiagnosticDescriptor MissingQueryValueRule =
-            new DiagnosticDescriptor(
-                MissingQueryValueId,
-                "Missing query value",
-                "Query parameters should be in the form 'key={value}'",
-                "Syntax",
-                DiagnosticSeverity.Error,
-                isEnabledByDefault: true,
-                description: "Query parameters must consist of a key and capture value.");
-
         internal static readonly DiagnosticDescriptor MultipleBodyParametersRule =
             new DiagnosticDescriptor(
                 MultipleBodyParametersId,
@@ -126,6 +106,16 @@
                 DiagnosticSeverity.Error,
                 isEnabledByDefault: true,
                 description: "Only one parameter can be marked as coming from the request body.");
+
+        internal static readonly DiagnosticDescriptor MultipleCatchAllParametersRule =
+            new DiagnosticDescriptor(
+                MultipleCatchAllParametersId,
+                "Multiple catch all parameters",
+                "Multiple query capture remaining values parameters are not allowed",
+                "Syntax",
+                DiagnosticSeverity.Error,
+                isEnabledByDefault: true,
+                description: "Only one parameter can be used to capture the remaining query key/values.");
 
         internal static readonly DiagnosticDescriptor MustBeOptionalRule =
             new DiagnosticDescriptor(
@@ -137,16 +127,6 @@
                 isEnabledByDefault: true,
                 description: "Query parameters in the route are optional, therefore, the parameter must me optional.");
 
-        internal static readonly DiagnosticDescriptor MustCaptureQueryValueRule =
-            new DiagnosticDescriptor(
-                MustCaptureQueryValueId,
-                "Must capture query values",
-                "Query values must be captured",
-                "Syntax",
-                DiagnosticSeverity.Error,
-                isEnabledByDefault: true,
-                description: "Query values must be captured by an optional parameter.");
-
         internal static readonly DiagnosticDescriptor ParameterNotFoundRule =
             new DiagnosticDescriptor(
                 ParameterNotFoundId,
@@ -156,16 +136,6 @@
                 DiagnosticSeverity.Error,
                 isEnabledByDefault: true,
                 description: "Method parameters must be specified as captures in the URL.");
-
-        internal static readonly DiagnosticDescriptor UnescapedBraceRule =
-            new DiagnosticDescriptor(
-                UnescapedBraceId,
-                "Unescaped brace",
-                "Braces must be escaped",
-                "Syntax",
-                DiagnosticSeverity.Error,
-                isEnabledByDefault: true,
-                description: "Braces not used as captures must be escaped as '{{' or '}}'.");
 
         internal static readonly DiagnosticDescriptor UnknownParameterRule =
             new DiagnosticDescriptor(
@@ -184,12 +154,10 @@
                 DuplicateCaptureRule,
                 IncorrectCatchAllTypeRule,
                 MissingClosingBraceRule,
-                MissingQueryValueRule,
                 MultipleBodyParametersRule,
+                MultipleCatchAllParametersRule,
                 MustBeOptionalRule,
-                MustCaptureQueryValueRule,
                 ParameterNotFoundRule,
-                UnescapedBraceRule,
                 UnknownParameterRule);
 
         /// <inheritdoc />

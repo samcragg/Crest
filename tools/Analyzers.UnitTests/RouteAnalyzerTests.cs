@@ -16,7 +16,7 @@
             string source = Code.Usings + Code.GetAttribute + @"
 interface IRoute
 {
-    [Get(""?*={parameter}"")]
+    [Get(""/route{?parameter*}"")]
     Task Method(" + type + @" parameter);
 }";
 
@@ -55,7 +55,7 @@ interface IRoute
             const string Source = Code.Usings + Code.GetAttribute + @"
 interface IRoute
 {
-    [Get(""?*={parameter}"")]
+    [Get(""/route{?parameter*}"")]
     Task Method(string parameter);
 }";
 
@@ -123,27 +123,7 @@ interface IRoute
             {
                 Id = RouteAnalyzer.MissingClosingBraceId,
                 Severity = DiagnosticSeverity.Error,
-                Locations = new[] { new DiagnosticResultLocation(line: 4, column: 19) }
-            };
-
-            this.VerifyDiagnostic(Source, expected);
-        }
-
-        [Fact]
-        public void ShouldCheckForMissingQueryValue()
-        {
-            const string Source = Code.Usings + Code.GetAttribute + @"
-interface IRoute
-{
-    [Get(""/route?queryKey"")]
-    Task Method();
-}";
-
-            var expected = new DiagnosticResult
-            {
-                Id = RouteAnalyzer.MissingQueryValueId,
-                Severity = DiagnosticSeverity.Error,
-                Locations = new[] { new DiagnosticResultLocation(line: 4, column: 18) }
+                Locations = new[] { new DiagnosticResultLocation(line: 4, column: 12) }
             };
 
             this.VerifyDiagnostic(Source, expected);
@@ -170,20 +150,20 @@ interface IRoute
         }
 
         [Fact]
-        public void ShouldCheckForUnescapedBraces()
+        public void ShouldCheckForMultipleCatchAllParameters()
         {
             const string Source = Code.Usings + Code.GetAttribute + @"
-interface IRoute
-{
-    [Get(""/route{unescaped"")]
-    Task Method();
-}";
+            interface IRoute
+            {
+                [Get(""/query{?one*,two*}"")]
+                Task Method(object one, object two);
+            }";
 
             var expected = new DiagnosticResult
             {
-                Id = RouteAnalyzer.UnescapedBraceId,
+                Id = RouteAnalyzer.MultipleCatchAllParametersId,
                 Severity = DiagnosticSeverity.Error,
-                Locations = new[] { new DiagnosticResultLocation(line: 4, column: 17) }
+                Locations = new[] { new DiagnosticResultLocation(line: 5, column: 41) }
             };
 
             this.VerifyDiagnostic(Source, expected);
@@ -235,7 +215,7 @@ interface IRoute
             const string Source = Code.Usings + Code.GetAttribute + @"
 interface IRoute
 {
-    [Get(""/route?key={capture}"")]
+    [Get(""/route{?capture}"")]
     Task Method(int capture);
 }";
 
@@ -244,26 +224,6 @@ interface IRoute
                 Id = RouteAnalyzer.MustBeOptionalId,
                 Severity = DiagnosticSeverity.Error,
                 Locations = new[] { new DiagnosticResultLocation(line: 5, column: 17) }
-            };
-
-            this.VerifyDiagnostic(Source, expected);
-        }
-
-        [Fact]
-        public void ShouldCheckThatQueryValuesAreCaptured()
-        {
-            const string Source = Code.Usings + Code.GetAttribute + @"
-interface IRoute
-{
-    [Get(""/route?key=value"")]
-    Task Method();
-}";
-
-            var expected = new DiagnosticResult
-            {
-                Id = RouteAnalyzer.MustCaptureQueryValueId,
-                Severity = DiagnosticSeverity.Error,
-                Locations = new[] { new DiagnosticResultLocation(line: 4, column: 22) }
             };
 
             this.VerifyDiagnostic(Source, expected);
