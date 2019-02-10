@@ -6,19 +6,19 @@
 
     public interface IQueryParameters
     {
-        [Get("/any?*={all}")]
+        [Get("/any{?all*}")]
         [Version(1)]
         Task<string> WithAny(dynamic all);
 
-        [Get("/both?value={captured}&*={all}")]
+        [Get("/both{?value,all*}")]
         [Version(1)]
-        Task<string> WithBoth(string captured, dynamic all);
+        Task<string> WithBoth(string value, dynamic all);
 
-        [Get("/captured?value={captured}")]
+        [Get("/captured{?value}")]
         [Version(1)]
-        Task<string> WithCaptured(string captured);
+        Task<string> WithCaptured(string value);
 
-        [Get("/queryable?*={filter}")]
+        [Get("/queryable{?filter*}")]
         [Version(1)]
         Task<string> WithFilter(dynamic filter);
     }

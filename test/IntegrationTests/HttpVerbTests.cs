@@ -27,7 +27,7 @@
             {
                 var message = new HttpRequestMessage(
                     new HttpMethod(verb),
-                    "/v1/" + HttpVerbs.Endpoint);
+                    "/v1" + HttpVerbs.Endpoint);
 
                 string content = await this.fixture.GetResultAsStringAsync(client, message);
 

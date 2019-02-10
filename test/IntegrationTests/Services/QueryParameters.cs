@@ -14,16 +14,16 @@
             return Task.FromResult(stringValue + " " + intValue);
         }
 
-        public Task<string> WithBoth(string captured, dynamic all)
+        public Task<string> WithBoth(string value, dynamic all)
         {
             string stringValue = all.stringValue;
             int intValue = all.intValue;
-            return Task.FromResult(captured + " " + stringValue + " " + intValue);
+            return Task.FromResult(value + " " + stringValue + " " + intValue);
         }
 
-        public Task<string> WithCaptured(string captured)
+        public Task<string> WithCaptured(string value)
         {
-            return Task.FromResult(captured);
+            return Task.FromResult(value);
         }
 
         public Task<string> WithFilter(object filter)
