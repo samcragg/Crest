@@ -62,6 +62,11 @@ namespace Crest.Host.Routing.Parsing
                     };
                 }
 
+                if (!routeUrl.StartsWith("/", StringComparison.Ordinal))
+                {
+                    routeUrl = "/" + routeUrl;
+                }
+
                 this.ParseUrl(routeUrl, parameters.Select(ConvertParameter));
             }
 

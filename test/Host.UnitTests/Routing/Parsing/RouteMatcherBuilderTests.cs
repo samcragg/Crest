@@ -22,6 +22,18 @@
         public sealed class AddMethod : RouteMatcherBuilderTests
         {
             [Fact]
+            public void ShouldAddForwardSlashToTheRoute()
+            {
+                this.builder.AddMethod(CreateRoute<string>("route", 1, 1));
+
+                (IMatchNode[] nodes, _) = this.GetRoutes().Single();
+
+                nodes.Should().ContainSingle()
+                    .Which.Should().BeOfType<LiteralNode>()
+                    .Which.Literal.Should().Be("/route");
+            }
+
+            [Fact]
             public void ShouldAddMethodsWithBodyParameters()
             {
                 RouteMetadata route = CreateRoute<string>("/literal", 1, 1, "implicitBody");
@@ -242,7 +254,11 @@
             {
                 this.builder.AddMethod(CreateRoute("{capture}", 1, 1, type, "capture"));
                 (IMatchNode[] nodes, _) = this.GetRoutes().Should().ContainSingle().Subject;
-                return nodes.Should().ContainSingle().Subject.Match(value.AsSpan());
+
+                // We're expecting two nodes - one literal for the '/' and then
+                // one for the capture
+                nodes.Should().HaveCount(2);
+                return nodes[1].Match(value.AsSpan());
             }
 
             private List<(IMatchNode[] nodes, EndpointInfo<RouteMethodInfo> endpoint)> GetRoutes()
