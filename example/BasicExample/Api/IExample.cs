@@ -13,9 +13,9 @@
         /// Returns all the identifiers of time zones available on the server.
         /// </summary>
         /// <returns>The identifiers of the time zones.</returns>
-        [Get("timezones")]
+        [Get("timezones{?filter*}")]
         [Version(1)]
-        Task<string[]> ListTimeZonesAsync();
+        Task<string[]> ListTimeZonesAsync(dynamic filter);
 
         /// <summary>
         /// Gets information about a specific time zone.

@@ -3,6 +3,7 @@
     using System.Linq;
     using System.Threading.Tasks;
     using BasicExample.Api;
+    using Crest.DataAccess;
     using TimeZoneInfo = System.TimeZoneInfo;
 
     internal sealed class Example : IExample
@@ -42,6 +43,16 @@
                 TimeZoneInfo.GetSystemTimeZones()
                             .Select(tz => tz.Id)
                             .ToArray());
+        }
+
+        public Task<string[]> ListTimeZonesAsync(dynamic filter)
+        {
+            IQueryable<TimeZoneInfo> query =
+                TimeZoneInfo.GetSystemTimeZones()
+                    .AsQueryable()
+                    .Apply().FilterAndSort(filter);
+
+            return Task.FromResult(query.Select(tz => tz.Id).ToArray());
         }
 
         private static TimeZoneInfo GetTimeZoneInfo(string id)

@@ -9,10 +9,11 @@
 
   <ItemGroup>
     <DotNetCliToolReference Include="Crest.OpenApi.Generator" Version="0.*" />
+    <PackageReference Include="Crest.DataAccess" Version="0.*" />
     <PackageReference Include="Crest.Host.AspNetCore" Version="0.*" />
     <PackageReference Include="Crest.OpenApi" Version="0.*" />
-    <PackageReference Include="Microsoft.AspNetCore.Server.Kestrel" Version="2.1.3" />
-    <PackageReference Include="NLog" Version="4.5.8" />
+    <PackageReference Include="Microsoft.AspNetCore.Server.Kestrel" Version="2.2.0" />
+    <PackageReference Include="NLog" Version="4.5.11" />
   </ItemGroup>
 
   <ItemGroup>
