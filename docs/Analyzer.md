@@ -44,7 +44,7 @@ runtime an internal type will be passed in that contains the query parameters
 that have not been captured, if any.
 
 ```C#
-[Get("?*={anythingElse}")]
+[Get("/{?anythingElse*}")]
 Task Method(string anythingElse);
 ```
 
@@ -55,15 +55,6 @@ therefore, the following would trigger the error as the end brace is missing:
 
 ```C#
 [Get("/things/{capture")]
-```
-
-### MissingQueryValue
-
-All query parameters must specify a capture as their value so should be in the
-form `key={value}`. The following generates the error as only a key is specified:
-
-```C#
-[Get("/route?queryKeyOnly")]
 ```
 
 ### MissingVersionAttribute
@@ -89,7 +80,7 @@ Task Method();
 
 ### MultipleBodyParameters
 
-Only a single parameter can be marked as soming from the request body, so this
+Only a single parameter can be marked as coming from the request body, so this
 error is raised when more than one parameter is marked as `FromBody`:
 
 ```C#
@@ -100,6 +91,17 @@ Task Method([FromBody]int id, [FromBody]string name);
 If multiple values are required from the request body, these should be
 encapsulated in a plain old data object.
 
+### MultipleCatchAllParameters
+
+Only a single parameter can be used to capture the unmatched query key/values,
+so this error is raised when more than one parameter is specified as being the
+catch all parameter:
+
+```C#
+[Put("/{?one*,two*}")]
+Task Method(dynamic one, dynamic two);
+```
+
 ### MustBeOptional
 
 All parameters that are captured in the query must be marked as optional (i.e.
@@ -108,17 +110,8 @@ definition optional. The following generates the error as no default value is
 specified for the argument:
 
 ```C#
-[Get("/route?queryKey={id}")]
+[Get("/route{?id}")]
 Task Method(int id);
-```
-
-### MustCaptureQueryValue
-
-Query values must be captured by an optional argument in the method. Since the
-following specified a literal value for the query value, an error is generated:
-
-```C#
-[Get("/route?queryKey=literalValue")]
 ```
 
 ### ParameterNotFound
@@ -129,24 +122,6 @@ when a parameter doesn't have a default value and is not specified in the URL:
 ```C#
 [Get("/route")]
 Task Method(int id);
-```
-
-### UnescapedBrace
-
-Braces are used to indicate a parameter capture, which must appear at the start
-of a URL segment (i.e. preceded by a `\`). If the URL is to contain a brace, it
-must be escaped by doubling it (i.e. `{{` or `}}`). The following contains a
-single brace inside the segment and, therefore, generates the error:
-
-```C#
-[Get("/segment1/segment_with_{")]
-```
-
-A code fix is available that inserts the brace for you, producing the following
-when applied to the above:
-
-```C#
-[Get("/segment1/segment_with_{{")]
 ```
 
 ### UnknownParameter

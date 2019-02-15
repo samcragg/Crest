@@ -9,19 +9,21 @@ allowing multiple routes to be handled by the same handler. Also, the same URL
 can be applied to different methods as long as they have different version
 ranges.
 
+The URLs in the attributes follow the format of
+[RFC 6570](https://tools.ietf.org/html/rfc6570), which should enable client
+applications consuming them to be able to easily parse the same value.
+
 ## Literal matching
 
-Any text in a route is matched literally (ignoring case) with the exception of
-braces. Since braces are used to indicate a parameter capture, they must be
-escaped:
+Any text in a route is matched literally (ignoring case):
 
 ``` C#
-[Get("/{{route}}")]
+[Get("/route")]
 [Version(1)]
 Task GetRoute();
 ```
 
-The above would match a request for `/v1/{route}`
+The above would match a request for `/v1/Route` and `/v1/route` etc
 
 ## Parameter matching
 
@@ -71,7 +73,7 @@ The following types are supported out of the box:
 If a parameter appears as part of the query, the parameter must be optional:
 
 ``` C#
-[Get("/widget?name={name}")]
+[Get("/widget{?name}")]
 [Version(1)]
 Task FindWidget(string name = null);
 ```
@@ -80,7 +82,7 @@ If a default value is specified and the query parameter is not sent in the
 request, then that value will be injected instead:
 
 ``` C#
-[Get("/widget?name={name}")]
+[Get("/widget{?name}")]
 [Version(1)]
 Task FindWidget(string name = "*");
 ```
@@ -90,27 +92,27 @@ the `name` parameter value.
 
 ### Boolean query values
 
-Normally query values should be in the format `key=value`, however, for `bool`
-parameters then a presence only match is done:
+Normally query values are passed in the URL in the format `key=value`, however,
+for `bool` parameters then a presence only match is done:
 
 ``` C#
-[Get("/widget?all={includeAll}")]
+[Get("/widget{?all}")]
 [Version(1)]
-Task FindWidget(bool includeAll = false);
+Task FindWidget(bool all = false);
 ```
 
-Calling `/v1/widget?all` would pass in `true` for the `includeAll` parameter,
-as well as `/v1/widget?all=1` or `/v1/widget?all=true`.
+Calling `/v1/widget?all` would pass in `true` for the `all` parameter, as well
+as `/v1/widget?all=1` or `/v1/widget?all=true`.
 
 ### Any query key/value
 
 As the query part of the URL can be dynamic, there may be scenarios where you
 want to capture what has been sent in the request. To enable this, you can use
-a `dynamic` parameter (that has a key name of `*`), which will have a member for
-each key that has not been captured:
+a `dynamic` type for the parameter and place a `*` after its name in the URL;
+the passed in value will have a member for each key that has not been captured:
 
 ``` C#
-[Get("/widget?count={count}&*={properties}")]
+[Get("/widget{?count,properties*}")]
 [Version(1)]
 Task FindWidget(dynamic properties, int count = 10);
 ```
@@ -120,8 +122,8 @@ method with `properties` having a member called `name` and the `count` parameter
 equal to `2`. If you try to access a member on the dynamic type that wasn't
 specified in the request then it will return null rather than throwing an
 exception. The return type of the dynamic member can be assigned to either a
-`string` (the first item in the query will be used for multiple keys) or
-`IEnumerable<string>` (including `string[]`). If it is assigned to any other
+`string` (the first item in the query will be used when there are multiple keys)
+or `IEnumerable<string>` (including `string[]`). If it is assigned to any other
 type (e.g. an `int`) then the string will be attempted to be converted to the
 specified type, however, this will throw if the format is incorrect.
 
