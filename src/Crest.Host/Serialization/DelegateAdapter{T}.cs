@@ -53,8 +53,19 @@ namespace Crest.Host.Serialization
                 ref this.deserializeMetadata,
                 type);
 
-            T formatter = this.createFormatter(stream, SerializationMode.Deserialize);
-            return deserialize(formatter, this.deserializeMetadata);
+            T formatter = default;
+            try
+            {
+                formatter = this.createFormatter(stream, SerializationMode.Deserialize);
+                return deserialize(formatter, this.deserializeMetadata);
+            }
+            finally
+            {
+                if (formatter is IDisposable disposable)
+                {
+                    disposable.Dispose();
+                }
+            }
         }
 
         /// <inheritdoc />
@@ -72,9 +83,20 @@ namespace Crest.Host.Serialization
                 ref this.serializeMetadata,
                 value.GetType());
 
-            T formatter = this.createFormatter(stream, SerializationMode.Serialize);
-            serialize(formatter, this.serializeMetadata, value);
-            formatter.Writer.Flush();
+            T formatter = default;
+            try
+            {
+                formatter = this.createFormatter(stream, SerializationMode.Serialize);
+                serialize(formatter, this.serializeMetadata, value);
+                formatter.Writer.Flush();
+            }
+            finally
+            {
+                if (formatter is IDisposable disposable)
+                {
+                    disposable.Dispose();
+                }
+            }
         }
 
         private static Func<Stream, SerializationMode, T> CallFormatterConstructor()

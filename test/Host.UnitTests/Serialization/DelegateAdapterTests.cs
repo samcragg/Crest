@@ -26,6 +26,17 @@
         public sealed class Deserialize : DelegateAdapterTests
         {
             [Fact]
+            public void ShouldDisposeTheFormatter()
+            {
+                FakeFormatter.DisposeCalled = false;
+                Stream stream = Substitute.For<Stream>();
+
+                this.adapter.Deserialize(stream, typeof(string));
+
+                FakeFormatter.DisposeCalled.Should().BeTrue();
+            }
+
+            [Fact]
             public void ShouldReadTheValueFromTheStream()
             {
                 Stream stream = Substitute.For<Stream>();
@@ -61,6 +72,16 @@
         public sealed class Serialize : DelegateAdapterTests
         {
             [Fact]
+            public void ShouldDisposeTheFormatter()
+            {
+                FakeFormatter.DisposeCalled = false;
+
+                this.adapter.Serialize(Stream.Null, "");
+
+                FakeFormatter.DisposeCalled.Should().BeTrue();
+            }
+
+            [Fact]
             public void ShouldFlushTheStream()
             {
                 FakeFormatter.ValueWriter.ClearReceivedCalls();
@@ -83,7 +104,7 @@
             }
         }
 
-        private class FakeFormatter : IFormatter
+        private class FakeFormatter : IFormatter, IDisposable
         {
             public FakeFormatter(Stream stream, SerializationMode mode)
             {
@@ -95,6 +116,8 @@
             public ValueReader Reader => ValueReader;
 
             public ValueWriter Writer => ValueWriter;
+
+            internal static bool DisposeCalled { get; set; }
 
             internal static int MetadataCount { get; set; }
 
@@ -108,6 +131,11 @@
             {
                 MetadataCount++;
                 return property;
+            }
+
+            public void Dispose()
+            {
+                DisposeCalled = true;
             }
 
             public void ReadBeginPrimitive(object metadata)
