@@ -267,13 +267,13 @@
 
                 var routes = new List<(IMatchNode[] nodes, EndpointInfo<RouteMethodInfo> endpoint)>();
                 var stack = new Stack<IMatchNode>();
-                this.builder.Routes.VisitNodes((d, n, e) =>
+                foreach ((int d, IMatchNode n, EndpointInfo<RouteMethodInfo>[] e) in this.builder.Routes.GetNodes())
                 {
                     // Ignore the first node, as it's just a container for the
                     // other nodes
-                    if (d-- > 0)
+                    if (d > 0)
                     {
-                        while (d > stack.Count)
+                        while ((d - 1) > stack.Count)
                         {
                             stack.Pop();
                         }
@@ -284,7 +284,7 @@
                             routes.Add((stack.Reverse().ToArray(), endpoint));
                         }
                     }
-                });
+                }
 
                 return routes;
             }

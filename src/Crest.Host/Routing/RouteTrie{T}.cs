@@ -69,21 +69,20 @@ namespace Crest.Host.Routing
         }
 
         /// <summary>
-        /// Visits all the nodes of the tree.
+        /// Gets all the nodes of the tree.
         /// </summary>
-        /// <param name="callback">The method to invoke for each node.</param>
         /// <param name="depth">The current depth of traversal.</param>
-        /// <remarks>
-        /// The callback will receive the current depth, the matcher for the
-        /// node and it's associated value, if any.
-        /// </remarks>
-        internal void VisitNodes(Action<int, IMatchNode, T[]> callback, int depth = 0)
+        /// <returns>The sequence of node values.</returns>
+        internal virtual IEnumerable<(int depth, IMatchNode node, T[] values)> GetNodes(int depth = 0)
         {
-            callback(depth, this.prefix, this.values);
+            yield return (depth, this.prefix, this.values);
 
             foreach (RouteTrie<T> child in this.children)
             {
-                child.VisitNodes(callback, depth + 1);
+                foreach ((int d, IMatchNode n, T[] v) in child.GetNodes(depth + 1))
+                {
+                    yield return (d, n, v);
+                }
             }
         }
 

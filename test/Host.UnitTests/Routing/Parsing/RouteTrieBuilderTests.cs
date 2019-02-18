@@ -101,21 +101,21 @@
             private static string GetTreeAsString(RouteTrie<string> trie)
             {
                 var builder = new StringBuilder();
-                trie.VisitNodes((depth, matcher, values) =>
+                foreach ((int depth, IMatchNode node, string[] values) in trie.GetNodes())
                 {
                     // The first node is used to house all the actual parsed
                     // nodes so skip it
                     int indent = (depth - 1) * 2;
                     if (indent >= 0)
                     {
-                        builder.Append(' ', indent).Append(GetMatcherString(matcher));
+                        builder.Append(' ', indent).Append(GetMatcherString(node));
                         if (values.Length > 0)
                         {
                             builder.AppendFormat("[{0}]", string.Join(',', values));
                         }
                         builder.Append('\n');
                     }
-                });
+                }
 
                 return builder.ToString();
             }

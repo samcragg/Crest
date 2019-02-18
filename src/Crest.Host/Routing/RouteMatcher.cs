@@ -69,7 +69,10 @@ namespace Crest.Host.Routing
         /// <inheritdoc />
         public IEnumerable<MethodInfo> GetKnownMethods()
         {
-            return this.adapters.Values.Select(r => r.Method);
+            return this.routes
+                .GetNodes()
+                .SelectMany(x => x.values)
+                .Select(e => e.Value.Method);
         }
 
         /// <inheritdoc />

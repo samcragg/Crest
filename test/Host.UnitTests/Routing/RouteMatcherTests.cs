@@ -60,7 +60,7 @@
         {
             (MethodInfo, RouteMethod) CreateMethod(RouteMethodInfo info)
             {
-                var adapter = (RouteMethod)info.Method.CreateDelegate(typeof(RouteMethod));
+                RouteMethod adapter = p => Task.FromResult<object>(info.Method);
                 return (info.Method, adapter);
             }
 
@@ -143,7 +143,7 @@
         public sealed class GetKnownMethods : RouteMatcherTests
         {
             [Fact]
-            public void ShouldReturnAllTheMethodsAdded()
+            public void ShouldReturnTheEndpoints()
             {
                 RouteMatcher matcher = this.CreateMatcher(new[]
                 {
@@ -294,6 +294,11 @@
                 {
                     return default;
                 }
+            }
+
+            internal override IEnumerable<(int depth, IMatchNode node, EndpointInfo<RouteMethodInfo>[] values)> GetNodes(int depth = 0)
+            {
+                yield return (0, null, this.endpoints);
             }
         }
     }
