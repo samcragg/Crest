@@ -51,23 +51,12 @@ namespace Crest.Host.Routing.Parsing
 
             internal void ParseUrl(string routeUrl, IReadOnlyCollection<ParameterInfo> parameters)
             {
-                ParameterData ConvertParameter(ParameterInfo info)
-                {
-                    return new ParameterData
-                    {
-                        HasBodyAttribute = info.GetCustomAttribute(typeof(FromBodyAttribute)) != null,
-                        IsOptional = info.IsOptional,
-                        Name = info.Name,
-                        ParameterType = info.ParameterType,
-                    };
-                }
-
                 if (!routeUrl.StartsWith("/", StringComparison.Ordinal))
                 {
                     routeUrl = "/" + routeUrl;
                 }
 
-                this.ParseUrl(routeUrl, parameters.Select(ConvertParameter));
+                this.ParseUrl(routeUrl, parameters.Select(i => new ParameterData(i)));
             }
 
             protected override void OnCaptureBody(Type parameterType, string name)

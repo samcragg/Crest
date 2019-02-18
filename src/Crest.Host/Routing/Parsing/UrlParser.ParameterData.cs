@@ -6,6 +6,8 @@
 namespace Crest.Host.Routing.Parsing
 {
     using System;
+    using System.Reflection;
+    using Crest.Core;
 
     /// <content>
     /// Contains the nested <see cref="ParameterData"/> class.
@@ -21,6 +23,25 @@ namespace Crest.Host.Routing.Parsing
         /// </remarks>
         protected class ParameterData
         {
+            /// <summary>
+            /// Initializes a new instance of the <see cref="ParameterData"/> class.
+            /// </summary>
+            public ParameterData()
+            {
+            }
+
+            /// <summary>
+            /// Initializes a new instance of the <see cref="ParameterData"/> class.
+            /// </summary>
+            /// <param name="info">The reflection information.</param>
+            public ParameterData(ParameterInfo info)
+            {
+                this.HasBodyAttribute = info.GetCustomAttribute(typeof(FromBodyAttribute)) != null;
+                this.IsOptional = info.IsOptional;
+                this.Name = info.Name;
+                this.ParameterType = info.ParameterType;
+            }
+
             /// <summary>
             /// Gets or sets a value indicating whether the parameter has been
             /// marked as coming from the request body or not.
