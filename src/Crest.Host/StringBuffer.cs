@@ -7,6 +7,7 @@ namespace Crest.Host
 {
     using System;
     using System.Buffers;
+    using static System.Diagnostics.Debug;
 
     /// <summary>
     /// Allows the quick creation of strings from a series of characters.
@@ -94,6 +95,35 @@ namespace Crest.Host
             value.CopyTo(index, this.buffer, this.offset, count);
             this.offset += count;
             this.totalLength += value.Length;
+        }
+
+        /// <summary>
+        /// Appends the specified bytes as ASCII characters.
+        /// </summary>
+        /// <param name="bytes">The bytes to append.</param>
+        public void AppendAscii(in Span<byte> bytes)
+        {
+            if (bytes.IsEmpty)
+            {
+                return;
+            }
+
+            int remaining = this.buffer.Length - this.offset;
+            int index = 0;
+            int count = bytes.Length;
+            while (remaining < count)
+            {
+                CopyBytesTo(bytes, index, this.buffer, this.offset, remaining);
+                this.offset += remaining;
+                count -= remaining;
+
+                this.PrependBlock();
+                remaining = this.buffer.Length;
+            }
+
+            CopyBytesTo(bytes, index, this.buffer, this.offset, count);
+            this.offset += count;
+            this.totalLength += bytes.Length;
         }
 
         /// <summary>
@@ -190,6 +220,15 @@ namespace Crest.Host
         public void Truncate(int amount)
         {
             Truncate(this, ref this.totalLength, amount);
+        }
+
+        private static void CopyBytesTo(in Span<byte> source, int sourceIndex, char[] destination, int destinationIndex, int count)
+        {
+            while (count-- > 0)
+            {
+                Assert(destination[destinationIndex] < 128, "Value must be an ASCII character");
+                destination[destinationIndex++] = (char)source[sourceIndex++];
+            }
         }
 
         private static unsafe void CopyTo(StringBuffer tail, in Span<char> destination)

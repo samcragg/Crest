@@ -20,6 +20,44 @@
             }
         }
 
+        public sealed class AppendAscii : StringBufferTests
+        {
+            [Fact]
+            public void ShouldAcceptEmptyValues()
+            {
+                this.buffer.AppendAscii(new byte[0]);
+
+                string result = this.buffer.ToString();
+
+                result.Should().BeEmpty();
+            }
+
+            [Fact]
+            public void ShouldAddLargeBuffers()
+            {
+                Span<byte> bytes = new byte[LengthToForceMultipleBuffers];
+                bytes.Fill((byte)'X');
+                this.buffer.Append('1');
+                this.buffer.AppendAscii(bytes);
+
+                string result = this.buffer.ToString();
+
+                result.Should().StartWith("1X");
+                result.Should().HaveLength(LengthToForceMultipleBuffers + 1);
+            }
+
+            [Fact]
+            public void ShouldAddTheValueToTheEnd()
+            {
+                this.buffer.Append('1');
+                this.buffer.AppendAscii(new byte[] { (byte)'2' });
+
+                string result = this.buffer.ToString();
+
+                result.Should().Be("12");
+            }
+        }
+
         public sealed class AppendChar : StringBufferTests
         {
             [Fact]
