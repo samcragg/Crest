@@ -1,5 +1,7 @@
-#addin nuget:?package=Cake.Npm
+#addin nuget:?package=Cake.Compression&version=0.2.2
 #addin nuget:?package=Cake.Coverlet
+#addin nuget:?package=SharpZipLib&version=1.1.0
+
 #load "utilities.cake"
 
 const string UnitTestCoverageFolder = "./coverage_results/";
@@ -166,15 +168,17 @@ Task("RestorePackages")
 Task("RestoreSwaggerUI")
     .Does(() =>
 {
-    var settings = new NpmInstallSettingsWithPrefix();
-    settings.AddPackage("swagger-ui-dist", "3.19.0");
-    NpmInstall(settings);
+    Information("Downloading package...");
+    var swagger = DownloadFile("https://registry.npmjs.org/swagger-ui-dist/-/swagger-ui-dist-3.20.8.tgz");
+
+    Information("Expanding package...");
+    GZipUncompress(swagger, "./swagger-ui-dist");
 
     string[] files = new[]
     {
-        "./node_modules/swagger-ui-dist/swagger-ui.css",
-        "./node_modules/swagger-ui-dist/swagger-ui-bundle.js",
-        "./node_modules/swagger-ui-dist/swagger-ui-standalone-preset.js"
+        "./swagger-ui-dist/package/swagger-ui.css",
+        "./swagger-ui-dist/package/swagger-ui-bundle.js",
+        "./swagger-ui-dist/package/swagger-ui-standalone-preset.js"
     };
 
     foreach (string file in files)

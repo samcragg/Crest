@@ -86,9 +86,9 @@ Generated_Code/
 # Build tools and output
 coverage.xml
 build/.sonarqube/
-build/node_modules/
 build/coverage_report/
 build/coverage_results/
+build/swagger-ui-dist/
 build/tools/**
 !build/tools/packages.config
 **/BenchmarkDotNet.Artifacts
