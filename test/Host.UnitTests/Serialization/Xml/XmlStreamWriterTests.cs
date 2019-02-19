@@ -63,6 +63,18 @@
             }
         }
 
+        public sealed class DisposeTests : XmlStreamWriterTests
+        {
+            [Fact]
+            public void ShouldNotDisposeTheStream()
+            {
+                this.writer.Dispose();
+
+                // This will be set to false if the stream is disposed
+                this.stream.CanRead.Should().BeTrue();
+            }
+        }
+
         public sealed class Flush : XmlStreamWriterTests
         {
             [Fact]

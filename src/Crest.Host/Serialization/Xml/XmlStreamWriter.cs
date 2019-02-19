@@ -15,7 +15,7 @@ namespace Crest.Host.Serialization.Xml
     /// <summary>
     /// Used to output XML primitive values.
     /// </summary>
-    internal sealed partial class XmlStreamWriter : ValueWriter
+    internal sealed partial class XmlStreamWriter : ValueWriter, IDisposable
     {
         private const int PrimitiveBufferLength = 64;
         private const string XmlSchemaNamespace = "http://www.w3.org/2001/XMLSchema-instance";
@@ -24,7 +24,6 @@ namespace Crest.Host.Serialization.Xml
         private readonly byte[] byteBuffer = new byte[PrimitiveBufferLength];
         private readonly char[] charBuffer = new char[PrimitiveBufferLength];
         private readonly XmlWriter writer;
-        private int depth;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="XmlStreamWriter"/> class.
@@ -39,7 +38,17 @@ namespace Crest.Host.Serialization.Xml
         /// <summary>
         /// Gets the nesting level of the element in the XML.
         /// </summary>
-        public int Depth => this.depth;
+        public int Depth
+        {
+            get;
+            private set;
+        }
+
+        /// <inheritdoc />
+        public void Dispose()
+        {
+            this.writer.Dispose();
+        }
 
         /// <inheritdoc />
         public override void Flush()
@@ -80,7 +89,7 @@ namespace Crest.Host.Serialization.Xml
         internal void WriteEndElement()
         {
             this.writer.WriteEndElement();
-            this.depth--;
+            this.Depth--;
         }
 
         /// <summary>
@@ -93,7 +102,7 @@ namespace Crest.Host.Serialization.Xml
 
             // We need to add this namespace to the root element to allow for
             // writing null values (i:nil="true")
-            if (this.depth++ == 0)
+            if (this.Depth++ == 0)
             {
                 this.writer.WriteStartAttribute("xmlns", "i", string.Empty);
                 this.writer.WriteRaw(XmlSchemaNamespace);
@@ -118,6 +127,7 @@ namespace Crest.Host.Serialization.Xml
             return new XmlWriterSettings
             {
                 CheckCharacters = false,
+                CloseOutput = false,
                 Encoding = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false),
                 NewLineHandling = NewLineHandling.None,
                 OmitXmlDeclaration = true,

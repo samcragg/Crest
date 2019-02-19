@@ -7,6 +7,7 @@
     using Crest.Host.Serialization.Internal;
     using Crest.Host.Serialization.Xml;
     using FluentAssertions;
+    using NSubstitute;
     using Xunit;
 
     public class XmlFormatterSerializeTests
@@ -46,6 +47,20 @@
             }
 
             return xml;
+        }
+
+        public sealed class Dispose : XmlFormatterSerializeTests
+        {
+            [Fact]
+            public void ShouldNotDisposeTheStream()
+            {
+                Stream mockStream = Substitute.For<Stream>();
+                var fakeSerializer = new XmlFormatter(mockStream, SerializationMode.Serialize);
+
+                fakeSerializer.Dispose();
+
+                ((IDisposable)mockStream).DidNotReceive().Dispose();
+            }
         }
 
         public sealed class EnumsAsIntegers : XmlFormatterSerializeTests

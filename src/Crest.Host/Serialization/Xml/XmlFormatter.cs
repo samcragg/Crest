@@ -280,7 +280,8 @@ namespace Crest.Host.Serialization.Xml
         {
             if (disposing)
             {
-                this.reader.Dispose();
+                this.reader?.Dispose();
+                this.writer?.Dispose();
             }
         }
 

@@ -241,7 +241,7 @@ namespace Crest.Host.Serialization.Json
         {
             if (disposing)
             {
-                this.reader.Dispose();
+                this.reader?.Dispose();
             }
         }
 
