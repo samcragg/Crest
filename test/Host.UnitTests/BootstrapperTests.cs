@@ -3,7 +3,6 @@
     using System;
     using System.Collections.Generic;
     using System.Linq;
-    using System.Reflection;
     using System.Threading.Tasks;
     using Crest.Abstractions;
     using Crest.Host;
@@ -22,7 +21,7 @@
         private readonly IServiceLocator serviceLocator;
         private readonly IServiceRegister serviceRegister;
 
-        public BootstrapperTests()
+        private BootstrapperTests()
         {
             this.discoveryService = Substitute.For<IDiscoveryService>();
             this.discoveryService.GetDiscoveredTypes()
@@ -182,9 +181,14 @@
             [Fact]
             public void ShouldRegisterRoutes()
             {
+                Task ExampleMethod()
+                {
+                    return Task.CompletedTask;
+                }
+
                 var metadata = new RouteMetadata
                 {
-                    Method = typeof(Initialize).GetMethod(nameof(ExampleMethod), BindingFlags.Instance | BindingFlags.NonPublic),
+                    Method = ((Func<Task>)ExampleMethod).Method,
                     Path = "",
                     Verb = "",
                 };
@@ -221,11 +225,6 @@
                 this.bootstrapper.Initialize();
 
                 this.bootstrapper.RouteMapper.Should().NotBeNull();
-            }
-
-            private Task ExampleMethod()
-            {
-                return Task.CompletedTask;
             }
 
             internal class CannotInject : IFakeInterface
