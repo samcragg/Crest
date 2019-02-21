@@ -99,7 +99,7 @@ namespace Crest.Host.Conversion
         /// <param name="buffer">The byte array to output to.</param>
         /// <param name="value">The value to convert.</param>
         /// <returns>The number of bytes written.</returns>
-        public static int WriteInt64(in Span<byte> buffer, long value)
+        public static int WriteInt64(Span<byte> buffer, long value)
         {
             if (value < 0)
             {
@@ -118,7 +118,7 @@ namespace Crest.Host.Conversion
         /// <param name="buffer">The byte array to output to.</param>
         /// <param name="value">The value to convert.</param>
         /// <returns>The number of bytes written.</returns>
-        public static int WriteUInt64(in Span<byte> buffer, ulong value)
+        public static int WriteUInt64(Span<byte> buffer, ulong value)
         {
             if (value == 0)
             {
@@ -255,7 +255,7 @@ namespace Crest.Host.Conversion
             }
         }
 
-        private static void WriteUInt32(in Span<byte> buffer, int index, uint value)
+        private static void WriteUInt32(Span<byte> buffer, int index, uint value)
         {
             // Do all the digit pairs
             while (value > 9)

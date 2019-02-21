@@ -53,7 +53,7 @@ namespace Crest.Host.Conversion
         /// <param name="buffer">The byte array to output to.</param>
         /// <param name="value">The value to convert.</param>
         /// <returns>The number of bytes written.</returns>
-        public static int WriteGuid(in Span<byte> buffer, Guid value)
+        public static int WriteGuid(Span<byte> buffer, Guid value)
         {
             // Quicker than ToByteArray + saves memory allocation
             var bytes = default(GuidBytes);
@@ -90,7 +90,7 @@ namespace Crest.Host.Conversion
             return MaximumTextLength;
         }
 
-        private static bool CheckHyphens(in ReadOnlySpan<char> span, int start, ref string error)
+        private static bool CheckHyphens(ReadOnlySpan<char> span, int start, ref string error)
         {
             // We've already checked the string is at least 32 characters
             // in CheckStringLength, so no need to do further bounds checking
@@ -112,7 +112,7 @@ namespace Crest.Host.Conversion
             }
         }
 
-        private static bool CheckStringLength(in ReadOnlySpan<char> span, ref int start)
+        private static bool CheckStringLength(ReadOnlySpan<char> span, ref int start)
         {
             if (span.Length < 32)
             {
@@ -137,7 +137,7 @@ namespace Crest.Host.Conversion
             return true;
         }
 
-        private static bool GetHexInt32(in ReadOnlySpan<char> span, int index, int end, out uint result)
+        private static bool GetHexInt32(ReadOnlySpan<char> span, int index, int end, out uint result)
         {
             result = 0;
             if (end > span.Length)
@@ -243,7 +243,7 @@ namespace Crest.Host.Conversion
                 (byte)f);
         }
 
-        private static void WriteHexPair(in Span<byte> buffer, int offset, byte a, byte b)
+        private static void WriteHexPair(Span<byte> buffer, int offset, byte a, byte b)
         {
             buffer[offset] = (byte)PrimitiveDigits.LowercaseHex[a >> 4];
             buffer[offset + 1] = (byte)PrimitiveDigits.LowercaseHex[a & 0xF];

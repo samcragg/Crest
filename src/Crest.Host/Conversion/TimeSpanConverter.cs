@@ -56,7 +56,7 @@ namespace Crest.Host.Conversion
         /// <param name="buffer">The byte array to output to.</param>
         /// <param name="value">The value to convert.</param>
         /// <returns>The number of bytes written.</returns>
-        public static int WriteTimeSpan(in Span<byte> buffer, TimeSpan value)
+        public static int WriteTimeSpan(Span<byte> buffer, TimeSpan value)
         {
             long ticks = value.Ticks;
             if (ticks == 0)
@@ -78,7 +78,7 @@ namespace Crest.Host.Conversion
             }
         }
 
-        private static int AppendDurationPart(in Span<byte> buffer, int index, int value, byte suffix)
+        private static int AppendDurationPart(Span<byte> buffer, int index, int value, byte suffix)
         {
             if (value > 9)
             {
@@ -93,7 +93,7 @@ namespace Crest.Host.Conversion
             return index;
         }
 
-        private static int AppendFractionOfSeconds(in Span<byte> buffer, int index, uint fractions)
+        private static int AppendFractionOfSeconds(Span<byte> buffer, int index, uint fractions)
         {
             // 1 tick == 100 nanoseconds == 0.0000001 seconds
             // Therefore, we need 7 decimal places, however, we're doing it in
@@ -119,7 +119,7 @@ namespace Crest.Host.Conversion
             return index + 1;
         }
 
-        private static int AppendTime(in Span<byte> buffer, int index, ulong ticks)
+        private static int AppendTime(Span<byte> buffer, int index, ulong ticks)
         {
             buffer[index++] = (byte)'T';
 
@@ -425,7 +425,7 @@ namespace Crest.Host.Conversion
             }
         }
 
-        private static int WriteDuration(in Span<byte> buffer, ulong ticks)
+        private static int WriteDuration(Span<byte> buffer, ulong ticks)
         {
             buffer[0] = (byte)'P';
 

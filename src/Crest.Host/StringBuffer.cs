@@ -101,7 +101,7 @@ namespace Crest.Host
         /// Appends the specified bytes as ASCII characters.
         /// </summary>
         /// <param name="bytes">The bytes to append.</param>
-        public void AppendAscii(in Span<byte> bytes)
+        public void AppendAscii(Span<byte> bytes)
         {
             if (bytes.IsEmpty)
             {
@@ -222,7 +222,7 @@ namespace Crest.Host
             Truncate(this, ref this.totalLength, amount);
         }
 
-        private static void CopyBytesTo(in Span<byte> source, int sourceIndex, char[] destination, int destinationIndex, int count)
+        private static void CopyBytesTo(Span<byte> source, int sourceIndex, char[] destination, int destinationIndex, int count)
         {
             while (count-- > 0)
             {
@@ -231,7 +231,7 @@ namespace Crest.Host
             }
         }
 
-        private static unsafe void CopyTo(StringBuffer tail, in Span<char> destination)
+        private static unsafe void CopyTo(StringBuffer tail, Span<char> destination)
         {
             int destinationOffset = destination.Length;
             int destinationLengthBytes = destination.Length * sizeof(char);

@@ -65,7 +65,7 @@ namespace Crest.Host.Conversion
         /// <param name="buffer">The byte array to output to.</param>
         /// <param name="value">The value to convert.</param>
         /// <returns>The number of bytes written.</returns>
-        public static int WriteDateTime(in Span<byte> buffer, DateTime value)
+        public static int WriteDateTime(Span<byte> buffer, DateTime value)
         {
             const int TimePartLength = 9;
             AppendDate(buffer, value.Year, value.Month, value.Day);
@@ -83,7 +83,7 @@ namespace Crest.Host.Conversion
             return index;
         }
 
-        private static void AppendDate(in Span<byte> buffer, int year, int month, int day)
+        private static void AppendDate(Span<byte> buffer, int year, int month, int day)
         {
             int pair = year / 100;
             buffer[0] = (byte)PrimitiveDigits.Tens[pair];
@@ -120,7 +120,7 @@ namespace Crest.Host.Conversion
             return 7;
         }
 
-        private static void AppendTime(in Span<byte> buffer, int hour, int minute, int second)
+        private static void AppendTime(Span<byte> buffer, int hour, int minute, int second)
         {
             buffer[DatePartLength] = (byte)'T';
             buffer[DatePartLength + 1] = (byte)PrimitiveDigits.Tens[hour];
@@ -135,7 +135,7 @@ namespace Crest.Host.Conversion
             buffer[DatePartLength + 8] = (byte)PrimitiveDigits.Units[second];
         }
 
-        private static bool ReadChar(in ReadOnlySpan<char> span, ref int index, char expected)
+        private static bool ReadChar(ReadOnlySpan<char> span, ref int index, char expected)
         {
             if ((index >= span.Length) || (span[index] != expected))
             {
@@ -230,7 +230,7 @@ namespace Crest.Host.Conversion
             return true;
         }
 
-        private static bool ReadInteger(in ReadOnlySpan<char> span, ref int index, out uint result)
+        private static bool ReadInteger(ReadOnlySpan<char> span, ref int index, out uint result)
         {
             if (index >= span.Length)
             {
@@ -260,7 +260,7 @@ namespace Crest.Host.Conversion
             return true;
         }
 
-        private static bool ReadPair(in ReadOnlySpan<char> span, ref int index, out uint result)
+        private static bool ReadPair(ReadOnlySpan<char> span, ref int index, out uint result)
         {
             if (index <= span.Length - 2)
             {
