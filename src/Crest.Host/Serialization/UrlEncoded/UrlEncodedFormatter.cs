@@ -222,11 +222,16 @@ namespace Crest.Host.Serialization.UrlEncoded
 
         private static byte[] UrlEncodeString(string value)
         {
-            var bytes = new List<byte>(value.Length * UrlEncodedStreamWriter.MaxBytesPerCharacter);
-            var buffer = new byte[UrlEncodedStreamWriter.MaxBytesPerCharacter];
+            var bytes = new List<byte>(value.Length * UrlStringEncoding.MaxBytesPerCharacter);
+            Span<byte> buffer = stackalloc byte[UrlStringEncoding.MaxBytesPerCharacter];
             for (int i = 0; i < value.Length; i++)
             {
-                int length = UrlEncodedStreamWriter.AppendChar(value, ref i, buffer, 0);
+                int length = UrlStringEncoding.AppendChar(
+                    UrlStringEncoding.SpaceOption.Plus,
+                    value,
+                    ref i,
+                    buffer);
+
                 for (int j = 0; j < length; j++)
                 {
                     bytes.Add(buffer[j]);

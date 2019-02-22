@@ -12,19 +12,12 @@ namespace Crest.Host.Serialization.UrlEncoded
     using System.Text;
     using Crest.Host.Conversion;
     using Crest.Host.Serialization.Internal;
-    using Crest.Host.Serialization.Json;
 
     /// <summary>
     /// Used to output primitive values that are URL encoded.
     /// </summary>
     internal sealed class UrlEncodedStreamWriter : ValueWriter
     {
-        /// <summary>
-        /// Represents the maximum number of bytes a single character will be
-        /// encoded to.
-        /// </summary>
-        internal const int MaxBytesPerCharacter = 12; // %AA%BB%CC%DD
-
         private const int BufferLength = 1024;
         private static readonly byte[] FalseValue = { (byte)'f', (byte)'a', (byte)'l', (byte)'s', (byte)'e' };
         private static readonly byte[] NullValue = { (byte)'n', (byte)'u', (byte)'l', (byte)'l' };
@@ -34,7 +27,6 @@ namespace Crest.Host.Serialization.UrlEncoded
         private readonly byte[] buffer = new byte[BufferLength];
         private readonly List<byte[]> keyParts = new List<byte[]>(); // We need to iterate from first-to-last, so can't use Stack :(
         private readonly Stream stream;
-        private readonly byte[] utf8Buffer = new byte[4];
         private bool hasKeyWritten;
         private int keyLength;
         private int offset;
@@ -77,16 +69,11 @@ namespace Crest.Host.Serialization.UrlEncoded
         public override void WriteChar(char value)
         {
             this.WriteCurrentProperty();
-            this.EnsureBufferHasSpace(MaxBytesPerCharacter);
-
-            if (TryAppendChar(this.buffer, this.offset, value))
-            {
-                this.offset++;
-            }
-            else
-            {
-                this.offset += AppendUtf32(this.utf8Buffer, this.buffer, this.offset, value);
-            }
+            this.EnsureBufferHasSpace(UrlStringEncoding.MaxBytesPerCharacter);
+            this.offset += UrlStringEncoding.AppendChar(
+                UrlStringEncoding.SpaceOption.Plus,
+                value,
+                this.buffer.AsSpan(this.offset));
         }
 
         /// <inheritdoc />
@@ -103,11 +90,15 @@ namespace Crest.Host.Serialization.UrlEncoded
         public override void WriteString(string value)
         {
             this.WriteCurrentProperty();
-
+            Span<byte> span = this.buffer.AsSpan();
             for (int i = 0; i < value.Length; i++)
             {
-                this.EnsureBufferHasSpace(MaxBytesPerCharacter);
-                this.offset += AppendChar(value, ref i, this.buffer, this.offset);
+                this.EnsureBufferHasSpace(UrlStringEncoding.MaxBytesPerCharacter);
+                this.offset += UrlStringEncoding.AppendChar(
+                    UrlStringEncoding.SpaceOption.Plus,
+                    value,
+                    ref i,
+                    span.Slice(this.offset));
             }
         }
 
@@ -125,41 +116,6 @@ namespace Crest.Host.Serialization.UrlEncoded
                 // We need to escape this
                 this.WriteString(value.OriginalString);
             }
-        }
-
-        /// <summary>
-        /// Appends the specified value to the buffer.
-        /// </summary>
-        /// <param name="str">Contains the character to append.</param>
-        /// <param name="index">
-        /// The index of the character in the string. This will be updated to
-        /// point past the end of the current code point.
-        /// </param>
-        /// <param name="buffer">The buffer to output to.</param>
-        /// <param name="offset">
-        /// The index to start copying to. This will be updated to point to the
-        /// end of the bytes written to the buffer.
-        /// </param>
-        /// <returns>The number of bytes written.</returns>
-        internal static int AppendChar(string str, ref int index, byte[] buffer, int offset)
-        {
-            int ch = str[index];
-            if (TryAppendChar(buffer, offset, ch))
-            {
-                return 1;
-            }
-
-            // Check if we're a surrogate pair
-            if (ch >= 0xd800)
-            {
-                index++;
-                if (index < str.Length)
-                {
-                    ch = char.ConvertToUtf32((char)ch, str[index]);
-                }
-            }
-
-            return AppendUtf32(new byte[4], buffer, offset, ch);
         }
 
         /// <summary>
@@ -210,63 +166,11 @@ namespace Crest.Host.Serialization.UrlEncoded
             return new Span<byte>(this.buffer, this.offset, BufferLength - this.offset);
         }
 
-        private static int AppendUtf32(byte[] utf8Buffer, byte[] output, int offset, int utf32)
-        {
-            int bytes = JsonStringEncoding.AppendUtf32(utf32, utf8Buffer, 0);
-            for (int i = 0; i < bytes; i++)
-            {
-                byte b = utf8Buffer[i];
-                output[offset] = 0x25; // %
-                output[offset + 1] = (byte)PrimitiveDigits.UppercaseHex[b >> 4];
-                output[offset + 2] = (byte)PrimitiveDigits.UppercaseHex[b & 0xf];
-                offset += 3;
-            }
-
-            return bytes * 3;
-        }
-
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static int CopyBytes(byte[] source, byte[] destination, int destinationOffset)
         {
             Buffer.BlockCopy(source, 0, destination, destinationOffset, source.Length);
             return destinationOffset + source.Length;
-        }
-
-        private static bool InRange(int ch, uint lower, uint upper)
-        {
-            return ((uint)ch - lower) <= (upper - lower);
-        }
-
-        private static bool TryAppendChar(byte[] buffer, int offset, int ch)
-        {
-            // http://www.w3.org/TR/html5/forms.html#url-encoded-form-data
-            // Happy path for ASCII letters/numbers
-            if (InRange(ch, 0x30, 0x39) ||
-                InRange(ch, 0x41, 0x5a) ||
-                InRange(ch, 0x61, 0x7a))
-            {
-                buffer[offset] = (byte)ch;
-                return true;
-            }
-            else
-            {
-                switch (ch)
-                {
-                    case 0x20:
-                        buffer[offset] = 0x2b; // Replace spaces with +
-                        return true;
-
-                    case 0x2a:
-                    case 0x2d:
-                    case 0x2e:
-                    case 0x5f:
-                        buffer[offset] = (byte)ch; // Don't need escaping
-                        return true;
-
-                    default:
-                        return false;
-                }
-            }
         }
 
         private static unsafe void WriteStringToBuffer(char* charPtr, int length, byte[] byteBuffer, int bufferOffset)
