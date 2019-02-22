@@ -26,19 +26,16 @@ namespace Crest.Host.Serialization.Json
         /// </summary>
         /// <param name="ch">The character to append.</param>
         /// <param name="buffer">The buffer to output to.</param>
-        /// <param name="offset">
-        /// The index to start copying to. This will be updated to point to the
-        /// end of the bytes written to the buffer.
-        /// </param>
-        public static void AppendChar(char ch, byte[] buffer, ref int offset)
+        /// <returns>The number of bytes written.</returns>
+        public static int AppendChar(char ch, Span<byte> buffer)
         {
             if (NeedToEscape(ch))
             {
-                EscapeChar(ch, buffer, ref offset);
+                return EscapeChar(ch, buffer);
             }
             else
             {
-                offset += AppendUtf32(ch, buffer, offset);
+                return AppendUtf32(ch, buffer);
             }
         }
 
@@ -51,16 +48,13 @@ namespace Crest.Host.Serialization.Json
         /// point past the end of the current code point.
         /// </param>
         /// <param name="buffer">The buffer to output to.</param>
-        /// <param name="offset">
-        /// The index to start copying to. This will be updated to point to the
-        /// end of the bytes written to the buffer.
-        /// </param>
-        public static void AppendChar(string str, ref int index, byte[] buffer, ref int offset)
+        /// <returns>The number of bytes written.</returns>
+        public static int AppendChar(string str, ref int index, Span<byte> buffer)
         {
             int ch = str[index];
             if (NeedToEscape(ch))
             {
-                EscapeChar(ch, buffer, ref offset);
+                return EscapeChar(ch, buffer);
             }
             else
             {
@@ -76,7 +70,7 @@ namespace Crest.Host.Serialization.Json
                     }
                 }
 
-                offset += AppendUtf32(ch, buffer, offset);
+                return AppendUtf32(ch, buffer);
             }
         }
 
@@ -112,34 +106,33 @@ namespace Crest.Host.Serialization.Json
         /// </summary>
         /// <param name="utf32">The code point to encode.</param>
         /// <param name="buffer">The buffer to output the bytes to.</param>
-        /// <param name="offset">The starting position to write to.</param>
         /// <returns>The number of bytes written.</returns>
-        internal static int AppendUtf32(int utf32, byte[] buffer, int offset)
+        internal static int AppendUtf32(int utf32, Span<byte> buffer)
         {
             if (utf32 < 0x80)
             {
-                buffer[offset] = (byte)utf32;
+                buffer[0] = (byte)utf32;
                 return 1;
             }
             else if (utf32 < 0x800)
             {
-                buffer[offset] = (byte)(0xc0 | (utf32 >> 6));
-                buffer[offset + 1] = (byte)(0x80 | (utf32 & 0x3f));
+                buffer[0] = (byte)(0xc0 | (utf32 >> 6));
+                buffer[1] = (byte)(0x80 | (utf32 & 0x3f));
                 return 2;
             }
             else if (utf32 < 0x010000)
             {
-                buffer[offset] = (byte)(0xe0 | (utf32 >> 12));
-                buffer[offset + 1] = (byte)(0x80 | ((utf32 >> 6) & 0x3f));
-                buffer[offset + 2] = (byte)(0x80 | (utf32 & 0x3f));
+                buffer[0] = (byte)(0xe0 | (utf32 >> 12));
+                buffer[1] = (byte)(0x80 | ((utf32 >> 6) & 0x3f));
+                buffer[2] = (byte)(0x80 | (utf32 & 0x3f));
                 return 3;
             }
             else
             {
-                buffer[offset] = (byte)(0xf0 | (utf32 >> 18));
-                buffer[offset + 1] = (byte)(0x80 | ((utf32 >> 12) & 0x3f));
-                buffer[offset + 2] = (byte)(0x80 | ((utf32 >> 6) & 0x3f));
-                buffer[offset + 3] = (byte)(0x80 | (utf32 & 0x3f));
+                buffer[0] = (byte)(0xf0 | (utf32 >> 18));
+                buffer[1] = (byte)(0x80 | ((utf32 >> 12) & 0x3f));
+                buffer[2] = (byte)(0x80 | ((utf32 >> 6) & 0x3f));
+                buffer[3] = (byte)(0x80 | (utf32 & 0x3f));
                 return 4;
             }
         }
@@ -149,7 +142,7 @@ namespace Crest.Host.Serialization.Json
             return new FormatException("Unexpected end of stream.");
         }
 
-        private static void EscapeChar(int ch, byte[] buffer, ref int offset)
+        private static int EscapeChar(int ch, Span<byte> buffer)
         {
             byte b;
             switch (ch)
@@ -183,19 +176,18 @@ namespace Crest.Host.Serialization.Json
                     break;
 
                 default:
-                    buffer[offset] = (byte)'\\';
-                    buffer[offset + 1] = (byte)'u';
-                    buffer[offset + 2] = (byte)'0';
-                    buffer[offset + 3] = (byte)'0';
-                    buffer[offset + 4] = (byte)PrimitiveDigits.LowercaseHex[ch >> 4];
-                    buffer[offset + 5] = (byte)PrimitiveDigits.LowercaseHex[ch & 0xF];
-                    offset += 6;
-                    return;
+                    buffer[0] = (byte)'\\';
+                    buffer[1] = (byte)'u';
+                    buffer[2] = (byte)'0';
+                    buffer[3] = (byte)'0';
+                    buffer[4] = (byte)PrimitiveDigits.LowercaseHex[ch >> 4];
+                    buffer[5] = (byte)PrimitiveDigits.LowercaseHex[ch & 0xF];
+                    return 6;
             }
 
-            buffer[offset] = (byte)'\\';
-            buffer[offset + 1] = b;
-            offset += 2;
+            buffer[0] = (byte)'\\';
+            buffer[1] = b;
+            return 2;
         }
 
         private static int GetHexChar(ICharIterator source)

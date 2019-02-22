@@ -62,11 +62,11 @@ namespace Crest.Host.Serialization.Json
                 MakeCamelCase(property.Name);
 
             // +3 for the enclosing characters (i.e. we're returning "...":)
-            var bytes = new List<byte>((name.Length * JsonStringEncoding.MaxBytesPerCharacter) + 3);
-            IEnumerable<byte> nameBytes = EncodeJsonString(name);
-
-            bytes.Add((byte)'"');
-            bytes.AddRange(nameBytes);
+            var bytes = new List<byte>((name.Length * JsonStringEncoding.MaxBytesPerCharacter) + 3)
+            {
+                (byte)'"',
+            };
+            EncodeJsonString(name, bytes);
             bytes.Add((byte)'"');
             bytes.Add((byte)':');
 
@@ -245,17 +245,15 @@ namespace Crest.Host.Serialization.Json
             }
         }
 
-        private static IEnumerable<byte> EncodeJsonString(string name)
+        private static void EncodeJsonString(string name, ICollection<byte> output)
         {
-            byte[] buffer = new byte[JsonStringEncoding.MaxBytesPerCharacter];
+            Span<byte> buffer = stackalloc byte[JsonStringEncoding.MaxBytesPerCharacter];
             for (int i = 0; i < name.Length; i++)
             {
-                int offset = 0;
-                JsonStringEncoding.AppendChar(name, ref i, buffer, ref offset);
-
-                for (int j = 0; j < offset; j++)
+                int bytes = JsonStringEncoding.AppendChar(name, ref i, buffer);
+                for (int j = 0; j < bytes; j++)
                 {
-                    yield return buffer[j];
+                    output.Add(buffer[j]);
                 }
             }
         }

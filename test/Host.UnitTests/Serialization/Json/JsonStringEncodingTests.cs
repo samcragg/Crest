@@ -11,16 +11,15 @@
     public class JsonStringEncodingTests
     {
         private readonly byte[] buffer = new byte[JsonStringEncoding.MaxBytesPerCharacter];
-        private int offset;
 
         public sealed class AppendChar_Char : JsonStringEncodingTests
         {
             [Fact]
             public void ShouldEscapeControlCharacters()
             {
-                JsonStringEncoding.AppendChar('\x12', this.buffer, ref this.offset);
+                int count = JsonStringEncoding.AppendChar('\x12', this.buffer);
 
-                this.offset.Should().Be(6);
+                count.Should().Be(6);
                 this.buffer.Should().HaveElementAt(0, (byte)'\\');
                 this.buffer.Should().HaveElementAt(1, (byte)'u');
                 this.buffer.Should().HaveElementAt(2, (byte)'0');
@@ -40,9 +39,9 @@
             [InlineData('\t', "\\t")]
             public void ShouldEscapeReservedCharacters(char value, string escaped)
             {
-                JsonStringEncoding.AppendChar(value, this.buffer, ref this.offset);
+                int count = JsonStringEncoding.AppendChar(value, this.buffer);
 
-                this.offset.Should().Be(2);
+                count.Should().Be(2);
                 this.buffer.Should().HaveElementAt(0, (byte)escaped[0]);
                 this.buffer.Should().HaveElementAt(1, (byte)escaped[1]);
             }
@@ -50,9 +49,9 @@
             [Fact]
             public void ShouldOutputTheChar()
             {
-                JsonStringEncoding.AppendChar('T', this.buffer, ref this.offset);
+                int count = JsonStringEncoding.AppendChar('T', this.buffer);
 
-                this.offset.Should().Be(1);
+                count.Should().Be(1);
                 this.buffer.Should().HaveElementAt(0, (byte)'T');
             }
         }
@@ -68,12 +67,12 @@
             public void ShouldEncodeUnicodeValues(string value, byte[] bytes)
             {
                 int index = 0;
-                JsonStringEncoding.AppendChar(value, ref index, this.buffer, ref this.offset);
+                int count = JsonStringEncoding.AppendChar(value, ref index, this.buffer);
 
                 // Check it advanced the index if necessary
                 index.Should().Be(value.Length - 1);
 
-                this.offset.Should().Be(bytes.Length);
+                count.Should().Be(bytes.Length);
                 this.buffer.Should().StartWith(bytes);
             }
         }

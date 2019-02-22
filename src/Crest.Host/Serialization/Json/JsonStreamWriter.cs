@@ -65,7 +65,7 @@ namespace Crest.Host.Serialization.Json
             this.EnsureBufferHasSpace(JsonStringEncoding.MaxBytesPerCharacter + 2); // +2 for the surrounding quotes
 
             this.buffer[this.offset++] = (byte)'"';
-            JsonStringEncoding.AppendChar(value, this.buffer, ref this.offset);
+            this.offset += JsonStringEncoding.AppendChar(value, this.buffer.AsSpan(this.offset));
             this.buffer[this.offset++] = (byte)'"';
         }
 
@@ -117,10 +117,11 @@ namespace Crest.Host.Serialization.Json
         public override void WriteString(string value)
         {
             this.AppendByte((byte)'"');
+            Span<byte> span = this.buffer.AsSpan();
             for (int i = 0; i < value.Length; i++)
             {
                 this.EnsureBufferHasSpace(JsonStringEncoding.MaxBytesPerCharacter);
-                JsonStringEncoding.AppendChar(value, ref i, this.buffer, ref this.offset);
+                this.offset += JsonStringEncoding.AppendChar(value, ref i, span.Slice(this.offset));
             }
 
             this.AppendByte((byte)'"');
