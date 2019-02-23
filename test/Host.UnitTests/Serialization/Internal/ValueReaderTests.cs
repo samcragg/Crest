@@ -5,6 +5,7 @@
     using System.Globalization;
     using Crest.Host.Serialization.Internal;
     using FluentAssertions;
+    using Host.UnitTests.TestHelpers;
     using Xunit;
 
     public class ValueReaderTests
@@ -200,29 +201,10 @@
             [Fact]
             public void ShouldUseCustomTypeConverters()
             {
-                object result = ReadValue(" string ", r => r.ReadObject(typeof(CustomValue)));
+                object result = ReadValue(" string ", r => r.ReadObject(typeof(ClassWithCustomTypeConverter)));
 
-                result.Should().BeOfType<CustomValue>()
+                result.Should().BeOfType<ClassWithCustomTypeConverter>()
                       .Which.Value.Should().Be(" string ");
-            }
-
-            [TypeConverter(typeof(CustomValueConverter))]
-            private class CustomValue
-            {
-                public CustomValue(string value)
-                {
-                    this.Value = value;
-                }
-
-                public string Value { get; }
-            }
-
-            private class CustomValueConverter : TypeConverter
-            {
-                public override object ConvertFrom(ITypeDescriptorContext context, CultureInfo culture, object value)
-                {
-                    return new CustomValue((string)value);
-                }
             }
         }
 

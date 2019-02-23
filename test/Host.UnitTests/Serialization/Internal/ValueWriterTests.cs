@@ -6,6 +6,7 @@
     using System.Text;
     using Crest.Host.Serialization.Internal;
     using FluentAssertions;
+    using Host.UnitTests.TestHelpers;
     using Xunit;
 
     public class ValueWriterTests
@@ -138,30 +139,11 @@
             [Fact]
             public void ShouldUseCustomTypeConverters()
             {
-                object testValue = new CustomValue("Example Text");
+                object testValue = new ClassWithCustomTypeConverter("Example Text");
 
                 string result = this.GetString(w => w.WriteObject(testValue));
 
                 result.Should().Be("Example Text");
-            }
-
-            [TypeConverter(typeof(CustomValueConverter))]
-            private class CustomValue
-            {
-                public CustomValue(string value)
-                {
-                    this.Value = value;
-                }
-
-                public string Value { get; }
-            }
-
-            private class CustomValueConverter : TypeConverter
-            {
-                public override object ConvertTo(ITypeDescriptorContext context, CultureInfo culture, object value, Type destinationType)
-                {
-                    return ((CustomValue)value).Value;
-                }
             }
         }
 

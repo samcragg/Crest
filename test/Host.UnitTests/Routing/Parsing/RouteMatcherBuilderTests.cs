@@ -2,8 +2,6 @@
 {
     using System;
     using System.Collections.Generic;
-    using System.ComponentModel;
-    using System.Globalization;
     using System.Linq;
     using System.Reflection;
     using Crest.Abstractions;
@@ -12,6 +10,7 @@
     using Crest.Host.Routing.Captures;
     using Crest.Host.Routing.Parsing;
     using FluentAssertions;
+    using Host.UnitTests.TestHelpers;
     using NSubstitute;
     using Xunit;
 
@@ -124,11 +123,11 @@
             [Fact]
             public void ShouldCaptureTypesWithTypeConverters()
             {
-                NodeMatchInfo match = this.GetMatchFor(typeof(CustomData), "custom_data");
+                NodeMatchInfo match = this.GetMatchFor(typeof(ClassWithCustomTypeConverter), "custom_data");
 
                 match.Success.Should().BeTrue();
-                match.Value.Should().BeOfType<CustomData>()
-                     .Which.Data.Should().Be("custom_data");
+                match.Value.Should().BeOfType<ClassWithCustomTypeConverter>()
+                     .Which.Value.Should().Be("custom_data");
             }
 
             [Fact]
@@ -344,25 +343,6 @@
             {
                 this.builder.Build();
                 return this.builder.Overrides;
-            }
-        }
-
-        [TypeConverter(typeof(CustomDataConverter))]
-        private class CustomData
-        {
-            public string Data { get; set; }
-        }
-
-        private class CustomDataConverter : TypeConverter
-        {
-            public override bool CanConvertFrom(ITypeDescriptorContext context, Type sourceType)
-            {
-                return true;
-            }
-
-            public override object ConvertFrom(ITypeDescriptorContext context, CultureInfo culture, object value)
-            {
-                return new CustomData { Data = value?.ToString() };
             }
         }
 
