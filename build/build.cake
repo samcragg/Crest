@@ -213,7 +213,7 @@ Task("SonarBegin")
     .WithCriteria(!isLocalBuild)
     .Does(() =>
 {
-    sonarTool = InstallDotNetTool("dotnet-sonarscanner", "4.4.2 ");
+    sonarTool = InstallDotNetTool("dotnet-sonarscanner", "4.5.0 ");
 
     string unitTestReports = (new DirectoryPath(UnitTestCoverageFolder)).FullPath + "/*.xml";
     var arguments = "/k:\"crest\""
@@ -221,7 +221,7 @@ Task("SonarBegin")
     + " /d:sonar.host.url=\"https://sonarcloud.io\""
     + " /d:sonar.login=\"" + EnvironmentVariable("SONAR_TOKEN") + "\""
     + " /d:sonar.cs.opencover.reportsPaths=\"" + unitTestReports + "\""
-    + " /d:sonar.exclusions=" + SwaggerUIFolder + "*";
+    + " /d:sonar.exclusions=file:**/" + SwaggerUIFolder + "*";
     int exitCode = StartProcess(sonarTool.CombineWithFilePath("dotnet-sonarscanner.exe"), "begin " + arguments);
     if (exitCode != 0)
     {
