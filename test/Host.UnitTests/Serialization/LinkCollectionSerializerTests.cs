@@ -34,30 +34,6 @@ namespace Host.UnitTests.Serialization
         public sealed class Write : LinkCollectionSerializerTests
         {
             [Fact]
-            public void ShouldNotSerializeNameIfNull()
-            {
-                this.serializer.Write(this.writer, new LinkCollection
-                {
-                    new Link(null, new Uri("http://www.example.com"), null, name: null, null, "relation", false, null, null)
-                });
-
-                this.writer.DidNotReceive().WriteBeginProperty(nameof(Link.Name));
-                this.writer.Writer.DidNotReceive().WriteString(null);
-            }
-
-            [Fact]
-            public void ShouldNotSerializeTemplatedIfFalse()
-            {
-                this.serializer.Write(this.writer, new LinkCollection
-                {
-                    new Link(null, new Uri("http://www.example.com"), null, null, null, "relation", templated: false, null, null)
-                });
-
-                this.writer.DidNotReceive().WriteBeginProperty(nameof(Link.Templated));
-                this.writer.Writer.DidNotReceive().WriteBoolean(false);
-            }
-
-            [Fact]
             public void ShouldSerializeMultipleLinks()
             {
                 var route1 = new Uri("http://www.example.com/route1");
@@ -76,18 +52,6 @@ namespace Host.UnitTests.Serialization
             }
 
             [Fact]
-            public void ShouldSerializeNameIfNotNull()
-            {
-                this.serializer.Write(this.writer, new LinkCollection
-                {
-                    new Link(null, new Uri("http://www.example.com"), null, "name value", null, "relation", false, null, null)
-                });
-
-                this.writer.Received().WriteBeginProperty(nameof(Link.Name));
-                this.writer.Writer.Received().WriteString("name value");
-            }
-
-            [Fact]
             public void ShouldSerializeSingleLinks()
             {
                 var uri = new Uri("http://www.example.com");
@@ -100,18 +64,6 @@ namespace Host.UnitTests.Serialization
                 this.writer.Received().WriteBeginProperty("single");
                 this.writer.Received().WriteBeginProperty(nameof(Link.HRef));
                 this.writer.Writer.Received().WriteUri(uri);
-            }
-
-            [Fact]
-            public void ShouldSerializeTemplatedIfTrue()
-            {
-                this.serializer.Write(this.writer, new LinkCollection
-                {
-                    new Link(null, new Uri("http://www.example.com"), null, null, null, "relation", templated: true, null, null)
-                });
-
-                this.writer.Received().WriteBeginProperty(nameof(Link.Templated));
-                this.writer.Writer.Received().WriteBoolean(true);
             }
         }
     }
