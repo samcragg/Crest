@@ -63,6 +63,26 @@
                 FakeFormatter.MetadataCount.Should().Be(1);
             }
 
+            [Fact]
+            public void ShouldNotDeserializeTypesWithNoDefaultConstructor()
+            {
+                FakeFormatter.MetadataCount = 0;
+
+                this.adapter.Prime(typeof(ClassWithNoDefaultConstructor));
+
+                FakeFormatter.MetadataCount.Should().Be(0);
+            }
+
+            private class ClassWithNoDefaultConstructor
+            {
+                public ClassWithNoDefaultConstructor(int value)
+                {
+                    this.Value = value;
+                }
+
+                public int Value { get; }
+            }
+
             private class ClassWithSingleProperty
             {
                 public int Property { get; set; }

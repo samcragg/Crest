@@ -71,7 +71,11 @@ namespace Crest.Host.Serialization
         /// <inheritdoc />
         public void Prime(Type classType)
         {
-            GetDelegate(this.deserializeGenerator, ref this.deserializeMetadata, classType);
+            if (classType.GetConstructor(Type.EmptyTypes) != null)
+            {
+                GetDelegate(this.deserializeGenerator, ref this.deserializeMetadata, classType);
+            }
+
             GetDelegate(this.serializeGenerator, ref this.serializeMetadata, classType);
         }
 
