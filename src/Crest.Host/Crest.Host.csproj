@@ -138,6 +138,15 @@
     <Compile Update="Serialization/UrlEncoded/UrlEncodedStreamReader.Pair.cs">
       <DependentUpon>UrlEncodedStreamReader.cs</DependentUpon>
     </Compile>
+    <Compile Update="Util/LinkExpressionBuilder.DelegateBuilder.cs">
+      <DependentUpon>LinkExpressionBuilder.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Util/LinkExpressionBuilder.RouteParser.cs">
+      <DependentUpon>LinkExpressionBuilder.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Util/LinkProvider.LinkService.cs">
+      <DependentUpon>LinkProvider.cs</DependentUpon>
+    </Compile>
     <Compile Update="QueryLookup.Grouping.cs">
       <DependentUpon>QueryLookup.cs</DependentUpon>
     </Compile>

@@ -10,13 +10,11 @@ namespace Host.UnitTests.Util
 
     public class UrlValueConverterTests
     {
-        private readonly UrlValueConverter instance = new UrlValueConverter();
-
         private string ConvertValue(object value)
         {
             ParameterExpression array = Expression.Parameter(typeof(object[]));
             ParameterExpression buffer = Expression.Parameter(typeof(StringBuffer));
-            Expression expression = this.instance.AppendValue(buffer, array, 0, value.GetType());
+            Expression expression = UrlValueConverter.AppendValue(buffer, array, 0, value.GetType());
 
             using (var stringBuffer = new StringBuffer())
             {
@@ -53,6 +51,16 @@ namespace Host.UnitTests.Util
                 string result = this.ConvertValue(Guid.Parse(GuidValue));
 
                 result.Should().BeEquivalentTo(GuidValue);
+            }
+
+            [Fact]
+            public void ShouldConvertObjectsWithCustomTypeConverters()
+            {
+                object testValue = new ClassWithCustomTypeConverter("Example Text");
+
+                string result = this.ConvertValue(testValue);
+
+                result.Should().Be("Example%20Text");
             }
 
             [Theory]
@@ -105,16 +113,6 @@ namespace Host.UnitTests.Util
                 string result = this.ConvertValue(new Uri("a/b", UriKind.Relative));
 
                 result.Should().Be("a%2Fb");
-            }
-
-            [Fact]
-            public void ShouldConvertObjectsWithCustomTypeConverters()
-            {
-                object testValue = new ClassWithCustomTypeConverter("Example Text");
-
-                string result = this.ConvertValue(testValue);
-
-                result.Should().Be("Example%20Text");
             }
         }
     }

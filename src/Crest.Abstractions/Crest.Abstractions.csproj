@@ -2,9 +2,13 @@
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <PackageId>Crest.Abstractions</PackageId>
-    <Description>Defines types used to extend the Crest routing logic.</Description>
+    <Description>Defines abstract types provided by the library and also types used to extend the Crest routing logic.</Description>
   </PropertyGroup>
 
   <Import Project="..\CrestAnalyzers.targets" />
   <Import Project="..\CrestPackage.targets" />
+
+  <ItemGroup>
+    <ProjectReference Include="..\Crest.Core\Crest.Core.csproj" />
+  </ItemGroup>
 </Project>

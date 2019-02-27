@@ -17,7 +17,7 @@ namespace Crest.Host.Util
     /// <summary>
     /// Provides methods for converting values to form part of a URL.
     /// </summary>
-    internal class UrlValueConverter
+    internal static class UrlValueConverter
     {
         private static readonly MethodInfo AppendObjectMethod = GetMethod(AppendObject);
 
@@ -45,6 +45,27 @@ namespace Crest.Host.Util
             };
 
         /// <summary>
+        /// Appends the string value to the buffer, escaping the characters as
+        /// required.
+        /// </summary>
+        /// <param name="buffer">The buffer to copy the string to.</param>
+        /// <param name="value">The string value to escape.</param>
+        public static void AppendEscapedString(StringBuffer buffer, string value)
+        {
+            Span<byte> bytes = stackalloc byte[UrlStringEncoding.MaxBytesPerCharacter];
+            for (int index = 0; index < value.Length; index++)
+            {
+                int count = UrlStringEncoding.AppendChar(
+                    UrlStringEncoding.SpaceOption.Percent,
+                    value,
+                    ref index,
+                    bytes);
+
+                buffer.AppendAscii(bytes.Slice(0, count));
+            }
+        }
+
+        /// <summary>
         /// Creates an expression that will append a value of the specified
         /// type to the specified string buffer.
         /// </summary>
@@ -59,7 +80,7 @@ namespace Crest.Host.Util
         /// </param>
         /// <param name="type">The type of the value in the array.</param>
         /// <returns>An expression that appends the value.</returns>
-        public virtual Expression AppendValue(
+        public static Expression AppendValue(
             ParameterExpression buffer,
             ParameterExpression objectArray,
             int index,
@@ -140,7 +161,7 @@ namespace Crest.Host.Util
         {
             SCM.TypeConverter converter = SCM.TypeDescriptor.GetConverter(value);
             string converted = converter.ConvertToInvariantString(value);
-            AppendString(buffer, converted);
+            AppendEscapedString(buffer, converted);
         }
 
         private static void AppendSByte(StringBuffer buffer, object value)
@@ -162,18 +183,7 @@ namespace Crest.Host.Util
 
         private static void AppendString(StringBuffer buffer, object value)
         {
-            Span<byte> bytes = stackalloc byte[UrlStringEncoding.MaxBytesPerCharacter];
-            string stringValue = (string)value;
-            for (int index = 0; index < stringValue.Length; index++)
-            {
-                int count = UrlStringEncoding.AppendChar(
-                    UrlStringEncoding.SpaceOption.Percent,
-                    stringValue,
-                    ref index,
-                    bytes);
-
-                buffer.AppendAscii(bytes.Slice(0, count));
-            }
+            AppendEscapedString(buffer, (string)value);
         }
 
         private static void AppendTimeSpan(StringBuffer buffer, object value)
@@ -208,7 +218,7 @@ namespace Crest.Host.Util
         private static void AppendUri(StringBuffer buffer, object value)
         {
             var uriValue = (Uri)value;
-            AppendString(
+            AppendEscapedString(
                 buffer,
                 uriValue.IsAbsoluteUri ? uriValue.AbsoluteUri : uriValue.OriginalString);
         }
