@@ -79,7 +79,7 @@ namespace Crest.Host.Util
             }
 
             string routeUrl = route.Route;
-            if (!routeUrl.StartsWith("/"))
+            if (routeUrl.FirstOrDefault() != '/')
             {
                 routeUrl = "/" + routeUrl;
             }
