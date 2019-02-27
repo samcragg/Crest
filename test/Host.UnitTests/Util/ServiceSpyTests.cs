@@ -13,14 +13,25 @@ namespace Host.UnitTests.Util
         public interface IFakeInterface
         {
             string Method(string str, int integer);
+
+            void OptionalMethod(string optional = null);
         }
 
-        public sealed class InvokeFunction : ServiceSpyTests
+        public sealed class InvokeAction : ServiceSpyTests
         {
+            [Fact]
+            public void ShouldReturnOptionalArgumentsThatWereNotSpecified()
+            {
+                (MethodInfo method, object[] args) = this.spy.InvokeAction(
+                    (IFakeInterface x) => x.OptionalMethod());
+
+                args.Should().ContainSingle().Which.Should().BeNull();
+            }
+
             [Fact]
             public void ShouldReturnTheMethodWithItsArguments()
             {
-                (MethodInfo method, object[] args) = this.spy.InvokeFunction(
+                (MethodInfo method, object[] args) = this.spy.InvokeAction(
                     (IFakeInterface x) => x.Method("a", 1));
 
                 method.Name.Should().Be(nameof(IFakeInterface.Method));
@@ -31,7 +42,7 @@ namespace Host.UnitTests.Util
             [Fact]
             public void ShouldThrowIfNoMethodCalls()
             {
-                Action action = () => this.spy.InvokeFunction((IFakeInterface _) => "");
+                Action action = () => this.spy.InvokeAction((IFakeInterface _) => { });
 
                 action.Should().Throw<InvalidOperationException>();
             }

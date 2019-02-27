@@ -21,17 +21,16 @@ namespace Crest.Host.Util
         /// Invoke the specified function on an interface.
         /// </summary>
         /// <typeparam name="T">The service type.</typeparam>
-        /// <typeparam name="TResult">The result from the method.</typeparam>
-        /// <param name="function">The function to invoke.</param>
+        /// <param name="action">The function to invoke.</param>
         /// <returns>
         /// The method that was called, along with the arguments passed to it.
         /// </returns>
-        public (MethodInfo method, object[] args) InvokeFunction<T, TResult>(Func<T, TResult> function)
+        public (MethodInfo method, object[] args) InvokeAction<T>(Action<T> action)
         {
             ServiceProxy proxy = this.GetProxyFor<T>();
             lock (proxy)
             {
-                function((T)(object)proxy);
+                action((T)(object)proxy);
                 if (proxy.CalledMethod == null)
                 {
                     throw new InvalidOperationException("No method was invoked on service.");
