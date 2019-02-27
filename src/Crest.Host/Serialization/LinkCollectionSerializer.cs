@@ -14,7 +14,7 @@ namespace Crest.Host.Serialization
     /// <summary>
     /// Allows the serialization of <see cref="LinkCollection"/>.
     /// </summary>
-    internal sealed class LinkSerializer : ICustomSerializer<LinkCollection>
+    internal sealed class LinkCollectionSerializer : ICustomSerializer<LinkCollection>
     {
         /// <inheritdoc />
         public void Write(IClassWriter writer, LinkCollection instance)

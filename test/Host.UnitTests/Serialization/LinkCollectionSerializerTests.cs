@@ -8,19 +8,19 @@ namespace Host.UnitTests.Serialization
     using NSubstitute;
     using Xunit;
 
-    public class LinkSerializerTests
+    public class LinkCollectionSerializerTests
     {
-        private readonly LinkSerializer serializer;
+        private readonly LinkCollectionSerializer serializer;
         private readonly IClassWriter writer;
 
-        private LinkSerializerTests()
+        private LinkCollectionSerializerTests()
         {
             this.writer = Substitute.For<IClassWriter>();
             this.writer.Writer.Returns(Substitute.For<ValueWriter>());
-            this.serializer = new LinkSerializer();
+            this.serializer = new LinkCollectionSerializer();
         }
 
-        public sealed class Read : LinkSerializerTests
+        public sealed class Read : LinkCollectionSerializerTests
         {
             [Fact]
             public void ShouldThrowNotSupportedException()
@@ -31,7 +31,7 @@ namespace Host.UnitTests.Serialization
             }
         }
 
-        public sealed class Write : LinkSerializerTests
+        public sealed class Write : LinkCollectionSerializerTests
         {
             [Fact]
             public void ShouldNotSerializeNameIfNull()
