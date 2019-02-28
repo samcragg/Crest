@@ -10,7 +10,7 @@
   <!-- Package properties -->
   <PropertyGroup>
     <Authors>Samuel Cragg</Authors>
-    <PackageLicenseUrl>https://github.com/samcragg/Crest/blob/master/LICENSE</PackageLicenseUrl>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageProjectUrl>https://github.com/samcragg/Crest</PackageProjectUrl>
     <RepositoryUrl>https://github.com/samcragg/Crest</RepositoryUrl>
     <PackageIconUrl>https://raw.githubusercontent.com/samcragg/Crest/master/docs/images/package_icon.png</PackageIconUrl>
