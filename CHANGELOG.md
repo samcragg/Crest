@@ -7,12 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.1] - 2019-02-28
+
 ### Added
 
-- Support for custom serialzation of types via the new `ICustomSerializer<T>`
-  interface
 - Classes for returning links to other endpoints in the application (see
-  `LinkBuilder`)
+  `LinkBuilder` and `ILinkProvider`)
+
+## [0.2.0] - 2019-02-14
+
+### Added
+
+- Support for custom serialization of types via the new `ICustomSerializer<T>`
+  interface
 
 ### Changed
 
