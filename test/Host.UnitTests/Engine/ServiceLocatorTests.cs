@@ -498,7 +498,7 @@
 
                 rootContainer.UseInstance(typeof(ExampleClass), instance);
 
-                this.container.Received().UseInstance(
+                ((IResolverContext)this.container).Received().UseInstance(
                     typeof(ExampleClass),
                     instance,
                     Arg.Any<IfAlreadyRegistered>(),
