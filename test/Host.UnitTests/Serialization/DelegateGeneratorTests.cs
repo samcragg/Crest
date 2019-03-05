@@ -71,7 +71,7 @@
             public int BrowsableTrue { get; set; }
         }
 
-        protected class CustomSerializer : ICustomSerializer<PrimitiveProperty>
+        protected class CustomSerializer : ISerializer<PrimitiveProperty>
         {
             internal static readonly object SyncRoot = new object();
             private static PrimitiveProperty currentValue;

@@ -6,10 +6,10 @@
 namespace Crest.Host.Serialization.Internal
 {
     /// <summary>
-    /// Allows the custom serialization of a type.
+    /// Allows the serialization of a type.
     /// </summary>
     /// <typeparam name="T">The type for the custom serialization.</typeparam>
-    public interface ICustomSerializer<T>
+    public interface ISerializer<T>
     {
         /// <summary>
         /// Reads an object from specified reader.

@@ -12,7 +12,7 @@ namespace Crest.Host.Serialization
     /// <summary>
     /// Allows the serialization of <see cref="Link"/>.
     /// </summary>
-    internal sealed class LinkSerializer : ICustomSerializer<Link>
+    internal sealed class LinkSerializer : ISerializer<Link>
     {
         /// <inheritdoc />
         public void Write(IClassWriter writer, Link instance)
@@ -21,7 +21,7 @@ namespace Crest.Host.Serialization
         }
 
         /// <inheritdoc />
-        Link ICustomSerializer<Link>.Read(IClassReader reader)
+        Link ISerializer<Link>.Read(IClassReader reader)
         {
             throw new NotSupportedException();
         }

@@ -25,7 +25,7 @@ namespace Host.UnitTests.Serialization
             [Fact]
             public void ShouldThrowNotSupportedException()
             {
-                Action action = () => ((ICustomSerializer<Link>)this.serializer).Read(null);
+                Action action = () => ((ISerializer<Link>)this.serializer).Read(null);
 
                 action.Should().Throw<NotSupportedException>();
             }

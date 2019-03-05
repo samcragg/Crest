@@ -204,7 +204,7 @@ namespace Crest.Host.Serialization
             {
                 builder.Add(Expression.Call(
                     Expression.New(serializer),
-                    GetInterfaceMethod(serializer, typeof(ICustomSerializer<>), nameof(ICustomSerializer<object>.Write)),
+                    GetInterfaceMethod(serializer, typeof(ISerializer<>), nameof(ISerializer<object>.Write)),
                     builder.Formatter,
                     builder.TypedInstance));
                 return true;

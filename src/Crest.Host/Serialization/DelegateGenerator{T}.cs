@@ -158,7 +158,7 @@ namespace Crest.Host.Serialization
         /// </returns>
         protected Type GetCustomSerializer(Type type)
         {
-            Type serializerInterface = typeof(ICustomSerializer<>).MakeGenericType(type);
+            Type serializerInterface = typeof(ISerializer<>).MakeGenericType(type);
             IEnumerator<Type> serializerTypes =
                 this.discoveredTypes
                     .Types
