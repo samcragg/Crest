@@ -15,13 +15,13 @@
     using IFormatter = Crest.Host.Serialization.Internal.IFormatter;
 
     [Trait("Category", "Integration")]
-    public abstract class DelegateAdapterIntegrationTest
+    public abstract class FormatterSerializerIntegrationTest
     {
         // Since the formatters are internal, we can't use them as a generic
         // parameter as our test classes need to be public
         private readonly Type formatterType;
 
-        protected DelegateAdapterIntegrationTest(Type formatterType)
+        protected FormatterSerializerIntegrationTest(Type formatterType)
         {
             this.formatterType = formatterType;
         }
@@ -68,7 +68,7 @@
 
         private object WithGenerator(Expression<Action<ISerializerGenerator<IFormatter>>> expression)
         {
-            Type adapterType = typeof(DelegateAdapter<>).MakeGenericType(this.formatterType);
+            Type adapterType = typeof(FormatterSerializer<>).MakeGenericType(this.formatterType);
             ConstructorInfo constructor = adapterType.GetConstructor(new[] { typeof(DiscoveredTypes) });
 
             Expression discoveredType = Expression.Constant(new DiscoveredTypes(this.DiscoveredTypes));

@@ -12,18 +12,18 @@
 
     // Because we're using statics in the FakeFormatter to monitor what gets
     // called, run all tests serially
-    [Collection(nameof(DelegateAdapterTests))]
-    public class DelegateAdapterTests
+    [Collection(nameof(FormatterSerializerTests))]
+    public class FormatterSerializerTests
     {
-        private readonly DelegateAdapter<FakeFormatter> adapter;
+        private readonly FormatterSerializer<FakeFormatter> adapter;
 
-        private DelegateAdapterTests()
+        private FormatterSerializerTests()
         {
-            this.adapter = new DelegateAdapter<FakeFormatter>(
+            this.adapter = new FormatterSerializer<FakeFormatter>(
                 new DiscoveredTypes(Array.Empty<Type>()));
         }
 
-        public sealed class Deserialize : DelegateAdapterTests
+        public sealed class Deserialize : FormatterSerializerTests
         {
             [Fact]
             public void ShouldDisposeTheFormatter()
@@ -49,7 +49,7 @@
             }
         }
 
-        public sealed class Prime : DelegateAdapterTests
+        public sealed class Prime : FormatterSerializerTests
         {
             [Fact]
             public void ShouldCacheTheDelegates()
@@ -89,7 +89,7 @@
             }
         }
 
-        public sealed class Serialize : DelegateAdapterTests
+        public sealed class Serialize : FormatterSerializerTests
         {
             [Fact]
             public void ShouldDisposeTheFormatter()

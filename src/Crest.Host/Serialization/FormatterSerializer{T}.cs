@@ -19,7 +19,7 @@ namespace Crest.Host.Serialization
     /// </summary>
     /// <typeparam name="T">The type of the formatter class.</typeparam>
     [SingleInstance]
-    internal sealed class DelegateAdapter<T> : ISerializerGenerator<T>
+    internal sealed class FormatterSerializer<T> : ISerializerGenerator<T>
         where T : IFormatter
     {
         private readonly Func<Stream, SerializationMode, T> createFormatter;
@@ -29,10 +29,10 @@ namespace Crest.Host.Serialization
         private ImmutableArray<object> serializeMetadata;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="DelegateAdapter{T}"/> class.
+        /// Initializes a new instance of the <see cref="FormatterSerializer{T}"/> class.
         /// </summary>
         /// <param name="discoveredTypes">The available types.</param>
-        public DelegateAdapter(DiscoveredTypes discoveredTypes)
+        public FormatterSerializer(DiscoveredTypes discoveredTypes)
         {
             this.createFormatter = CallFormatterConstructor();
 

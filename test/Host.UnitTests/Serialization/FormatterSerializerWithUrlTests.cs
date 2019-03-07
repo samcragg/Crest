@@ -5,14 +5,14 @@
     using FluentAssertions;
     using Xunit;
 
-    public class DelegateAdapterWithUrlTests : DelegateAdapterIntegrationTest
+    public class FormatterSerializerWithUrlTests : FormatterSerializerIntegrationTest
     {
-        public DelegateAdapterWithUrlTests()
+        public FormatterSerializerWithUrlTests()
             : base(typeof(UrlEncodedFormatter))
         {
         }
 
-        public sealed class PlainOldDataClassesDeserialize : DelegateAdapterWithUrlTests
+        public sealed class PlainOldDataClassesDeserialize : FormatterSerializerWithUrlTests
         {
             [Fact]
             public void ArrayProperties()
@@ -42,7 +42,7 @@
             }
         }
 
-        public sealed class PlainOldDataClassesSerialize : DelegateAdapterWithUrlTests
+        public sealed class PlainOldDataClassesSerialize : FormatterSerializerWithUrlTests
         {
             [Fact]
             public void ArrayProperties()
@@ -100,7 +100,7 @@
             }
         }
 
-        public sealed class RootArraysDeserialize : DelegateAdapterWithUrlTests
+        public sealed class RootArraysDeserialize : FormatterSerializerWithUrlTests
         {
             [Fact]
             public void ClassType()
@@ -166,7 +166,7 @@
             }
         }
 
-        public sealed class RootArraysSerialize : DelegateAdapterWithUrlTests
+        public sealed class RootArraysSerialize : FormatterSerializerWithUrlTests
         {
             [Fact]
             public void ClassType()
@@ -213,7 +213,7 @@
             }
         }
 
-        public sealed class RootTypesDeserialize : DelegateAdapterWithUrlTests
+        public sealed class RootTypesDeserialize : FormatterSerializerWithUrlTests
         {
             [Fact]
             public void ClassType()
@@ -265,7 +265,7 @@
             }
         }
 
-        public sealed class RootTypesSerialize : DelegateAdapterWithUrlTests
+        public sealed class RootTypesSerialize : FormatterSerializerWithUrlTests
         {
             [Fact]
             public void ClassType()
