@@ -7,7 +7,7 @@
     using Crest.Host.Serialization;
     using Crest.Host.Serialization.Internal;
 
-    public abstract class DelegateGeneratorTests
+    public abstract class DelegateGeneratorClasses
     {
         protected enum FakeLongEnum : long
         {
@@ -107,6 +107,29 @@
         protected class EnumProperty
         {
             public FakeLongEnum Value { get; set; }
+        }
+
+        protected class NestedSerializer : ISerializer<WithNestedType>
+        {
+            private readonly ISerializer<PrimitiveProperty> nestedSerializer;
+
+            public NestedSerializer(ISerializer<PrimitiveProperty> nestedSerializer)
+            {
+                this.nestedSerializer = nestedSerializer;
+            }
+
+            public WithNestedType Read(IClassReader reader)
+            {
+                return new WithNestedType
+                {
+                    Nested = this.nestedSerializer.Read(reader)
+                };
+            }
+
+            public void Write(IClassWriter writer, WithNestedType instance)
+            {
+                this.nestedSerializer.Write(writer, instance.Nested);
+            }
         }
 
         protected class NullableProperty
