@@ -12,7 +12,7 @@
     using NSubstitute.ReturnsExtensions;
     using Xunit;
 
-    public class DeserializeDelegateGeneratorTests : DelegateGeneratorTests
+    public class DeserializeDelegateGeneratorTests : DelegateGeneratorClasses
     {
         private readonly List<Type> discoveredTypes = new List<Type>();
         private readonly IFormatter formatter = Substitute.For<IFormatter>();
@@ -75,35 +75,18 @@
             [Fact]
             public void ShouldCallTheCustomSerializerForAType()
             {
-                lock (CustomSerializer.SyncRoot)
+                lock (CustomNestedSerializer.SyncRoot)
                 {
-                    this.discoveredTypes.Add(typeof(CustomSerializer));
-                    var instance = new PrimitiveProperty();
-                    CustomSerializer.SetNextRead(instance);
+                    this.discoveredTypes.Add(typeof(CustomNestedSerializer));
+                    var instance = new WithNestedType();
+                    CustomNestedSerializer.SetNextRead(instance);
 
-                    PrimitiveProperty result = this.Deserialize<PrimitiveProperty>();
+                    WithNestedType result = this.Deserialize<WithNestedType>();
 
                     result.Should().BeSameAs(instance);
+                    this.formatter.Received().ReadBeginClass(
+                        this.metadataBuilder.GetMetadata(nameof(PrimitiveProperty)));
                 }
-            }
-
-            [Fact]
-            public void ShouldEnsureThereAreNoCyclicDependencies()
-            {
-                Action action = () => this.Deserialize<CyclicReference>();
-
-                action.Should().Throw<InvalidOperationException>();
-            }
-
-            [Fact]
-            public void ShouldEnsureThereAreNoMutlipleCustomSerializers()
-            {
-                this.discoveredTypes.Add(typeof(CustomSerializer));
-                this.discoveredTypes.Add(typeof(SecondSerializer));
-
-                Action action = () => this.Deserialize<PrimitiveProperty>();
-
-                action.Should().Throw<InvalidOperationException>("*multiple*");
             }
 
             [Fact]
@@ -378,22 +361,6 @@
             private T Deserialize<T>()
             {
                 return (T)this.Deserialize(typeof(T));
-            }
-        }
-
-        public sealed class TryGetDelegate : DeserializeDelegateGeneratorTests
-        {
-            [Fact]
-            public void ShouldReturnFalseForUnknownTypes()
-            {
-                bool result = this.Generator.TryGetDelegate(typeof(Unknown), out DeserializeInstance deserialize);
-
-                result.Should().BeFalse();
-                deserialize.Should().BeNull();
-            }
-
-            private class Unknown
-            {
             }
         }
     }

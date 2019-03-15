@@ -116,6 +116,9 @@
     <Compile Update="Security/SecurityKeyCache.KeyProvider.cs">
       <DependentUpon>SecurityKeyCache.cs</DependentUpon>
     </Compile>
+    <Compile Update="Serialization/DelegateGenerator.DelegateSerializerAdapter.cs">
+      <DependentUpon>DelegateGenerator{TDelegate}.cs</DependentUpon>
+    </Compile>
     <Compile Update="Serialization/DeserializeDelegateGenerator.Adapter.cs">
       <DependentUpon>DeserializeDelegateGenerator.cs</DependentUpon>
     </Compile>

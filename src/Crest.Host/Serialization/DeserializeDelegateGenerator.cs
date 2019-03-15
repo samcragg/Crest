@@ -63,6 +63,12 @@ namespace Crest.Host.Serialization
                     .Compile();
         }
 
+        /// <inheritdoc />
+        protected override Func<IClassReader, IReadOnlyList<object>, T> ReadFromDelegate<T>(DeserializeInstance serializer)
+        {
+            return (r, m) => (T)serializer((IFormatter)r, m);
+        }
+
         private static string GetPropertyName(PropertyInfo property)
         {
             DisplayNameAttribute displayName =
@@ -132,16 +138,20 @@ namespace Crest.Host.Serialization
 
         private bool ReadFromCustomSerializer(Type type, DelegateBuilder builder)
         {
-            Type serializer = this.GetCustomSerializer(type);
-            if (serializer == null)
+            Expression createSerializer = this.CreateCustomSerializer(
+                type,
+                builder.Metadata,
+                builder.MetadataBuilder);
+
+            if (createSerializer == null)
             {
                 return false;
             }
             else
             {
                 builder.InitializeInstance = Expression.Call(
-                    Expression.New(serializer),
-                    GetInterfaceMethod(serializer, typeof(ISerializer<>), nameof(ISerializer<object>.Read)),
+                    createSerializer,
+                    GetInterfaceMethod(createSerializer.Type, typeof(ISerializer<>), nameof(ISerializer<object>.Read)),
                     builder.Formatter);
 
                 return true;

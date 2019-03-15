@@ -63,6 +63,12 @@ namespace Crest.Host.Serialization
                 .Compile();
         }
 
+        /// <inheritdoc />
+        protected override Action<IClassWriter, IReadOnlyList<object>, T> WriteToDelegate<T>(SerializeInstance serializer)
+        {
+            return (w, m, i) => serializer((IFormatter)w, m, i);
+        }
+
         private Expression CallWriteEnumExpression(DelegateBuilder builder, Expression value, Type valueType)
         {
             Type underlyingType = valueType.GetEnumUnderlyingType();
@@ -195,18 +201,23 @@ namespace Crest.Host.Serialization
 
         private bool WriteToCustomSerializer(Type type, DelegateBuilder builder)
         {
-            Type serializer = this.GetCustomSerializer(type);
-            if (serializer == null)
+            Expression createSerializer = this.CreateCustomSerializer(
+                type,
+                builder.Metadata,
+                builder.MetadataBuilder);
+
+            if (createSerializer == null)
             {
                 return false;
             }
             else
             {
                 builder.Add(Expression.Call(
-                    Expression.New(serializer),
-                    GetInterfaceMethod(serializer, typeof(ISerializer<>), nameof(ISerializer<object>.Write)),
+                    createSerializer,
+                    GetInterfaceMethod(createSerializer.Type, typeof(ISerializer<>), nameof(ISerializer<object>.Write)),
                     builder.Formatter,
                     builder.TypedInstance));
+
                 return true;
             }
         }

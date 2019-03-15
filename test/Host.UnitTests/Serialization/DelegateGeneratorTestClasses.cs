@@ -1,5 +1,6 @@
 ﻿namespace Host.UnitTests.Serialization
 {
+    using System;
     using System.Collections.Generic;
     using System.ComponentModel;
     using System.Linq;
@@ -71,31 +72,53 @@
             public int BrowsableTrue { get; set; }
         }
 
-        protected class CustomSerializer : ISerializer<PrimitiveProperty>
+        protected class CustomNestedSerializer : ISerializer<WithNestedType>
         {
             internal static readonly object SyncRoot = new object();
-            private static PrimitiveProperty currentValue;
+            private static WithNestedType currentValue;
 
-            public PrimitiveProperty Read(IClassReader reader)
+            public CustomNestedSerializer(ISerializer<PrimitiveProperty> nestedSerializer)
             {
+                this.NestedSerializer = nestedSerializer;
+            }
+
+            internal ISerializer<PrimitiveProperty> NestedSerializer { get; }
+
+            public WithNestedType Read(IClassReader reader)
+            {
+                this.NestedSerializer.Read(reader);
                 return GetLastWritten();
             }
 
-            public void Write(IClassWriter writer, PrimitiveProperty instance)
+            public void Write(IClassWriter writer, WithNestedType instance)
             {
+                this.NestedSerializer.Write(writer, instance.Nested);
                 currentValue = instance;
             }
 
-            internal static PrimitiveProperty GetLastWritten()
+            internal static WithNestedType GetLastWritten()
             {
-                PrimitiveProperty value = currentValue;
+                WithNestedType value = currentValue;
                 currentValue = null;
                 return value;
             }
 
-            internal static void SetNextRead(PrimitiveProperty value)
+            internal static void SetNextRead(WithNestedType value)
             {
                 currentValue = value;
+            }
+        }
+
+        protected class CustomPrimitiveSerializer : ISerializer<PrimitiveProperty>
+        {
+            public PrimitiveProperty Read(IClassReader reader)
+            {
+                throw new NotImplementedException();
+            }
+
+            public void Write(IClassWriter writer, PrimitiveProperty instance)
+            {
+                throw new NotImplementedException();
             }
         }
 
@@ -107,29 +130,6 @@
         protected class EnumProperty
         {
             public FakeLongEnum Value { get; set; }
-        }
-
-        protected class NestedSerializer : ISerializer<WithNestedType>
-        {
-            private readonly ISerializer<PrimitiveProperty> nestedSerializer;
-
-            public NestedSerializer(ISerializer<PrimitiveProperty> nestedSerializer)
-            {
-                this.nestedSerializer = nestedSerializer;
-            }
-
-            public WithNestedType Read(IClassReader reader)
-            {
-                return new WithNestedType
-                {
-                    Nested = this.nestedSerializer.Read(reader)
-                };
-            }
-
-            public void Write(IClassWriter writer, WithNestedType instance)
-            {
-                this.nestedSerializer.Write(writer, instance.Nested);
-            }
         }
 
         protected class NullableProperty
@@ -148,8 +148,26 @@
             public string Value { get; set; }
         }
 
-        protected class SecondSerializer : CustomSerializer
+        protected class SecondSerializer : CustomPrimitiveSerializer
         {
+        }
+
+        protected class SerializerWithInvalidArguments : CustomPrimitiveSerializer
+        {
+            public SerializerWithInvalidArguments(IEnumerable<string> values)
+            {
+            }
+        }
+
+        protected class SerializerWithMultipleConstructors : CustomPrimitiveSerializer
+        {
+            public SerializerWithMultipleConstructors()
+            {
+            }
+
+            public SerializerWithMultipleConstructors(ISerializer<DateTime> serializer)
+            {
+            }
         }
 
         protected class ValueProperty
