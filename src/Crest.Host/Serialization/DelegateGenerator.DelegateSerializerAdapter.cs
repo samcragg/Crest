@@ -21,6 +21,10 @@ namespace Crest.Host.Serialization
             private readonly Func<IClassReader, IReadOnlyList<object>, T> read;
             private readonly Action<IClassWriter, IReadOnlyList<object>, T> write;
 
+            [System.Diagnostics.CodeAnalysis.SuppressMessage(
+                "Major Code Smell",
+                "S1144:Unused private types or members should be removed",
+                Justification = "Accessed by runtime generated code via Linq.Expressions")]
             public DelegateSerializerAdapter(
                 Func<IClassReader, IReadOnlyList<object>, T> read,
                 Action<IClassWriter, IReadOnlyList<object>, T> write,
