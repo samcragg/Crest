@@ -16,6 +16,17 @@ namespace Crest.Host.Serialization
     /// </summary>
     internal sealed class LinkCollectionSerializer : ISerializer<LinkCollection>
     {
+        private readonly ISerializer<Link> linkSerializer;
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="LinkCollectionSerializer"/> class.
+        /// </summary>
+        /// <param name="linkSerializer">Used to serializer the links.</param>
+        public LinkCollectionSerializer(ISerializer<Link> linkSerializer)
+        {
+            this.linkSerializer = linkSerializer;
+        }
+
         /// <inheritdoc />
         public void Write(IClassWriter writer, LinkCollection instance)
         {
@@ -23,7 +34,7 @@ namespace Crest.Host.Serialization
             foreach (IGrouping<string, Link> group in (ILookup<string, Link>)instance)
             {
                 writer.WriteBeginProperty(group.Key);
-                SerializeLinks(writer, (IReadOnlyCollection<Link>)group);
+                this.SerializeLinks(writer, (IReadOnlyCollection<Link>)group);
                 writer.WriteEndProperty();
             }
 
@@ -36,19 +47,19 @@ namespace Crest.Host.Serialization
             throw new NotSupportedException();
         }
 
-        private static void SerializeLinks(IClassWriter writer, IReadOnlyCollection<Link> links)
+        private void SerializeLinks(IClassWriter writer, IReadOnlyCollection<Link> links)
         {
             int count = links.Count;
             if (count == 1)
             {
-                LinkSerializer.SerializeLink(writer, links.FirstOrDefault());
+                this.linkSerializer.Write(writer, links.FirstOrDefault());
             }
             else
             {
                 writer.WriteBeginArray(typeof(Link), count);
                 foreach (Link link in links)
                 {
-                    LinkSerializer.SerializeLink(writer, link);
+                    this.linkSerializer.Write(writer, link);
 
                     // Are we expecting more?
                     count--;

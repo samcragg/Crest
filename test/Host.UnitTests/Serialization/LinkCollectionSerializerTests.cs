@@ -10,14 +10,17 @@ namespace Host.UnitTests.Serialization
 
     public class LinkCollectionSerializerTests
     {
+        private static readonly Uri ExampleUri = new Uri("http://www.example.com");
+        private readonly ISerializer<Link> linkSerializer;
         private readonly LinkCollectionSerializer serializer;
         private readonly IClassWriter writer;
 
         private LinkCollectionSerializerTests()
         {
+            this.linkSerializer = Substitute.For<ISerializer<Link>>();
             this.writer = Substitute.For<IClassWriter>();
             this.writer.Writer.Returns(Substitute.For<ValueWriter>());
-            this.serializer = new LinkCollectionSerializer();
+            this.serializer = new LinkCollectionSerializer(this.linkSerializer);
         }
 
         public sealed class Read : LinkCollectionSerializerTests
@@ -36,34 +39,26 @@ namespace Host.UnitTests.Serialization
             [Fact]
             public void ShouldSerializeMultipleLinks()
             {
-                var route1 = new Uri("http://www.example.com/route1");
-                var route2 = new Uri("http://www.example.com/route2");
-                this.serializer.Write(this.writer, new LinkCollection
-                {
-                    { "multiple", route1 },
-                    { "multiple", route2 },
-                });
+                var link1 = new Link("multiple", ExampleUri);
+                var link2 = new Link("multiple", ExampleUri);
+                this.serializer.Write(this.writer, new LinkCollection { link1, link2 });
 
                 this.writer.Received().WriteBeginProperty("multiple");
                 this.writer.Received().WriteBeginArray(typeof(Link), 2);
-                this.writer.Received(2).WriteBeginProperty(nameof(Link.HRef));
-                this.writer.Writer.Received().WriteUri(route1);
-                this.writer.Writer.Received().WriteUri(route2);
+                this.linkSerializer.Received().Write(this.writer, link1);
+                this.linkSerializer.Received().Write(this.writer, link2);
             }
 
             [Fact]
             public void ShouldSerializeSingleLinks()
             {
-                var uri = new Uri("http://www.example.com");
-                this.serializer.Write(this.writer, new LinkCollection
-                {
-                    { "single", uri }
-                });
+                var link = new Link("single", ExampleUri);
+                this.serializer.Write(this.writer, new LinkCollection { link });
 
                 this.writer.DidNotReceiveWithAnyArgs().WriteBeginArray(null, 0);
+
                 this.writer.Received().WriteBeginProperty("single");
-                this.writer.Received().WriteBeginProperty(nameof(Link.HRef));
-                this.writer.Writer.Received().WriteUri(uri);
+                this.linkSerializer.Received().Write(this.writer, link);
             }
         }
     }
