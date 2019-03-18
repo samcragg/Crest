@@ -143,7 +143,8 @@ namespace Crest.Host.Serialization
 
             return type.GetProperties()
                        .Where(IncludeProperty)
-                       .OrderBy(DataOrder);
+                       .OrderBy(DataOrder)
+                       .ThenBy(p => p.Name);
         }
 
         /// <summary>

@@ -5,6 +5,7 @@
     using System.ComponentModel;
     using System.Linq;
     using System.Reflection;
+    using System.Runtime.Serialization;
     using Crest.Host.Serialization;
     using Crest.Host.Serialization.Internal;
 
@@ -125,6 +126,19 @@
         protected class CyclicReference
         {
             public CyclicReference Value { get; set; }
+        }
+
+        protected class DataMemberProperties
+        {
+            public string B { get; set; }
+
+            public string A { get; set; }
+
+            [DataMember(Order = 2)]
+            public string C2 { get; set; }
+
+            [DataMember(Order = 1)]
+            public string D1 { get; set; }
         }
 
         protected class EnumProperty

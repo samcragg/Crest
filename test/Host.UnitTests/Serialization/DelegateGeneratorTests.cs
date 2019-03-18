@@ -2,6 +2,7 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Linq;
     using System.Linq.Expressions;
     using System.Reflection;
     using Crest.Host.Engine;
@@ -124,6 +125,30 @@
             }
         }
 
+        public sealed class GetProperties : DelegateGeneratorTests
+        {
+            [Fact]
+            public void ShouldNotReturnPropertiesWithBrowsableFalse()
+            {
+                IEnumerable<PropertyInfo> result =
+                    FakeDelegateGenerator.GetProperties(typeof(BrowsableProperties));
+
+                result.Should().ContainSingle()
+                      .Which.Name.Should().Be(nameof(BrowsableProperties.BrowsableTrue));
+            }
+
+            [Fact]
+            public void ShouldReturnTheOrderedByDataMember()
+            {
+                List<string> result =
+                    FakeDelegateGenerator.GetProperties(typeof(DataMemberProperties))
+                    .Select(x => x.Name)
+                    .ToList();
+
+                result.Should().Equal("D1", "C2", "A", "B");
+            }
+        }
+
         public sealed class TryGetDelegate : DelegateGeneratorTests
         {
             [Fact]
@@ -145,6 +170,11 @@
             public FakeDelegateGenerator(DiscoveredTypes discoveredTypes)
                 : base(discoveredTypes)
             {
+            }
+
+            internal static new IEnumerable<PropertyInfo> GetProperties(Type type)
+            {
+                return DelegateGenerator<Func<Type>>.GetProperties(type);
             }
 
             internal Func<object> CreateCustomSerializer(Type type)
