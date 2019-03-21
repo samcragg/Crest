@@ -9,6 +9,7 @@ namespace Crest.Host.Diagnostics
     using System.Collections.Generic;
     using System.Linq;
     using System.Reflection;
+    using Crest.Core.Logging;
     using Microsoft.Extensions.DependencyModel;
 
     /// <summary>
@@ -25,6 +26,7 @@ namespace Crest.Host.Diagnostics
                 "SYSTEM",
             }, StringComparer.Ordinal);
 
+        private static readonly ILog Logger = Log.For<ExecutingAssembly>();
         private static DependencyContext overrideContext;
 
         /// <summary>
@@ -70,8 +72,13 @@ namespace Crest.Host.Diagnostics
             foreach (CompilationLibrary library in DependencyContext.CompileLibraries)
             {
                 string prefix = GetAssemblyPrefix(library.Name);
-                if (!ExcludedAssemblies.Contains(prefix))
+                if (ExcludedAssemblies.Contains(prefix))
                 {
+                    Logger.Debug("Skipping scanning of {library}", library.Name);
+                }
+                else
+                {
+                    Logger.Info("Discovered library {library} at {path}", library.Name, library.Path);
                     Assembly assembly = this.LoadAssembly(library.Name);
                     if (assembly != null)
                     {
@@ -102,6 +109,7 @@ namespace Crest.Host.Diagnostics
             }
             catch
             {
+                Logger.Warn("Unable to load library {name}", name);
                 return null;
             }
         }
