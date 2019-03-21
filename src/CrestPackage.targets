@@ -5,6 +5,9 @@
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <LangVersion>latest</LangVersion>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+	
+	<!-- Ignore NuGet warning about SemVer 2.0.0 usage -->
+	<NoWarn>NU5105</NoWarn>
   </PropertyGroup>
   
   <!-- Package properties -->
