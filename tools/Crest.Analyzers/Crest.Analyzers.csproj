@@ -5,6 +5,7 @@
     <PackageId>Crest.Analyzers</PackageId>
     <Description>Allows the analyzing of routes inside a project that uses the Crest framework.</Description>
     <PackageTags>Crest, analyzers</PackageTags>
+    <DevelopmentDependency>true</DevelopmentDependency>
   </PropertyGroup>
 
   <Import Project="..\..\src\CrestPackage.targets" />
@@ -17,9 +18,9 @@
   </ItemGroup>
    
   <ItemGroup>
-    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="2.10.0" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="2.10.0" />
     <PackageReference Include="System.Memory" Version="4.5.2" />
-    <PackageReference Update="NETStandard.Library" PrivateAssets="all" />
+    <PackageReference Update="NETStandard.Library" />
   </ItemGroup>
 
   <ItemGroup>
