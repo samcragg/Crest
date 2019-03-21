@@ -19,6 +19,7 @@
         [InlineData("/v1/any?stringValue=string&intValue=123", "string 123")]
         [InlineData("/v1/both?stringValue=string&intValue=123&value=test", "test string 123")]
         [InlineData("/v1/captured?value=test", "test")]
+        [InlineData("/v1/typed?integer=456", "456")]
         public async Task EnsureQueryParametersAreCaptured(string route, string expected)
         {
             using (HttpClient client = this.fixture.CreateAuthenticatedClient())

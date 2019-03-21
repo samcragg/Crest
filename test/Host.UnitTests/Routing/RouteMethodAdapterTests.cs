@@ -25,6 +25,8 @@
 
             int NonTaskMethod();
 
+            Task OptionalNullable(int? optional = 321);
+
             Task OptionalParameter(int optional = 321);
 
             Task<object> SimpleMethod();
@@ -116,6 +118,20 @@
 
                 result(null);
                 instance.Received().SimpleMethod();
+            }
+
+            [Fact]
+            public void ShouldPassInDefaultedValuesForOptionalNullablesWithDefaults()
+            {
+                IFakeInterface instance = Substitute.For<IFakeInterface>();
+
+                RouteMethod result = this.adapter.CreateMethod(
+                    () => instance,
+                    typeof(IFakeInterface).GetMethod(nameof(IFakeInterface.OptionalNullable)));
+
+                result(new Dictionary<string, object>());
+
+                instance.Received().OptionalNullable(321);
             }
 
             [Fact]

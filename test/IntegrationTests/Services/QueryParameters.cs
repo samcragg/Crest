@@ -37,6 +37,11 @@
             return Task.FromResult(string.Join(",", numbers));
         }
 
+        public Task<int> WithInteger(int? integer = 123)
+        {
+            return Task.FromResult(integer.GetValueOrDefault());
+        }
+
         public class IntWrapper
         {
             public int Value { get; set; }

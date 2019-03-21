@@ -100,7 +100,7 @@ namespace Crest.Host.Routing
         {
             if (parameter.HasDefaultValue)
             {
-                return Expression.Constant(parameter.DefaultValue);
+                return Expression.Constant(parameter.DefaultValue, parameter.ParameterType);
             }
             else
             {

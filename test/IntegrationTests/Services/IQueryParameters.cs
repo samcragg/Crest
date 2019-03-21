@@ -21,5 +21,9 @@
         [Get("/queryable{?filter*}")]
         [Version(1)]
         Task<string> WithFilter(dynamic filter);
+
+        [Get("/typed{?integer}")]
+        [Version(1)]
+        Task<int> WithInteger(int? integer = 123);
     }
 }
