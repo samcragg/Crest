@@ -17,10 +17,10 @@
 
     public class HttpContextProcessorTests
     {
-        private Bootstrapper bootstrapper;
-        private IContentConverter converter;
-        private IRouteMapper mapper;
-        private HttpContextProcessor processor;
+        private readonly Bootstrapper bootstrapper;
+        private readonly IContentConverter converter;
+        private readonly IRouteMapper mapper;
+        private readonly HttpContextProcessor processor;
 
         protected HttpContextProcessorTests()
         {

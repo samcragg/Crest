@@ -84,7 +84,7 @@
                 this.stream.Length.Should().Be(0);
 
                 this.writer.Flush();
-                this.stream.Length.Should().BeGreaterThan(0);
+                this.stream.Length.Should().BePositive();
             }
         }
 

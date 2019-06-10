@@ -28,20 +28,19 @@ namespace Crest.Host
     {
         private const int InitialSize = 4;
         private string[] keys = new string[InitialSize];
-        private int length;
         private T[] values = new T[InitialSize];
 
         /// <inheritdoc />
-        public int Count => this.length;
+        public int Count { get; private set; }
 
         /// <inheritdoc />
         public bool IsReadOnly => false;
 
         /// <inheritdoc />
-        public ICollection<string> Keys => new ArraySegment<string>(this.keys, 0, this.length);
+        public ICollection<string> Keys => new ArraySegment<string>(this.keys, 0, this.Count);
 
         /// <inheritdoc />
-        public ICollection<T> Values => new ArraySegment<T>(this.values, 0, this.length);
+        public ICollection<T> Values => new ArraySegment<T>(this.values, 0, this.Count);
 
         /// <inheritdoc />
         IEnumerable<string> IReadOnlyDictionary<string, T>.Keys => this.Keys;
@@ -66,7 +65,7 @@ namespace Crest.Host
         {
             this.EnsureSpaceToAdd();
 
-            int index = this.length++;
+            int index = this.Count++;
             this.keys[index] = key;
             this.values[index] = value;
         }
@@ -74,9 +73,9 @@ namespace Crest.Host
         /// <inheritdoc />
         public void Clear()
         {
-            Array.Clear(this.keys, 0, this.length);
-            Array.Clear(this.values, 0, this.length);
-            this.length = 0;
+            Array.Clear(this.keys, 0, this.Count);
+            Array.Clear(this.values, 0, this.Count);
+            this.Count = 0;
         }
 
         /// <inheritdoc />
@@ -88,7 +87,7 @@ namespace Crest.Host
         /// <inheritdoc />
         public IEnumerator<KeyValuePair<string, T>> GetEnumerator()
         {
-            for (int i = 0; i < this.length; i++)
+            for (int i = 0; i < this.Count; i++)
             {
                 yield return new KeyValuePair<string, T>(this.keys[i], this.values[i]);
             }
@@ -182,7 +181,7 @@ namespace Crest.Host
 
         private void EnsureSpaceToAdd()
         {
-            if (this.length == this.keys.Length)
+            if (this.Count == this.keys.Length)
             {
                 Array.Resize(ref this.keys, this.keys.Length * 2);
                 Array.Resize(ref this.values, this.values.Length * 2);
@@ -193,7 +192,7 @@ namespace Crest.Host
         {
             if (key != null)
             {
-                for (int i = 0; i < this.length; i++)
+                for (int i = 0; i < this.Count; i++)
                 {
                     if (EqualsOrdinalIgnoreCase(this.keys[i], key))
                     {

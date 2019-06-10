@@ -217,8 +217,8 @@ namespace Crest.Host.Serialization.UrlEncoded
 
             private int CompareCharacters(Pair other, int part)
             {
-                GetPart(this.indexes, part, out int thisStart, out int thisLength);
-                GetPart(other.indexes, part, out int otherStart, out int otherLength);
+                GetPart(this.indexes, part, out _, out int thisLength);
+                GetPart(other.indexes, part, out _, out int otherLength);
                 int result = string.Compare(
                     this.Key,
                     this.indexes[part],

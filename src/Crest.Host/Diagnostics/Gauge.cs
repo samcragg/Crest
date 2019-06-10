@@ -14,13 +14,9 @@ namespace Crest.Host.Diagnostics
     {
         private const double MicrosecondsPerMinute = 1000 * 1000 * 60; // μs/ms => sec => min
         private readonly ITimeProvider time;
-        private long count;
         private double fifteenMinuteAverage;
         private double fiveMinuteAverage;
         private long lastTimestamp;
-        private long maximum;
-        private double mean;
-        private long minimum;
         private double oneMinuteAverage;
         private double varianceSum;
 
@@ -48,17 +44,17 @@ namespace Crest.Host.Diagnostics
         /// <summary>
         /// Gets the largest value that has been added to this instance.
         /// </summary>
-        public long Maximum => this.maximum;
+        public long Maximum { get; private set; }
 
         /// <summary>
         /// Gets the average of all the values added to this instance.
         /// </summary>
-        public double Mean => this.mean;
+        public double Mean { get; private set; }
 
         /// <summary>
         /// Gets the smallest value that has been added to this instance.
         /// </summary>
-        public long Minimum => this.minimum;
+        public long Minimum { get; private set; }
 
         /// <summary>
         /// Gets the exponential moving average of the values over a one minute
@@ -69,7 +65,7 @@ namespace Crest.Host.Diagnostics
         /// <summary>
         /// Gets the number of values that have been added to this instance.
         /// </summary>
-        public long SampleSize => this.count;
+        public long SampleSize { get; private set; }
 
         /// <summary>
         /// Gets the standard deviation from the mean of the values.
@@ -83,13 +79,13 @@ namespace Crest.Host.Diagnostics
         {
             get
             {
-                if (this.count < 2)
+                if (this.SampleSize < 2)
                 {
                     return 0;
                 }
                 else
                 {
-                    return this.varianceSum / (this.count - 1);
+                    return this.varianceSum / (this.SampleSize - 1);
                 }
             }
         }
@@ -100,7 +96,7 @@ namespace Crest.Host.Diagnostics
         /// <param name="value">The value to add.</param>
         public void Add(long value)
         {
-            this.count++;
+            this.SampleSize++;
             long elapsed = this.GetElapsedMicroseconds();
             this.UpdateMovingWindow(value, elapsed, 1 * MicrosecondsPerMinute, ref this.oneMinuteAverage);
             this.UpdateMovingWindow(value, elapsed, 5 * MicrosecondsPerMinute, ref this.fiveMinuteAverage);
@@ -127,30 +123,30 @@ namespace Crest.Host.Diagnostics
             //             Xk - Ak-1
             // Ak = Ak-1 + ---------
             //                 k
-            double previousMean = this.mean;
-            this.mean += (value - this.mean) / this.count;
+            double previousMean = this.Mean;
+            this.Mean += (value - this.Mean) / this.SampleSize;
 
             // Qk = Qk-1 + (Xk - Ak-1)(Xk - Ak)
-            this.varianceSum += (value - previousMean) * (value - this.mean);
+            this.varianceSum += (value - previousMean) * (value - this.Mean);
         }
 
         private void UpdateMinimumMaximum(long value)
         {
-            if (this.count == 1)
+            if (this.SampleSize == 1)
             {
-                this.maximum = value;
-                this.minimum = value;
+                this.Maximum = value;
+                this.Minimum = value;
             }
             else
             {
-                if (value < this.minimum)
+                if (value < this.Minimum)
                 {
-                    this.minimum = value;
+                    this.Minimum = value;
                 }
 
-                if (value > this.maximum)
+                if (value > this.Maximum)
                 {
-                    this.maximum = value;
+                    this.Maximum = value;
                 }
             }
         }
@@ -159,7 +155,7 @@ namespace Crest.Host.Diagnostics
         {
             // Special case for the first time, which should be seeded with the
             // actual value
-            if (this.count == 1)
+            if (this.SampleSize == 1)
             {
                 current = value;
             }

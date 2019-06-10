@@ -94,7 +94,7 @@ namespace Crest.Host.Routing
                 return null;
             }
 
-            RouteTrie<T> matchedNode = null;
+            RouteTrie<T> matchedNode;
             if (key.Length == match.MatchLength)
             {
                 matchedNode = this;

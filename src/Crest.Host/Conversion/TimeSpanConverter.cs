@@ -260,7 +260,7 @@ namespace Crest.Host.Conversion
             // Scale the number up (i.e. 0.003 becomes 3000)
             for (int i = digits; i < MaximumFractionDigits; i++)
             {
-                fraction = fraction * 10;
+                fraction *= 10;
             }
 
             return fraction;
@@ -360,7 +360,7 @@ namespace Crest.Host.Conversion
         {
             Triplet triplet = default;
             int lastParsedValueStart = index;
-            int remaining = 3;
+            int remaining;
             do
             {
                 double parsed = 0;

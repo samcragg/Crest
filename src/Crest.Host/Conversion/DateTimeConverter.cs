@@ -53,7 +53,7 @@ namespace Crest.Host.Conversion
                     return new ParseResult<DateTime>(error);
                 }
 
-                time = time - offset;
+                time -= offset;
             }
 
             return new ParseResult<DateTime>(date.Add(time), index);
@@ -226,7 +226,7 @@ namespace Crest.Host.Conversion
             }
 
             uint power = (uint)NumberParsing.Pow10(MaximumFractionPrecision - length);
-            fractions = fractions * power;
+            fractions *= power;
             return true;
         }
 
@@ -341,7 +341,7 @@ namespace Crest.Host.Conversion
 
             // The timezone must start with a '+' or '-', unless it's UTC which
             // can be 'Z'
-            int sign = 0;
+            int sign;
             switch (span[index++])
             {
                 case '+':

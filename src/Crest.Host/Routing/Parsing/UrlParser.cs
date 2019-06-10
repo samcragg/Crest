@@ -123,7 +123,7 @@ namespace Crest.Host.Routing.Parsing
         {
             if (this.canReadBody)
             {
-                ParameterData bodyParameter = null;
+                ParameterData bodyParameter;
 
                 // If the HTTP verb allows reading from the body and we have a
                 // single parameter, we assume it will be read from the body without

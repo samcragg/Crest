@@ -15,7 +15,7 @@
         private const string TemplateResourceName = "Crest.OpenApi.SwaggerUI.index.html";
         private readonly IOAdapter io = Substitute.For<IOAdapter>();
         private readonly SpecificationFileLocator specs = Substitute.For<SpecificationFileLocator>();
-        private string htmlTemplate = "{#URLS#}";
+        private readonly string htmlTemplate = "{#URLS#}";
 
         public IndexHtmlGeneratorTests()
         {

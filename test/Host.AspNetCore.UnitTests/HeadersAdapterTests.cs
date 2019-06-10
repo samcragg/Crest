@@ -12,8 +12,8 @@
 
     public class HeadersAdapterTests
     {
-        private HeadersAdapter adapter;
-        private IHeaderDictionary headers;
+        private readonly HeadersAdapter adapter;
+        private readonly IHeaderDictionary headers;
 
         public HeadersAdapterTests()
         {

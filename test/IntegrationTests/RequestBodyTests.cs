@@ -23,8 +23,10 @@ namespace IntegrationTests
         {
             using (HttpClient client = this.fixture.CreateAuthenticatedClient())
             {
-                var message = new HttpRequestMessage(HttpMethod.Put, "/v1/string");
-                message.Content = new StringContent(content, Encoding.UTF8, mediaType);
+                var message = new HttpRequestMessage(HttpMethod.Put, "/v1/string")
+                {
+                    Content = new StringContent(content, Encoding.UTF8, mediaType)
+                };
 
                 string result = await this.fixture.GetResultAsStringAsync(client, message);
 

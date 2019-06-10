@@ -162,8 +162,7 @@ namespace DataAccess.UnitTests.Parsing
             internal void ShouldParseTheSortDirection(string method, SortDirection expected)
             {
                 this.SetQuery(SortParameter, method + ":" + nameof(ExampleClass.Property));
-
-                (PropertyInfo property, SortDirection direction) =
+                (_, SortDirection direction) =
                     this.parser.GetSorting(typeof(ExampleClass)).Single();
 
                 direction.Should().Be(expected);
