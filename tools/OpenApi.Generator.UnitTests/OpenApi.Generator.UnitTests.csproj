@@ -1,17 +1,11 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-  <PropertyGroup>
-    <TargetFramework>netcoreapp2.0</TargetFramework>
-    <GenerateRuntimeConfigurationFiles>true</GenerateRuntimeConfigurationFiles>
-    <LangVersion>latest</LangVersion>
-  </PropertyGroup>
-
   <Import Project="..\..\test\UnitTest.targets" />
   <Import Project="..\..\test\UnitTestPackages.targets" />
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Crest.Core\Crest.Core.csproj" />
     <ProjectReference Include="..\Crest.OpenApi.Generator\Crest.OpenApi.Generator.csproj" />
-    <PackageReference Include="Newtonsoft.Json" Version="12.0.1" />
+    <PackageReference Include="Newtonsoft.Json" Version="12.0.2" />
   </ItemGroup>
 
   <ItemGroup>

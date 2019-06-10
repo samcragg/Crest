@@ -1,14 +1,9 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-  <PropertyGroup>
-    <TargetFramework>netcoreapp2.0</TargetFramework>
-    <LangVersion>latest</LangVersion>
-  </PropertyGroup>
-
   <Import Project="..\UnitTest.targets" />
   <Import Project="..\UnitTestPackages.targets" />
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Crest.DataAccess\Crest.DataAccess.csproj" />
-    <PackageReference Include="AutoMapper" Version="8.0.0" />
+    <PackageReference Include="AutoMapper" Version="8.1.1" />
   </ItemGroup>
 </Project>

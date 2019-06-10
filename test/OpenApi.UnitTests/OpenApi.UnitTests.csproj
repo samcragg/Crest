@@ -1,9 +1,4 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-  <PropertyGroup>
-    <TargetFramework>netcoreapp2.0</TargetFramework>
-    <LangVersion>latest</LangVersion>
-  </PropertyGroup>
-
   <Import Project="..\UnitTest.targets" />
   <Import Project="..\UnitTestPackages.targets" />
 
@@ -13,6 +8,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Crest.OpenApi\Crest.OpenApi.csproj" />
-    <PackageReference Include="Newtonsoft.Json" Version="12.0.1" />
+    <PackageReference Include="Newtonsoft.Json" Version="12.0.2" />
   </ItemGroup>
 </Project>

@@ -169,7 +169,7 @@ Task("RestoreSwaggerUI")
     .Does(() =>
 {
     Information("Downloading package...");
-    var swagger = DownloadFile("https://registry.npmjs.org/swagger-ui-dist/-/swagger-ui-dist-3.20.8.tgz");
+    var swagger = DownloadFile("https://registry.npmjs.org/swagger-ui-dist/-/swagger-ui-dist-3.22.3.tgz");
 
     Information("Expanding package...");
     GZipUncompress(swagger, "./swagger-ui-dist");

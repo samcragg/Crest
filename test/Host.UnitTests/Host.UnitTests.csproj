@@ -1,9 +1,4 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-  <PropertyGroup>
-    <TargetFramework>netcoreapp2.0</TargetFramework>
-    <LangVersion>latest</LangVersion>
-  </PropertyGroup>
-
   <Import Project="..\UnitTest.targets" />
   <Import Project="..\UnitTestPackages.targets" />
 
@@ -14,7 +9,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Crest.Host\Crest.Host.csproj" />
-    <PackageReference Include="Fody" Version="4.0.2" />
+    <PackageReference Include="Fody" Version="4.2.1" PrivateAssets="All" />
     <PackageReference Include="ModuleInit.Fody" Version="1.9.0" />
   </ItemGroup>
 </Project>
