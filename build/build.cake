@@ -112,7 +112,7 @@ Task("IntegrationTests")
     {
         // Specify the path to the test adapter to avoid a warning that no tests
         // were discovered because we filtered them all out
-        settings.TestAdapterPath = project.GetDirectory().CombineWithFilePath("./bin/" + configuration + "/netcoreapp2.0/").FullPath;
+        settings.TestAdapterPath = project.GetDirectory().CombineWithFilePath("./bin/" + configuration + "/netcoreapp2.1/").FullPath;
         DotNetCoreTest(project.FullPath, settings);
     });
 });
