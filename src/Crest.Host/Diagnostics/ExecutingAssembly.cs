@@ -7,6 +7,7 @@ namespace Crest.Host.Diagnostics
 {
     using System;
     using System.Collections.Generic;
+    using System.Diagnostics;
     using System.Linq;
     using System.Reflection;
     using Crest.Core.Logging;
@@ -101,15 +102,16 @@ namespace Crest.Host.Diagnostics
             }
         }
 
+        [DebuggerStepThrough]
         private Assembly LoadAssembly(string name)
         {
             try
             {
                 return this.AssemblyLoad(new AssemblyName(name));
             }
-            catch
+            catch (Exception ex)
             {
-                Logger.Warn("Unable to load library {name}", name);
+                Logger.WarnException("Unable to load library {name}", ex, name);
                 return null;
             }
         }

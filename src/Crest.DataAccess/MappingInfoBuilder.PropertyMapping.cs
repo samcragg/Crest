@@ -7,6 +7,7 @@ namespace Crest.DataAccess
 {
     using System;
     using System.Linq.Expressions;
+    using Crest.Core.Util;
 
     /// <content>
     /// Contains the nested <see cref="PropertyMapping"/> struct.
@@ -47,6 +48,8 @@ namespace Crest.DataAccess
             /// <param name="property">The expression to access the property.</param>
             public void To<T>(Expression<Func<TDest, T>> property)
             {
+                Check.IsNotNull(property, nameof(property));
+
                 this.parent.mappings.Add(
                     Expression.Assign(property.Body, this.source));
             }

@@ -8,6 +8,7 @@ namespace Crest.DataAccess
     using System;
     using System.Collections.Generic;
     using System.Linq.Expressions;
+    using Crest.Core.Util;
 
     /// <summary>
     /// Provides construction methods for creating a <see cref="MappingInfo"/>.
@@ -26,6 +27,8 @@ namespace Crest.DataAccess
         /// <returns>A helper object to build the rest of the mapping.</returns>
         public PropertyMapping Map<T>(Expression<Func<TSource, T>> property)
         {
+            Check.IsNotNull(property, nameof(property));
+
             return new PropertyMapping(this, property.Body);
         }
 

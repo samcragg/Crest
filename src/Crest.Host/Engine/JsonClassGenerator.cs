@@ -44,12 +44,14 @@ namespace Crest.Host.Engine
                 Expression.Assign(instance, Expression.Convert(parameter, type)),
             };
 
-            var parser = new JsonObjectParser(json);
-            body.AddRange(AssignProperties(instance, parser.GetPairs()));
+            using (var parser = new JsonObjectParser(json))
+            {
+                body.AddRange(AssignProperties(instance, parser.GetPairs()));
 
-            return Expression.Lambda<Action<object>>(
-                Expression.Block(new[] { instance }, body),
-                parameter).Compile();
+                return Expression.Lambda<Action<object>>(
+                    Expression.Block(new[] { instance }, body),
+                    parameter).Compile();
+            }
         }
 
         private static IEnumerable<Expression> AssignProperties(
@@ -91,10 +93,11 @@ namespace Crest.Host.Engine
 
                     return Expression.Constant(converted, type);
                 }
-                catch
+                catch (Exception ex)
                 {
-                    Logger.ErrorFormat(
+                    Logger.ErrorException(
                         "Unable to convert '{value}' to {type}",
+                        ex,
                         value,
                         type.Name);
                 }
@@ -109,12 +112,14 @@ namespace Crest.Host.Engine
             Expression createValue = null;
             if (propertyType.IsArray)
             {
-                var parser = new JsonObjectParser(value);
-                Type elementType = propertyType.GetElementType();
+                using (var parser = new JsonObjectParser(value))
+                {
+                    Type elementType = propertyType.GetElementType();
 
-                createValue = Expression.NewArrayInit(
-                    elementType,
-                    parser.GetArrayValues().Select(s => ConvertValue(s, elementType)));
+                    createValue = Expression.NewArrayInit(
+                        elementType,
+                        parser.GetArrayValues().Select(s => ConvertValue(s, elementType)));
+                }
             }
             else
             {

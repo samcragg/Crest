@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RuleSet Name="DefaultRules" ToolsVersion="10.0">
+  <Include Path="%USERPROFILE%/.nuget/packages/microsoft.codeanalysis.fxcopanalyzers/2.9.3/rulesets/AllRulesDefault.ruleset" Action="Default" />
+  
+  <Rules AnalyzerId="Microsoft.NetCore.Analyzers" RuleNamespace="Microsoft.NetCore.Analyzers">
+    <Rule Id="CA1303" Action="None" />
+  </Rules>
+</RuleSet>

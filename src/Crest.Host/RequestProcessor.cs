@@ -74,9 +74,10 @@ namespace Crest.Host
         /// <returns>A task that represents the asynchronous operation.</returns>
         protected internal async Task HandleRequestAsync(MatchResult match, Func<MatchResult, IRequestData> request)
         {
+            Check.IsNotNull(request, nameof(request));
+
             IRequestData requestData = null;
             IResponseData response;
-
             try
             {
                 requestData = request(match.IsOverride ? NoMatch : match);
@@ -108,6 +109,7 @@ namespace Crest.Host
         /// </returns>
         protected internal virtual async Task<IResponseData> InvokeHandlerAsync(IRequestData request, IContentConverter converter)
         {
+            Check.IsNotNull(request, nameof(request));
             this.metrics.MarkStartProcessing();
 
             RouteMethod method = this.mapper.GetAdapter(request.Handler);
@@ -187,6 +189,7 @@ namespace Crest.Host
             IRequestData request,
             IResponseData response)
         {
+            Check.IsNotNull(locator, nameof(locator));
             this.metrics.MarkStartPostProcessing();
 
             IPostRequestPlugin[] plugins = locator.GetAfterRequestPlugins();
@@ -217,6 +220,7 @@ namespace Crest.Host
         /// </remarks>
         protected internal virtual async Task<IResponseData> OnBeforeRequestAsync(IServiceLocator locator, IRequestData request)
         {
+            Check.IsNotNull(locator, nameof(locator));
             this.metrics.MarkStartPreProcessing();
 
             IPreRequestPlugin[] plugins = locator.GetBeforeRequestPlugins();

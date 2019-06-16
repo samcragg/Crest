@@ -49,7 +49,7 @@ namespace Crest.OpenApi
                 DocumentationBaseRoute,
                 DocumentationBaseRoute + "/index.html");
 
-            yield return this.CreateMetadata(
+            yield return CreateMetadata(
                 DocumentationBaseRoute + "/index.html",
                 Html,
                 "index.html",
@@ -76,59 +76,7 @@ namespace Crest.OpenApi
             }
         }
 
-        private IEnumerable<DirectRouteMetadata> GetSpecificationFiles()
-        {
-            DirectRouteMetadata ExposeFile(string path)
-            {
-                // Normalize the file ending so we serve openapi.json.gz as openapi.json
-                string route = path;
-                if (path.EndsWith(".gz", StringComparison.OrdinalIgnoreCase))
-                {
-                    route = route.Substring(0, route.Length - 3);
-                }
-
-                return this.CreateRouteFromFile(DocumentationBaseRoute + "/" + route, path, Javascript);
-            }
-
-            return this.specFiles.RelativePaths.Select(ExposeFile);
-        }
-
-        private DirectRouteMetadata CreateRedirect(string from, string to)
-        {
-            var redirect = Task.FromResult<IResponseData>(new RedirectResponse(to));
-            return new DirectRouteMetadata
-            {
-                Method = (r, c) => redirect,
-                Path = from,
-                Verb = "GET",
-            };
-        }
-
-        private DirectRouteMetadata CreateRouteFromFile(string route, string path, string contentType)
-        {
-            string fullPath = Path.Combine(
-                this.io.GetBaseDirectory(),
-                SpecificationFileLocator.DocsDirectory,
-                path);
-
-            return this.CreateMetadata(
-                route,
-                contentType,
-                path,
-                () => this.io.OpenRead(fullPath));
-        }
-
-        private DirectRouteMetadata CreateRouteFromResource(string route, string resourceName, string contentType)
-        {
-            string resource = "Crest.OpenApi.SwaggerUI." + resourceName;
-            return this.CreateMetadata(
-                route,
-                contentType,
-                resourceName,
-                () => this.io.OpenResource(resource));
-        }
-
-        private DirectRouteMetadata CreateMetadata(string route, string contentType, string name, Func<Stream> source)
+        private static DirectRouteMetadata CreateMetadata(string route, string contentType, string name, Func<Stream> source)
         {
             Task<IResponseData> CreateResponse(IRequestData request, IContentConverter converter)
             {
@@ -156,6 +104,58 @@ namespace Crest.OpenApi
                 Path = route,
                 Verb = "GET",
             };
+        }
+
+        private DirectRouteMetadata CreateRedirect(string from, string to)
+        {
+            var redirect = Task.FromResult<IResponseData>(new RedirectResponse(to));
+            return new DirectRouteMetadata
+            {
+                Method = (r, c) => redirect,
+                Path = from,
+                Verb = "GET",
+            };
+        }
+
+        private DirectRouteMetadata CreateRouteFromFile(string route, string path, string contentType)
+        {
+            string fullPath = Path.Combine(
+                this.io.GetBaseDirectory(),
+                SpecificationFileLocator.DocsDirectory,
+                path);
+
+            return CreateMetadata(
+                route,
+                contentType,
+                path,
+                () => this.io.OpenRead(fullPath));
+        }
+
+        private DirectRouteMetadata CreateRouteFromResource(string route, string resourceName, string contentType)
+        {
+            string resource = "Crest.OpenApi.SwaggerUI." + resourceName;
+            return CreateMetadata(
+                route,
+                contentType,
+                resourceName,
+                () => this.io.OpenResource(resource));
+        }
+
+        private IEnumerable<DirectRouteMetadata> GetSpecificationFiles()
+        {
+            DirectRouteMetadata ExposeFile(string path)
+            {
+                // Normalize the file ending so we serve openapi.json.gz as openapi.json
+                string route = path;
+                if (path.EndsWith(".gz", StringComparison.OrdinalIgnoreCase))
+                {
+                    route = route.Substring(0, route.Length - 3);
+                }
+
+                return this.CreateRouteFromFile(DocumentationBaseRoute + "/" + route, path, Javascript);
+            }
+
+            return this.specFiles.RelativePaths.Select(ExposeFile);
         }
     }
 }

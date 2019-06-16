@@ -28,6 +28,10 @@ namespace Crest.Host
         /// <summary>
         /// Initializes a new instance of the <see cref="Bootstrapper"/> class.
         /// </summary>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage(
+            "Reliability",
+            "CA2000:Dispose objects before losing scope",
+            Justification = "The object is disposed in the Dispose(bool) method")]
         protected Bootstrapper()
             : this(new ServiceLocator())
         {

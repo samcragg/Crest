@@ -29,26 +29,23 @@ namespace Crest.Host.Security
         /// <inheritdoc />
         public bool IsValid(byte[] data, byte[] signature, HashAlgorithmName algorithm)
         {
-            HMAC hmac = GetAlgorithm(algorithm);
-            if ((hmac == null) || (signature == null))
+            if (signature != null)
             {
-                return false;
-            }
-
-            using (hmac)
-            {
-                if (signature.Length != (hmac.HashSize / 8))
+                using (HMAC hmac = GetAlgorithm(algorithm))
                 {
-                    return false;
-                }
-
-                foreach (byte[] secret in this.keys.GetSecretKeys())
-                {
-                    hmac.Key = secret;
-                    byte[] hash = hmac.ComputeHash(data);
-                    if (ArraysAreEqual(signature, hash))
+                    if ((hmac == null) || (signature.Length != (hmac.HashSize / 8)))
                     {
-                        return true;
+                        return false;
+                    }
+
+                    foreach (byte[] secret in this.keys.GetSecretKeys())
+                    {
+                        hmac.Key = secret;
+                        byte[] hash = hmac.ComputeHash(data);
+                        if (ArraysAreEqual(signature, hash))
+                        {
+                            return true;
+                        }
                     }
                 }
             }
